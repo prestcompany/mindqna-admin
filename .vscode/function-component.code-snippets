@@ -1,0 +1,18 @@
+{
+  "Default Component": {
+    "prefix": ["Function Component"],
+    "body": [
+      "import React from \"react\";",
+      "",
+      "interface I${1:${TM_FILENAME_BASE/(^[a-z])|\\-([0-9a-z])/${1:/capitalize}${2:/capitalize}/g}}Props {}",
+      "",
+      "const ${1:${TM_FILENAME_BASE/(^[a-z])|\\-([0-9a-z])/${1:/capitalize}${2:/capitalize}/g}} = () => {",
+      "  return <></>;",
+      "};",
+      "",
+      "export default React.memo(${1:${TM_FILENAME_BASE/(^[a-z])|\\-([0-9a-z])/${1:/capitalize}${2:/capitalize}/g}});",
+      ""
+    ],
+    "description": "기본 컴포넌트 템플릿"
+  }
+}

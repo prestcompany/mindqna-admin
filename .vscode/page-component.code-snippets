@@ -1,0 +1,23 @@
+{
+  "Default Component": {
+    "prefix": ["Page Component"],
+    "body": [
+      "import { getDefaultLayout, IDefaultLayoutPage, IPageHeader } from \"@/components/layout/default-layout\";",
+      "",
+      "const pageHeader: IPageHeader = {",
+      "  title: \"${1:${TM_FILENAME_BASE/(^[a-z])|\\-([0-9a-z])/${1:/capitalize}${2:/capitalize}/g}}\",",
+      "};",
+      "",
+      "const ${1:${TM_FILENAME_BASE/(^[a-z])|\\-([0-9a-z])/${1:/capitalize}${2:/capitalize}/g}}Page: IDefaultLayoutPage = () => {",
+      "  return <></>;",
+      "};",
+      "",
+      "${1:${TM_FILENAME_BASE/(^[a-z])|\\-([0-9a-z])/${1:/capitalize}${2:/capitalize}/g}}Page.getLayout = getDefaultLayout;",
+      "${1:${TM_FILENAME_BASE/(^[a-z])|\\-([0-9a-z])/${1:/capitalize}${2:/capitalize}/g}}Page.pageHeader = pageHeader;",
+      "",
+      "export default ${1:${TM_FILENAME_BASE/(^[a-z])|\\-([0-9a-z])/${1:/capitalize}${2:/capitalize}/g}}Page;",
+      ""
+    ],
+    "description": "기본 페이지 템플릿"
+  }
+}
