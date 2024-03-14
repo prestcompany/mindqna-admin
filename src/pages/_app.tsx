@@ -1,8 +1,8 @@
-import { fetcher } from "@/client/base";
 import { IDefaultLayoutPage } from "@/components/layout/default-layout";
 import SeoHead from "@/components/layout/seo-head";
 import AuthProvider from "@/lib/auth/auth-provider";
 import "@/styles/globals.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider } from "antd";
 import koKR from "antd/locale/ko_KR";
 import { NextComponentType } from "next";
@@ -10,13 +10,14 @@ import { SessionProvider } from "next-auth/react";
 import type { AppProps } from "next/app";
 import localFont from "next/font/local";
 import Head from "next/head";
-import { SWRConfig } from "swr";
 
 const pretendard = localFont({
   src: "../fonts/PretendardVariable.woff2",
   weight: "45 920",
   variable: "--font-pretendard",
 });
+
+const queryClient = new QueryClient();
 
 export default function App({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   const getLayout =
@@ -35,23 +36,14 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
           <script src="https://buttr.dev/butter.js" data-site-id={process.env.NEXT_PUBLIC_CODENBUTTER_SITE_ID} async />
         ) : null}
       </Head>
-      <ConfigProvider
-        theme={{
-          token: {
-            colorPrimary: "#63489a",
-            colorLink: "#63489a",
-            colorLinkHover: "#7f68a6",
-          },
-        }}
-        locale={koKR}
-      >
-        <SWRConfig value={{ fetcher, revalidateOnFocus: false }}>
+      <ConfigProvider locale={koKR}>
+        <QueryClientProvider client={queryClient}>
           <SessionProvider session={session}>
             <AuthProvider>
               <main className={`${pretendard.variable} font-sans`}>{getLayout(Component, pageProps)}</main>
             </AuthProvider>
           </SessionProvider>
-        </SWRConfig>
+        </QueryClientProvider>
       </ConfigProvider>
     </>
   );
