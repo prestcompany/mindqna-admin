@@ -1,9 +1,10 @@
-import { publishCardTemplates, unpublishCardTemplates } from "@/client/card";
+import { publishCardTemplates, removeCardTemplate, unpublishCardTemplates } from "@/client/card";
 import { CardTemplate, CardTemplateType, GetCardTemplatesResult, SpaceType } from "@/client/types";
 import useCardTemplates from "@/hooks/useCardTemplates";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button, Table, TableProps, Tag, message } from "antd";
+import { Button, Modal, Table, TableProps, Tag, message } from "antd";
 import { produce } from "immer";
+import { useRouter } from "next/router";
 import { useState } from "react";
 
 function CardList() {
@@ -13,8 +14,25 @@ function CardList() {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [messageApi, contextHolder] = message.useMessage();
   const [filter, setFilter] = useState<{ type?: CardTemplateType[]; spaceType?: SpaceType[]; locale?: string[] }>({});
+  const [modal, holder] = Modal.useModal();
 
-  const { templates, totalPage, isLoading } = useCardTemplates({ page: currentPage, ...filter });
+  const { push } = useRouter();
+
+  const { templates, totalPage, isLoading, refetch } = useCardTemplates({ page: currentPage, ...filter });
+
+  const handleEdit = (value: CardTemplate) => {
+    push({ query: value });
+  };
+
+  const handleRemove = (value: CardTemplate) => {
+    modal.confirm({
+      title: `삭제 ${value.name}`,
+      onOk: async () => {
+        await removeCardTemplate(value.id);
+        await refetch();
+      },
+    });
+  };
 
   const handleTableChange: TableProps<CardTemplate>["onChange"] = async (pagination, filter) => {
     setFilter(filter);
@@ -119,6 +137,17 @@ function CardList() {
       ],
     },
     {
+      title: "Action",
+      dataIndex: "",
+      key: "x",
+      render: (value) => (
+        <div className="flex gap-4">
+          <Button onClick={() => handleEdit(value)}>수정</Button>
+          <Button onClick={() => handleRemove(value)}>삭제</Button>
+        </div>
+      ),
+    },
+    {
       title: "상태",
       dataIndex: "isPublished",
       key: "isPublished",
@@ -138,6 +167,7 @@ function CardList() {
   return (
     <div>
       {contextHolder}
+      {holder}
       <Table
         rowSelection={rowSelection}
         rowKey={"id"}

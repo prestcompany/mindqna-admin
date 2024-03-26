@@ -1,11 +1,23 @@
-import { createCardTemplate } from "@/client/card";
-import { CardTemplateType, SpaceType } from "@/client/types";
+import { createCardTemplate, updateCardTemplate } from "@/client/card";
+import { CardTemplate, CardTemplateType, SpaceType } from "@/client/types";
 import { Button, Checkbox, Divider, Form, Input, Radio, message } from "antd";
-import { useState } from "react";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 
 function CardForm() {
   const [isLoading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
+  const { pathname, query } = useRouter();
+
+  useEffect(() => {
+    if (!query.id) return;
+    const { id, name, locale, type, spaceType } = query as unknown as CardTemplate;
+    setEditId(id);
+    setLocale(locale);
+    setName(name);
+    setType(type);
+    setSpaceTypes([spaceType]);
+  }, [query]);
 
   const optionsLocale: { label: string; value: string }[] = [
     { label: "ko", value: "ko" },
@@ -36,6 +48,7 @@ function CardForm() {
     { label: "friends", value: "friends" },
   ];
 
+  const [editId, setEditId] = useState<number | undefined>(undefined);
   const [locale, setLocale] = useState(optionsLocale[0].value);
   const [name, setName] = useState("");
   const [type, setType] = useState<CardTemplateType>(optionsType[0].value);
@@ -57,10 +70,15 @@ function CardForm() {
     if (disabled) return;
     try {
       setLoading(true);
-      await createCardTemplate({ name, locale, type, spaceTypes });
+      if (editId) {
+        await updateCardTemplate({ templateId: editId, name, locale, type, spaceTypes });
+      } else {
+        await createCardTemplate({ name, locale, type, spaceTypes });
+      }
       messageApi.success({
         content: "성공",
       });
+      window.location.replace(pathname);
       clearAll();
     } catch (err) {
       messageApi.error({
@@ -112,7 +130,7 @@ function CardForm() {
         </Form.Item>
         <Form.Item>
           <Button onClick={handleSubmit} type="primary" htmlType="submit" disabled={disabled} loading={isLoading}>
-            저장
+            {editId ? "수정" : "저장"}
           </Button>
         </Form.Item>
       </Form>
