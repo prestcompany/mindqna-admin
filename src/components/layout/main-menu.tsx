@@ -18,10 +18,24 @@ const mainMenuData: IMenu[] = [
     icon: <Package2 className="w-5 h-5" />,
     submenu: [
       {
+        id: "assets",
+        name: "이미지",
+        link: {
+          path: "/product/assets",
+        },
+      },
+      {
         id: "card",
         name: "카드 템플릿",
         link: {
           path: "/product/card",
+        },
+      },
+      {
+        id: "interior",
+        name: "가구 템플릿",
+        link: {
+          path: "/product/interior",
         },
       },
     ],

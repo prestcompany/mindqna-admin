@@ -13,7 +13,7 @@ export type SpaceType = "couple" | "family" | "friends" | "alone";
 
 export type CardTemplateType = "basic" | "random" | "bonus";
 
-export type PageInfo = {
+export type TotalPageInfo = {
   totalPage: number;
 };
 
@@ -37,6 +37,36 @@ export type GetCardTemplatesParams = {
 };
 
 export type GetCardTemplatesResult = {
-  pageInfo: PageInfo;
+  pageInfo: TotalPageInfo;
   templates: CardTemplate[];
+};
+
+export type InteriorTemplateType = "item" | "todayFrame";
+
+export type CreateInteriorTemplateParams = {
+  img: File;
+  type: InteriorTemplateType;
+  name: string;
+  category: string;
+  price: number;
+  isPaid: boolean;
+  width: number;
+  height: number;
+  disablePositions: string; // format (x,y) sperator " " | ex (0,0) (0,4)
+};
+
+export type ImgItem = {
+  id: number;
+  uri: string;
+  createdAt: string;
+};
+
+export type PageInfo = {
+  hasNext: boolean;
+  endCursor: number | undefined;
+};
+
+export type GetAssetsResult = {
+  pageInfo: PageInfo;
+  imgs: ImgItem[];
 };

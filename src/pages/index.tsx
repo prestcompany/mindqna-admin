@@ -1,4 +1,4 @@
-import { getDefaultLayout, IDefaultLayoutPage, IPageHeader } from "@/components/layout/default-layout";
+import { IDefaultLayoutPage, IPageHeader, getDefaultLayout } from "@/components/layout/default-layout";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { Divider } from "antd";
 

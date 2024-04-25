@@ -14,6 +14,7 @@
     "@tanstack/react-query": "^5.28.0",
     "@uiw/react-codemirror": "^4.21.9",
     "antd": "^5.7.3",
+    "antd-img-crop": "^4.21.0",
     "axios": "^1.6.7",
     "dayjs": "^1.11.9",
     "framer-motion": "^10.15.0",
@@ -26,6 +27,8 @@
     "react": "18.2.0",
     "react-countup": "^6.4.2",
     "react-dom": "18.2.0",
+    "react-infinite-scroll-component": "^6.1.0",
+    "react-infinite-scroll-hook": "^4.1.1",
     "react-quill": "^2.0.0",
     "zustand": "^4.5.2"
   },
