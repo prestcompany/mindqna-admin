@@ -41,11 +41,12 @@ export type GetCardTemplatesResult = {
   templates: CardTemplate[];
 };
 
-export type InteriorTemplateType = "item" | "todayFrame";
+export type InteriorTemplateType = "item" | "todayFrame" | "event";
 
 export type CreateInteriorTemplateParams = {
-  img: File;
+  imgId: number;
   type: InteriorTemplateType;
+  room: string;
   name: string;
   category: string;
   price: number;
@@ -53,6 +54,22 @@ export type CreateInteriorTemplateParams = {
   width: number;
   height: number;
   disablePositions: string; // format (x,y) sperator " " | ex (0,0) (0,4)
+};
+
+export type InteriorTemplate = {
+  id: number;
+  type: InteriorTemplateType;
+  name: string;
+  room: string;
+  category: string;
+  price: number;
+  isPaid: boolean;
+  width: number;
+  height: number;
+  disablePositions: string;
+  img: ImgItem;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type ImgItem = {
@@ -69,4 +86,9 @@ export type PageInfo = {
 export type GetAssetsResult = {
   pageInfo: PageInfo;
   imgs: ImgItem[];
+};
+
+export type GetInteriorTemplatesResult = {
+  pageInfo: PageInfo;
+  templates: InteriorTemplate[];
 };

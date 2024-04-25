@@ -1,11 +1,11 @@
 import { getDefaultLayout } from "@/components/layout/default-layout";
 import pageHeader from "@/components/layout/page-header";
-import InteriorForm from "@/components/page/interior/InteriorForm";
+import InteriorList from "@/components/page/interior/InteriorList";
 
 function InteriorPage() {
   return (
     <div>
-      <InteriorForm />
+      <InteriorList />
     </div>
   );
 }
