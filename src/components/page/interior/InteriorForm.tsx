@@ -1,6 +1,5 @@
 import { createInteriorTemplate, updateInteriorTemplate } from "@/client/interior";
 import { ImgItem, InteriorTemplate, InteriorTemplateType } from "@/client/types";
-import useAssets from "@/hooks/useAssets";
 import { Button, Form, Image, Input, InputNumber, Radio, Spin, message } from "antd";
 import { useEffect, useState } from "react";
 import AssetsDrawer from "../assets/AssetsDrawer";
@@ -10,7 +9,6 @@ type InteriorFormProps = {
 };
 
 function InteriorForm({ init }: InteriorFormProps) {
-  const { imgs } = useAssets();
   const [isLoading, setLoading] = useState(false);
 
   const [focusedId, setFocusedId] = useState<number | undefined>(undefined);
@@ -30,7 +28,7 @@ function InteriorForm({ init }: InteriorFormProps) {
 
     setFocusedId(init.id);
     if (init.img) {
-      setImage(imgs.find((img) => img.id === init.img.id));
+      setImage(init.img);
     }
     setName(init.name);
     setType(init.type);

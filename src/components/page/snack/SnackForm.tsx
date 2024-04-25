@@ -1,6 +1,5 @@
 import { createSnack, updateSnack } from "@/client/snack";
 import { ImgItem, PetType, Snack } from "@/client/types";
-import useAssets from "@/hooks/useAssets";
 import { Button, Form, Image, Input, InputNumber, Radio, Spin, message } from "antd";
 import { useEffect, useState } from "react";
 import AssetsDrawer from "../assets/AssetsDrawer";
@@ -10,8 +9,6 @@ type Props = {
 };
 
 function SnackForm({ init }: Props) {
-  const { imgs } = useAssets();
-
   const [isLoading, setLoading] = useState(false);
 
   const [focusedId, setFocusedId] = useState<number>();
@@ -26,7 +23,7 @@ function SnackForm({ init }: Props) {
   useEffect(() => {
     if (!init) return;
     if (init.Img) {
-      setImage(imgs.find((img) => img.id === init.Img.id));
+      setImage(init.Img);
     }
     setFocusedId(init.id);
     setName(init.name);

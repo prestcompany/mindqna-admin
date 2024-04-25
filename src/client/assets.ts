@@ -1,8 +1,14 @@
 import client from "./@base";
-import { GetAssetsResult } from "./types";
+import { GetAssetsResult, ImgItem } from "./types";
 
 export async function getAssets(cursor: number) {
   const res = await client.get<GetAssetsResult>("/assets", { params: { cursor } });
+
+  return res.data;
+}
+
+export async function getAsset(id: number) {
+  const res = await client.get<ImgItem>(`/assets/${id}`);
 
   return res.data;
 }
