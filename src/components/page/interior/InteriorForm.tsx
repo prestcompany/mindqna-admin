@@ -127,6 +127,13 @@ function InteriorForm({ init }: InteriorFormProps) {
         </Form.Item>
         <Form.Item label="룸 타입">
           <Input value={room} onChange={(e) => setRoom(e.target.value)} />
+          <div className="flex items-center gap-2">
+            <div>room: 따뜻한 방</div>
+            <div>princess: 공주방</div>
+            <div>kitchen: 부엌</div>
+            <div>rooftop: 다락방</div>
+            <div>garden: 마당</div>
+          </div>
         </Form.Item>
         <div className="flex items-center gap-6">
           <Form.Item label="코인 타입">

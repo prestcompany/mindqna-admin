@@ -20,7 +20,7 @@ function AssetsForm() {
       }
       if (status === "done") {
       } else if (status === "error") {
-        message.error(`${info.file.name} file upload failed.`);
+        // message.error(`${info.file.name} file upload failed.`);
       }
     },
     onDrop(e) {
