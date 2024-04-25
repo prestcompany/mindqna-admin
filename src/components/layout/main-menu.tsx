@@ -38,6 +38,20 @@ const mainMenuData: IMenu[] = [
           path: "/product/interior",
         },
       },
+      {
+        id: "bubble",
+        name: "펫 말풍선",
+        link: {
+          path: "/product/bubble",
+        },
+      },
+      {
+        id: "locale",
+        name: "다국어",
+        link: {
+          path: "/product/locales",
+        },
+      },
     ],
   },
 ];

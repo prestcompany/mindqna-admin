@@ -50,6 +50,8 @@ function InteriorForm({ init }: InteriorFormProps) {
 
   const typeOptions = [
     { label: "아이템", value: "item" },
+    { label: "벽지", value: "wall" },
+    { label: "바닥", value: "floor" },
     { label: "이벤트", value: "event" },
   ];
 
@@ -91,7 +93,6 @@ function InteriorForm({ init }: InteriorFormProps) {
         });
       }
 
-      setLoading(false);
       window.location.reload();
     } catch (err) {
       message.error(`${err}`);

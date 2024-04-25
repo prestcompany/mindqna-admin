@@ -41,7 +41,7 @@ export type GetCardTemplatesResult = {
   templates: CardTemplate[];
 };
 
-export type InteriorTemplateType = "item" | "todayFrame" | "event";
+export type InteriorTemplateType = "item" | "wall" | "floor" | "todayFrame" | "event";
 
 export type CreateInteriorTemplateParams = {
   imgId: number;
@@ -91,4 +91,26 @@ export type GetAssetsResult = {
 export type GetInteriorTemplatesResult = {
   pageInfo: TotalPageInfo;
   templates: InteriorTemplate[];
+};
+
+export type CreateLocaleParams = {
+  key: string;
+  value: string;
+  locale: Locale;
+};
+
+export type Locale = "ko" | "en" | "zh" | "ja";
+
+export type GetLocalesResult = {
+  pageInfo: TotalPageInfo;
+  words: LocaleWord[];
+};
+
+export type LocaleWord = {
+  id: number;
+  locale: Locale;
+  key: string;
+  value: string;
+  createdAt: string;
+  updated: string;
 };
