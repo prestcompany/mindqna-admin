@@ -114,3 +114,34 @@ export type LocaleWord = {
   createdAt: string;
   updated: string;
 };
+
+export type CreateBubbleParams = {
+  message: string;
+  level: number;
+  locale: Locale;
+  type: BubbleType;
+};
+
+export type BubbleType = "general" | "day" | "night" | "custom";
+
+export type GetBubblesResult = {
+  pageInfo: TotalPageInfo;
+  items: PetBubble[];
+};
+
+export type PetBubble = {
+  id: number;
+
+  type: BubbleType;
+  message: string;
+  level: number;
+  locale: Locale;
+
+  heart: number;
+  // interiorTemplateId In
+
+  // customName            String?
+  // customTargetDate      DateTime?
+  // customTargetCardOrder Int?
+  // customHasAction       Boolean?  @default(false)
+};

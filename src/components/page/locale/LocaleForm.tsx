@@ -58,16 +58,16 @@ function LocaleForm({ init }: LocaleFormProps) {
   return (
     <>
       <Spin spinning={isLoading} fullscreen />
-      <Form.Item label="타입">
-        <Radio.Group
-          options={localeOptions}
-          optionType="button"
-          buttonStyle="solid"
-          value={locale}
-          onChange={(e) => setLocale(e.target.value)}
-        />
-      </Form.Item>
       <Form>
+        <Form.Item label="locale">
+          <Radio.Group
+            options={localeOptions}
+            optionType="button"
+            buttonStyle="solid"
+            value={locale}
+            onChange={(e) => setLocale(e.target.value)}
+          />
+        </Form.Item>
         <Form.Item label="key">
           <Input value={key} onChange={(e) => setKey(e.target.value)} />
         </Form.Item>
