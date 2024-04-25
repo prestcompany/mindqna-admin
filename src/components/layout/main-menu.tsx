@@ -46,6 +46,13 @@ const mainMenuData: IMenu[] = [
         },
       },
       {
+        id: "snack",
+        name: "펫 간식",
+        link: {
+          path: "/product/snack",
+        },
+      },
+      {
         id: "locale",
         name: "다국어",
         link: {

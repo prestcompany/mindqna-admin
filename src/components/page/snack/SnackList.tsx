@@ -1,33 +1,31 @@
-import { removeInteriorTemplate } from "@/client/interior";
-import { ImgItem, InteriorTemplate } from "@/client/types";
-import useInteriors from "@/hooks/useInteriors";
-import { Button, Drawer, Image, Modal, Table, Tag, message } from "antd";
-import { TableProps } from "antd/lib";
+import { removeSnack } from "@/client/snack";
+import { ImgItem, Snack } from "@/client/types";
+import useSnacks from "@/hooks/useSnack";
+import { Button, Drawer, Image, Modal, Table, TableProps, Tag, message } from "antd";
 import { useState } from "react";
-import InteriorForm from "./InteriorForm";
+import SnackForm from "./SnackForm";
 
-function InteriorList() {
+function SnackList() {
   const [modal, holder] = Modal.useModal();
 
   const [currentPage, setCurrentPage] = useState(1);
+  const { items, totalPage, isLoading } = useSnacks(currentPage);
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
-  const [focused, setFocused] = useState<InteriorTemplate | undefined>(undefined);
+  const [focused, setFocused] = useState<Snack | undefined>(undefined);
 
-  const { templates, totalPage, isLoading } = useInteriors({ page: currentPage });
-
-  const handleEdit = (value: InteriorTemplate) => {
+  const handleEdit = (value: Snack) => {
     setFocused(value);
     setOpenEdit(true);
   };
 
-  const handleRemove = (value: InteriorTemplate) => {
+  const handleRemove = (value: Snack) => {
     modal.confirm({
-      title: `삭제 ${value.name}`,
+      title: `삭제 (${value.name})`,
       onOk: async () => {
         try {
-          await removeInteriorTemplate(value.id);
+          await removeSnack(value.id);
           window.location.reload();
         } catch (err) {
           message.error(`${err}`);
@@ -36,13 +34,13 @@ function InteriorList() {
     });
   };
 
-  const columns: TableProps<InteriorTemplate>["columns"] = [
+  const columns: TableProps<Snack>["columns"] = [
     {
       title: "이미지",
-      dataIndex: "img",
-      key: "img",
+      dataIndex: "Img",
+      key: "Img",
       render: (value: ImgItem) => {
-        return <Image width={"100%"} height={100} src={value?.uri ?? ""} alt="img" style={{ objectFit: "contain" }} />;
+        return <Image width={"100%"} height={60} src={value?.uri ?? ""} alt="img" style={{ objectFit: "contain" }} />;
       },
     },
     {
@@ -57,19 +55,20 @@ function InteriorList() {
       key: "name",
     },
     {
-      title: "타입",
+      title: "진화하는 펫",
       dataIndex: "type",
       key: "type",
     },
     {
-      title: "방 타입",
-      dataIndex: "room",
-      key: "room",
+      title: "경험치",
+      dataIndex: "exp",
+      key: "exp",
     },
+
     {
-      title: "카테고리",
-      dataIndex: "category",
-      key: "category",
+      title: "순서",
+      dataIndex: "order",
+      key: "order",
     },
     {
       title: "가격",
@@ -84,16 +83,7 @@ function InteriorList() {
         return <Tag color={value ? "success" : "default"}>{value ? "유료" : "무료"}</Tag>;
       },
     },
-    {
-      title: "width",
-      dataIndex: "width",
-      key: "width",
-    },
-    {
-      title: "height",
-      dataIndex: "height",
-      key: "height",
-    },
+
     {
       title: "Action",
       dataIndex: "",
@@ -106,7 +96,6 @@ function InteriorList() {
       ),
     },
   ];
-
   return (
     <>
       {holder}
@@ -121,7 +110,7 @@ function InteriorList() {
         추가
       </Button>
       <Table
-        dataSource={templates}
+        dataSource={items}
         columns={columns}
         pagination={{
           total: totalPage * 10,
@@ -131,13 +120,13 @@ function InteriorList() {
         loading={isLoading}
       />
       <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={720}>
-        <InteriorForm />
+        <SnackForm />
       </Drawer>
       <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={720}>
-        <InteriorForm init={focused} />
+        <SnackForm init={focused} />
       </Drawer>
     </>
   );
 }
 
-export default InteriorList;
+export default SnackList;

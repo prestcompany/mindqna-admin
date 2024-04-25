@@ -145,3 +145,33 @@ export type PetBubble = {
   // customTargetCardOrder Int?
   // customHasAction       Boolean?  @default(false)
 };
+
+export type CreateSnackParams = {
+  imgId: number;
+  exp: number;
+  name: string;
+  price: number;
+  type: PetType;
+  isPaid: boolean;
+  order: number;
+};
+
+export type PetType = "dog" | "cat" | "rebbit" | "squirrel" | "bear" | "sheep" | "pig" | "duck" | "deer";
+
+export type GetSnacksResult = {
+  pageInfo: TotalPageInfo;
+  items: Snack[];
+};
+
+export type Snack = {
+  id: number;
+  name: string;
+  type: PetType;
+  exp: number;
+  price: number;
+  isPaid: boolean;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+  Img: ImgItem;
+};
