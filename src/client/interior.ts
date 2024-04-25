@@ -9,8 +9,8 @@ export async function createInteriorTemplate(params: CreateInteriorTemplateParam
   return res.data;
 }
 
-export async function getInteriorTemplates(cursor: number) {
-  const res = await client.get<GetInteriorTemplatesResult>("/interior", { params: { cursor } });
+export async function getInteriorTemplates(page: number) {
+  const res = await client.get<GetInteriorTemplatesResult>("/interior", { params: { page } });
 
   return res.data;
 }

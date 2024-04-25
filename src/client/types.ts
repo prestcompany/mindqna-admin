@@ -89,6 +89,6 @@ export type GetAssetsResult = {
 };
 
 export type GetInteriorTemplatesResult = {
-  pageInfo: PageInfo;
+  pageInfo: TotalPageInfo;
   templates: InteriorTemplate[];
 };

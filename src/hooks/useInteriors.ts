@@ -1,23 +1,19 @@
 import { getInteriorTemplates } from "@/client/interior";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
-function useInteriors() {
-  const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useInfiniteQuery({
+function useInteriors(by: { page: number }) {
+  const { page } = by;
+
+  const { data, isLoading } = useQuery({
     queryKey: ["interiors"],
-    queryFn: ({ pageParam }) => getInteriorTemplates(pageParam),
-    getNextPageParam: (last) => (last.pageInfo.hasNext ? last.pageInfo.endCursor : 0),
-    initialPageParam: 0,
+    queryFn: () => getInteriorTemplates(page),
   });
 
-  const templates = data?.pages.flatMap((page) => page.templates) ?? [];
+  const templates = data?.templates ?? [];
 
-  const fetchMore = () => {
-    if (!hasNextPage) return;
-    if (isFetchingNextPage || isLoading) return;
-    fetchNextPage();
-  };
+  const totalPage = data?.pageInfo.totalPage ?? 1;
 
-  return { templates, fetchMore, isLoading, hasNextPage };
+  return { templates, totalPage, isLoading };
 }
 
 export default useInteriors;

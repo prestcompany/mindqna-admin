@@ -9,11 +9,13 @@ import InteriorForm from "./InteriorForm";
 function InteriorList() {
   const [modal, holder] = Modal.useModal();
 
-  const { templates, fetchMore, hasNextPage, isLoading } = useInteriors();
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
   const [focused, setFocused] = useState<InteriorTemplate | undefined>(undefined);
+
+  const { templates, totalPage, isLoading } = useInteriors({ page: currentPage });
 
   const handleEdit = (value: InteriorTemplate) => {
     setFocused(value);
@@ -118,7 +120,16 @@ function InteriorList() {
       >
         추가
       </Button>
-      <Table dataSource={templates} columns={columns} />
+      <Table
+        dataSource={templates}
+        columns={columns}
+        pagination={{
+          total: totalPage * 10,
+          current: currentPage,
+          onChange: (page) => setCurrentPage(page),
+        }}
+        loading={isLoading}
+      />
       <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}>
         <InteriorForm />
       </Drawer>
