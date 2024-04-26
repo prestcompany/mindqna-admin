@@ -5,9 +5,11 @@ import { useEffect, useState } from "react";
 
 type Props = {
   init?: PetBubble;
+  reload: () => Promise<any>;
+  close: () => void;
 };
 
-function BubbleForm({ init }: Props) {
+function BubbleForm({ init, reload, close }: Props) {
   const [isLoading, setLoading] = useState(false);
   const [focusedId, setFocusedId] = useState<number>();
   const [locale, setLocale] = useState<Locale>("ko");
@@ -59,11 +61,12 @@ function BubbleForm({ init }: Props) {
         });
       }
 
-      window.location.reload();
+      await reload();
+      close();
     } catch (err) {
       message.error(`${err}`);
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   return (

@@ -9,7 +9,7 @@ function BubbleList() {
   const [modal, holder] = Modal.useModal();
 
   const [currentPage, setCurrentPage] = useState(1);
-  const { items, totalPage, isLoading } = useBubbles(currentPage);
+  const { items, totalPage, isLoading, refetch } = useBubbles(currentPage);
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
@@ -98,10 +98,10 @@ function BubbleList() {
         loading={isLoading}
       />
       <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}>
-        <BubbleForm />
+        <BubbleForm reload={refetch} close={() => setOpenCreate(false)} />
       </Drawer>
       <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={600}>
-        <BubbleForm init={focused} />
+        <BubbleForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
       </Drawer>
     </>
   );

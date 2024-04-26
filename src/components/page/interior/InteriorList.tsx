@@ -15,7 +15,7 @@ function InteriorList() {
   const [isOpenEdit, setOpenEdit] = useState(false);
   const [focused, setFocused] = useState<InteriorTemplate | undefined>(undefined);
 
-  const { templates, totalPage, isLoading } = useInteriors({ page: currentPage });
+  const { templates, totalPage, isLoading, refetch } = useInteriors({ page: currentPage });
 
   const handleEdit = (value: InteriorTemplate) => {
     setFocused(value);
@@ -131,10 +131,10 @@ function InteriorList() {
         loading={isLoading}
       />
       <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={720}>
-        <InteriorForm />
+        <InteriorForm reload={refetch} close={() => setOpenCreate(false)} />
       </Drawer>
       <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={720}>
-        <InteriorForm init={focused} />
+        <InteriorForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
       </Drawer>
     </>
   );

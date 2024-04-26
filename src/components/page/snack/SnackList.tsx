@@ -9,7 +9,7 @@ function SnackList() {
   const [modal, holder] = Modal.useModal();
 
   const [currentPage, setCurrentPage] = useState(1);
-  const { items, totalPage, isLoading } = useSnacks(currentPage);
+  const { items, totalPage, isLoading, refetch } = useSnacks(currentPage);
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
@@ -120,10 +120,10 @@ function SnackList() {
         loading={isLoading}
       />
       <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={720}>
-        <SnackForm />
+        <SnackForm close={() => setOpenCreate(false)} reload={refetch} />
       </Drawer>
       <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={720}>
-        <SnackForm init={focused} />
+        <SnackForm init={focused} close={() => setOpenEdit(false)} reload={refetch} />
       </Drawer>
     </>
   );

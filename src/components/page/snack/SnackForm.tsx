@@ -6,9 +6,11 @@ import AssetsDrawer from "../assets/AssetsDrawer";
 
 type Props = {
   init?: Snack;
+  reload: () => Promise<any>;
+  close: () => void;
 };
 
-function SnackForm({ init }: Props) {
+function SnackForm({ init, close, reload }: Props) {
   const [isLoading, setLoading] = useState(false);
 
   const [focusedId, setFocusedId] = useState<number>();
@@ -78,11 +80,12 @@ function SnackForm({ init }: Props) {
         });
       }
 
-      window.location.reload();
+      await reload();
+      close();
     } catch (err) {
       message.error(`${err}`);
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   return (

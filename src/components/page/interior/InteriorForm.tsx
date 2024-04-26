@@ -7,9 +7,11 @@ import AssetsDrawer from "../assets/AssetsDrawer";
 
 type InteriorFormProps = {
   init?: InteriorTemplate;
+  reload: () => Promise<any>;
+  close: () => void;
 };
 
-function InteriorForm({ init }: InteriorFormProps) {
+function InteriorForm({ init, reload, close }: InteriorFormProps) {
   const [isLoading, setLoading] = useState(false);
 
   const [focusedId, setFocusedId] = useState<number | undefined>(undefined);
@@ -180,11 +182,12 @@ function InteriorForm({ init }: InteriorFormProps) {
         });
       }
 
-      window.location.reload();
+      await reload();
+      close();
     } catch (err) {
       message.error(`${err}`);
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   return (

@@ -5,9 +5,11 @@ import { useEffect, useState } from "react";
 
 type LocaleFormProps = {
   init?: LocaleWord;
+  reload: () => Promise<any>;
+  close: () => void;
 };
 
-function LocaleForm({ init }: LocaleFormProps) {
+function LocaleForm({ init, reload, close }: LocaleFormProps) {
   const [isLoading, setLoading] = useState(false);
   const [focusedId, setFocusedId] = useState<number>();
   const [locales, setLocales] = useState<Locale[]>(["ko", "en", "ja", "zh"]);
@@ -71,11 +73,12 @@ function LocaleForm({ init }: LocaleFormProps) {
           });
       }
 
-      window.location.reload();
+      await reload();
+      close();
     } catch (err) {
       message.error(`${err}`);
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   return (

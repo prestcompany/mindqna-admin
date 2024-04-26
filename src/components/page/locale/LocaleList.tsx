@@ -9,7 +9,7 @@ function LocaleList() {
   const [modal, holder] = Modal.useModal();
 
   const [currentPage, setCurrentPage] = useState(1);
-  const { locales, totalPage, isLoading } = useLocales(currentPage);
+  const { locales, totalPage, isLoading, refetch } = useLocales(currentPage);
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
@@ -93,10 +93,10 @@ function LocaleList() {
         loading={isLoading}
       />
       <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}>
-        <LocaleForm />
+        <LocaleForm reload={refetch} close={() => setOpenCreate(false)} />
       </Drawer>
       <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={600}>
-        <LocaleForm init={focused} />
+        <LocaleForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
       </Drawer>
     </>
   );
