@@ -16,7 +16,7 @@ function InteriorForm({ init }: InteriorFormProps) {
   const [image, setImage] = useState<ImgItem>();
   const [name, setName] = useState("");
   const [type, setType] = useState<InteriorTemplateType>("item");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState("furniture");
   const [room, setRoom] = useState("room");
   const [isPremium, setIsPremium] = useState(true);
   const [price, setPrice] = useState(0);
@@ -114,6 +114,12 @@ function InteriorForm({ init }: InteriorFormProps) {
     { label: "벽지", value: "wall" },
     { label: "바닥", value: "floor" },
     { label: "이벤트", value: "event" },
+  ];
+
+  const categoriOptions = [
+    { label: "가구", value: "furniture" },
+    { label: "벽지", value: "wall" },
+    { label: "바닥", value: "floor" },
   ];
 
   const premiumOptions = [
@@ -222,7 +228,13 @@ function InteriorForm({ init }: InteriorFormProps) {
           />
         </Form.Item>
         <Form.Item label="카테고리">
-          <Input value={category} onChange={(e) => setCategory(e.target.value)} />
+          <Radio.Group
+            options={categoriOptions}
+            optionType="button"
+            buttonStyle="solid"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          />
         </Form.Item>
         <Form.Item label="룸 타입">
           <Input value={room} onChange={(e) => setRoom(e.target.value)} />
