@@ -156,7 +156,7 @@ export type CreateSnackParams = {
   order: number;
 };
 
-export type PetType = "dog" | "cat" | "rebbit" | "squirrel" | "bear" | "sheep" | "pig" | "duck" | "deer";
+export type PetType = "dog" | "cat" | "rebbit" | "squirrel" | "bear" | "hamster" | "pig" | "penguin" | "deer";
 
 export type GetSnacksResult = {
   pageInfo: TotalPageInfo;

@@ -39,10 +39,10 @@ function SnackForm({ init }: Props) {
     { label: "고양이", value: "cat" },
     { label: "사슴", value: "deer" },
     { label: "강아지", value: "dog" },
-    { label: "오리", value: "duck" },
+    { label: "펭귄", value: "penguin" },
     { label: "돼지", value: "pig" },
     { label: "토끼", value: "rebbit" },
-    { label: "양", value: "sheep" },
+    { label: "햄스터", value: "hamster" },
     { label: "다람쥐", value: "squirrel" },
   ];
 
