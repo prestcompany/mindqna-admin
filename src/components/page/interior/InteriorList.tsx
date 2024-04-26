@@ -77,11 +77,11 @@ function InteriorList() {
       key: "price",
     },
     {
-      title: "무/유료",
+      title: "스타/히트",
       dataIndex: "isPaid",
       key: "isPaid",
       render: (value: boolean) => {
-        return <Tag color={value ? "success" : "default"}>{value ? "유료" : "무료"}</Tag>;
+        return <Tag color={value ? "success" : "default"}>{value ? "스타" : "하트"}</Tag>;
       },
     },
     {

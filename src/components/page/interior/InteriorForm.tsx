@@ -117,8 +117,8 @@ function InteriorForm({ init }: InteriorFormProps) {
   ];
 
   const premiumOptions = [
-    { label: "유료", value: true },
-    { label: "무료", value: false },
+    { label: "스타", value: true },
+    { label: "하트", value: false },
   ];
 
   const save = async () => {
