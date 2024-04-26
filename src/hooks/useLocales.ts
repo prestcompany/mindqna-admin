@@ -2,7 +2,7 @@ import { getLocales } from "@/client/locale";
 import { useQuery } from "@tanstack/react-query";
 
 function useLocales(page: number) {
-  const { data, isLoading } = useQuery({ queryKey: ["locales"], queryFn: () => getLocales(page) });
+  const { data, isLoading } = useQuery({ queryKey: ["locales", page], queryFn: () => getLocales(page) });
 
   const locales = data?.words ?? [];
 

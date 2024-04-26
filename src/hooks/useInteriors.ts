@@ -5,7 +5,7 @@ function useInteriors(by: { page: number }) {
   const { page } = by;
 
   const { data, isLoading } = useQuery({
-    queryKey: ["interiors"],
+    queryKey: ["interiors", page],
     queryFn: () => getInteriorTemplates(page),
   });
 

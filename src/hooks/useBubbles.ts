@@ -2,7 +2,7 @@ import { getBubbless } from "@/client/bubble";
 import { useQuery } from "@tanstack/react-query";
 
 function useBubbles(page: number) {
-  const { data, isLoading } = useQuery({ queryKey: ["bubbles"], queryFn: () => getBubbless(page) });
+  const { data, isLoading } = useQuery({ queryKey: ["bubbles", page], queryFn: () => getBubbless(page) });
 
   const items = data?.items ?? [];
 
