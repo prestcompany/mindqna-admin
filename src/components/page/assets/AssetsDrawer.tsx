@@ -13,6 +13,7 @@ function AssetsDrawer({ onClick }: AssetsDrawerProps) {
   const [childrenDrawer, setChildrenDrawer] = useState(false);
 
   const { imgs, isLoading, fetchMore, hasNextPage } = useAssets();
+
   const [sentryRef] = useInfiniteScroll({
     loading: isLoading,
     hasNextPage,
@@ -53,12 +54,11 @@ function AssetsDrawer({ onClick }: AssetsDrawerProps) {
             );
           })}
         </div>
-        {hasNextPage ||
-          (isLoading && (
-            <div ref={sentryRef} className="flex items-center justify-center p-8">
-              <Loader />
-            </div>
-          ))}
+        {(hasNextPage || isLoading) && (
+          <div ref={sentryRef} className="flex items-center justify-center p-8">
+            <Loader />
+          </div>
+        )}
       </Drawer>
     </>
   );

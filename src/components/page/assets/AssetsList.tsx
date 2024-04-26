@@ -53,12 +53,11 @@ function AssetsList() {
           );
         })}
       </div>
-      {hasNextPage ||
-        (isLoading && (
-          <div ref={sentryRef} className="flex items-center justify-center p-8">
-            <Loader />
-          </div>
-        ))}
+      {(hasNextPage || isLoading) && (
+        <div ref={sentryRef} className="flex items-center justify-center p-8">
+          <Loader />
+        </div>
+      )}
     </>
   );
 }
