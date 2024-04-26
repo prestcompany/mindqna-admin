@@ -1,6 +1,6 @@
 import { createLocale, updateLocale } from "@/client/locale";
 import { Locale, LocaleWord } from "@/client/types";
-import { Button, Form, Input, Radio, Spin, message } from "antd";
+import { Button, Checkbox, Form, Input, Spin, message } from "antd";
 import { useEffect, useState } from "react";
 
 type LocaleFormProps = {
@@ -10,15 +10,19 @@ type LocaleFormProps = {
 function LocaleForm({ init }: LocaleFormProps) {
   const [isLoading, setLoading] = useState(false);
   const [focusedId, setFocusedId] = useState<number>();
-  const [locale, setLocale] = useState<Locale>("ko");
+  const [locales, setLocales] = useState<Locale[]>(["ko", "en", "ja", "zh"]);
   const [key, setKey] = useState("");
   const [value, setValue] = useState("");
+  const [valueKo, setValueKo] = useState("");
+  const [valueEn, setValueEn] = useState("");
+  const [valueJa, setValueJa] = useState("");
+  const [valueZh, setValueZh] = useState("");
 
   useEffect(() => {
     if (!init) return;
 
     setFocusedId(init.id);
-    setLocale(init.locale);
+    setLocales([init.locale]);
     setKey(init.key);
     setValue(init.value);
   }, [init]);
@@ -37,15 +41,34 @@ function LocaleForm({ init }: LocaleFormProps) {
         await updateLocale({
           id: focusedId,
           key,
-          locale,
+          locale: locales[0],
           value,
         });
       } else {
-        await createLocale({
-          key,
-          locale,
-          value,
-        });
+        if (locales.includes("ko"))
+          await createLocale({
+            key,
+            locale: "ko",
+            value: valueKo,
+          });
+        if (locales.includes("en"))
+          await createLocale({
+            key,
+            locale: "en",
+            value: valueEn,
+          });
+        if (locales.includes("ja"))
+          await createLocale({
+            key,
+            locale: "ja",
+            value: valueJa,
+          });
+        if (locales.includes("zh"))
+          await createLocale({
+            key,
+            locale: "zh",
+            value: valueZh,
+          });
       }
 
       window.location.reload();
@@ -60,20 +83,36 @@ function LocaleForm({ init }: LocaleFormProps) {
       <Spin spinning={isLoading} fullscreen />
       <Form>
         <Form.Item label="locale">
-          <Radio.Group
+          <Checkbox.Group
             options={localeOptions}
-            optionType="button"
-            buttonStyle="solid"
-            value={locale}
-            onChange={(e) => setLocale(e.target.value)}
+            value={locales}
+            onChange={(values) => setLocales(values as Locale[])}
+            disabled={!!focusedId}
           />
         </Form.Item>
         <Form.Item label="key">
           <Input value={key} onChange={(e) => setKey(e.target.value)} />
         </Form.Item>
-        <Form.Item label="value">
-          <Input value={value} onChange={(e) => setValue(e.target.value)} />
-        </Form.Item>
+        {focusedId ? (
+          <Form.Item label="value">
+            <Input value={value} onChange={(e) => setValue(e.target.value)} />
+          </Form.Item>
+        ) : (
+          <>
+            <Form.Item label="ko">
+              <Input value={valueKo} onChange={(e) => setValueKo(e.target.value)} />
+            </Form.Item>
+            <Form.Item label="en">
+              <Input value={valueEn} onChange={(e) => setValueEn(e.target.value)} />
+            </Form.Item>
+            <Form.Item label="ja">
+              <Input value={valueJa} onChange={(e) => setValueJa(e.target.value)} />
+            </Form.Item>
+            <Form.Item label="zh">
+              <Input value={valueZh} onChange={(e) => setValueZh(e.target.value)} />
+            </Form.Item>
+          </>
+        )}
 
         <Button onClick={save} size="large" type="primary">
           저장
