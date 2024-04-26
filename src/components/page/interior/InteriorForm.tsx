@@ -1,4 +1,5 @@
 import { createInteriorTemplate, updateInteriorTemplate } from "@/client/interior";
+import { createLocale } from "@/client/locale";
 import { ImgItem, InteriorTemplate, InteriorTemplateType } from "@/client/types";
 import { Button, Form, Image, Input, InputNumber, Radio, Spin, message } from "antd";
 import { useEffect, useState } from "react";
@@ -80,7 +81,10 @@ function InteriorForm({ init }: InteriorFormProps) {
     { x: 6, y: 12 },
   ]);
 
-  console.log(coords);
+  const [valueKo, setValueKo] = useState("");
+  const [valueEn, setValueEn] = useState("");
+  const [valueJa, setValueJa] = useState("");
+  const [valueZh, setValueZh] = useState("");
 
   useEffect(() => {
     if (!init) return;
@@ -148,6 +152,26 @@ function InteriorForm({ init }: InteriorFormProps) {
           type: "item",
           width,
         });
+        await createLocale({
+          key: name,
+          locale: "ko",
+          value: valueKo,
+        });
+        await createLocale({
+          key: name,
+          locale: "en",
+          value: valueEn,
+        });
+        await createLocale({
+          key: name,
+          locale: "ja",
+          value: valueJa,
+        });
+        await createLocale({
+          key: name,
+          locale: "zh",
+          value: valueZh,
+        });
       }
 
       window.location.reload();
@@ -167,9 +191,27 @@ function InteriorForm({ init }: InteriorFormProps) {
             <AssetsDrawer onClick={setImage} />
           </div>
         </Form.Item>
+
         <Form.Item label="이름">
           <Input value={name} onChange={(e) => setName(e.target.value)} />
         </Form.Item>
+        {!focusedId && (
+          <>
+            <Form.Item label="ko">
+              <Input value={valueKo} onChange={(e) => setValueKo(e.target.value)} />
+            </Form.Item>
+            <Form.Item label="en">
+              <Input value={valueEn} onChange={(e) => setValueEn(e.target.value)} />
+            </Form.Item>
+            <Form.Item label="ja">
+              <Input value={valueJa} onChange={(e) => setValueJa(e.target.value)} />
+            </Form.Item>
+            <Form.Item label="zh">
+              <Input value={valueZh} onChange={(e) => setValueZh(e.target.value)} />
+            </Form.Item>
+          </>
+        )}
+
         <Form.Item label="타입">
           <Radio.Group
             options={typeOptions}
