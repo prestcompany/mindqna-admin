@@ -26,7 +26,7 @@ function SnackList() {
       onOk: async () => {
         try {
           await removeSnack(value.id);
-          window.location.reload();
+          await refetch();
         } catch (err) {
           message.error(`${err}`);
         }
@@ -116,6 +116,7 @@ function SnackList() {
           total: totalPage * 10,
           current: currentPage,
           onChange: (page) => setCurrentPage(page),
+          showSizeChanger: false,
         }}
         loading={isLoading}
       />

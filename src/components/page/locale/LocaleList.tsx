@@ -26,7 +26,7 @@ function LocaleList() {
       onOk: async () => {
         try {
           await removeLocale(value.id);
-          window.location.reload();
+          await refetch();
         } catch (err) {
           message.error(`${err}`);
         }
@@ -89,6 +89,7 @@ function LocaleList() {
           total: totalPage * 10,
           current: currentPage,
           onChange: (page) => setCurrentPage(page),
+          showSizeChanger: false,
         }}
         loading={isLoading}
       />

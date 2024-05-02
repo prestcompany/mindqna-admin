@@ -2,13 +2,18 @@ import { publishCardTemplates, removeCardTemplate, unpublishCardTemplates } from
 import { CardTemplate, CardTemplateType, GetCardTemplatesResult, SpaceType } from "@/client/types";
 import useCardTemplates from "@/hooks/useCardTemplates";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button, Modal, Table, TableProps, Tag, message } from "antd";
+import { Button, Drawer, Modal, Select, Table, TableProps, Tag, message } from "antd";
 import { produce } from "immer";
-import { useRouter } from "next/router";
 import { useState } from "react";
+import CardForm from "./CardForm";
 
 function CardList() {
   const queryClient = useQueryClient();
+
+  const [isOpenCreate, setOpenCreate] = useState(false);
+  const [isOpenEdit, setOpenEdit] = useState(false);
+  const [focused, setFocused] = useState<CardTemplate | undefined>(undefined);
+
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
@@ -16,12 +21,11 @@ function CardList() {
   const [filter, setFilter] = useState<{ type?: CardTemplateType[]; spaceType?: SpaceType[]; locale?: string[] }>({});
   const [modal, holder] = Modal.useModal();
 
-  const { push } = useRouter();
-
   const { templates, totalPage, isLoading, refetch } = useCardTemplates({ page: currentPage, ...filter });
 
   const handleEdit = (value: CardTemplate) => {
-    push({ query: value });
+    setFocused(value);
+    setOpenEdit(true);
   };
 
   const handleRemove = (value: CardTemplate) => {
@@ -32,11 +36,6 @@ function CardList() {
         await refetch();
       },
     });
-  };
-
-  const handleTableChange: TableProps<CardTemplate>["onChange"] = async (pagination, filter) => {
-    setFilter(filter);
-    console.log(filter);
   };
 
   const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
@@ -109,32 +108,16 @@ function CardList() {
       title: "언어",
       dataIndex: "locale",
       key: "locale",
-      filters: [
-        { text: "ko", value: "ko" },
-        { text: "en", value: "en" },
-        { text: "ja", value: "ja" },
-        { text: "zh", value: "zh" },
-      ],
     },
     {
       title: "질문타입",
       dataIndex: "type",
       key: "type",
-      filters: [
-        { text: "basic", value: "basic" },
-        { text: "bonus", value: "bonus" },
-      ],
     },
     {
       title: "공간타입",
       dataIndex: "spaceType",
       key: "spaceType",
-      filters: [
-        { text: "alone", value: "alone" },
-        { text: "couple", value: "couple" },
-        { text: "family", value: "family" },
-        { text: "friends", value: "friends" },
-      ],
     },
     {
       title: "Action",
@@ -168,14 +151,74 @@ function CardList() {
     <div>
       {contextHolder}
       {holder}
+      <Button
+        onClick={() => {
+          setFocused(undefined);
+          setOpenCreate(true);
+        }}
+        type="primary"
+        size="large"
+      >
+        추가
+      </Button>
+      <div className="flex items-center gap-2 py-4">
+        <span className="text-lg font-bold">필터</span>
+        <Select
+          placeholder="언어"
+          style={{ width: 120 }}
+          options={[
+            { label: "ko", value: "ko" },
+            { label: "en", value: "en" },
+            { label: "ja", value: "ja" },
+            { label: "zh", value: "zh" },
+          ]}
+          value={(filter.locale ?? [])?.[0]}
+          onChange={(v: string) => {
+            setFilter((prev) => ({ ...prev, locale: [v] }));
+          }}
+          allowClear
+        />
+        <Select
+          placeholder="질문타입"
+          style={{ width: 120 }}
+          options={[
+            { label: "basic", value: "basic" },
+            { label: "bonus", value: "bonus" },
+          ]}
+          value={(filter.type ?? [])?.[0]}
+          onChange={(v: CardTemplateType) => {
+            setFilter((prev) => ({ ...prev, type: [v] }));
+          }}
+          allowClear
+        />
+        <Select
+          placeholder="공간타입"
+          style={{ width: 120 }}
+          options={[
+            { label: "혼자", value: "alone" },
+            { label: "커플", value: "couple" },
+            { label: "가족", value: "family" },
+            { label: "친구", value: "friends" },
+          ]}
+          value={(filter.spaceType ?? [])?.[0]}
+          onChange={(v: SpaceType) => {
+            setFilter((prev) => ({ ...prev, spaceType: [v] }));
+          }}
+          allowClear
+        />
+      </div>
       <Table
         rowSelection={rowSelection}
         rowKey={"id"}
         columns={columns}
         dataSource={templates}
-        pagination={{ total: totalPage * 10, current: currentPage, onChange: (page) => setCurrentPage(page) }}
+        pagination={{
+          total: totalPage * 10,
+          current: currentPage,
+          onChange: (page) => setCurrentPage(page),
+          showSizeChanger: false,
+        }}
         loading={loading || isLoading}
-        onChange={handleTableChange}
       />
       <div className="flex gap-3">
         <Button onClick={handlePressPublish} disabled={!hasSelected} type="primary" loading={loading}>
@@ -185,6 +228,12 @@ function CardList() {
           unpublish
         </Button>
       </div>
+      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}>
+        <CardForm reload={refetch} close={() => setOpenCreate(false)} />
+      </Drawer>
+      <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={600}>
+        <CardForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
+      </Drawer>
     </div>
   );
 }

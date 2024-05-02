@@ -28,7 +28,7 @@ function InteriorList() {
       onOk: async () => {
         try {
           await removeInteriorTemplate(value.id);
-          window.location.reload();
+          await refetch();
         } catch (err) {
           message.error(`${err}`);
         }
@@ -127,6 +127,7 @@ function InteriorList() {
           total: totalPage * 10,
           current: currentPage,
           onChange: (page) => setCurrentPage(page),
+          showSizeChanger: false,
         }}
         loading={isLoading}
       />

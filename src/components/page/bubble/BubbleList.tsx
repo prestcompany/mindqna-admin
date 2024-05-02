@@ -1,7 +1,7 @@
 import { removeBubble } from "@/client/bubble";
-import { PetBubble } from "@/client/types";
+import { BubbleType, PetBubble } from "@/client/types";
 import useBubbles from "@/hooks/useBubbles";
-import { Button, Drawer, Modal, Table, TableProps, message } from "antd";
+import { Button, Drawer, Modal, Select, Table, TableProps, message } from "antd";
 import { useState } from "react";
 import BubbleForm from "./BubbleForm";
 
@@ -9,7 +9,8 @@ function BubbleList() {
   const [modal, holder] = Modal.useModal();
 
   const [currentPage, setCurrentPage] = useState(1);
-  const { items, totalPage, isLoading, refetch } = useBubbles(currentPage);
+  const [filter, setFilter] = useState<{ type?: BubbleType[]; locale?: string[] }>({});
+  const { items, totalPage, isLoading, refetch } = useBubbles(currentPage, filter.type, filter.locale);
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
@@ -26,7 +27,7 @@ function BubbleList() {
       onOk: async () => {
         try {
           await removeBubble(value.id);
-          window.location.reload();
+          await refetch();
         } catch (err) {
           message.error(`${err}`);
         }
@@ -87,6 +88,39 @@ function BubbleList() {
       >
         추가
       </Button>
+      <div className="flex items-center gap-2 py-4">
+        <span className="text-lg font-bold">필터</span>
+        <Select
+          placeholder="언어"
+          style={{ width: 120 }}
+          options={[
+            { label: "ko", value: "ko" },
+            { label: "en", value: "en" },
+            { label: "ja", value: "ja" },
+            { label: "zh", value: "zh" },
+          ]}
+          value={(filter.locale ?? [])?.[0]}
+          onChange={(v: string) => {
+            setFilter((prev) => ({ ...prev, locale: [v] }));
+          }}
+          allowClear
+        />
+        <Select
+          placeholder="타입"
+          style={{ width: 120 }}
+          options={[
+            { label: "공통", value: "general" },
+            { label: "오전", value: "day" },
+            { label: "오후", value: "night" },
+            { label: "커스텀", value: "custom" },
+          ]}
+          value={(filter.type ?? [])?.[0]}
+          onChange={(v: BubbleType) => {
+            setFilter((prev) => ({ ...prev, type: [v] }));
+          }}
+          allowClear
+        />
+      </div>
       <Table
         dataSource={items}
         columns={columns}
@@ -94,6 +128,7 @@ function BubbleList() {
           total: totalPage * 10,
           current: currentPage,
           onChange: (page) => setCurrentPage(page),
+          showSizeChanger: false,
         }}
         loading={isLoading}
       />

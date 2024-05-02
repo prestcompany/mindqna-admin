@@ -1,23 +1,29 @@
 import { createCardTemplate, updateCardTemplate } from "@/client/card";
 import { CardTemplate, CardTemplateType, SpaceType } from "@/client/types";
 import { Button, Checkbox, Divider, Form, Input, Radio, message } from "antd";
-import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
-function CardForm() {
+type Props = {
+  init?: CardTemplate;
+  reload: () => Promise<any>;
+  close: () => void;
+};
+
+function CardForm({ init, reload }: Props) {
   const [isLoading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
-  const { pathname, query } = useRouter();
 
   useEffect(() => {
-    if (!query.id) return;
-    const { id, name, locale, type, spaceType } = query as unknown as CardTemplate;
+    if (!init) {
+      return;
+    }
+    const { id, name, locale, type, spaceType } = init;
     setEditId(id);
     setLocale(locale);
     setName(name);
     setType(type);
     setSpaceTypes([spaceType]);
-  }, [query]);
+  }, [init]);
 
   const optionsLocale: { label: string; value: string }[] = [
     { label: "ko", value: "ko" },
@@ -42,10 +48,10 @@ function CardForm() {
   ];
 
   const optionsSpaceType: { label: string; value: SpaceType }[] = [
-    { label: "alone", value: "alone" },
-    { label: "couple", value: "couple" },
-    { label: "family", value: "family" },
-    { label: "friends", value: "friends" },
+    { label: "혼자", value: "alone" },
+    { label: "커플", value: "couple" },
+    { label: "가족", value: "family" },
+    { label: "친구", value: "friends" },
   ];
 
   const [editId, setEditId] = useState<number | undefined>(undefined);
@@ -64,6 +70,7 @@ function CardForm() {
     setName("");
     setType(optionsType[0].value);
     setSpaceTypes([]);
+    close();
   };
 
   const handleSubmit = async () => {
@@ -78,7 +85,7 @@ function CardForm() {
       messageApi.success({
         content: "성공",
       });
-      window.location.replace(pathname);
+      await reload();
       clearAll();
     } catch (err) {
       messageApi.error({

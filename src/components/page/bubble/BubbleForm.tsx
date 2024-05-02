@@ -1,6 +1,6 @@
 import { createBubble, updateBubble } from "@/client/bubble";
 import { BubbleType, Locale, PetBubble } from "@/client/types";
-import { Button, Form, Input, InputNumber, Radio, Spin, message } from "antd";
+import { Button, Checkbox, Form, Input, Radio, Spin, message } from "antd";
 import { useEffect, useState } from "react";
 
 type Props = {
@@ -14,8 +14,8 @@ function BubbleForm({ init, reload, close }: Props) {
   const [focusedId, setFocusedId] = useState<number>();
   const [locale, setLocale] = useState<Locale>("ko");
   const [_message, setMessage] = useState("");
-  const [type, setType] = useState<BubbleType>("general");
-  const [level, setLevel] = useState(0);
+  const [types, setTypes] = useState<BubbleType[]>(["general"]);
+  const [levels, setLevels] = useState<number[]>([0]);
 
   useEffect(() => {
     if (!init) return;
@@ -23,8 +23,8 @@ function BubbleForm({ init, reload, close }: Props) {
     setFocusedId(init.id);
     setLocale(init.locale);
     setMessage(init.message);
-    setType(init.type);
-    setLevel(init.level);
+    setTypes([init.type]);
+    setLevels([init.level]);
   }, [init]);
 
   const localeOptions = [
@@ -41,6 +41,10 @@ function BubbleForm({ init, reload, close }: Props) {
     { label: "커스텀", value: "custom" },
   ];
 
+  const levelOptions = Array(13)
+    .fill(0)
+    .map((_, idx) => ({ label: idx, value: idx }));
+
   const save = async () => {
     try {
       setLoading(true);
@@ -49,16 +53,45 @@ function BubbleForm({ init, reload, close }: Props) {
           id: focusedId,
           locale,
           message: _message,
-          level,
-          type,
+          level: levels[0],
+          type: types[0],
         });
       } else {
-        await createBubble({
-          locale,
-          message: _message,
-          level,
-          type,
-        });
+        for (const level of levels) {
+          if (types.includes("general")) {
+            await createBubble({
+              locale,
+              message: _message,
+              level,
+              type: "general",
+            });
+          }
+
+          if (types.includes("day")) {
+            await createBubble({
+              locale,
+              message: _message,
+              level,
+              type: "day",
+            });
+          }
+          if (types.includes("night")) {
+            await createBubble({
+              locale,
+              message: _message,
+              level,
+              type: "night",
+            });
+          }
+          if (types.includes("custom")) {
+            await createBubble({
+              locale,
+              message: _message,
+              level,
+              type: "custom",
+            });
+          }
+        }
       }
 
       await reload();
@@ -80,22 +113,27 @@ function BubbleForm({ init, reload, close }: Props) {
             buttonStyle="solid"
             value={locale}
             onChange={(e) => setLocale(e.target.value)}
+            disabled={!!focusedId}
           />
         </Form.Item>
         <Form.Item label="메시지">
           <Input value={_message} onChange={(e) => setMessage(e.target.value)} />
         </Form.Item>
         <Form.Item label="타입">
-          <Radio.Group
+          <Checkbox.Group
             options={typeOptions}
-            optionType="button"
-            buttonStyle="solid"
-            value={type}
-            onChange={(e) => setType(e.target.value)}
+            value={types}
+            onChange={(values) => setTypes(values as BubbleType[])}
+            disabled={!!focusedId}
           />
         </Form.Item>
         <Form.Item label="레벨 (0: all)">
-          <InputNumber min={0} value={level} onChange={(e) => setLevel(e ?? 0)} />
+          <Checkbox.Group
+            options={levelOptions}
+            value={levels}
+            onChange={(values) => setLevels(values)}
+            disabled={!!focusedId}
+          />
         </Form.Item>
 
         <Button onClick={save} size="large" type="primary">

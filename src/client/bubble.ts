@@ -1,8 +1,8 @@
 import client from "./@base";
-import { CreateBubbleParams, GetBubblesResult } from "./types";
+import { BubbleType, CreateBubbleParams, GetBubblesResult } from "./types";
 
-export async function getBubbless(page: number) {
-  const res = await client.get<GetBubblesResult>("/bubble", { params: { page } });
+export async function getBubbless(page: number, type?: BubbleType[], locale?: string[]) {
+  const res = await client.get<GetBubblesResult>("/bubble", { params: { page, type, locale } });
 
   return res.data;
 }
