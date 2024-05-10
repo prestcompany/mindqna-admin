@@ -175,3 +175,132 @@ export type Snack = {
   updatedAt: string;
   Img: ImgItem;
 };
+
+export type GiveTicketParams = {
+  username: string;
+  amount: number;
+  message: string;
+};
+
+export type GiveCoinParams = {
+  spaceId: string;
+  amount: number;
+  isStar: boolean;
+  message: string;
+};
+
+export type Ticket = {};
+
+export type User = {
+  id: string;
+  username: string;
+  code: number;
+  locale: string;
+  spaceMaxCount: number;
+  reserveUnregisterAt: string | null;
+  createdAt: string;
+  updateAt: string;
+
+  socialAccount: SocialAccount;
+
+  profiles: {
+    _count: {
+      PushMeta: number;
+      cardCommentLikeMetas: number;
+      cardComments: number;
+      cardMetas: number;
+      coinMetas: number;
+      diaries: number;
+      diaryCommentLikeMeta: number;
+      diaryComments: number;
+      diaryLikeMetas: number;
+      diaryMemberMetas: number;
+      goldClubMeta: number;
+      premiumTickets: number;
+      replies: number;
+      spaceJoinMetas: number;
+    };
+  }[];
+};
+
+export type QueryResultWithPagination<T> = {
+  items: T[];
+  pageInfo: TotalPageInfo;
+};
+
+export type SocialAccount = {
+  userId: string;
+  email: string;
+  provider: string;
+  socialId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Space = {
+  id: string;
+  spaceInfo: SpaceInfo;
+  coin: number;
+  coinPaid: number;
+  profiles: Profile[];
+  rooms: Room[];
+  pet: Pet;
+  cardOrder: number;
+  cardGenDate: string;
+  dueRemovedAt: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+export type SpaceInfo = {
+  spaceId: string;
+  type: SpaceType;
+  name: string;
+  petName: string;
+  startedAt: string;
+  ownerId: string;
+  locale: string;
+  noticeTime: string;
+  members: number;
+  replies: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Profile = {
+  id: string;
+  spaceId: string;
+  userId: string;
+  nickname: string;
+  img?: ImgItem;
+  isAccepted: boolean;
+  isPremium: boolean;
+  isGoldClub: boolean;
+  disabled: boolean;
+  removed: boolean;
+  removedAt?: string;
+  renew: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Pet = {
+  level: number;
+  exp: number;
+  type?: PetType;
+
+  isSnackable: boolean;
+  isPatable: boolean;
+};
+
+export type Room = {
+  id: number;
+  category: RoomCategory;
+  type: string;
+  order: number;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type RoomCategory = "rooftop" | "inner" | "outer";

@@ -1,5 +1,5 @@
 import { Divider } from "antd";
-import { Home, Package2 } from "lucide-react";
+import { Home, Package2, User } from "lucide-react";
 import React from "react";
 import Menu, { IMenu } from "./nav";
 
@@ -11,6 +11,41 @@ const mainMenuData: IMenu[] = [
     link: {
       path: "/",
     },
+  },
+  {
+    id: "dashboard",
+    name: "대시보드",
+    icon: <User className="w-5 h-5" />,
+    submenu: [
+      {
+        id: "analytics",
+        name: "통계",
+        link: {
+          path: "/dashboard/analytics",
+        },
+      },
+      {
+        id: "user",
+        name: "유저",
+        link: {
+          path: "/dashboard/user",
+        },
+      },
+      {
+        id: "space",
+        name: "공간",
+        link: {
+          path: "/dashboard/space",
+        },
+      },
+      {
+        id: "premium",
+        name: "프리미엄",
+        link: {
+          path: "/dashboard/premium",
+        },
+      },
+    ],
   },
   {
     id: "product",
