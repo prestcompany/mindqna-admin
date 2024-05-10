@@ -16,7 +16,7 @@ function Dashboard() {
   const [startedAt, setStartedAt] = useState<dayjs.Dayjs>(dayjs());
   const [endedAt, setEndedAt] = useState<dayjs.Dayjs>(dayjs());
 
-  const { data, refetch, isLoading } = useAnalytics({
+  const { data, isLoading } = useAnalytics({
     startedAt: startedAt.format("YYYY-MM-DD"),
     endedAt: endedAt.format("YYYY-MM-DD"),
   });
