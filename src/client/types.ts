@@ -180,6 +180,7 @@ export type GiveTicketParams = {
   username: string;
   amount: number;
   message: string;
+  dueDayNum?: number;
 };
 
 export type GiveCoinParams = {
@@ -189,7 +190,15 @@ export type GiveCoinParams = {
   message: string;
 };
 
-export type Ticket = {};
+export type TicketMeta = {
+  id: number;
+  userId: string;
+  platform: "EVENT" | "IOS" | "EVENT";
+  transactionId: string;
+  productId: string;
+  isExpried: boolean;
+  createdAt: string;
+};
 
 export type User = {
   id: string;
@@ -282,6 +291,7 @@ export type Profile = {
   renew: boolean;
   createdAt: string;
   updatedAt: string;
+  user: User;
 };
 
 export type Pet = {

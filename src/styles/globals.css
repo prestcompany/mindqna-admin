@@ -41,19 +41,19 @@
   }
 
   .btn {
-    @apply enable-transition border border-gray-300 rounded-lg hover:border-brand cursor-pointer;
+    @apply border border-gray-300 rounded-lg cursor-pointer enable-transition hover:border-brand;
   }
 
   .cols-2 {
-    @apply grid sm:grid-cols-1 md:grid-cols-2 gap-2;
+    @apply grid gap-2 sm:grid-cols-1 md:grid-cols-2;
   }
 
   .cols-3 {
-    @apply grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2;
+    @apply grid gap-2 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3;
   }
 
   .ellipsis-text {
-    @apply whitespace-nowrap overflow-hidden overflow-ellipsis;
+    @apply overflow-hidden whitespace-nowrap overflow-ellipsis;
   }
 }
 

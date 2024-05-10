@@ -1,5 +1,5 @@
 import client from "./@base";
-import { SpaceType } from "./types";
+import { Profile, Space, SpaceType, User } from "./types";
 
 export async function getAnalytics(by: {
   startedAt?: string;
@@ -13,7 +13,12 @@ export async function getAnalytics(by: {
 }
 
 type Result = {
-  users: number;
-  spaces: number;
-  profiles: number;
+  users: User[];
+  spaces: Space[];
+  profiles: Profile[];
+  total: {
+    users: number;
+    spaces: number;
+    profiles: number;
+  };
 };
