@@ -77,9 +77,7 @@ function SpaceSearch() {
                 <Tag>펫이름: {petName}</Tag>
                 <Tag>LV. {level}</Tag>
               </div>
-              <Button onClick={handleRemove} type="primary">
-                공간 삭제
-              </Button>
+              <Button onClick={handleRemove}>공간 삭제</Button>
             </div>
 
             <div className="flex flex-col gap-2 flex-2">
@@ -114,8 +112,11 @@ function SpaceSearch() {
                         {isGoldClub && <Tag color="gold">STAR CLUB</Tag>}
                       </div>
                       <div className="flex flex-col gap-2">
-                        <Button onClick={() => copyId(profile.id)}>ID: {profile.id}</Button>
-                        <Button onClick={removePro} type="primary" size="small">
+                        <Tag>ID: {profile.id}</Tag>
+                        <Button onClick={() => copyId(profile.user.username)} type="primary">
+                          username {profile.user.username}
+                        </Button>
+                        <Button onClick={removePro} type="default" size="small">
                           프로필 삭제
                         </Button>
                       </div>

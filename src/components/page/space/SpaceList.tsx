@@ -1,7 +1,8 @@
 import { removeProfile, removeSpace } from "@/client/space";
 import { Space, SpaceType } from "@/client/types";
 import useSpaces from "@/hooks/useSpaces";
-import { Button, Card, Drawer, Image, Modal, Pagination, Select, Tag, message } from "antd";
+import { Button, Card, Drawer, Image, Modal, Select, Table, Tag, message } from "antd";
+import { TableProps } from "antd/lib";
 import dayjs from "dayjs";
 import { useState } from "react";
 import CoinForm from "./CoinForm";
@@ -14,142 +15,162 @@ function SpaceList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenCoin, setOpenCoin] = useState(false);
-  const [focused, setFocused] = useState<string>("");
+  const [isOpenProfile, setOpenProfile] = useState(false);
+
+  const [focused, setFocused] = useState<Space | undefined>(undefined);
 
   const [filter, setFilter] = useState<{ type?: SpaceType[]; locale?: string[] }>({});
-  const { items, totalPage, refetch } = useSpaces({
+  const { items, totalPage, refetch, isLoading } = useSpaces({
     page: currentPage,
     type: filter.type,
     locale: filter.locale,
   });
 
-  const renderItem = (space: Space) => {
-    const { coin, coinPaid, createdAt, dueRemovedAt, rooms, cardOrder } = space;
-    const { type, name, locale, petName, noticeTime, ownerId } = space.spaceInfo;
-    const { level } = space.pet;
-
-    const created = dayjs(createdAt);
-    const diffFromNow = dayjs().diff(created, "day");
-
-    const copyId = (id: string) => {
-      navigator.clipboard.writeText(id);
-      api.success(`${id} 복사`);
-    };
-
-    const handleRemove = () => {
-      modal.confirm({
-        title: `삭제 (${name})`,
-        onOk: async () => {
-          try {
-            await removeSpace(space.id);
-            await refetch();
-          } catch (err) {
-            message.error(`${err}`);
-          }
-        },
-      });
-    };
-
-    return (
-      <div key={space.id}>
-        <Card title={name}>
-          <div className="flex gap-4">
-            <div className="flex flex-col flex-1 gap-2">
-              <div className="flex items-center gap-2">
-                <Button onClick={() => copyId(space.id)}>ID: {space.id}</Button>
-              </div>
-
-              <div>
-                <Tag>생성일: D+{diffFromNow}</Tag>
-                {created.format("YY.MM.DD HH:mm")}
-              </div>
-
-              {dueRemovedAt && <Tag color="error">삭제 예정일 {dueRemovedAt}</Tag>}
-
-              <div className="flex items-center gap-2">
-                <Tag>{type}</Tag>
-                <Tag>언어 {locale}</Tag>
-                <Tag>질문 수 {cardOrder}</Tag>
-                <Tag>질문 생성 시간 {noticeTime}</Tag>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Tag color="red">하트 {coin}</Tag>
-                <Tag color="gold">스타 {coinPaid}</Tag>
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    setFocused(space.id);
-                    setOpenCoin(true);
-                  }}
-                >
-                  코인 지급
-                </Button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Tag>방 갯수 {rooms.length}</Tag>
-                {rooms.map((room) => (
-                  <div key={room.id}>{room.type}</div>
-                ))}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Tag>펫이름: {petName}</Tag>
-                <Tag>LV. {level}</Tag>
-              </div>
-              <Button onClick={handleRemove} type="primary">
-                공간 삭제
-              </Button>
-            </div>
-
-            <div className="flex flex-col gap-2 flex-2">
-              <div>멤버 {space.profiles.length}</div>
-              <div className="grid grid-cols-2">
-                {space.profiles.map((profile) => {
-                  const { isPremium, isGoldClub, userId } = profile;
-
-                  const isOwenr = userId === ownerId;
-
-                  const removePro = async () => {
-                    modal.confirm({
-                      title: `삭제 (${profile.nickname})`,
-                      onOk: async () => {
-                        try {
-                          await removeProfile(profile.id);
-                          await refetch();
-                        } catch (err) {
-                          message.error(`${err}`);
-                        }
-                      },
-                    });
-                  };
-
-                  return (
-                    <Card key={profile.id} style={{ background: "#fefefe" }}>
-                      <div className="flex items-center gap-2">
-                        <Image src={profile.img?.uri} style={{ width: 40, height: 40 }} />
-                        {profile.nickname}
-                        {isOwenr && <Tag color="black">OWNER</Tag>}
-                        {isPremium && <Tag color="green-inverse">PREMIUM</Tag>}
-                        {isGoldClub && <Tag color="gold">STAR CLUB</Tag>}
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <Button onClick={() => copyId(profile.id)}>ID: {profile.id}</Button>
-                        <Button onClick={removePro} type="primary" size="small">
-                          프로필 삭제
-                        </Button>
-                      </div>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
-    );
+  const handleViewProfiles = (space: Space) => {
+    setOpenProfile(true);
+    setFocused(space);
   };
+
+  const copyId = (id: string) => {
+    navigator.clipboard.writeText(id);
+    api.success(`${id} 복사`);
+  };
+
+  const handleRemove = (space: Space) => {
+    modal.confirm({
+      title: `삭제 (${space.id}) ${space.spaceInfo.name}`,
+      onOk: async () => {
+        try {
+          await removeSpace(space.id);
+          await refetch();
+        } catch (err) {
+          message.error(`${err}`);
+        }
+      },
+    });
+  };
+
+  const columns: TableProps<Space>["columns"] = [
+    {
+      title: "id",
+      dataIndex: "id",
+      key: "id",
+    },
+    {
+      title: "이름",
+      dataIndex: ["spaceInfo", "name"],
+      key: "name",
+    },
+    {
+      title: "타입",
+      dataIndex: ["spaceInfo", "type"],
+      key: "type",
+    },
+    {
+      title: "언어",
+      dataIndex: ["spaceInfo", "locale"],
+      key: "locale",
+    },
+    {
+      title: "멤버 수",
+      dataIndex: ["spaceInfo", "members"],
+      key: "members",
+    },
+    {
+      title: "카드 수",
+      dataIndex: "cardOrder",
+      key: "cardOrder",
+    },
+    {
+      title: "답변 수",
+      dataIndex: ["spaceInfo", "replies"],
+      key: "replies",
+    },
+    {
+      title: "하트/스타",
+      dataIndex: "",
+      key: "x",
+      render: (_, space) => {
+        return (
+          <div className="flex gap-1">
+            <Tag color="red">하트 {space.coin}</Tag>
+            <Tag color="gold">스타 {space.coinPaid}</Tag>
+          </div>
+        );
+      },
+    },
+    {
+      title: "펫 LV",
+      dataIndex: ["pet", "level"],
+      key: "level",
+    },
+
+    {
+      title: "가입일",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (value) => {
+        const day = dayjs(value);
+        const diffFromNow = dayjs().diff(day, "day");
+
+        return (
+          <div>
+            <Tag>D+{diffFromNow}</Tag>
+            {day.format("YY.MM.DD HH:mm")}
+          </div>
+        );
+      },
+    },
+    {
+      title: "삭제예정일",
+      dataIndex: "dueRemovedAt",
+      key: "dueRemovedAt",
+      render: (value: string, item: Space) => {
+        const isPremium = item.profiles?.[0]?.isPremium;
+        const day = dayjs(value);
+        const diff = day.add(isPremium ? -60 : -30, "day").diff(item.createdAt, "minute");
+        const gap = diff > 60 ? `${Math.floor(diff / 60)}시간 ${diff % 60}분` : `${diff}분`;
+
+        if (!value) return;
+
+        return (
+          <div>
+            <Tag color={"error"}>{gap}만에 삭제</Tag>
+            {day.format("YY.MM.DD HH:mm")}
+          </div>
+        );
+      },
+    },
+
+    {
+      title: "Action",
+      dataIndex: "",
+      key: "x",
+      render: (value, space) => (
+        <div className="flex gap-4">
+          <Button
+            type="link"
+            onClick={() => {
+              handleViewProfiles(space);
+            }}
+          >
+            멤버 보기
+          </Button>
+          <Button
+            type="primary"
+            onClick={() => {
+              setOpenCoin(true);
+              setFocused(space);
+            }}
+          >
+            코인 지급
+          </Button>
+
+          <Button onClick={() => handleRemove(space)}>삭제</Button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <>
@@ -191,10 +212,18 @@ function SpaceList() {
           allowClear
         />
       </div>
-      <div className="flex flex-col gap-2">{items.map(renderItem)}</div>
-      <div className="flex justify-end p-4">
-        <Pagination total={totalPage * 10} onChange={setCurrentPage} current={currentPage} showSizeChanger={false} />
-      </div>
+
+      <Table
+        dataSource={items}
+        columns={columns}
+        pagination={{
+          total: totalPage * 10,
+          current: currentPage,
+          onChange: (page) => setCurrentPage(page),
+          showSizeChanger: false,
+        }}
+        loading={isLoading}
+      />
 
       <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={1200}>
         <SpaceSearch />
@@ -204,7 +233,7 @@ function SpaceList() {
         open={isOpenCoin}
         onClose={() => {
           setOpenCoin(false);
-          setFocused("");
+          setFocused(undefined);
         }}
         width={600}
       >
@@ -212,11 +241,55 @@ function SpaceList() {
           reload={refetch}
           close={() => {
             setOpenCoin(false);
-            setFocused("");
+            setFocused(undefined);
           }}
-          spaceId={focused}
+          spaceId={focused?.id ?? ""}
         />
       </Drawer>
+      {focused && (
+        <Modal open={isOpenProfile} footer={null} onCancel={() => setOpenProfile(false)}>
+          {focused.profiles.map((profile) => {
+            const { isPremium, isGoldClub, userId } = profile;
+
+            const isOwenr = userId === focused.spaceInfo.ownerId;
+
+            const removePro = async () => {
+              modal.confirm({
+                title: `삭제 (${profile.nickname})`,
+                onOk: async () => {
+                  try {
+                    await removeProfile(profile.id);
+                    await refetch();
+                  } catch (err) {
+                    message.error(`${err}`);
+                  }
+                },
+              });
+            };
+
+            return (
+              <Card key={profile.id} style={{ background: "#fefefe" }}>
+                <div className="flex items-center gap-2">
+                  <Image src={profile.img?.uri} style={{ width: 40, height: 40 }} />
+                  {profile.nickname}
+                  {isOwenr && <Tag color="black">OWNER</Tag>}
+                  {isPremium && <Tag color="green-inverse">PREMIUM</Tag>}
+                  {isGoldClub && <Tag color="gold">STAR CLUB</Tag>}
+                </div>
+                <div className="flex flex-col gap-4">
+                  <Tag>ID: {profile.id}</Tag>
+                  <Button onClick={() => copyId(profile.user.username)} type="primary">
+                    username {profile.user.username}
+                  </Button>
+                  <Button onClick={removePro} type="default" size="small">
+                    프로필 삭제
+                  </Button>
+                </div>
+              </Card>
+            );
+          })}
+        </Modal>
+      )}
     </>
   );
 }

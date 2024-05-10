@@ -60,7 +60,7 @@ function CoinForm({ spaceId, reload, close }: LocaleFormProps) {
           />
         </Form.Item>
 
-        <Form.Item label="메시지 (유저 히스토리에 표시 됨)">
+        <Form.Item label="locale key">
           <Input value={meta} onChange={(e) => setMetaMessage(e.target.value)} />
         </Form.Item>
 

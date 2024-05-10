@@ -1,19 +1,22 @@
 import { getTickets } from "@/client/premium";
 import { useQuery } from "@tanstack/react-query";
 
-type Props = {};
+type Props = {
+  page: number;
+  type?: ("permanent" | "subscribe")[];
+};
 
 function useTickets(by: Props) {
-  const {} = by;
-
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["tickets"],
-    queryFn: () => getTickets(),
+    queryKey: ["tickets", by],
+    queryFn: () => getTickets(by),
   });
 
-  const items = data ?? [];
+  const items = data?.items ?? [];
 
-  return { items, isLoading, refetch };
+  const totalPage = data?.pageInfo.totalPage ?? 1;
+
+  return { items, totalPage, isLoading, refetch };
 }
 
 export default useTickets;
