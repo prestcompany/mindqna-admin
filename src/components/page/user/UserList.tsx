@@ -5,11 +5,13 @@ import { Button, Drawer, Modal, Select, Table, TableProps, Tag, message } from "
 import dayjs from "dayjs";
 import { useState } from "react";
 import TicketForm from "./TicketForm";
+import UserSearch from "./UserSearch";
 
 function UserList() {
   const [modal, holder] = Modal.useModal();
 
   const [currentPage, setCurrentPage] = useState(1);
+  const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenTicket, setOpenTicket] = useState(false);
   const [focused, setFocused] = useState<string>("");
 
@@ -35,6 +37,20 @@ function UserList() {
       title: "username",
       dataIndex: "username",
       key: "username",
+    },
+    {
+      title: "가입상태",
+      dataIndex: "",
+      key: "x",
+      render: (_, user) => {
+        return (
+          <div>
+            <Tag color={user.profiles.length > 0 ? "green" : "default"}>
+              {user.profiles.length > 0 ? "가입완료" : "가입중"}
+            </Tag>
+          </div>
+        );
+      },
     },
 
     {
@@ -67,6 +83,7 @@ function UserList() {
       dataIndex: ["profiles", "length"],
       key: "spaceLength",
     },
+
     {
       title: "공간최대치",
       dataIndex: "spaceMaxCount",
@@ -140,6 +157,9 @@ function UserList() {
     <>
       {holder}
       <div className="flex items-center gap-2 py-4">
+        <Button onClick={() => setOpenCreate(true)} type="primary">
+          검색하기
+        </Button>
         <span className="text-lg font-bold">필터</span>
         <Select
           placeholder="언어"
@@ -168,6 +188,10 @@ function UserList() {
         }}
         loading={isLoading}
       />
+
+      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={1200}>
+        <UserSearch />
+      </Drawer>
       <Drawer
         open={isOpenTicket}
         onClose={() => {

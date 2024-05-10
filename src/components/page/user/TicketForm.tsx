@@ -1,5 +1,5 @@
 import { giveTicket } from "@/client/premium";
-import { Button, Form, Input, InputNumber, Spin, message } from "antd";
+import { Button, Form, Input, InputNumber, Radio, Spin, message } from "antd";
 import { useState } from "react";
 
 type LocaleFormProps = {
@@ -13,6 +13,13 @@ function TicketForm({ username, reload, close }: LocaleFormProps) {
 
   const [amount, setAmount] = useState(1);
   const [meta, setMetaMessage] = useState("");
+  const [type, setType] = useState<"per" | "sub">("sub");
+  const [dueDayNum, setDueDayNum] = useState<number>(7);
+
+  const categoriOptions = [
+    { label: "영구", value: "per" },
+    { label: "기간", value: "sub" },
+  ];
 
   const save = async () => {
     try {
@@ -22,6 +29,7 @@ function TicketForm({ username, reload, close }: LocaleFormProps) {
         username,
         amount,
         message: meta,
+        dueDayNum: type === "sub" ? dueDayNum : undefined,
       });
       await reload();
       close();
@@ -38,11 +46,26 @@ function TicketForm({ username, reload, close }: LocaleFormProps) {
         <Form.Item label="username">
           <Input value={username} disabled />
         </Form.Item>
+        <Form.Item label="영구/기간">
+          <Radio.Group
+            options={categoriOptions}
+            optionType="button"
+            buttonStyle="solid"
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+          />
+        </Form.Item>
+
+        {type === "sub" && (
+          <Form.Item label="기간 (day)">
+            <InputNumber min={1} value={dueDayNum} onChange={(e) => setDueDayNum(e ?? 1)} />
+          </Form.Item>
+        )}
 
         <Form.Item label="개수">
           <InputNumber min={1} value={amount} onChange={(e) => setAmount(e ?? 1)} />
         </Form.Item>
-        <Form.Item label="메시지 (유저 히스토리에 표시 됨)">
+        <Form.Item label="locale key">
           <Input value={meta} onChange={(e) => setMetaMessage(e.target.value)} />
         </Form.Item>
 

@@ -1,8 +1,8 @@
 import client from "./@base";
-import { GiveCoinParams, GiveTicketParams, Ticket } from "./types";
+import { GiveCoinParams, GiveTicketParams, QueryResultWithPagination, TicketMeta } from "./types";
 
-export async function getTickets() {
-  const res = await client.get<Ticket[]>("/ticket");
+export async function getTickets(by: { page: number; type?: ("permanent" | "subscribe")[] }) {
+  const res = await client.get<QueryResultWithPagination<TicketMeta>>("/ticket", { params: by });
 
   return res.data;
 }
