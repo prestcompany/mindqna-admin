@@ -19,11 +19,12 @@ function SpaceList() {
 
   const [focused, setFocused] = useState<Space | undefined>(undefined);
 
-  const [filter, setFilter] = useState<{ type?: SpaceType[]; locale?: string[] }>({});
+  const [filter, setFilter] = useState<{ type?: SpaceType[]; locale?: string[]; orderBy?: string }>({});
   const { items, totalPage, refetch, isLoading } = useSpaces({
     page: currentPage,
     type: filter.type,
     locale: filter.locale,
+    orderBy: filter.orderBy as any,
   });
 
   const handleViewProfiles = (space: Space) => {
@@ -208,6 +209,24 @@ function SpaceList() {
           value={(filter.type ?? [])?.[0]}
           onChange={(v: SpaceType) => {
             setFilter((prev) => ({ ...prev, type: [v] }));
+          }}
+          allowClear
+        />
+
+        <span className="text-lg font-bold">정렬</span>
+
+        <Select
+          placeholder="정렬"
+          style={{ width: 120 }}
+          options={[
+            { label: "카드 많은 순", value: "card" },
+            { label: "답변 많은 순", value: "replies" },
+            { label: "레벨 높은 순", value: "level" },
+            { label: "멤버 많은 순", value: "members" },
+          ]}
+          value={(filter.type ?? [])?.[0]}
+          onChange={(v: string) => {
+            setFilter((prev) => ({ ...prev, orderBy: v }));
           }}
           allowClear
         />
