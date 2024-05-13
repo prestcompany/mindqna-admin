@@ -22,7 +22,9 @@ function Dashboard() {
   });
 
   const userCountMap = countSameCreatedAt(
-    (data?.users ?? []).map((user) => ({ createdAt: dayjs(user.createdAt).format("YYYY-MM-DD") }))
+    (data?.users ?? [])
+      .filter((user) => user.profiles.length > 0)
+      .map((user) => ({ createdAt: dayjs(user.createdAt).format("YYYY-MM-DD") }))
   );
   const spaceCountMap = countSameCreatedAt(
     (data?.spaces ?? []).map((item) => ({ createdAt: dayjs(item.createdAt).format("YYYY-MM-DD") }))
