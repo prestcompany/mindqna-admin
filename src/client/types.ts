@@ -314,3 +314,22 @@ export type Room = {
 };
 
 export type RoomCategory = "rooftop" | "inner" | "outer";
+
+export type AppRule = {
+  id: number;
+  key: string;
+  value: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CreateRuleParams = {
+  key: string;
+  value: number;
+};
+
+export type UpdateRuleParams = CreateRuleParams & {
+  id: number;
+  isActive: boolean;
+};

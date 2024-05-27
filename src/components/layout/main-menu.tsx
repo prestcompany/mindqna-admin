@@ -74,6 +74,13 @@ const mainMenuData: IMenu[] = [
         },
       },
       {
+        id: "exp",
+        name: "펫 경험치",
+        link: {
+          path: "/product/exp",
+        },
+      },
+      {
         id: "bubble",
         name: "펫 말풍선",
         link: {
