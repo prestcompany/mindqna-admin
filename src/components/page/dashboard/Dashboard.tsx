@@ -23,7 +23,7 @@ function Dashboard() {
 
   const userCountMap = countSameCreatedAt(
     (data?.users ?? [])
-      .filter((user) => user.profiles.length > 0)
+      .filter((user) => user.profiles?.length > 0)
       .map((user) => ({ createdAt: dayjs(user.createdAt).format("YYYY-MM-DD") }))
   );
   const spaceCountMap = countSameCreatedAt(
