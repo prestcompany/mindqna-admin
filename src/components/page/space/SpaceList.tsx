@@ -27,6 +27,8 @@ function SpaceList() {
     orderBy: filter.orderBy as any,
   });
 
+  console.log(items[0]);
+
   const handleViewProfiles = (space: Space) => {
     setOpenProfile(true);
     setFocused(space);
@@ -104,6 +106,27 @@ function SpaceList() {
       title: "펫 LV",
       dataIndex: ["pet", "level"],
       key: "level",
+      render: (level, space) => {
+        return (
+          <div className="flex gap-1">
+            <Tag color="cyan">lv.{level}</Tag>
+            <Tag color="blue">{space.pet.exp.toFixed(1)}</Tag>
+          </div>
+        );
+      },
+    },
+    {
+      title: "방/인테리어 갯수",
+      dataIndex: ["rooms", "length"],
+      key: "rooms",
+      render: (count, space) => {
+        return (
+          <div className="flex gap-1">
+            <Tag color="purple">{count}</Tag>
+            <Tag color="orange">{space.InteriorItem.length}</Tag>
+          </div>
+        );
+      },
     },
 
     {

@@ -254,6 +254,7 @@ export type Space = {
   profiles: Profile[];
   rooms: Room[];
   pet: Pet;
+  InteriorItem: InteriorItem[];
   cardOrder: number;
   cardGenDate: string;
   dueRemovedAt: string | null;
@@ -261,6 +262,15 @@ export type Space = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type InteriorItem = {
+  id: number;
+  interiorTemplateId: number;
+  spaceId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type SpaceInfo = {
   spaceId: string;
   type: SpaceType;
