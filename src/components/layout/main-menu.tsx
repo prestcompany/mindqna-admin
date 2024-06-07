@@ -101,6 +101,13 @@ const mainMenuData: IMenu[] = [
           path: "/product/locales",
         },
       },
+      {
+        id: "push",
+        name: "푸시 알림",
+        link: {
+          path: "/product/push",
+        },
+      },
     ],
   },
 ];

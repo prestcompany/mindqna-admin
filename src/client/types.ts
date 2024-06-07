@@ -148,15 +148,18 @@ export type PetBubble = {
 
 export type CreateSnackParams = {
   imgId: number;
+  kind: SnackKind;
+  desc?: string;
   exp: number;
   name: string;
   price: number;
-  type: PetType;
+  type?: PetType;
   isPaid: boolean;
   order: number;
+  isActive: boolean;
 };
 
-export type PetType = "dog" | "cat" | "rebbit" | "squirrel" | "bear" | "hamster" | "pig" | "penguin" | "deer";
+export type PetType = "dog" | "cat" | "rebbit" | "squirrel" | "bear" | "hamster" | "chick" | "penguin";
 
 export type GetSnacksResult = {
   pageInfo: TotalPageInfo;
@@ -166,6 +169,7 @@ export type GetSnacksResult = {
 export type Snack = {
   id: number;
   name: string;
+  desc?: string;
   type: PetType;
   exp: number;
   price: number;
@@ -174,7 +178,11 @@ export type Snack = {
   createdAt: string;
   updatedAt: string;
   Img: ImgItem;
+  isActive: boolean;
+  kind: SnackKind;
 };
+
+export type SnackKind = "normal" | "special";
 
 export type GiveTicketParams = {
   username: string;

@@ -55,6 +55,16 @@ function SnackList() {
       key: "name",
     },
     {
+      title: "설명",
+      dataIndex: "desc",
+      key: "desc",
+    },
+    {
+      title: "종류",
+      dataIndex: "kind",
+      key: "kind",
+    },
+    {
       title: "진화하는 펫",
       dataIndex: "type",
       key: "type",
@@ -80,7 +90,15 @@ function SnackList() {
       dataIndex: "isPaid",
       key: "isPaid",
       render: (value: boolean) => {
-        return <Tag color={value ? "success" : "default"}>{value ? "스타" : "하트"}</Tag>;
+        return <Tag color={value ? "gold" : "red"}>{value ? "스타" : "하트"}</Tag>;
+      },
+    },
+    {
+      title: "활성화",
+      dataIndex: "isActive",
+      key: "isActive",
+      render: (value: boolean) => {
+        return <Tag color={value ? "green" : "default"}>{value ? "활성화" : "비활성화"}</Tag>;
       },
     },
 

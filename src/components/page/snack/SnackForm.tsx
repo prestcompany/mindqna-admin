@@ -1,5 +1,5 @@
 import { createSnack, updateSnack } from "@/client/snack";
-import { ImgItem, PetType, Snack } from "@/client/types";
+import { ImgItem, PetType, Snack, SnackKind } from "@/client/types";
 import { Button, Form, Image, Input, InputNumber, Radio, Spin, message } from "antd";
 import { useEffect, useState } from "react";
 import AssetsDrawer from "../assets/AssetsDrawer";
@@ -16,11 +16,15 @@ function SnackForm({ init, close, reload }: Props) {
   const [focusedId, setFocusedId] = useState<number>();
   const [image, setImage] = useState<ImgItem>();
   const [name, setName] = useState("");
+  const [desc, setDesc] = useState("");
+
   const [isPaid, setIsPaid] = useState(false);
   const [price, setPrice] = useState(0);
   const [order, setOrder] = useState(1);
   const [exp, setExp] = useState(0);
-  const [type, setType] = useState<PetType>("dog");
+  const [type, setType] = useState<PetType | undefined>(undefined);
+  const [kind, setKind] = useState<SnackKind>("normal");
+  const [isActive, setIsActive] = useState(false);
 
   useEffect(() => {
     if (!init) return;
@@ -29,20 +33,27 @@ function SnackForm({ init, close, reload }: Props) {
     }
     setFocusedId(init.id);
     setName(init.name);
+    setDesc(init.desc ?? "");
     setIsPaid(init.isPaid);
     setPrice(init.price);
     setOrder(init.order);
     setExp(init.exp);
     setType(init.type);
+    setKind(init.kind);
+    setIsActive(init.isActive);
   }, [init]);
+
+  const kindOptions: { label: string; value: SnackKind }[] = [
+    { label: "normal", value: "normal" },
+    { label: "special", value: "special" },
+  ];
 
   const typeOptions: { label: string; value: PetType }[] = [
     { label: "곰", value: "bear" },
     { label: "고양이", value: "cat" },
-    { label: "사슴", value: "deer" },
     { label: "강아지", value: "dog" },
     { label: "펭귄", value: "penguin" },
-    { label: "돼지", value: "pig" },
+    { label: "병아리", value: "chick" },
     { label: "토끼", value: "rebbit" },
     { label: "햄스터", value: "hamster" },
     { label: "다람쥐", value: "squirrel" },
@@ -53,10 +64,16 @@ function SnackForm({ init, close, reload }: Props) {
     { label: "하트", value: false },
   ];
 
+  const activeOptions = [
+    { label: "활성화", value: true },
+    { label: "비활성화", value: false },
+  ];
+
   const save = async () => {
     try {
       if (!image) return;
       setLoading(true);
+
       if (focusedId) {
         await updateSnack({
           id: focusedId,
@@ -66,7 +83,10 @@ function SnackForm({ init, close, reload }: Props) {
           order,
           price,
           exp,
-          type,
+          type: type ?? undefined,
+          kind,
+          desc,
+          isActive,
         });
       } else {
         await createSnack({
@@ -76,7 +96,10 @@ function SnackForm({ init, close, reload }: Props) {
           order,
           price,
           exp,
-          type,
+          type: type ?? undefined,
+          kind,
+          desc,
+          isActive,
         });
       }
 
@@ -101,6 +124,18 @@ function SnackForm({ init, close, reload }: Props) {
 
         <Form.Item label="이름">
           <Input value={name} onChange={(e) => setName(e.target.value)} />
+        </Form.Item>
+        <Form.Item label="이름">
+          <Input value={desc} onChange={(e) => setDesc(e.target.value)} />
+        </Form.Item>
+        <Form.Item label="종료">
+          <Radio.Group
+            options={kindOptions}
+            optionType="button"
+            buttonStyle="solid"
+            value={kind}
+            onChange={(e) => setKind(e.target.value)}
+          />
         </Form.Item>
         <Form.Item label="진화하는 펫 타입">
           <Radio.Group
@@ -131,6 +166,16 @@ function SnackForm({ init, close, reload }: Props) {
             <InputNumber min={0} value={price} onChange={(v) => setPrice(v ? v : 0)} />
           </Form.Item>
         </div>
+
+        <Form.Item label="활성화">
+          <Radio.Group
+            options={activeOptions}
+            optionType="button"
+            buttonStyle="solid"
+            value={isActive}
+            onChange={(e) => setIsActive(e.target.value)}
+          />
+        </Form.Item>
 
         <Button onClick={save} size="large" type="primary">
           저장
