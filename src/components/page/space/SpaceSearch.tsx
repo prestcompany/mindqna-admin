@@ -1,14 +1,19 @@
 import { getSpace, removeProfile, removeSpace } from "@/client/space";
 import { Space } from "@/client/types";
 import { useQuery } from "@tanstack/react-query";
-import { Button, Card, Image, Input, Modal, Tag, message } from "antd";
+import { Button, Card, Drawer, Image, Input, Modal, Tag, message } from "antd";
 import dayjs from "dayjs";
 import { useState } from "react";
+import CoinForm from "./CoinForm";
 
 function SpaceSearch() {
   const [modal, holder] = Modal.useModal();
   const [api, contextHolder] = message.useMessage();
   const [id, setId] = useState("");
+
+  const [isOpenCoin, setOpenCoin] = useState(false);
+  const [focused, setFocused] = useState<Space | undefined>(undefined);
+
   const { data, refetch } = useQuery({ queryKey: ["space"], queryFn: () => getSpace(id), enabled: false });
 
   const renderItem = (space: Space) => {
@@ -77,6 +82,15 @@ function SpaceSearch() {
                 <Tag>펫이름: {petName}</Tag>
                 <Tag>LV. {level}</Tag>
               </div>
+              <Button
+                type="primary"
+                onClick={() => {
+                  setOpenCoin(true);
+                  setFocused(data);
+                }}
+              >
+                코인 지급
+              </Button>
               <Button onClick={handleRemove}>공간 삭제</Button>
             </div>
 
@@ -144,6 +158,24 @@ function SpaceSearch() {
         </div>
         {data && renderItem(data)}
       </div>
+
+      <Drawer
+        open={isOpenCoin}
+        onClose={() => {
+          setOpenCoin(false);
+          setFocused(undefined);
+        }}
+        width={600}
+      >
+        <CoinForm
+          reload={refetch}
+          close={() => {
+            setOpenCoin(false);
+            setFocused(undefined);
+          }}
+          spaceId={focused?.id ?? ""}
+        />
+      </Drawer>
     </>
   );
 }

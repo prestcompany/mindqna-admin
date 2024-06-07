@@ -27,8 +27,6 @@ function SpaceList() {
     orderBy: filter.orderBy as any,
   });
 
-  console.log(items[0]);
-
   const handleViewProfiles = (space: Space) => {
     setOpenProfile(true);
     setFocused(space);
