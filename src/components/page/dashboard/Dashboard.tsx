@@ -68,6 +68,37 @@ function Dashboard() {
     (data?.spaces ?? []).map((item) => ({ createdAt: dayjs(item.createdAt).format("YYYY-MM-DD") }))
   );
 
+  const spaceDataMap = (data?.spaces ?? []).reduce(
+    (acc, space) => {
+      const createdAt = dayjs(space.createdAt).format("YYYY-MM-DD");
+
+      const locale = space.spaceInfo.locale;
+
+      if (!acc[createdAt]) {
+        acc[createdAt] = {};
+      }
+
+      if (!acc[createdAt][locale]) {
+        acc[createdAt][locale] = 0;
+      }
+
+      acc[createdAt][locale] += 1;
+
+      return acc;
+    },
+    {} as Record<string, Record<string, number>>
+  );
+
+  const spaceLabels = Object.keys(dataMap).sort();
+
+  const spaceDatasets = locales.map((locale) => {
+    return {
+      label: locale,
+      data: spaceLabels.map((label) => spaceDataMap[label][locale] || 0),
+      stack: locale,
+    };
+  });
+
   const spaceTypeCountMap = countItemsWithSameKey(
     (data?.spaces ?? []).map((space) => ({ type: space.spaceInfo.type })),
     "type"
@@ -91,21 +122,19 @@ function Dashboard() {
                 },
               }}
               data={{
-                labels: Object.keys(spaceCountMap),
-                datasets: [
-                  {
-                    label: "생성 수",
-                    data: Object.values(spaceCountMap),
-                  },
-                ],
+                labels: spaceLabels,
+                datasets: spaceDatasets,
               }}
             />
           </div>
           <div className="flex flex-col gap-4">
-            {Object.entries(spaceCountMap).map(([type, count]) => {
+            {Object.entries(spaceCountMap).map(([type]) => {
               return (
                 <div key={type}>
-                  {type} : {count}
+                  {type} :{" "}
+                  {Object.entries(spaceDataMap[type] ?? {})
+                    .sort(([x, a], [y, b]) => b - a)
+                    .map(([locale, count]) => `${locale}: ${count} `)}
                 </div>
               );
             })}
@@ -180,7 +209,7 @@ function Dashboard() {
             />
           </div>
           <div className="flex flex-col gap-4">
-            {Object.entries(userCountMap).map(([type, count]) => {
+            {Object.entries(userCountMap).map(([type]) => {
               return (
                 <div key={type}>
                   {type} :{" "}
