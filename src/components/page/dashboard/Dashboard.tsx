@@ -38,8 +38,15 @@ function Dashboard() {
 
         const locale = user.locale;
 
+        const defaultLocaleMap = {
+          ko: 0,
+          en: 0,
+          ja: 0,
+          zh: 0,
+        };
+
         if (!acc[createdAt]) {
-          acc[createdAt] = {};
+          acc[createdAt] = defaultLocaleMap;
         }
 
         if (!acc[createdAt][locale]) {
@@ -55,11 +62,13 @@ function Dashboard() {
 
   const labels = Object.keys(dataMap).sort();
   const locales = ["ko", "en", "ja", "zh"];
+  const colors = ["#bbf7d0", "#67e8f9", "#c4b5fd", "#fdba74"];
 
-  const datasets = locales.map((locale) => {
+  const datasets = locales.map((locale, index) => {
     return {
       label: locale,
       data: labels.map((label) => dataMap[label][locale] || 0),
+      backgroundColor: colors[index],
       stack: locale,
     };
   });
@@ -74,8 +83,15 @@ function Dashboard() {
 
       const locale = space.spaceInfo.locale;
 
+      const defaultLocaleMap = {
+        ko: 0,
+        en: 0,
+        ja: 0,
+        zh: 0,
+      };
+
       if (!acc[createdAt]) {
-        acc[createdAt] = {};
+        acc[createdAt] = defaultLocaleMap;
       }
 
       if (!acc[createdAt][locale]) {
@@ -90,11 +106,11 @@ function Dashboard() {
   );
 
   const spaceLabels = Object.keys(dataMap).sort();
-
-  const spaceDatasets = locales.map((locale) => {
+  const spaceDatasets = locales.map((locale, index) => {
     return {
       label: locale,
       data: spaceLabels.map((label) => spaceDataMap[label][locale] || 0),
+      backgroundColor: colors[index],
       stack: locale,
     };
   });
@@ -128,13 +144,23 @@ function Dashboard() {
             />
           </div>
           <div className="flex flex-col gap-4">
-            {Object.entries(spaceCountMap).map(([type]) => {
+            {Object.entries(spaceCountMap).map(([type, count]) => {
               return (
                 <div key={type}>
-                  {type} :{" "}
-                  {Object.entries(spaceDataMap[type] ?? {})
-                    .sort(([x, a], [y, b]) => b - a)
-                    .map(([locale, count]) => `${locale}: ${count} `)}
+                  <div className="text-xl font-bold">{type}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-lg font-medium">total {count}</div>
+
+                    {Object.entries(spaceDataMap[type] ?? {}).map(([locale, count], idx) => {
+                      if (count === 0) return;
+
+                      return (
+                        <div key={locale} className="px-2 rounded" style={{ backgroundColor: colors[idx] }}>
+                          {locale}: {count}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}
@@ -209,13 +235,23 @@ function Dashboard() {
             />
           </div>
           <div className="flex flex-col gap-4">
-            {Object.entries(userCountMap).map(([type]) => {
+            {Object.entries(userCountMap).map(([type, count]) => {
               return (
                 <div key={type}>
-                  {type} :{" "}
-                  {Object.entries(dataMap[type] ?? {})
-                    .sort(([x, a], [y, b]) => b - a)
-                    .map(([locale, count]) => `${locale}: ${count} `)}
+                  <div className="text-xl font-bold">{type}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-lg font-medium">total {count}</div>
+
+                    {Object.entries(dataMap[type] ?? {}).map(([locale, count], idx) => {
+                      if (count === 0) return;
+
+                      return (
+                        <div key={locale} className="px-2 rounded" style={{ backgroundColor: colors[idx] }}>
+                          {locale}: {count}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}
