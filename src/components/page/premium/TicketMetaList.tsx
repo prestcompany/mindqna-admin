@@ -44,13 +44,23 @@ function TicketMetaList() {
       key: "transactionId",
     },
     {
+      title: "log",
+      dataIndex: "log",
+      key: "log",
+    },
+    {
       title: "구매/만료",
-      dataIndex: "isExpired",
-      key: "isExpried",
-      render: (value: boolean) => {
+      dataIndex: "x",
+      key: "x",
+      render: (_, ticket) => {
+        const isExpired = ticket.isExpired;
+        const isPurchase = !isExpired && (ticket.isSuccess || dayjs(ticket.createdAt).isBefore("2024-06-01"));
+
         return (
           <div>
-            <Tag color={value ? "red" : "blue"}>{value ? "만료" : "구매"}</Tag>
+            {!isExpired && !isPurchase && <Tag color="red">실패</Tag>}
+            {isPurchase && <Tag color="green">구매</Tag>}
+            {isExpired && <Tag color="default">만료</Tag>}
           </div>
         );
       },

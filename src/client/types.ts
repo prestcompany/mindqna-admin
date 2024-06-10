@@ -204,7 +204,10 @@ export type TicketMeta = {
   platform: "EVENT" | "IOS" | "EVENT";
   transactionId: string;
   productId: string;
-  isExpried: boolean;
+  log?: string;
+  isSuccess: boolean;
+  isExpired: boolean;
+
   createdAt: string;
 };
 
