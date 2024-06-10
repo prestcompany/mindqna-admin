@@ -1,13 +1,16 @@
 import useAnalytics from "@/hooks/useAnaytics";
 import { DatePicker, Statistic, Tabs } from "antd";
 import { TabsProps } from "antd/lib";
+import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from "chart.js";
 import "chart.js/auto";
 import "chartjs-plugin-datalabels";
 import dayjs from "dayjs";
 import localeData from "dayjs/plugin/localeData";
 import weekday from "dayjs/plugin/weekday";
 import { useState } from "react";
-import { Chart } from "react-chartjs-2";
+import { Bar, Chart } from "react-chartjs-2";
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 dayjs.extend(weekday);
 dayjs.extend(localeData);
@@ -26,6 +29,41 @@ function Dashboard() {
       .filter((user) => user.profiles.length > 0)
       .map((user) => ({ createdAt: dayjs(user.createdAt).format("YYYY-MM-DD") }))
   );
+
+  const dataMap = (data?.users ?? [])
+    .filter((user) => user.profiles.length > 0)
+    .reduce(
+      (acc, user) => {
+        const createdAt = dayjs(user.createdAt).format("YYYY-MM-DD");
+
+        const locale = user.locale;
+
+        if (!acc[createdAt]) {
+          acc[createdAt] = {};
+        }
+
+        if (!acc[createdAt][locale]) {
+          acc[createdAt][locale] = 0;
+        }
+
+        acc[createdAt][locale] += 1;
+
+        return acc;
+      },
+      {} as Record<string, Record<string, number>>
+    );
+
+  const labels = Object.keys(dataMap).sort();
+  const locales = ["ko", "en", "ja", "zh"];
+
+  const datasets = locales.map((locale) => {
+    return {
+      label: locale,
+      data: labels.map((label) => dataMap[label][locale] || 0),
+      stack: locale,
+    };
+  });
+
   const spaceCountMap = countSameCreatedAt(
     (data?.spaces ?? []).map((item) => ({ createdAt: dayjs(item.createdAt).format("YYYY-MM-DD") }))
   );
@@ -123,8 +161,7 @@ function Dashboard() {
       children: (
         <div className="flex gap-12">
           <div className="w-[600px] h-[600px]">
-            <Chart
-              type="bar"
+            <Bar
               options={{
                 plugins: {
                   datalabels: {
@@ -132,15 +169,13 @@ function Dashboard() {
                     color: "white",
                   },
                 },
+                scales: {
+                  y: { stacked: true },
+                },
               }}
               data={{
-                labels: Object.keys(userCountMap),
-                datasets: [
-                  {
-                    label: "가입자 수",
-                    data: Object.values(userCountMap),
-                  },
-                ],
+                labels,
+                datasets,
               }}
             />
           </div>
@@ -148,7 +183,10 @@ function Dashboard() {
             {Object.entries(userCountMap).map(([type, count]) => {
               return (
                 <div key={type}>
-                  {type} : {count}
+                  {type} :{" "}
+                  {Object.entries(dataMap[type] ?? {})
+                    .sort(([x, a], [y, b]) => b - a)
+                    .map(([locale, count]) => `${locale}: ${count} `)}
                 </div>
               );
             })}
