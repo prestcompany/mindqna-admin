@@ -108,6 +108,13 @@ const mainMenuData: IMenu[] = [
           path: "/product/push",
         },
       },
+      {
+        id: "banner",
+        name: "이벤트 베너",
+        link: {
+          path: "/product/banner",
+        },
+      },
     ],
   },
 ];
