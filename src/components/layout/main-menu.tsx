@@ -115,6 +115,13 @@ const mainMenuData: IMenu[] = [
           path: "/product/banner",
         },
       },
+      {
+        id: "room",
+        name: "방",
+        link: {
+          path: "/product/room",
+        },
+      },
     ],
   },
 ];

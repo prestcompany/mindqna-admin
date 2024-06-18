@@ -1,33 +1,30 @@
-import { removeInteriorTemplate } from "@/client/interior";
-import { ImgItem, InteriorTemplate } from "@/client/types";
-import useInteriors from "@/hooks/useInteriors";
-import { Button, Drawer, Image, Modal, Table, Tag, message } from "antd";
-import { TableProps } from "antd/lib";
+import { RoomCategory, RoomTemplate, removeRoom } from "@/client/room";
+import useRooms from "@/hooks/useRooms";
+import { Button, Drawer, Modal, Table, TableProps, Tag, message } from "antd";
 import { useState } from "react";
-import InteriorForm from "./InteriorForm";
+import RoomForm, { categoryOptions } from "./RoomForm";
 
-function InteriorList() {
+function RoomList() {
   const [modal, holder] = Modal.useModal();
 
   const [currentPage, setCurrentPage] = useState(1);
+  const { items, isLoading, refetch, totalPage } = useRooms(currentPage);
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
-  const [focused, setFocused] = useState<InteriorTemplate | undefined>(undefined);
+  const [focused, setFocused] = useState<RoomTemplate | undefined>(undefined);
 
-  const { templates, totalPage, isLoading, refetch } = useInteriors({ page: currentPage });
-
-  const handleEdit = (value: InteriorTemplate) => {
+  const handleEdit = (value: RoomTemplate) => {
     setFocused(value);
     setOpenEdit(true);
   };
 
-  const handleRemove = (value: InteriorTemplate) => {
+  const handleRemove = (value: RoomTemplate) => {
     modal.confirm({
-      title: `삭제 ${value.name}`,
+      title: `삭제 (${value.type})`,
       onOk: async () => {
         try {
-          await removeInteriorTemplate(value.id);
+          await removeRoom(value.id);
           await refetch();
         } catch (err) {
           message.error(`${err}`);
@@ -36,46 +33,33 @@ function InteriorList() {
     });
   };
 
-  const columns: TableProps<InteriorTemplate>["columns"] = [
-    {
-      title: "이미지",
-      dataIndex: "img",
-      key: "img",
-      render: (value: ImgItem) => {
-        return <Image width={"100%"} height={100} src={value?.uri ?? ""} alt="img" style={{ objectFit: "contain" }} />;
-      },
-    },
+  const columns: TableProps<RoomTemplate>["columns"] = [
     {
       title: "id",
       dataIndex: "id",
       key: "id",
     },
-
     {
       title: "이름",
-      dataIndex: "name",
-      key: "name",
-    },
-    {
-      title: "타입",
       dataIndex: "type",
       key: "type",
-    },
-    {
-      title: "방 타입",
-      dataIndex: "room",
-      key: "room",
     },
     {
       title: "카테고리",
       dataIndex: "category",
       key: "category",
+      render: (value: RoomCategory) => {
+        const v = categoryOptions.find((item) => item.value === value)?.label ?? value;
+        return <Tag>{v}</Tag>;
+      },
     },
+
     {
       title: "가격",
       dataIndex: "price",
       key: "price",
     },
+
     {
       title: "스타/히트",
       dataIndex: "isPaid",
@@ -85,15 +69,14 @@ function InteriorList() {
       },
     },
     {
-      title: "width",
-      dataIndex: "width",
-      key: "width",
+      title: "활성화",
+      dataIndex: "isActive",
+      key: "isActive",
+      render: (value: boolean) => {
+        return <Tag color={value ? "green" : "default"}>{value ? "활성화" : "비활성화"}</Tag>;
+      },
     },
-    {
-      title: "height",
-      dataIndex: "height",
-      key: "height",
-    },
+
     {
       title: "Action",
       dataIndex: "",
@@ -106,7 +89,6 @@ function InteriorList() {
       ),
     },
   ];
-
   return (
     <>
       {holder}
@@ -120,8 +102,9 @@ function InteriorList() {
       >
         추가
       </Button>
+
       <Table
-        dataSource={templates}
+        dataSource={items}
         columns={columns}
         pagination={{
           total: totalPage * 10,
@@ -131,14 +114,14 @@ function InteriorList() {
         }}
         loading={isLoading}
       />
-      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={720}>
-        <InteriorForm reload={refetch} close={() => setOpenCreate(false)} />
+      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}>
+        <RoomForm reload={refetch} close={() => setOpenCreate(false)} />
       </Drawer>
-      <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={720}>
-        <InteriorForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
+      <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={600}>
+        <RoomForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
       </Drawer>
     </>
   );
 }
 
-export default InteriorList;
+export default RoomList;
