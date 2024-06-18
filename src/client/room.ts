@@ -7,6 +7,12 @@ export async function getRooms(page: number) {
   return res.data;
 }
 
+export async function getToalRooms() {
+  const res = await client.get<{ type: string }[]>("/room-total");
+
+  return res.data;
+}
+
 export async function createRoom(params: CreateRoomParams) {
   const { ...body } = params;
 

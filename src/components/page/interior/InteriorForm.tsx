@@ -1,6 +1,7 @@
 import { createInteriorTemplate, updateInteriorTemplate } from "@/client/interior";
 import { createLocale } from "@/client/locale";
 import { ImgItem, InteriorTemplate, InteriorTemplateType } from "@/client/types";
+import useTotalRooms from "@/hooks/useTotalRooms";
 import { Button, Form, Image, Input, InputNumber, Radio, Spin, message } from "antd";
 import { useEffect, useState } from "react";
 import AssetsDrawer from "../assets/AssetsDrawer";
@@ -13,6 +14,8 @@ type InteriorFormProps = {
 
 function InteriorForm({ init, reload, close }: InteriorFormProps) {
   const [isLoading, setLoading] = useState(false);
+
+  const { items } = useTotalRooms();
 
   const [focusedId, setFocusedId] = useState<number | undefined>(undefined);
   const [image, setImage] = useState<ImgItem>();
@@ -123,6 +126,8 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
     { label: "벽지", value: "wall" },
     { label: "바닥", value: "floor" },
   ];
+
+  const roomOptions = items.map((item) => ({ label: item.type, value: item.type }));
 
   const premiumOptions = [
     { label: "스타", value: true },
@@ -239,15 +244,14 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
             onChange={(e) => setCategory(e.target.value)}
           />
         </Form.Item>
-        <Form.Item label="룸 타입">
-          <Input value={room} onChange={(e) => setRoom(e.target.value)} />
-          <div className="flex items-center gap-2">
-            <div>room: 따뜻한 방</div>
-            <div>princess: 공주방</div>
-            <div>kitchen: 부엌</div>
-            <div>rooftop: 다락방</div>
-            <div>garden: 마당</div>
-          </div>
+        <Form.Item label="방 타입">
+          <Radio.Group
+            options={roomOptions}
+            optionType="button"
+            buttonStyle="solid"
+            value={room}
+            onChange={(e) => setRoom(e.target.value)}
+          />
         </Form.Item>
         <div className="flex items-center gap-6">
           <Form.Item label="코인 타입">
