@@ -12,6 +12,12 @@ export async function getAnalytics(by: {
   return res.data;
 }
 
+export async function getAdsTest(by: { startedAt?: string; endedAt?: string }) {
+  const res = await client.get<{ userA: number; userB: number }>("/ads", { params: by });
+
+  return res.data;
+}
+
 type Result = {
   users: User[];
   spaces: Space[];

@@ -1,3 +1,4 @@
+import useAdsTest from "@/hooks/useAdsTest";
 import useAnalytics from "@/hooks/useAnaytics";
 import { DatePicker, Statistic, Tabs } from "antd";
 import { TabsProps } from "antd/lib";
@@ -18,6 +19,11 @@ dayjs.extend(localeData);
 function Dashboard() {
   const [startedAt, setStartedAt] = useState<dayjs.Dayjs>(dayjs());
   const [endedAt, setEndedAt] = useState<dayjs.Dayjs>(dayjs());
+
+  const { data: dataAdsTest, isLoading: isLoadingAds } = useAdsTest({
+    startedAt: startedAt.format("YYYY-MM-DD"),
+    endedAt: endedAt.format("YYYY-MM-DD"),
+  });
 
   const { data, isLoading } = useAnalytics({
     startedAt: startedAt.format("YYYY-MM-DD"),
@@ -263,6 +269,28 @@ function Dashboard() {
       key: "2",
       label: "공간",
       children: <Tabs defaultActiveKey="1" items={spaceItems} />,
+    },
+    {
+      key: "3",
+      label: "광고",
+      children: (
+        <div className="flex gap-12">
+          <div className="w-[600px] h-[600px]">
+            <Chart
+              type="pie"
+              data={{
+                labels: ["A", "B"],
+                datasets: [
+                  {
+                    label: "A/B",
+                    data: [dataAdsTest?.userA, dataAdsTest?.userB],
+                  },
+                ],
+              }}
+            />
+          </div>
+        </div>
+      ),
     },
   ];
 
