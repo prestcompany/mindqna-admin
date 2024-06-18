@@ -1,22 +1,19 @@
-import { TicketMeta } from "@/client/types";
-import useTickets from "@/hooks/useTickets";
+import { PurchaseMeta } from "@/client/types";
+import usePurchases from "@/hooks/usePruchase";
 import { Modal, Table, TableProps, Tag } from "antd";
 import dayjs from "dayjs";
 import { useState } from "react";
 
-function TicketMetaList() {
+function PurchaseMetaList() {
   const [modal, holder] = Modal.useModal();
 
   const [currentPage, setCurrentPage] = useState(1);
 
-  const [filter, setFilter] = useState<{ type?: ("permanent" | "subscribe")[] }>({});
-
-  const { items, isLoading, refetch, totalPage } = useTickets({
+  const { items, isLoading, refetch, totalPage } = usePurchases({
     page: currentPage,
-    type: filter.type,
   });
 
-  const columns: TableProps<TicketMeta>["columns"] = [
+  const columns: TableProps<PurchaseMeta>["columns"] = [
     {
       title: "id",
       dataIndex: "id",
@@ -27,11 +24,16 @@ function TicketMetaList() {
       title: "플랫폼",
       dataIndex: "platform",
       key: "platform",
+      render: (value: string) => {
+        if (value === "EVENT") return <Tag color="red">EVENT</Tag>;
+        if (value === "IOS") return <Tag>IOS</Tag>;
+        if (value === "AOS") return <Tag color="green">AOS</Tag>;
+      },
     },
     {
-      title: "userId",
-      dataIndex: "userId",
-      key: "userId",
+      title: "username",
+      dataIndex: "username",
+      key: "username",
     },
     {
       title: "productId",
@@ -67,7 +69,7 @@ function TicketMetaList() {
     },
 
     {
-      title: "생성일",
+      title: "구매/만료 시간",
       dataIndex: "createdAt",
       key: "createdAt",
       render: (value) => {
@@ -83,19 +85,6 @@ function TicketMetaList() {
       {holder}
       <div className="flex items-center gap-2 py-4">
         <span className="text-lg font-bold">필터</span>
-        {/* <Select
-          placeholder="타입"
-          style={{ width: 120 }}
-          options={[
-            { label: "영구", value: "permanent" },
-            { label: "구독", value: "subscribe" },
-          ]}
-          value={(filter.type ?? [])?.[0]}
-          onChange={(v: string) => {
-            setFilter((prev) => ({ ...prev, type: [v] as any }));
-          }}
-          allowClear
-        /> */}
       </div>
       <Table
         dataSource={items}
@@ -112,4 +101,4 @@ function TicketMetaList() {
   );
 }
 
-export default TicketMetaList;
+export default PurchaseMetaList;

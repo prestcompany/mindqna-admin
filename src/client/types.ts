@@ -198,9 +198,10 @@ export type GiveCoinParams = {
   message: string;
 };
 
-export type TicketMeta = {
+export type PurchaseMeta = {
   id: number;
   userId: string;
+  username: string;
   platform: "EVENT" | "IOS" | "EVENT";
   transactionId: string;
   productId: string;

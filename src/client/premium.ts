@@ -1,8 +1,14 @@
 import client from "./@base";
-import { GiveCoinParams, GiveTicketParams, QueryResultWithPagination, TicketMeta } from "./types";
+import { GiveCoinParams, GiveTicketParams, PurchaseMeta, QueryResultWithPagination } from "./types";
 
-export async function getTickets(by: { page: number; type?: ("permanent" | "subscribe")[] }) {
-  const res = await client.get<QueryResultWithPagination<TicketMeta>>("/ticket", { params: by });
+export async function getPruchases(by: { page: number }) {
+  const res = await client.get<QueryResultWithPagination<PurchaseMeta>>("/purchase", { params: by });
+
+  return res.data;
+}
+
+export async function getProducts(by: { page: number }) {
+  const res = await client.get<QueryResultWithPagination<IAPProduct>>("/products", { params: by });
 
   return res.data;
 }
@@ -22,3 +28,18 @@ export async function giveCoin(params: GiveCoinParams) {
 
   return res.data;
 }
+
+export type IAPProduct = {
+  id: number;
+  owenr: {
+    username: string;
+  };
+  profileId: string;
+  platform: string;
+  productId: string;
+  transactionId: string;
+  dueAt?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};

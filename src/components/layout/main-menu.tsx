@@ -40,9 +40,16 @@ const mainMenuData: IMenu[] = [
       },
       {
         id: "premium",
-        name: "프리미엄",
+        name: "IAP 결제 내역",
         link: {
-          path: "/dashboard/premium",
+          path: "/dashboard/purchase",
+        },
+      },
+      {
+        id: "products",
+        name: "IAP 상품 관리",
+        link: {
+          path: "/dashboard/products",
         },
       },
     ],
