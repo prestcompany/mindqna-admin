@@ -1,4 +1,4 @@
-import { getSpace, removeProfile, removeSpace } from "@/client/space";
+import { removeProfile, removeSpace, searchSpaces } from "@/client/space";
 import { Space } from "@/client/types";
 import { useQuery } from "@tanstack/react-query";
 import { Button, Card, Drawer, Image, Input, Modal, Tag, message } from "antd";
@@ -14,7 +14,11 @@ function SpaceSearch() {
   const [isOpenCoin, setOpenCoin] = useState(false);
   const [focused, setFocused] = useState<Space | undefined>(undefined);
 
-  const { data, refetch } = useQuery({ queryKey: ["space"], queryFn: () => getSpace(id), enabled: false });
+  const { data, refetch } = useQuery({
+    queryKey: ["space"],
+    queryFn: () => searchSpaces({ spaceId: id, username: id }),
+    enabled: false,
+  });
 
   const renderItem = (space: Space) => {
     const { coin, coinPaid, createdAt, dueRemovedAt, rooms, cardOrder } = space;
@@ -86,7 +90,7 @@ function SpaceSearch() {
                 type="primary"
                 onClick={() => {
                   setOpenCoin(true);
-                  setFocused(data);
+                  setFocused(space);
                 }}
               >
                 코인 지급
@@ -156,7 +160,7 @@ function SpaceSearch() {
             검색
           </Button>
         </div>
-        {data && renderItem(data)}
+        {data && <>{data.map((space) => renderItem(space))}</>}
       </div>
 
       <Drawer

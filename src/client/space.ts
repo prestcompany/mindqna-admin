@@ -29,3 +29,9 @@ export async function removeProfile(id: string) {
 
   return res.data;
 }
+
+export async function searchSpaces(by: { spaceId: string; username: string }) {
+  const res = await client.get<Space[]>(`/space/search`, { params: by });
+
+  return res.data;
+}
