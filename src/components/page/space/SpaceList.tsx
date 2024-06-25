@@ -150,7 +150,12 @@ function SpaceList() {
       render: (value: string, item: Space) => {
         const isPremium = item.profiles?.[0]?.isPremium;
         const day = dayjs(value);
-        const diff = day.add(isPremium ? -60 : -30, "day").diff(item.createdAt, "minute");
+        let diff = day.add(isPremium ? -60 : -30, "day").diff(item.createdAt, "minute");
+
+        if (diff < 0) {
+          diff = day.subtract(2, "day").diff(item.createdAt, "minute");
+        }
+
         const gap = diff > 60 ? `${Math.floor(diff / 60)}시간 ${diff % 60}분` : `${diff}분`;
 
         if (!value) return;
