@@ -129,6 +129,13 @@ const mainMenuData: IMenu[] = [
           path: "/product/room",
         },
       },
+      {
+        id: "coupon",
+        name: "쿠폰",
+        link: {
+          path: "/product/coupon",
+        },
+      },
     ],
   },
 ];
