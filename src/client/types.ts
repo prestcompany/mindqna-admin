@@ -208,6 +208,7 @@ export type PurchaseMeta = {
   log?: string;
   isSuccess: boolean;
   isExpired: boolean;
+  isProduction: boolean;
 
   createdAt: string;
 };

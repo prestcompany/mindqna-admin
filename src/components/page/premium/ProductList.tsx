@@ -71,6 +71,14 @@ function ProductList() {
         return <Tag color={value ? "green" : "default"}>{value ? "활성화" : "만료"}</Tag>;
       },
     },
+    {
+      title: "PROD/TEST",
+      dataIndex: "isProduction",
+      key: "isProduction",
+      render: (value: boolean) => {
+        return <Tag color={value ? "purple-inverse" : "default"}>{value ? "PROD" : "TEST"}</Tag>;
+      },
+    },
 
     {
       title: "생성 시간",

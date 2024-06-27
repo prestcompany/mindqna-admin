@@ -40,6 +40,7 @@ export type IAPProduct = {
   transactionId: string;
   dueAt?: string;
   isActive: boolean;
+  isProduction: boolean;
   createdAt: string;
   updatedAt: string;
 };

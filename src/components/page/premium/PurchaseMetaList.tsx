@@ -67,6 +67,14 @@ function PurchaseMetaList() {
         );
       },
     },
+    {
+      title: "PROD/TEST",
+      dataIndex: "isProduction",
+      key: "isProduction",
+      render: (value: boolean) => {
+        return <Tag color={value ? "purple-inverse" : "default"}>{value ? "PROD" : "TEST"}</Tag>;
+      },
+    },
 
     {
       title: "구매/만료 시간",
