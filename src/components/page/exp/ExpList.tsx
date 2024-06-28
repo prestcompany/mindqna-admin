@@ -50,7 +50,7 @@ function ExpList() {
       key: "key",
     },
     {
-      title: "value",
+      title: "다음 레벨업 필요 경험치",
       dataIndex: "value",
       key: "value",
     },

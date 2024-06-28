@@ -56,7 +56,7 @@ function ExpForm({ init, reload, close }: Props) {
         <Form.Item label="key">
           <Input value={key} onChange={(e) => setKey(e.target.value)} />
         </Form.Item>
-        <Form.Item label="value">
+        <Form.Item label="다음 레벨업 필요 경험치">
           <InputNumber value={value} onChange={(value) => setValue(value ?? 0)} />
         </Form.Item>
 
