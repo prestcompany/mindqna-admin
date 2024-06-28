@@ -117,6 +117,8 @@ function BannerList() {
             { label: "en", value: "en" },
             { label: "ja", value: "ja" },
             { label: "zh", value: "zh" },
+            { label: "zhTw", value: "zhTw" },
+            { label: "es", value: "es" },
           ]}
           value={(filter.locale ?? [])?.[0]}
           onChange={(v: string) => {
