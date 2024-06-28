@@ -16,8 +16,6 @@ function ExpList() {
   const [isOpenEdit, setOpenEdit] = useState(false);
   const [focused, setFocused] = useState<AppRule | undefined>(undefined);
 
-  console.log(items);
-
   const handleEdit = (value: AppRule) => {
     setFocused(value);
     setOpenEdit(true);

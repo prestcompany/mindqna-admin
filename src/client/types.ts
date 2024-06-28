@@ -99,7 +99,7 @@ export type CreateLocaleParams = {
   locale: Locale;
 };
 
-export type Locale = "ko" | "en" | "zh" | "ja";
+export type Locale = "ko" | "en" | "zh" | "ja" | "zhTw" | "es";
 
 export type GetLocalesResult = {
   pageInfo: TotalPageInfo;
