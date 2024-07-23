@@ -1,8 +1,8 @@
-import client from "./@base";
-import { Locale, QueryResultWithPagination } from "./types";
+import client from './@base';
+import { Locale, QueryResultWithPagination } from './types';
 
 export async function getBanners(page: number) {
-  const res = await client.get<QueryResultWithPagination<Banner>>("/banner", { params: { page } });
+  const res = await client.get<QueryResultWithPagination<Banner>>('/banner', { params: { page } });
 
   return res.data;
 }
@@ -10,7 +10,7 @@ export async function getBanners(page: number) {
 export async function createBanner(params: CreateBannerParams) {
   const { ...body } = params;
 
-  const res = await client.post("/banner", body);
+  const res = await client.post('/banner', body);
 
   return res.data;
 }
