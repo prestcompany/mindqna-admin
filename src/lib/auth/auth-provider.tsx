@@ -2,11 +2,11 @@
  * 백오피스 특성상 기본적으로 인증 필요
  * 인증된 사용자 정보를 얻거나 로그인 페이지로 이동
  */
-import Spinner from "@/components/shared/spinner";
-import { Session } from "next-auth";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
-import React, { createContext, PropsWithChildren, useContext, useEffect } from "react";
+import Spinner from '@/components/shared/spinner';
+import { Session } from 'next-auth';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import React, { createContext, PropsWithChildren, useContext, useEffect } from 'react';
 
 interface IAuthProviderProps {}
 
@@ -20,12 +20,12 @@ export const AuthContext = createContext<IAuthContext | null>(null);
 export function useAuth() {
   const result = useContext(AuthContext);
   if (!result?.initialized) {
-    throw new Error("Auth context must be used within a AuthProvider!");
+    throw new Error('Auth context must be used within a AuthProvider!');
   }
   return result;
 }
 
-const publicPageList = ["/login"];
+const publicPageList = ['/login'];
 
 const isPublicPage = (pathname: string) => {
   return publicPageList.includes(pathname);
@@ -34,7 +34,7 @@ const isPublicPage = (pathname: string) => {
 const AuthProvider = ({ children }: PropsWithChildren<IAuthProviderProps>) => {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const loading = status === "loading";
+  const loading = status === 'loading';
 
   useEffect(() => {
     if (loading) {
@@ -42,9 +42,9 @@ const AuthProvider = ({ children }: PropsWithChildren<IAuthProviderProps>) => {
     }
 
     if (session && isPublicPage(router.pathname)) {
-      router.push("/");
+      router.push('/');
     } else if (!session && !isPublicPage(router.pathname)) {
-      router.push("/login");
+      router.push('/login');
     }
   }, [loading, router, session]);
 

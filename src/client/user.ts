@@ -1,8 +1,8 @@
-import client from "./@base";
-import { QueryResultWithPagination, User } from "./types";
+import client from './@base';
+import { QueryResultWithPagination, User } from './types';
 
 export async function getUsers(page: number, locale?: string[]) {
-  const res = await client.get<QueryResultWithPagination<User>>("/user", { params: { page, locale } });
+  const res = await client.get<QueryResultWithPagination<User>>('/user', { params: { page, locale } });
 
   return res.data;
 }
