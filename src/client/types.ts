@@ -9,9 +9,9 @@ export type UpdateCardTemplateParams = CreateCardTemplateParams & {
   templateId: number;
 };
 
-export type SpaceType = "couple" | "family" | "friends" | "alone";
+export type SpaceType = 'couple' | 'family' | 'friends' | 'alone';
 
-export type CardTemplateType = "basic" | "random" | "bonus";
+export type CardTemplateType = 'basic' | 'random' | 'bonus';
 
 export type TotalPageInfo = {
   totalPage: number;
@@ -41,7 +41,7 @@ export type GetCardTemplatesResult = {
   templates: CardTemplate[];
 };
 
-export type InteriorTemplateType = "item" | "wall" | "floor" | "todayFrame" | "event";
+export type InteriorTemplateType = 'item' | 'wall' | 'floor' | 'todayFrame' | 'event';
 
 export type CreateInteriorTemplateParams = {
   imgId: number;
@@ -99,7 +99,7 @@ export type CreateLocaleParams = {
   locale: Locale;
 };
 
-export type Locale = "ko" | "en" | "zh" | "ja" | "zhTw" | "es";
+export type Locale = 'ko' | 'en' | 'zh' | 'ja' | 'zhTw' | 'es';
 
 export type GetLocalesResult = {
   pageInfo: TotalPageInfo;
@@ -122,7 +122,7 @@ export type CreateBubbleParams = {
   type: BubbleType;
 };
 
-export type BubbleType = "general" | "day" | "night" | "custom";
+export type BubbleType = 'general' | 'day' | 'night' | 'custom';
 
 export type GetBubblesResult = {
   pageInfo: TotalPageInfo;
@@ -159,7 +159,7 @@ export type CreateSnackParams = {
   isActive: boolean;
 };
 
-export type PetType = "dog" | "cat" | "rebbit" | "squirrel" | "bear" | "hamster" | "chick" | "penguin";
+export type PetType = 'dog' | 'cat' | 'rebbit' | 'squirrel' | 'bear' | 'hamster' | 'chick' | 'penguin';
 
 export type GetSnacksResult = {
   pageInfo: TotalPageInfo;
@@ -182,7 +182,7 @@ export type Snack = {
   kind: SnackKind;
 };
 
-export type SnackKind = "normal" | "special";
+export type SnackKind = 'normal' | 'special';
 
 export type GiveTicketParams = {
   username: string;
@@ -202,7 +202,7 @@ export type PurchaseMeta = {
   id: number;
   userId: string;
   username: string;
-  platform: "EVENT" | "IOS" | "EVENT";
+  platform: 'EVENT' | 'IOS' | 'EVENT';
   transactionId: string;
   productId: string;
   log?: string;
@@ -336,7 +336,7 @@ export type Room = {
   updatedAt: string;
 };
 
-export type RoomCategory = "rooftop" | "inner" | "outer";
+export type RoomCategory = 'rooftop' | 'inner' | 'outer';
 
 export type AppRule = {
   id: number;
