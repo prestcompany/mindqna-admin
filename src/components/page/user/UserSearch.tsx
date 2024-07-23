@@ -1,31 +1,31 @@
-import { User } from "@/client/types";
-import { getUser, removeUser } from "@/client/user";
-import { useQuery } from "@tanstack/react-query";
-import { Button, Card, Drawer, Input, Modal, Tag, message } from "antd";
-import dayjs from "dayjs";
-import { useState } from "react";
-import TicketForm from "./TicketForm";
+import { User } from '@/client/types';
+import { getUser, removeUser } from '@/client/user';
+import { useQuery } from '@tanstack/react-query';
+import { Button, Card, Drawer, Input, Modal, Tag, message } from 'antd';
+import dayjs from 'dayjs';
+import { useState } from 'react';
+import TicketForm from './TicketForm';
 
 function UserSearch() {
   const [modal, holder] = Modal.useModal();
   const [api, contextHolder] = message.useMessage();
-  const [id, setId] = useState("");
+  const [id, setId] = useState('');
   const [isOpenTicket, setOpenTicket] = useState(false);
-  const [focused, setFocused] = useState<string>("");
+  const [focused, setFocused] = useState<string>('');
 
-  const { data, refetch } = useQuery({ queryKey: ["user", id], queryFn: () => getUser(id), enabled: false });
+  const { data, refetch } = useQuery({ queryKey: ['user', id], queryFn: () => getUser(id), enabled: false });
 
   const renderItem = (user: User) => {
     const { id, username, locale, socialAccount, profiles, createdAt, reserveUnregisterAt, spaceMaxCount } = user;
 
     const created = dayjs(createdAt);
-    const diffFromNow = dayjs().diff(created, "day");
+    const diffFromNow = dayjs().diff(created, 'day');
 
     const colorMap: Record<string, string> = {
-      GOOGLE: "red",
-      KAKAO: "yellow",
-      APPLE: "black",
-      LINE: "green",
+      GOOGLE: 'red',
+      KAKAO: 'yellow',
+      APPLE: 'black',
+      LINE: 'green',
     };
 
     const copyId = (id: string) => {
@@ -50,33 +50,31 @@ function UserSearch() {
     return (
       <div key={id}>
         <Card title={username}>
-          <div className="flex gap-4">
-            <div className="flex flex-col flex-1 gap-2">
-              <div className="flex items-center gap-2">
+          <div className='flex gap-4'>
+            <div className='flex flex-col flex-1 gap-2'>
+              <div className='flex items-center gap-2'>
                 <Button onClick={() => copyId(id)}>ID: {id}</Button>
               </div>
 
-              <div className="flex items-center gap-1">
+              <div className='flex items-center gap-1'>
                 <Tag color={colorMap[socialAccount.provider]}>{socialAccount.provider}</Tag>
 
                 <div>{socialAccount.email}</div>
 
-                <Tag color={user.profiles.length > 0 ? "green" : "default"}>
-                  {user.profiles.length > 0 ? "가입완료" : "가입중"}
-                </Tag>
+                <Tag color={user.profiles.length > 0 ? 'green' : 'default'}>{user.profiles.length > 0 ? '가입완료' : '가입중'}</Tag>
 
                 <Tag>생성일: D+{diffFromNow}</Tag>
-                {created.format("YY.MM.DD HH:mm")}
-                {reserveUnregisterAt && <Tag color="error">삭제 예정일 {reserveUnregisterAt}</Tag>}
+                {created.format('YY.MM.DD HH:mm')}
+                {reserveUnregisterAt && <Tag color='error'>삭제 예정일 {reserveUnregisterAt}</Tag>}
               </div>
-              <div className="flex items-center gap-1">
+              <div className='flex items-center gap-1'>
                 <Tag>언어 : {locale}</Tag>
                 <Tag>공간 수 : {profiles.length}</Tag>
                 <Tag>공간 최대 치 : {spaceMaxCount}</Tag>
               </div>
 
               <Button
-                type="primary"
+                type='primary'
                 onClick={() => {
                   setOpenTicket(true);
                   setFocused(user.username);
@@ -85,7 +83,7 @@ function UserSearch() {
                 티켓 지급
               </Button>
 
-              <Button onClick={handleRemove} type="primary">
+              <Button onClick={handleRemove} type='primary'>
                 삭제
               </Button>
             </div>
@@ -99,10 +97,10 @@ function UserSearch() {
     <>
       {holder}
       {contextHolder}
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <Input placeholder="username으로 검색" value={id} onChange={(e) => setId(e.target.value)} />
-          <Button onClick={() => refetch()} type="primary">
+      <div className='flex flex-col gap-4'>
+        <div className='flex flex-col gap-2'>
+          <Input placeholder='유저 ID 검색' value={id} onChange={(e) => setId(e.target.value)} />
+          <Button onClick={() => refetch()} type='primary'>
             검색
           </Button>
         </div>
@@ -112,7 +110,7 @@ function UserSearch() {
         open={isOpenTicket}
         onClose={() => {
           setOpenTicket(false);
-          setFocused("");
+          setFocused('');
         }}
         width={600}
       >
@@ -120,7 +118,7 @@ function UserSearch() {
           reload={refetch}
           close={() => {
             setOpenTicket(false);
-            setFocused("");
+            setFocused('');
           }}
           username={focused}
         />
