@@ -1,12 +1,13 @@
-import { removeProfile, removeSpace } from "@/client/space";
-import { Space, SpaceType } from "@/client/types";
-import useSpaces from "@/hooks/useSpaces";
-import { Button, Card, Drawer, Image, Modal, Select, Table, Tag, message } from "antd";
-import { TableProps } from "antd/lib";
-import dayjs from "dayjs";
-import { useState } from "react";
-import CoinForm from "./CoinForm";
-import SpaceSearch from "./SpaceSearch";
+import { giveCoinBulk } from '@/client/premium';
+import { removeProfile, removeSpace } from '@/client/space';
+import { Space, SpaceType } from '@/client/types';
+import useSpaces from '@/hooks/useSpaces';
+import { Button, Card, Drawer, Image, Input, InputNumber, Modal, Select, Spin, Table, Tag, message } from 'antd';
+import { TableProps } from 'antd/lib';
+import dayjs from 'dayjs';
+import { useState } from 'react';
+import CoinForm from './CoinForm';
+import SpaceSearch from './SpaceSearch';
 
 function SpaceList() {
   const [modal, holder] = Modal.useModal();
@@ -26,6 +27,8 @@ function SpaceList() {
     locale: filter.locale,
     orderBy: filter.orderBy as any,
   });
+
+  const [isFetching, setFetching] = useState(false);
 
   const handleViewProfiles = (space: Space) => {
     setOpenProfile(true);
@@ -51,109 +54,167 @@ function SpaceList() {
     });
   };
 
-  const columns: TableProps<Space>["columns"] = [
+  const giveCoinBulkModal = () => {
+    const premiumOptions = [
+      { label: '스타', value: true },
+      { label: '하트', value: false },
+    ];
+    let spaceIds: string[] = [];
+    let amount = 0;
+    let meta = '';
+    let isStar = false;
+
+    modal.confirm({
+      title: '단체 하트 지급',
+      content: (
+        <div className='flex-auto gap-8'>
+          <label className='block'>공간 ID 목록 (콤마로 구분)</label>
+          <Input placeholder='abcd,1234,xyz' onChange={(e) => (spaceIds = e.target.value.split(','))} />
+          <label className='block'>지급 수량</label>
+          <InputNumber onChange={(e) => (amount = e!)} min={0} />
+          <label className='block'>메시지 내용</label>
+          <Input onChange={(e) => (meta = e.target.value)} />
+        </div>
+      ),
+
+      onOk: async () => {
+        try {
+          if (!spaceIds.length) {
+            alert('아무것도 입력하지 않으셨습니다!');
+            return;
+          }
+
+          if (!amount) {
+            alert('지급 수량을 입력해주세요!');
+            return;
+          }
+          setFetching(true);
+          console.log();
+          const result = await giveCoinBulk({
+            spaceIds: spaceIds,
+            isStar: isStar,
+            amount: amount,
+            message: meta,
+          });
+          setFetching(false);
+          message.success({
+            content: (
+              <div className='flex-auto item-center gap-2 py-4'>
+                <label>단체 지급 결과</label>
+                <p>{JSON.stringify(result)}</p>
+              </div>
+            ),
+          });
+        } catch (err) {
+          message.error(`${err}`);
+        }
+      },
+    });
+  };
+
+  const columns: TableProps<Space>['columns'] = [
     {
-      title: "id",
-      dataIndex: "id",
-      key: "id",
+      title: 'id',
+      dataIndex: 'id',
+      key: 'id',
     },
     {
-      title: "이름",
-      dataIndex: ["spaceInfo", "name"],
-      key: "name",
+      title: '이름',
+      dataIndex: ['spaceInfo', 'name'],
+      key: 'name',
     },
     {
-      title: "타입",
-      dataIndex: ["spaceInfo", "type"],
-      key: "type",
+      title: '타입',
+      dataIndex: ['spaceInfo', 'type'],
+      key: 'type',
     },
     {
-      title: "언어",
-      dataIndex: ["spaceInfo", "locale"],
-      key: "locale",
+      title: '언어',
+      dataIndex: ['spaceInfo', 'locale'],
+      key: 'locale',
     },
     {
-      title: "멤버 수",
-      dataIndex: ["spaceInfo", "members"],
-      key: "members",
+      title: '멤버 수',
+      dataIndex: ['spaceInfo', 'members'],
+      key: 'members',
     },
     {
-      title: "카드 수",
-      dataIndex: "cardOrder",
-      key: "cardOrder",
+      title: '카드 수',
+      dataIndex: 'cardOrder',
+      key: 'cardOrder',
     },
     {
-      title: "답변 수",
-      dataIndex: ["spaceInfo", "replies"],
-      key: "replies",
+      title: '답변 수',
+      dataIndex: ['spaceInfo', 'replies'],
+      key: 'replies',
     },
     {
-      title: "하트/스타",
-      dataIndex: "",
-      key: "x",
+      title: '하트/스타',
+      dataIndex: '',
+      key: 'x',
       render: (_, space) => {
         return (
-          <div className="flex gap-1">
-            <Tag color="red">하트 {space.coin}</Tag>
-            <Tag color="gold">스타 {space.coinPaid}</Tag>
+          <div className='flex gap-1'>
+            <Tag color='red'>하트 {space.coin}</Tag>
+            <Tag color='gold'>스타 {space.coinPaid}</Tag>
           </div>
         );
       },
     },
     {
-      title: "펫 LV",
-      dataIndex: ["pet", "level"],
-      key: "level",
+      title: '펫 LV',
+      dataIndex: ['pet', 'level'],
+      key: 'level',
       render: (level, space) => {
         return (
-          <div className="flex gap-1">
-            <Tag color="cyan">lv.{level}</Tag>
-            <Tag color="blue">{space.pet.exp.toFixed(1)}</Tag>
+          <div className='flex gap-1'>
+            <Tag color='cyan'>lv.{level}</Tag>
+            <Tag color='blue'>{space.pet.exp.toFixed(1)}</Tag>
           </div>
         );
       },
     },
     {
-      title: "방/인테리어 갯수",
-      dataIndex: ["rooms", "length"],
-      key: "rooms",
+      title: '방/인테리어 갯수',
+      dataIndex: ['rooms', 'length'],
+      key: 'rooms',
       render: (count, space) => {
         return (
-          <div className="flex gap-1">
-            <Tag color="purple">{count}</Tag>
-            <Tag color="orange">{space.InteriorItem.length}</Tag>
+          <div className='flex gap-1'>
+            <Tag color='purple'>{count}</Tag>
+            <Tag color='orange'>{space.InteriorItem.length}</Tag>
           </div>
         );
       },
     },
 
     {
-      title: "가입일",
-      dataIndex: "createdAt",
-      key: "createdAt",
+      title: '가입일',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
       render: (value) => {
         const day = dayjs(value);
-        const diffFromNow = dayjs().diff(day, "day");
+        const diffFromNow = dayjs().diff(day, 'day');
 
         return (
           <div>
             <Tag>D+{diffFromNow}</Tag>
-            {day.format("YY.MM.DD HH:mm")}
+            {day.format('YY.MM.DD HH:mm')}
           </div>
         );
       },
     },
     {
-      title: "삭제예정일",
-      dataIndex: "dueRemovedAt",
-      key: "dueRemovedAt",
+      title: '삭제예정일',
+      dataIndex: 'dueRemovedAt',
+      key: 'dueRemovedAt',
       render: (value: string, item: Space) => {
         const isPremium = item.profiles?.[0]?.isPremium;
         const day = dayjs(value);
-        let diff = day.add(isPremium ? -60 : -30, "day").diff(item.createdAt, "minute");
+        let diff = day.add(isPremium ? -60 : -30, 'day').diff(item.createdAt, 'minute');
 
         if (diff < 0) {
-          diff = day.subtract(2, "day").diff(item.createdAt, "minute");
+          diff = day.subtract(2, 'day').diff(item.createdAt, 'minute');
         }
 
         const gap = diff > 60 ? `${Math.floor(diff / 60)}시간 ${diff % 60}분` : `${diff}분`;
@@ -162,21 +223,21 @@ function SpaceList() {
 
         return (
           <div>
-            <Tag color={"error"}>{gap}만에 삭제</Tag>
-            {day.format("YY.MM.DD HH:mm")}
+            <Tag color={'error'}>{gap}만에 삭제</Tag>
+            {day.format('YY.MM.DD HH:mm')}
           </div>
         );
       },
     },
 
     {
-      title: "Action",
-      dataIndex: "",
-      key: "x",
+      title: 'Action',
+      dataIndex: '',
+      key: 'x',
       render: (value, space) => (
-        <div className="flex gap-4">
+        <div className='flex gap-4'>
           <Button
-            type="link"
+            type='link'
             onClick={() => {
               handleViewProfiles(space);
             }}
@@ -184,7 +245,7 @@ function SpaceList() {
             멤버 보기
           </Button>
           <Button
-            type="primary"
+            type='primary'
             onClick={() => {
               setOpenCoin(true);
               setFocused(space);
@@ -201,23 +262,24 @@ function SpaceList() {
 
   return (
     <>
+      <Spin spinning={isFetching} fullscreen />
       {holder}
       {contextHolder}
-      <div className="flex items-center gap-2 py-4">
-        <Button onClick={() => setOpenCreate(true)} type="primary">
+      <div className='flex items-center gap-2 py-4'>
+        <Button onClick={() => setOpenCreate(true)} type='primary'>
           검색하기
         </Button>
-        <span className="text-lg font-bold">필터</span>
+        <span className='text-lg font-bold'>필터</span>
         <Select
-          placeholder="언어"
+          placeholder='언어'
           style={{ width: 120 }}
           options={[
-            { label: "ko", value: "ko" },
-            { label: "en", value: "en" },
-            { label: "ja", value: "ja" },
-            { label: "zh", value: "zh" },
-            { label: "zhTw", value: "zhTw" },
-            { label: "es", value: "es" },
+            { label: 'ko', value: 'ko' },
+            { label: 'en', value: 'en' },
+            { label: 'ja', value: 'ja' },
+            { label: 'zh', value: 'zh' },
+            { label: 'zhTw', value: 'zhTw' },
+            { label: 'es', value: 'es' },
           ]}
           value={(filter.locale ?? [])?.[0]}
           onChange={(v: string) => {
@@ -226,13 +288,13 @@ function SpaceList() {
           allowClear
         />
         <Select
-          placeholder="공간 타입"
+          placeholder='공간 타입'
           style={{ width: 120 }}
           options={[
-            { label: "혼자", value: "alone" },
-            { label: "커플", value: "couple" },
-            { label: "가족", value: "family" },
-            { label: "친구", value: "friends" },
+            { label: '혼자', value: 'alone' },
+            { label: '커플', value: 'couple' },
+            { label: '가족', value: 'family' },
+            { label: '친구', value: 'friends' },
           ]}
           value={(filter.type ?? [])?.[0]}
           onChange={(v: SpaceType) => {
@@ -241,16 +303,16 @@ function SpaceList() {
           allowClear
         />
 
-        <span className="text-lg font-bold">정렬</span>
+        <span className='text-lg font-bold'>정렬</span>
 
         <Select
-          placeholder="정렬"
+          placeholder='정렬'
           style={{ width: 120 }}
           options={[
-            { label: "카드 많은 순", value: "card" },
-            { label: "답변 많은 순", value: "replies" },
-            { label: "레벨 높은 순", value: "level" },
-            { label: "멤버 많은 순", value: "members" },
+            { label: '카드 많은 순', value: 'card' },
+            { label: '답변 많은 순', value: 'replies' },
+            { label: '레벨 높은 순', value: 'level' },
+            { label: '멤버 많은 순', value: 'members' },
           ]}
           value={(filter.type ?? [])?.[0]}
           onChange={(v: string) => {
@@ -258,6 +320,9 @@ function SpaceList() {
           }}
           allowClear
         />
+        <Button onClick={giveCoinBulkModal} className='order-last' type='default'>
+          단체 지급
+        </Button>
       </div>
 
       <Table
@@ -290,7 +355,7 @@ function SpaceList() {
             setOpenCoin(false);
             setFocused(undefined);
           }}
-          spaceId={focused?.id ?? ""}
+          spaceId={focused?.id ?? ''}
         />
       </Drawer>
       {focused && (
@@ -298,7 +363,7 @@ function SpaceList() {
           {focused.profiles.map((profile) => {
             const { isPremium, isGoldClub, userId } = profile;
 
-            const isOwenr = userId === focused.spaceInfo.ownerId;
+            const isOwner = userId === focused.spaceInfo.ownerId;
 
             const removePro = async () => {
               modal.confirm({
@@ -315,20 +380,20 @@ function SpaceList() {
             };
 
             return (
-              <Card key={profile.id} style={{ background: "#fefefe" }}>
-                <div className="flex items-center gap-2">
+              <Card key={profile.id} style={{ background: '#fefefe' }}>
+                <div className='flex items-center gap-2'>
                   <Image src={profile.img?.uri} style={{ width: 40, height: 40 }} />
                   {profile.nickname}
-                  {isOwenr && <Tag color="black">OWNER</Tag>}
-                  {isPremium && <Tag color="green-inverse">PREMIUM</Tag>}
-                  {isGoldClub && <Tag color="gold">STAR CLUB</Tag>}
+                  {isOwner && <Tag color='black'>OWNER</Tag>}
+                  {isPremium && <Tag color='green-inverse'>PREMIUM</Tag>}
+                  {isGoldClub && <Tag color='gold'>STAR CLUB</Tag>}
                 </div>
-                <div className="flex flex-col gap-4">
+                <div className='flex flex-col gap-4'>
                   <Tag>ID: {profile.id}</Tag>
-                  <Button onClick={() => copyId(profile.user.username)} type="primary">
+                  <Button onClick={() => copyId(profile.user.username)} type='primary'>
                     username {profile.user.username}
                   </Button>
-                  <Button onClick={removePro} type="default" size="small">
+                  <Button onClick={removePro} type='default' size='small'>
                     프로필 삭제
                   </Button>
                 </div>

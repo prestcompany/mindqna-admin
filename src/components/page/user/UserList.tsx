@@ -154,11 +154,12 @@ function UserList() {
   return (
     <>
       {holder}
-      <div className='flex items-center gap-2 py-4'>
+      <div className='flex items-center gap-2 py-6 '>
         <Button onClick={() => setOpenCreate(true)} type='primary'>
           검색하기
         </Button>
         <span className='text-lg font-bold'>필터</span>
+
         <Select
           placeholder='언어'
           style={{ width: 120 }}
@@ -177,6 +178,7 @@ function UserList() {
           allowClear
         />
       </div>
+
       <Table
         dataSource={items}
         columns={columns}

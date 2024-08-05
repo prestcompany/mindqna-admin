@@ -198,6 +198,13 @@ export type GiveCoinParams = {
   message: string;
 };
 
+export type GiveCoinBulkParams = {
+  spaceIds: string[];
+  amount: number;
+  isStar: boolean;
+  message: string;
+};
+
 export type PurchaseMeta = {
   id: number;
   userId: string;
