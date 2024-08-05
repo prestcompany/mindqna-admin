@@ -1,5 +1,5 @@
-import { getPruchases } from "@/client/premium";
-import { useQuery } from "@tanstack/react-query";
+import { getPurchases } from '@/client/premium';
+import { useQuery } from '@tanstack/react-query';
 
 type Props = {
   page: number;
@@ -7,8 +7,8 @@ type Props = {
 
 function usePurchases(by: Props) {
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["purchaees", by],
-    queryFn: () => getPruchases(by),
+    queryKey: ['purchaees', by],
+    queryFn: () => getPurchases(by),
   });
 
   const items = data?.items ?? [];

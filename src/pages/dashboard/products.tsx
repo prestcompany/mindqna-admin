@@ -1,6 +1,6 @@
-import { getDefaultLayout } from "@/components/layout/default-layout";
-import pageHeader from "@/components/layout/page-header";
-import ProductList from "@/components/page/premium/ProductList";
+import { getDefaultLayout } from '@/components/layout/default-layout';
+import pageHeader from '@/components/layout/page-header';
+import ProductList from '@/components/page/premium/ProductList';
 
 function ProductPage() {
   return (
