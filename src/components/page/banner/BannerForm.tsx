@@ -10,7 +10,7 @@ export const locationOptions = [
   { label: '알림-헤더-하단', value: 'push_top' },
   { label: '지갑-무료충전소-상단', value: 'wallet_charge_top' },
   { label: '지갑-무료충전소-하단', value: 'wallet_charge' },
-  { label: '홈-메인-팝업', value: 'main_popup' },
+  { label: '홈-메인-팝업', value: 'main_poup' },
 ];
 
 type Props = {
