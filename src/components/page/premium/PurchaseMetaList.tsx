@@ -1,5 +1,5 @@
 import { PurchaseMeta } from '@/client/types';
-import usePurchases from '@/hooks/usePruchase';
+import usePurchases from '@/hooks/usePurchase';
 import { Modal, Table, TableProps, Tag } from 'antd';
 import dayjs from 'dayjs';
 import { useState } from 'react';

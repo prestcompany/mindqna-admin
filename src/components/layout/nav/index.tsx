@@ -1,8 +1,8 @@
-import { NextRouter } from "next/router";
-import { ParsedUrlQueryInput } from "querystring";
-import React from "react";
-import NavMenu from "./nav-menu";
-import style from "./nav.module.css";
+import { NextRouter } from 'next/router';
+import { ParsedUrlQueryInput } from 'querystring';
+import React from 'react';
+import NavMenu from './nav-menu';
+import style from './nav.module.css';
 
 interface INavProps {
   data: IMenu[];
@@ -16,15 +16,12 @@ export interface IMenu {
     query?: ParsedUrlQueryInput;
   };
   icon?: React.ReactNode;
-  isActive?: (router: NextRouter, link: IMenu["link"]) => boolean;
+  isActive?: (router: NextRouter, link: IMenu['link']) => boolean;
   submenu?: IMenu[];
 }
 
-export const isEqualPath = (router: NextRouter, link: IMenu["link"]) => {
-  return (
-    router.pathname === link?.path &&
-    Object.keys(link.query || {}).every((k) => String(link.query?.[k]) === router.query[k])
-  );
+export const isEqualPath = (router: NextRouter, link: IMenu['link']) => {
+  return router.pathname === link?.path && Object.keys(link.query || {}).every((k) => String(link.query?.[k]) === router.query[k]);
 };
 
 const Nav = ({ data }: INavProps) => {

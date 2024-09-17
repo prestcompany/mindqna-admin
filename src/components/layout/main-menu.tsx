@@ -159,9 +159,8 @@ const MainMenu = () => {
     <>
       <>
         <Divider orientation='left' plain>
-          메인
+          <span className='text-xl font-semibold'>메인</span>
         </Divider>
-
         <Menu data={mainMenuData} />
       </>
     </>
