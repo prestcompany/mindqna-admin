@@ -1,4 +1,4 @@
-import { getUsers } from '@/client/user';
+import { getPushes } from '@/client/push';
 import { useQuery } from '@tanstack/react-query';
 
 type Props = {
@@ -6,12 +6,12 @@ type Props = {
   locale?: string[];
 };
 
-function useUsers(by: Props) {
+function usePushes(by: Props) {
   const { page, locale } = by;
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['users', page, locale],
-    queryFn: () => getUsers(page, locale),
+    queryKey: ['pushes', page, locale],
+    queryFn: () => getPushes(page, locale),
   });
 
   const items = data?.items ?? [];
@@ -21,4 +21,4 @@ function useUsers(by: Props) {
   return { items, totalPage, isLoading, refetch };
 }
 
-export default useUsers;
+export default usePushes;

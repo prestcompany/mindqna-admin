@@ -1,8 +1,8 @@
-import client from "./@base";
-import { Locale, QueryResultWithPagination } from "./types";
+import client from './@base';
+import { Locale, QueryResultWithPagination } from './types';
 
-export async function getPushs(page: number) {
-  const res = await client.get<QueryResultWithPagination<AdminPush>>("/push", { params: { page } });
+export async function getPushes(page: number, locale?: string[]) {
+  const res = await client.get<QueryResultWithPagination<AdminPush>>('/push', { params: { page, locale } });
 
   return res.data;
 }
@@ -10,7 +10,7 @@ export async function getPushs(page: number) {
 export async function createPush(params: CreatePushParams) {
   const { ...body } = params;
 
-  const res = await client.post("/push", body);
+  const res = await client.post('/push', body);
 
   return res.data;
 }
@@ -32,6 +32,7 @@ export async function removePush(id: number) {
 export type AdminPush = {
   id: number;
 
+  title: string;
   message: string;
   link?: string;
   locale: Locale;
@@ -45,6 +46,7 @@ export type AdminPush = {
 };
 
 export type CreatePushParams = {
+  title: string;
   message: string;
   pushAt: Date;
   locale: Locale;

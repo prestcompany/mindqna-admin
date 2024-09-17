@@ -1,10 +1,10 @@
-import { removeRule } from "@/client/rule";
-import { AppRule } from "@/client/types";
-import useRules from "@/hooks/useRules";
-import { Button, Drawer, Modal, Table, TableProps, message } from "antd";
-import { Tag } from "antd/lib";
-import { useState } from "react";
-import ExpForm from "./ExpForm";
+import { removeRule } from '@/client/rule';
+import { AppRule } from '@/client/types';
+import useRules from '@/hooks/useRules';
+import { Button, Drawer, Modal, Table, TableProps, message } from 'antd';
+import { Tag } from 'antd/lib';
+import { useState } from 'react';
+import ExpForm from './ExpForm';
 
 function ExpList() {
   const [modal, holder] = Modal.useModal();
@@ -35,36 +35,36 @@ function ExpList() {
     });
   };
 
-  const columns: TableProps<AppRule>["columns"] = [
+  const columns: TableProps<AppRule>['columns'] = [
     {
-      title: "id",
-      dataIndex: "id",
-      key: "id",
+      title: '번호',
+      dataIndex: 'id',
+      key: 'id',
     },
 
     {
-      title: "key",
-      dataIndex: "key",
-      key: "key",
+      title: 'key',
+      dataIndex: 'key',
+      key: 'key',
     },
     {
-      title: "다음 레벨업 필요 경험치",
-      dataIndex: "value",
-      key: "value",
+      title: '다음 레벨업 필요 경험치',
+      dataIndex: 'value',
+      key: 'value',
     },
     {
-      title: "활성화",
-      dataIndex: "isActive",
-      key: "isActive",
-      render: (value) => <Tag color={value ? "green" : "default"}>{value ? "활성화" : "비활성화"}</Tag>,
+      title: '활성화',
+      dataIndex: 'isActive',
+      key: 'isActive',
+      render: (value) => <Tag color={value ? 'green' : 'default'}>{value ? '활성화' : '비활성화'}</Tag>,
     },
 
     {
-      title: "Action",
-      dataIndex: "",
-      key: "x",
+      title: 'Action',
+      dataIndex: '',
+      key: 'x',
       render: (value) => (
-        <div className="flex gap-4">
+        <div className='flex gap-4'>
           <Button onClick={() => handleEdit(value)}>수정</Button>
           <Button onClick={() => handleRemove(value)}>삭제</Button>
         </div>
@@ -79,8 +79,8 @@ function ExpList() {
           setFocused(undefined);
           setOpenCreate(true);
         }}
-        type="primary"
-        size="large"
+        type='primary'
+        size='large'
       >
         추가
       </Button>

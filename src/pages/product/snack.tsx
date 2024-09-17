@@ -1,6 +1,6 @@
-import { getDefaultLayout } from "@/components/layout/default-layout";
-import pageHeader from "@/components/layout/page-header";
-import SnackList from "@/components/page/snack/SnackList";
+import { getDefaultLayout } from '@/components/layout/default-layout';
+import pageHeader from '@/components/layout/page-header';
+import SnackList from '@/components/page/snack/SnackList';
 
 function SnackPage() {
   return (

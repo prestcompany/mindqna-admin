@@ -114,7 +114,7 @@ function SpaceList() {
 
   const columns: TableProps<Space>['columns'] = [
     {
-      title: 'id',
+      title: '번호',
       dataIndex: 'id',
       key: 'id',
     },

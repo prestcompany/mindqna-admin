@@ -1,11 +1,11 @@
-import { publishCardTemplates, removeCardTemplate, unpublishCardTemplates } from "@/client/card";
-import { CardTemplate, CardTemplateType, GetCardTemplatesResult, SpaceType } from "@/client/types";
-import useCardTemplates from "@/hooks/useCardTemplates";
-import { useQueryClient } from "@tanstack/react-query";
-import { Button, Drawer, Modal, Select, Table, TableProps, Tag, message } from "antd";
-import { produce } from "immer";
-import { useState } from "react";
-import CardForm from "./CardForm";
+import { publishCardTemplates, removeCardTemplate, unpublishCardTemplates } from '@/client/card';
+import { CardTemplate, CardTemplateType, GetCardTemplatesResult, SpaceType } from '@/client/types';
+import useCardTemplates from '@/hooks/useCardTemplates';
+import { useQueryClient } from '@tanstack/react-query';
+import { Button, Drawer, Modal, Select, Table, TableProps, Tag, message } from 'antd';
+import { produce } from 'immer';
+import { useState } from 'react';
+import CardForm from './CardForm';
 
 function CardList() {
   const queryClient = useQueryClient();
@@ -46,7 +46,7 @@ function CardList() {
     try {
       setLoading(true);
       await publishCardTemplates(selectedRowKeys as number[]);
-      queryClient.setQueryData<GetCardTemplatesResult>(["cardTemplates"], (prev) => {
+      queryClient.setQueryData<GetCardTemplatesResult>(['cardTemplates'], (prev) => {
         if (!prev) return;
         return produce(prev, (draft) => {
           draft.templates.forEach((template) => {
@@ -56,7 +56,7 @@ function CardList() {
           });
         });
       });
-      messageApi.success({ content: "성공" });
+      messageApi.success({ content: '성공' });
     } catch (err) {
       console.error(err);
       messageApi.error({ content: `실패 : ${err}` });
@@ -68,8 +68,8 @@ function CardList() {
     try {
       setLoading(true);
       await unpublishCardTemplates(selectedRowKeys as number[]);
-      messageApi.success({ content: "성공" });
-      queryClient.setQueryData<GetCardTemplatesResult>(["cardTemplates"], (prev) => {
+      messageApi.success({ content: '성공' });
+      queryClient.setQueryData<GetCardTemplatesResult>(['cardTemplates'], (prev) => {
         if (!prev) return;
         return produce(prev, (draft) => {
           draft.templates.forEach((template) => {
@@ -86,56 +86,56 @@ function CardList() {
     setLoading(false);
   };
 
-  const columns: TableProps<CardTemplate>["columns"] = [
+  const columns: TableProps<CardTemplate>['columns'] = [
     {
-      title: "id",
-      dataIndex: "id",
-      key: "id",
+      title: '번호',
+      dataIndex: 'id',
+      key: 'id',
     },
 
     {
-      title: "이름",
-      dataIndex: "name",
-      key: "name",
+      title: '이름',
+      dataIndex: 'name',
+      key: 'name',
       width: 700,
     },
     {
-      title: "순서",
-      dataIndex: "order",
-      key: "order",
+      title: '순서',
+      dataIndex: 'order',
+      key: 'order',
     },
     {
-      title: "언어",
-      dataIndex: "locale",
-      key: "locale",
+      title: '언어',
+      dataIndex: 'locale',
+      key: 'locale',
     },
     {
-      title: "질문타입",
-      dataIndex: "type",
-      key: "type",
+      title: '질문타입',
+      dataIndex: 'type',
+      key: 'type',
     },
     {
-      title: "공간타입",
-      dataIndex: "spaceType",
-      key: "spaceType",
+      title: '공간타입',
+      dataIndex: 'spaceType',
+      key: 'spaceType',
     },
     {
-      title: "Action",
-      dataIndex: "",
-      key: "x",
+      title: 'Action',
+      dataIndex: '',
+      key: 'x',
       render: (value) => (
-        <div className="flex gap-4">
+        <div className='flex gap-4'>
           <Button onClick={() => handleEdit(value)}>수정</Button>
           <Button onClick={() => handleRemove(value)}>삭제</Button>
         </div>
       ),
     },
     {
-      title: "상태",
-      dataIndex: "isPublished",
-      key: "isPublished",
+      title: '상태',
+      dataIndex: 'isPublished',
+      key: 'isPublished',
       render: (value) => {
-        return <Tag color={value ? "success" : "default"}>{value ? "published" : "waiting"}</Tag>;
+        return <Tag color={value ? 'success' : 'default'}>{value ? 'published' : 'waiting'}</Tag>;
       },
     },
   ];
@@ -156,23 +156,23 @@ function CardList() {
           setFocused(undefined);
           setOpenCreate(true);
         }}
-        type="primary"
-        size="large"
+        type='primary'
+        size='large'
       >
         추가
       </Button>
-      <div className="flex items-center gap-2 py-4">
-        <span className="text-lg font-bold">필터</span>
+      <div className='flex items-center gap-2 py-4'>
+        <span className='text-lg font-bold'>필터</span>
         <Select
-          placeholder="언어"
+          placeholder='언어'
           style={{ width: 120 }}
           options={[
-            { label: "ko", value: "ko" },
-            { label: "en", value: "en" },
-            { label: "ja", value: "ja" },
-            { label: "zh", value: "zh" },
-            { label: "zhTw", value: "zhTw" },
-            { label: "es", value: "es" },
+            { label: 'ko', value: 'ko' },
+            { label: 'en', value: 'en' },
+            { label: 'ja', value: 'ja' },
+            { label: 'zh', value: 'zh' },
+            { label: 'zhTw', value: 'zhTw' },
+            { label: 'es', value: 'es' },
           ]}
           value={(filter.locale ?? [])?.[0]}
           onChange={(v: string) => {
@@ -181,11 +181,11 @@ function CardList() {
           allowClear
         />
         <Select
-          placeholder="질문타입"
+          placeholder='질문타입'
           style={{ width: 120 }}
           options={[
-            { label: "basic", value: "basic" },
-            { label: "bonus", value: "bonus" },
+            { label: 'basic', value: 'basic' },
+            { label: 'bonus', value: 'bonus' },
           ]}
           value={(filter.type ?? [])?.[0]}
           onChange={(v: CardTemplateType) => {
@@ -194,13 +194,13 @@ function CardList() {
           allowClear
         />
         <Select
-          placeholder="공간타입"
+          placeholder='공간타입'
           style={{ width: 120 }}
           options={[
-            { label: "혼자", value: "alone" },
-            { label: "커플", value: "couple" },
-            { label: "가족", value: "family" },
-            { label: "친구", value: "friends" },
+            { label: '혼자', value: 'alone' },
+            { label: '커플', value: 'couple' },
+            { label: '가족', value: 'family' },
+            { label: '친구', value: 'friends' },
           ]}
           value={(filter.spaceType ?? [])?.[0]}
           onChange={(v: SpaceType) => {
@@ -211,7 +211,7 @@ function CardList() {
       </div>
       <Table
         rowSelection={rowSelection}
-        rowKey={"id"}
+        rowKey={'id'}
         columns={columns}
         dataSource={templates}
         pagination={{
@@ -222,8 +222,8 @@ function CardList() {
         }}
         loading={loading || isLoading}
       />
-      <div className="flex gap-3">
-        <Button onClick={handlePressPublish} disabled={!hasSelected} type="primary" loading={loading}>
+      <div className='flex gap-3'>
+        <Button onClick={handlePressPublish} disabled={!hasSelected} type='primary' loading={loading}>
           publish
         </Button>
         <Button onClick={handlePressUnpublish} disabled={!hasSelected} loading={loading}>

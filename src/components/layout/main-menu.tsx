@@ -1,5 +1,5 @@
 import { Divider } from 'antd';
-import { Home, Package2, User } from 'lucide-react';
+import { BellDot, Home, Package2, User } from 'lucide-react';
 import React from 'react';
 import Menu, { IMenu } from './nav';
 
@@ -109,13 +109,6 @@ const mainMenuData: IMenu[] = [
         },
       },
       {
-        id: 'push',
-        name: '푸시 알림',
-        link: {
-          path: '/product/push',
-        },
-      },
-      {
         id: 'banner',
         name: '이벤트 배너',
         link: {
@@ -134,6 +127,27 @@ const mainMenuData: IMenu[] = [
         name: '쿠폰',
         link: {
           path: '/product/coupon',
+        },
+      },
+    ],
+  },
+  {
+    id: 'push',
+    name: '푸시 관리',
+    icon: <BellDot className='w-5 h-5' />,
+    submenu: [
+      {
+        id: 'list',
+        name: '푸시 목록',
+        link: {
+          path: '/push/list',
+        },
+      },
+      {
+        id: 'new',
+        name: '푸시 발송',
+        link: {
+          path: '/push/new',
         },
       },
     ],

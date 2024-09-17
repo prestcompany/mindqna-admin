@@ -1,9 +1,9 @@
-import { removeLocale } from "@/client/locale";
-import { LocaleWord } from "@/client/types";
-import useLocales from "@/hooks/useLocales";
-import { Button, Drawer, Modal, Table, TableProps, message } from "antd";
-import { useState } from "react";
-import LocaleForm from "./LocaleForm";
+import { removeLocale } from '@/client/locale';
+import { LocaleWord } from '@/client/types';
+import useLocales from '@/hooks/useLocales';
+import { Button, Drawer, Modal, Table, TableProps, message } from 'antd';
+import { useState } from 'react';
+import LocaleForm from './LocaleForm';
 
 function LocaleList() {
   const [modal, holder] = Modal.useModal();
@@ -34,35 +34,35 @@ function LocaleList() {
     });
   };
 
-  const columns: TableProps<LocaleWord>["columns"] = [
+  const columns: TableProps<LocaleWord>['columns'] = [
     {
-      title: "id",
-      dataIndex: "id",
-      key: "id",
+      title: '번호',
+      dataIndex: 'id',
+      key: 'id',
     },
 
     {
-      title: "key",
-      dataIndex: "key",
-      key: "key",
+      title: 'key',
+      dataIndex: 'key',
+      key: 'key',
     },
     {
-      title: "value",
-      dataIndex: "value",
-      key: "value",
+      title: 'value',
+      dataIndex: 'value',
+      key: 'value',
     },
     {
-      title: "locale",
-      dataIndex: "locale",
-      key: "locale",
+      title: 'locale',
+      dataIndex: 'locale',
+      key: 'locale',
     },
 
     {
-      title: "Action",
-      dataIndex: "",
-      key: "x",
+      title: 'Action',
+      dataIndex: '',
+      key: 'x',
       render: (value) => (
-        <div className="flex gap-4">
+        <div className='flex gap-4'>
           <Button onClick={() => handleEdit(value)}>수정</Button>
           <Button onClick={() => handleRemove(value)}>삭제</Button>
         </div>
@@ -77,8 +77,8 @@ function LocaleList() {
           setFocused(undefined);
           setOpenCreate(true);
         }}
-        type="primary"
-        size="large"
+        type='primary'
+        size='large'
       >
         추가
       </Button>
