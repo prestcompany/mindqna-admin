@@ -50,6 +50,8 @@ export type CreatePushParams = {
   message: string;
   pushAt: Date;
   locale: Locale;
+  target: 'ALL' | 'USER';
+  userNames?: string[];
 };
 
 export type UpdatePushParams = CreatePushParams & {
