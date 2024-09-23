@@ -1,7 +1,7 @@
 import { AdminPush } from '@/client/push';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import usePushes from '@/hooks/usePushes';
-import { Button, Drawer, Modal, Select, Table, TableProps } from 'antd';
+import { Button, Drawer, Modal, Select, Table, TableProps, Tag } from 'antd';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
@@ -39,13 +39,22 @@ function PushList() {
       key: 'message',
     },
     {
+      title: '상태',
+      dataIndex: 'isActive',
+      key: 'isActive',
+      render: (value) => {
+        if (value) return <Tag color='green'>활성</Tag>;
+        if (!value) return <Tag color='red'>비활성</Tag>;
+      },
+    },
+    {
       title: '',
       dataIndex: '',
       key: 'x',
       render: (value) => (
         <div className='flex gap-4'>
-          {/* <Button onClick={() => handleEdit(value)}>수정</Button>
-          <Button onClick={() => handleRemove(value)}>삭제</Button> */}
+          {/* <Button onClick={() => handleEdit(value)}>상태변경</Button> */}
+          {/* <Button onClick={() => handleRemove(value)}>삭제</Button> */}
         </div>
       ),
     },

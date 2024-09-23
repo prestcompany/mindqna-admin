@@ -31,11 +31,17 @@ const PushForm = ({ id, initialValues }: IPushFormProps) => {
     try {
       setIsLoading(true);
 
+      const updatedFormValue = {
+        ...formValue,
+        pushAt: new Date().toISOString(),
+        isActive: true,
+      };
+
       if (id) {
         // await updatePush(id);
         messageApi.success('수정되었습니다');
       } else {
-        await createPush(formValue);
+        await createPush(updatedFormValue);
         messageApi.success('생성되었습니다');
       }
     } catch (e: unknown) {

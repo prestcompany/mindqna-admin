@@ -10,6 +10,7 @@ export async function getPushes(page: number, locale?: string[]) {
 export async function createPush(params: CreatePushParams) {
   const { ...body } = params;
 
+  console.log('body', body);
   const res = await client.post('/push', body);
 
   return res.data;
@@ -48,10 +49,11 @@ export type AdminPush = {
 export type CreatePushParams = {
   title: string;
   message: string;
-  pushAt: Date;
+  pushAt: string;
   locale: Locale;
   target: 'ALL' | 'USER';
   userNames?: string[];
+  isActive: boolean;
 };
 
 export type UpdatePushParams = CreatePushParams & {
