@@ -85,7 +85,7 @@ function PushList() {
           </div>
         </div>
         <div className='flex-item-list'>
-          <Button type='primary' onClick={() => router.push('/push/new')}>
+          <Button type='primary' onClick={() => router.push('/marketing/push/new')}>
             푸시 등록
           </Button>
         </div>
