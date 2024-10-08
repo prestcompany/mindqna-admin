@@ -117,19 +117,11 @@ const PushForm = ({ id, initialValues }: IPushFormProps) => {
           <Divider />
 
           <FormGroup title='이미지 URL'>
-            <Form.Item name='price' rules={[{ required: false }]}>
+            <Form.Item name='imgUrl' rules={[{ required: false }]}>
               <Input placeholder='이동시킬 링크 URL을 입력하세요' />
             </Form.Item>
           </FormGroup>
         </FormSection>
-
-        {/* <FormSection title='상품상세' description='상품 상세 정보를 입력해주세요'>
-          <FormGroup title='상품상세'>
-            <Form.Item name='description'>
-              <QuillEditor />
-            </Form.Item>
-          </FormGroup>
-        </FormSection> */}
 
         <div className='text-center'>
           <Button htmlType='submit' type='primary' loading={isLoading}>
