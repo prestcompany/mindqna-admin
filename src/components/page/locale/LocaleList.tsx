@@ -2,7 +2,7 @@ import { removeLocale } from '@/client/locale';
 import { LocaleWord } from '@/client/types';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import useLocales from '@/hooks/useLocales';
-import { Button, Drawer, Modal, Select, Table, TableProps, message } from 'antd';
+import { Button, Drawer, Input, Modal, Select, Table, TableProps, message } from 'antd';
 import { useState } from 'react';
 import LocaleForm from './LocaleForm';
 
@@ -11,7 +11,11 @@ function LocaleList() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<{ locale?: string[] }>({});
-  const { locales, totalPage, isLoading, refetch } = useLocales({ page: currentPage, locale: filter.locale });
+  const [key, setKey] = useState('');
+  const [value, setValue] = useState('');
+  const [searchKey, setSearchKey] = useState('');
+  const [searchValue, setSearchValue] = useState('');
+  const { locales, totalPage, isLoading, refetch } = useLocales({ page: currentPage, locale: filter.locale, key: searchKey, value: searchValue });
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
@@ -20,6 +24,12 @@ function LocaleList() {
   const handleEdit = (value: LocaleWord) => {
     setFocused(value);
     setOpenEdit(true);
+  };
+
+  const handleSearch = () => {
+    setSearchKey(key);
+    setSearchValue(value);
+    refetch();
   };
 
   const handleRemove = (value: LocaleWord) => {
@@ -44,23 +54,23 @@ function LocaleList() {
     },
 
     {
-      title: 'key',
+      title: '다국어 키',
       dataIndex: 'key',
       key: 'key',
     },
     {
-      title: 'value',
+      title: '텍스트',
       dataIndex: 'value',
       key: 'value',
     },
     {
-      title: 'locale',
+      title: '언어',
       dataIndex: 'locale',
       key: 'locale',
     },
 
     {
-      title: 'Action',
+      title: '액션',
       dataIndex: '',
       key: 'x',
       render: (value) => (
@@ -93,6 +103,21 @@ function LocaleList() {
             }}
             allowClear
           />
+          <Input
+            placeholder='키 값'
+            value={key}
+            onChange={(e) => {
+              setKey(e.target.value);
+            }}
+          />
+          <Input
+            placeholder='텍스트'
+            value={value}
+            onChange={(e) => {
+              setValue(e.target.value);
+            }}
+          />
+          <Button onClick={handleSearch}>검색</Button>
         </div>
         <Button
           onClick={() => {

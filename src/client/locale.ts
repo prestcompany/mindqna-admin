@@ -1,8 +1,8 @@
 import client from './@base';
 import { CreateLocaleParams, LocaleWord, QueryResultWithPagination } from './types';
 
-export async function getLocales(page: number, locale?: string[]) {
-  const res = await client.get<QueryResultWithPagination<LocaleWord>>('/locale', { params: { page, locale } });
+export async function getLocales(page: number, locale?: string[], key?: string, value?: string) {
+  const res = await client.get<QueryResultWithPagination<LocaleWord>>('/locale', { params: { page, locale, key, value } });
 
   return res.data;
 }
