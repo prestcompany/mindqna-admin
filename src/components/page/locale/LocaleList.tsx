@@ -134,6 +134,7 @@ function LocaleList() {
       <Table
         dataSource={locales}
         columns={columns}
+        rowKey={(row) => row.id}
         pagination={{
           total: totalPage * 10,
           current: currentPage,
