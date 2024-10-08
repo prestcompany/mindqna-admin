@@ -1,10 +1,20 @@
-import { getLocales } from "@/client/locale";
-import { useQuery } from "@tanstack/react-query";
+import { getLocales } from '@/client/locale';
+import { useQuery } from '@tanstack/react-query';
 
-function useLocales(page: number) {
-  const { data, isLoading, refetch } = useQuery({ queryKey: ["locales", page], queryFn: () => getLocales(page) });
+type Props = {
+  page: number;
+  locale?: string[];
+};
 
-  const locales = data?.words ?? [];
+function useLocales(by: Props) {
+  const { page, locale } = by;
+
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['locales', page, locale],
+    queryFn: () => getLocales(page, locale),
+  });
+
+  const locales = data?.items ?? [];
 
   const totalPage = data?.pageInfo.totalPage ?? 1;
 

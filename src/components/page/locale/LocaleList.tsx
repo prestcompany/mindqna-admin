@@ -1,7 +1,8 @@
 import { removeLocale } from '@/client/locale';
 import { LocaleWord } from '@/client/types';
+import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import useLocales from '@/hooks/useLocales';
-import { Button, Drawer, Modal, Table, TableProps, message } from 'antd';
+import { Button, Drawer, Modal, Select, Table, TableProps, message } from 'antd';
 import { useState } from 'react';
 import LocaleForm from './LocaleForm';
 
@@ -9,7 +10,8 @@ function LocaleList() {
   const [modal, holder] = Modal.useModal();
 
   const [currentPage, setCurrentPage] = useState(1);
-  const { locales, totalPage, isLoading, refetch } = useLocales(currentPage);
+  const [filter, setFilter] = useState<{ locale?: string[] }>({});
+  const { locales, totalPage, isLoading, refetch } = useLocales({ page: currentPage, locale: filter.locale });
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
@@ -72,16 +74,38 @@ function LocaleList() {
   return (
     <>
       {holder}
-      <Button
-        onClick={() => {
-          setFocused(undefined);
-          setOpenCreate(true);
-        }}
-        type='primary'
-        size='large'
-      >
-        추가
-      </Button>
+      <DefaultTableBtn className='justify-between'>
+        <div className='flex items-center gap-2 py-6 '>
+          <Select
+            placeholder='언어'
+            style={{ width: 120 }}
+            options={[
+              { label: 'ko', value: 'ko' },
+              { label: 'en', value: 'en' },
+              { label: 'ja', value: 'ja' },
+              { label: 'zh', value: 'zh' },
+              { label: 'zhTw', value: 'zhTw' },
+              { label: 'es', value: 'es' },
+            ]}
+            value={(filter.locale ?? [])?.[0]}
+            onChange={(v: string) => {
+              setFilter((prev) => ({ ...prev, locale: [v] }));
+            }}
+            allowClear
+          />
+        </div>
+        <Button
+          onClick={() => {
+            setFocused(undefined);
+            setOpenCreate(true);
+          }}
+          type='primary'
+          size='large'
+        >
+          추가
+        </Button>
+      </DefaultTableBtn>
+
       <Table
         dataSource={locales}
         columns={columns}
@@ -96,6 +120,7 @@ function LocaleList() {
       <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}>
         <LocaleForm reload={refetch} close={() => setOpenCreate(false)} />
       </Drawer>
+
       <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={600}>
         <LocaleForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
       </Drawer>

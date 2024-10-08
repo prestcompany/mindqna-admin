@@ -1,5 +1,6 @@
 import { publishCardTemplates, removeCardTemplate, unpublishCardTemplates } from '@/client/card';
 import { CardTemplate, CardTemplateType, GetCardTemplatesResult, SpaceType } from '@/client/types';
+import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import useCardTemplates from '@/hooks/useCardTemplates';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button, Drawer, Modal, Select, Table, TableProps, Tag, message } from 'antd';
@@ -30,7 +31,8 @@ function CardList() {
 
   const handleRemove = (value: CardTemplate) => {
     modal.confirm({
-      title: `삭제 ${value.name}`,
+      title: `삭제 팝업`,
+      content: `순서 ${value.order} 을 정말 삭제하시겠습니까?`,
       onOk: async () => {
         await removeCardTemplate(value.id);
         await refetch();
@@ -120,6 +122,14 @@ function CardList() {
       key: 'spaceType',
     },
     {
+      title: '상태',
+      dataIndex: 'isPublished',
+      key: 'isPublished',
+      render: (value) => {
+        return <Tag color={value ? 'success' : 'default'}>{value ? '활성' : '비활성'}</Tag>;
+      },
+    },
+    {
       title: 'Action',
       dataIndex: '',
       key: 'x',
@@ -129,14 +139,6 @@ function CardList() {
           <Button onClick={() => handleRemove(value)}>삭제</Button>
         </div>
       ),
-    },
-    {
-      title: '상태',
-      dataIndex: 'isPublished',
-      key: 'isPublished',
-      render: (value) => {
-        return <Tag color={value ? 'success' : 'default'}>{value ? 'published' : 'waiting'}</Tag>;
-      },
     },
   ];
 
@@ -151,64 +153,67 @@ function CardList() {
     <div>
       {contextHolder}
       {holder}
-      <Button
-        onClick={() => {
-          setFocused(undefined);
-          setOpenCreate(true);
-        }}
-        type='primary'
-        size='large'
-      >
-        추가
-      </Button>
-      <div className='flex items-center gap-2 py-4'>
-        <span className='text-lg font-bold'>필터</span>
-        <Select
-          placeholder='언어'
-          style={{ width: 120 }}
-          options={[
-            { label: 'ko', value: 'ko' },
-            { label: 'en', value: 'en' },
-            { label: 'ja', value: 'ja' },
-            { label: 'zh', value: 'zh' },
-            { label: 'zhTw', value: 'zhTw' },
-            { label: 'es', value: 'es' },
-          ]}
-          value={(filter.locale ?? [])?.[0]}
-          onChange={(v: string) => {
-            setFilter((prev) => ({ ...prev, locale: [v] }));
+      <DefaultTableBtn className='justify-between'>
+        <div className='flex items-center gap-2 py-4'>
+          <span className='text-lg font-bold'>필터</span>
+          <Select
+            placeholder='언어'
+            style={{ width: 120 }}
+            options={[
+              { label: 'ko', value: 'ko' },
+              { label: 'en', value: 'en' },
+              { label: 'ja', value: 'ja' },
+              { label: 'zh', value: 'zh' },
+              { label: 'zhTw', value: 'zhTw' },
+              { label: 'es', value: 'es' },
+            ]}
+            value={(filter.locale ?? [])?.[0]}
+            onChange={(v: string) => {
+              setFilter((prev) => ({ ...prev, locale: [v] }));
+            }}
+            allowClear
+          />
+          <Select
+            placeholder='질문타입'
+            style={{ width: 120 }}
+            options={[
+              { label: 'basic', value: 'basic' },
+              { label: 'bonus', value: 'bonus' },
+            ]}
+            value={(filter.type ?? [])?.[0]}
+            onChange={(v: CardTemplateType) => {
+              setFilter((prev) => ({ ...prev, type: [v] }));
+            }}
+            allowClear
+          />
+          <Select
+            placeholder='공간타입'
+            style={{ width: 120 }}
+            options={[
+              { label: '혼자', value: 'alone' },
+              { label: '커플', value: 'couple' },
+              { label: '가족', value: 'family' },
+              { label: '친구', value: 'friends' },
+            ]}
+            value={(filter.spaceType ?? [])?.[0]}
+            onChange={(v: SpaceType) => {
+              setFilter((prev) => ({ ...prev, spaceType: [v] }));
+            }}
+            allowClear
+          />
+        </div>
+        <Button
+          onClick={() => {
+            setFocused(undefined);
+            setOpenCreate(true);
           }}
-          allowClear
-        />
-        <Select
-          placeholder='질문타입'
-          style={{ width: 120 }}
-          options={[
-            { label: 'basic', value: 'basic' },
-            { label: 'bonus', value: 'bonus' },
-          ]}
-          value={(filter.type ?? [])?.[0]}
-          onChange={(v: CardTemplateType) => {
-            setFilter((prev) => ({ ...prev, type: [v] }));
-          }}
-          allowClear
-        />
-        <Select
-          placeholder='공간타입'
-          style={{ width: 120 }}
-          options={[
-            { label: '혼자', value: 'alone' },
-            { label: '커플', value: 'couple' },
-            { label: '가족', value: 'family' },
-            { label: '친구', value: 'friends' },
-          ]}
-          value={(filter.spaceType ?? [])?.[0]}
-          onChange={(v: SpaceType) => {
-            setFilter((prev) => ({ ...prev, spaceType: [v] }));
-          }}
-          allowClear
-        />
-      </div>
+          type='primary'
+          size='large'
+        >
+          카드 템플릿 추가
+        </Button>
+      </DefaultTableBtn>
+
       <Table
         rowSelection={rowSelection}
         rowKey={'id'}
@@ -224,15 +229,16 @@ function CardList() {
       />
       <div className='flex gap-3'>
         <Button onClick={handlePressPublish} disabled={!hasSelected} type='primary' loading={loading}>
-          publish
+          활성화
         </Button>
         <Button onClick={handlePressUnpublish} disabled={!hasSelected} loading={loading}>
-          unpublish
+          비활성화
         </Button>
       </div>
       <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}>
         <CardForm reload={refetch} close={() => setOpenCreate(false)} />
       </Drawer>
+
       <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={600}>
         <CardForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
       </Drawer>

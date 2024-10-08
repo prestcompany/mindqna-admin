@@ -1,8 +1,8 @@
-import client from "./@base";
-import { CreateLocaleParams, GetLocalesResult } from "./types";
+import client from './@base';
+import { CreateLocaleParams, LocaleWord, QueryResultWithPagination } from './types';
 
-export async function getLocales(page: number) {
-  const res = await client.get<GetLocalesResult>("/locale", { params: { page } });
+export async function getLocales(page: number, locale?: string[]) {
+  const res = await client.get<QueryResultWithPagination<LocaleWord>>('/locale', { params: { page, locale } });
 
   return res.data;
 }
@@ -10,7 +10,7 @@ export async function getLocales(page: number) {
 export async function createLocale(params: CreateLocaleParams) {
   const { ...body } = params;
 
-  const res = await client.post("/locale", body);
+  const res = await client.post('/locale', body);
 
   return res.data;
 }

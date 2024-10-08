@@ -1,7 +1,7 @@
-import { createLocale, updateLocale } from "@/client/locale";
-import { Locale, LocaleWord } from "@/client/types";
-import { Button, Checkbox, Form, Input, Spin, message } from "antd";
-import { useEffect, useState } from "react";
+import { createLocale, updateLocale } from '@/client/locale';
+import { Locale, LocaleWord } from '@/client/types';
+import { Button, Checkbox, Form, Input, Spin, message } from 'antd';
+import { useEffect, useState } from 'react';
 
 type LocaleFormProps = {
   init?: LocaleWord;
@@ -12,13 +12,13 @@ type LocaleFormProps = {
 function LocaleForm({ init, reload, close }: LocaleFormProps) {
   const [isLoading, setLoading] = useState(false);
   const [focusedId, setFocusedId] = useState<number>();
-  const [locales, setLocales] = useState<Locale[]>(["ko", "en", "ja", "zh"]);
-  const [key, setKey] = useState("");
-  const [value, setValue] = useState("");
-  const [valueKo, setValueKo] = useState("");
-  const [valueEn, setValueEn] = useState("");
-  const [valueJa, setValueJa] = useState("");
-  const [valueZh, setValueZh] = useState("");
+  const [locales, setLocales] = useState<Locale[]>(['ko', 'en', 'ja', 'zh']);
+  const [key, setKey] = useState('');
+  const [value, setValue] = useState('');
+  const [valueKo, setValueKo] = useState('');
+  const [valueEn, setValueEn] = useState('');
+  const [valueJa, setValueJa] = useState('');
+  const [valueZh, setValueZh] = useState('');
 
   useEffect(() => {
     if (!init) return;
@@ -30,12 +30,12 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
   }, [init]);
 
   const localeOptions = [
-    { label: "ko", value: "ko" },
-    { label: "en", value: "en" },
-    { label: "ja", value: "ja" },
-    { label: "zh", value: "zh" },
-    { label: "zhTw", value: "zhTw" },
-    { label: "es", value: "es" },
+    { label: 'ko', value: 'ko' },
+    { label: 'en', value: 'en' },
+    { label: 'ja', value: 'ja' },
+    { label: 'zh', value: 'zh' },
+    { label: 'zhTw', value: 'zhTw' },
+    { label: 'es', value: 'es' },
   ];
 
   const save = async () => {
@@ -49,28 +49,28 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
           value,
         });
       } else {
-        if (locales.includes("ko"))
+        if (locales.includes('ko'))
           await createLocale({
             key,
-            locale: "ko",
+            locale: 'ko',
             value: valueKo,
           });
-        if (locales.includes("en"))
+        if (locales.includes('en'))
           await createLocale({
             key,
-            locale: "en",
+            locale: 'en',
             value: valueEn,
           });
-        if (locales.includes("ja"))
+        if (locales.includes('ja'))
           await createLocale({
             key,
-            locale: "ja",
+            locale: 'ja',
             value: valueJa,
           });
-        if (locales.includes("zh"))
+        if (locales.includes('zh'))
           await createLocale({
             key,
-            locale: "zh",
+            locale: 'zh',
             value: valueZh,
           });
       }
@@ -87,39 +87,34 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
     <>
       <Spin spinning={isLoading} fullscreen />
       <Form>
-        <Form.Item label="locale">
-          <Checkbox.Group
-            options={localeOptions}
-            value={locales}
-            onChange={(values) => setLocales(values as Locale[])}
-            disabled={!!focusedId}
-          />
+        <Form.Item label='locale'>
+          <Checkbox.Group options={localeOptions} value={locales} onChange={(values) => setLocales(values as Locale[])} disabled={!!focusedId} />
         </Form.Item>
-        <Form.Item label="key">
+        <Form.Item label='key'>
           <Input value={key} onChange={(e) => setKey(e.target.value)} />
         </Form.Item>
         {focusedId ? (
-          <Form.Item label="value">
+          <Form.Item label='value'>
             <Input value={value} onChange={(e) => setValue(e.target.value)} />
           </Form.Item>
         ) : (
           <>
-            <Form.Item label="ko">
+            <Form.Item label='ko'>
               <Input value={valueKo} onChange={(e) => setValueKo(e.target.value)} />
             </Form.Item>
-            <Form.Item label="en">
+            <Form.Item label='en'>
               <Input value={valueEn} onChange={(e) => setValueEn(e.target.value)} />
             </Form.Item>
-            <Form.Item label="ja">
+            <Form.Item label='ja'>
               <Input value={valueJa} onChange={(e) => setValueJa(e.target.value)} />
             </Form.Item>
-            <Form.Item label="zh">
+            <Form.Item label='zh'>
               <Input value={valueZh} onChange={(e) => setValueZh(e.target.value)} />
             </Form.Item>
           </>
         )}
 
-        <Button onClick={save} size="large" type="primary">
+        <Button onClick={save} size='large' type='primary'>
           저장
         </Button>
       </Form>

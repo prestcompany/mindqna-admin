@@ -3,6 +3,7 @@ export type CreateCardTemplateParams = {
   locale: string;
   type: CardTemplateType;
   spaceTypes: SpaceType[];
+  order?: number;
 };
 
 export type UpdateCardTemplateParams = CreateCardTemplateParams & {
