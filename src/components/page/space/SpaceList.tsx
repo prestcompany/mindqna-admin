@@ -99,7 +99,7 @@ function SpaceList() {
           setFetching(false);
           message.success({
             content: (
-              <div className='flex-auto item-center gap-2 py-4'>
+              <div className='flex-auto gap-2 py-4 item-center'>
                 <label>단체 지급 결과</label>
                 <p>{JSON.stringify(result)}</p>
               </div>

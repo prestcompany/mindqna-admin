@@ -1,5 +1,5 @@
 import client from './@base';
-import { CreateCardTemplateParams, GetCardTemplatesParams, GetCardTemplatesResult, UpdateCardTemplateParams } from './types';
+import { CreateBulkCardTemplatesParams, CreateCardTemplateParams, GetCardTemplatesParams, GetCardTemplatesResult, UpdateCardTemplateParams } from './types';
 
 export async function getCardTemplates(params: GetCardTemplatesParams) {
   const res = await client.get<GetCardTemplatesResult>('/card', {
@@ -11,6 +11,18 @@ export async function getCardTemplates(params: GetCardTemplatesParams) {
 
 export async function createCardTemplate(params: CreateCardTemplateParams) {
   const res = await client.post('card', { ...params });
+
+  return res.data;
+}
+
+export async function createBulkCardTemplates(params: CreateBulkCardTemplatesParams) {
+  const formData = new FormData();
+  formData.append('file', params.file);
+  formData.append('locale', params.locale);
+  formData.append('cardType', params.cardType);
+  formData.append('spaceType', params.spaceType);
+
+  const res = await client.post('card/bulk', formData);
 
   return res.data;
 }
@@ -35,8 +47,8 @@ export async function publishCardTemplates(templateIds: number[]) {
   return res.data;
 }
 
-export async function unpublishCardTemplates(templateIds: number[]) {
-  const res = await client.put('card/unpublish', { templateIds });
+export async function unpublishedCardTemplates(templateIds: number[]) {
+  const res = await client.put('card/unpublished', { templateIds });
 
   return res.data;
 }

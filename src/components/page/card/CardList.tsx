@@ -1,4 +1,4 @@
-import { publishCardTemplates, removeCardTemplate, unpublishCardTemplates } from '@/client/card';
+import { publishCardTemplates, removeCardTemplate, unpublishedCardTemplates } from '@/client/card';
 import { CardTemplate, CardTemplateType, GetCardTemplatesResult, SpaceType } from '@/client/types';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import useCardTemplates from '@/hooks/useCardTemplates';
@@ -7,6 +7,7 @@ import { Button, Drawer, Modal, Select, Table, TableProps, Tag, message } from '
 import { produce } from 'immer';
 import { useState } from 'react';
 import CardForm from './CardForm';
+import { CardUploadModal } from './CardUploadModal';
 
 function CardList() {
   const queryClient = useQueryClient();
@@ -40,10 +41,6 @@ function CardList() {
     });
   };
 
-  const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
-    setSelectedRowKeys(newSelectedRowKeys);
-  };
-
   const handlePressPublish = async () => {
     try {
       setLoading(true);
@@ -66,10 +63,10 @@ function CardList() {
     setLoading(false);
   };
 
-  const handlePressUnpublish = async () => {
+  const handlePressUnpublished = async () => {
     try {
       setLoading(true);
-      await unpublishCardTemplates(selectedRowKeys as number[]);
+      await unpublishedCardTemplates(selectedRowKeys as number[]);
       messageApi.success({ content: '성공' });
       queryClient.setQueryData<GetCardTemplatesResult>(['cardTemplates'], (prev) => {
         if (!prev) return;
@@ -87,6 +84,17 @@ function CardList() {
     }
     setLoading(false);
   };
+
+  const handleBulkUpload = () => {
+    modal.info({
+      width: 500,
+      title: '카드 템플릿 업로드',
+      content: <CardUploadModal />,
+      okButtonProps: { style: { display: 'none' } },
+    });
+  };
+
+  const onSelectChange = (newSelectedRowKeys: React.Key[]) => setSelectedRowKeys(newSelectedRowKeys);
 
   const columns: TableProps<CardTemplate>['columns'] = [
     {
@@ -202,16 +210,21 @@ function CardList() {
             allowClear
           />
         </div>
-        <Button
-          onClick={() => {
-            setFocused(undefined);
-            setOpenCreate(true);
-          }}
-          type='primary'
-          size='large'
-        >
-          카드 템플릿 추가
-        </Button>
+        <div className='flex items-center gap-4'>
+          <Button type='default' size='large' onClick={handleBulkUpload}>
+            카드 템플릿 액셀 업로드
+          </Button>
+          <Button
+            onClick={() => {
+              setFocused(undefined);
+              setOpenCreate(true);
+            }}
+            type='primary'
+            size='large'
+          >
+            카드 템플릿 추가
+          </Button>
+        </div>
       </DefaultTableBtn>
 
       <Table
@@ -231,7 +244,7 @@ function CardList() {
         <Button onClick={handlePressPublish} disabled={!hasSelected} type='primary' loading={loading}>
           활성화
         </Button>
-        <Button onClick={handlePressUnpublish} disabled={!hasSelected} loading={loading}>
+        <Button onClick={handlePressUnpublished} disabled={!hasSelected} loading={loading}>
           비활성화
         </Button>
       </div>
