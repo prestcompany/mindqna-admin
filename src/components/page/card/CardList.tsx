@@ -213,7 +213,7 @@ function CardList() {
         </div>
         <div className='flex items-center gap-4'>
           <Button type='default' size='large' onClick={handleBulkUpload}>
-            카드 템플릿 액셀 업로드
+            카드 템플릿 엑셀 업로드
           </Button>
           <Button
             onClick={() => {
