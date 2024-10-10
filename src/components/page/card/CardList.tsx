@@ -91,6 +91,7 @@ function CardList() {
       title: '카드 템플릿 업로드',
       content: <CardUploadModal />,
       okButtonProps: { style: { display: 'none' } },
+      closable: true,
     });
   };
 

@@ -92,7 +92,7 @@ export const CardUploadModal = () => {
 
       <div className='pt-10'>
         <Button type='primary' disabled={isUploadDisable} onClick={handleUpload}>
-          엑셀 파일 업로드
+          업로드 실행
         </Button>
       </div>
     </div>
