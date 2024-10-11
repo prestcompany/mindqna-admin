@@ -1,10 +1,10 @@
-import { removeInteriorTemplate } from "@/client/interior";
-import { ImgItem, InteriorTemplate } from "@/client/types";
-import useInteriors from "@/hooks/useInteriors";
-import { Button, Drawer, Image, Modal, Table, Tag, message } from "antd";
-import { TableProps } from "antd/lib";
-import { useState } from "react";
-import InteriorForm from "./InteriorForm";
+import { removeInteriorTemplate } from '@/client/interior';
+import { ImgItem, InteriorTemplate } from '@/client/types';
+import useInteriors from '@/hooks/useInteriors';
+import { Button, Drawer, Image, Modal, Table, Tag, message } from 'antd';
+import { TableProps } from 'antd/lib';
+import { useState } from 'react';
+import InteriorForm from './InteriorForm';
 
 function InteriorList() {
   const [modal, holder] = Modal.useModal();
@@ -36,70 +36,70 @@ function InteriorList() {
     });
   };
 
-  const columns: TableProps<InteriorTemplate>["columns"] = [
+  const columns: TableProps<InteriorTemplate>['columns'] = [
     {
-      title: "이미지",
-      dataIndex: "img",
-      key: "img",
+      title: '이미지',
+      dataIndex: 'img',
+      key: 'img',
       render: (value: ImgItem) => {
-        return <Image width={"100%"} height={100} src={value?.uri ?? ""} alt="img" style={{ objectFit: "contain" }} />;
+        return <Image width={'100%'} height={100} src={value?.uri ?? ''} alt='img' style={{ objectFit: 'contain' }} />;
       },
     },
     {
-      title: "id",
-      dataIndex: "id",
-      key: "id",
+      title: '번호',
+      dataIndex: 'id',
+      key: 'id',
     },
 
     {
-      title: "이름",
-      dataIndex: "name",
-      key: "name",
+      title: '이름',
+      dataIndex: 'name',
+      key: 'name',
     },
     {
-      title: "타입",
-      dataIndex: "type",
-      key: "type",
+      title: '타입',
+      dataIndex: 'type',
+      key: 'type',
     },
     {
-      title: "방 타입",
-      dataIndex: "room",
-      key: "room",
+      title: '방 타입',
+      dataIndex: 'room',
+      key: 'room',
     },
     {
-      title: "카테고리",
-      dataIndex: "category",
-      key: "category",
+      title: '카테고리',
+      dataIndex: 'category',
+      key: 'category',
     },
     {
-      title: "가격",
-      dataIndex: "price",
-      key: "price",
+      title: '가격',
+      dataIndex: 'price',
+      key: 'price',
     },
     {
-      title: "스타/히트",
-      dataIndex: "isPaid",
-      key: "isPaid",
+      title: '스타/히트',
+      dataIndex: 'isPaid',
+      key: 'isPaid',
       render: (value: boolean) => {
-        return <Tag color={value ? "gold" : "red"}>{value ? "스타" : "하트"}</Tag>;
+        return <Tag color={value ? 'gold' : 'red'}>{value ? '스타' : '하트'}</Tag>;
       },
     },
     {
-      title: "width",
-      dataIndex: "width",
-      key: "width",
+      title: 'width',
+      dataIndex: 'width',
+      key: 'width',
     },
     {
-      title: "height",
-      dataIndex: "height",
-      key: "height",
+      title: 'height',
+      dataIndex: 'height',
+      key: 'height',
     },
     {
-      title: "Action",
-      dataIndex: "",
-      key: "x",
+      title: 'Action',
+      dataIndex: '',
+      key: 'x',
       render: (value) => (
-        <div className="flex gap-4">
+        <div className='flex gap-4'>
           <Button onClick={() => handleEdit(value)}>수정</Button>
           <Button onClick={() => handleRemove(value)}>삭제</Button>
         </div>
@@ -115,8 +115,8 @@ function InteriorList() {
           setFocused(undefined);
           setOpenCreate(true);
         }}
-        type="primary"
-        size="large"
+        type='primary'
+        size='large'
       >
         추가
       </Button>

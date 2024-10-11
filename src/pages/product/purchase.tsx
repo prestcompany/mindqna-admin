@@ -1,6 +1,6 @@
-import { getDefaultLayout } from "@/components/layout/default-layout";
-import pageHeader from "@/components/layout/page-header";
-import PurchaseMetaList from "@/components/page/premium/PurchaseMetaList";
+import { getDefaultLayout } from '@/components/layout/default-layout';
+import pageHeader from '@/components/layout/page-header';
+import PurchaseMetaList from '@/components/page/premium/PurchaseMetaList';
 
 function PurchasePage() {
   return (

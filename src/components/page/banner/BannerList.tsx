@@ -45,7 +45,7 @@ function BannerList() {
       },
     },
     {
-      title: 'id',
+      title: '번호',
       dataIndex: 'id',
       key: 'id',
     },

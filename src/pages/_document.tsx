@@ -1,5 +1,5 @@
-import { createCache, extractStyle, StyleProvider } from "@ant-design/cssinjs";
-import Document, { DocumentContext, Head, Html, Main, NextScript } from "next/document";
+import { createCache, extractStyle, StyleProvider } from '@ant-design/cssinjs';
+import Document, { DocumentContext, Head, Html, Main, NextScript } from 'next/document';
 
 export default class MyDocument extends Document {
   static async getInitialProps(ctx: DocumentContext) {
@@ -21,7 +21,7 @@ export default class MyDocument extends Document {
       styles: (
         <>
           {initialProps.styles}
-          <style data-test="extract" dangerouslySetInnerHTML={{ __html: extractStyle(cache) }} />
+          <style data-test='extract' dangerouslySetInnerHTML={{ __html: extractStyle(cache) }} />
         </>
       ),
     };
@@ -29,7 +29,7 @@ export default class MyDocument extends Document {
 
   render() {
     return (
-      <Html lang="ko">
+      <Html lang='ko'>
         <Head />
         <body>
           <Main />

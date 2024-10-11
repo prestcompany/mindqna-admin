@@ -7,7 +7,7 @@ type Props = {
 
 function usePurchases(by: Props) {
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['purchaees', by],
+    queryKey: ['purchases', by],
     queryFn: () => getPurchases(by),
   });
 

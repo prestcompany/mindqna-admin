@@ -1,139 +1,151 @@
 import { Divider } from 'antd';
-import { Home, Package2, User } from 'lucide-react';
+import { Component, Folders, LucideLayoutGrid, MegaphoneIcon, ShoppingCartIcon, UsersIcon } from 'lucide-react';
 import React from 'react';
 import Menu, { IMenu } from './nav';
 
 const mainMenuData: IMenu[] = [
   {
-    id: 'home',
-    name: '홈',
-    icon: <Home className='w-5 h-5' />,
-    link: {
-      path: '/',
-    },
-  },
-  {
     id: 'dashboard',
     name: '대시보드',
-    icon: <User className='w-5 h-5' />,
+    icon: <LucideLayoutGrid className='w-4 h-4' />,
+    link: { path: '/dashboard/analytics' },
+  },
+  {
+    id: 'users',
+    name: '유저 및 공간 관리',
+    icon: <UsersIcon className='w-4 h-4' />,
     submenu: [
       {
-        id: 'analytics',
-        name: '통계',
+        id: 'user-list',
+        name: '유저 관리',
         link: {
-          path: '/dashboard/analytics',
+          path: '/user/list',
         },
       },
       {
-        id: 'user',
-        name: '유저',
+        id: 'space-list',
+        name: '공간 관리',
         link: {
-          path: '/dashboard/user',
+          path: '/space/list',
+        },
+      },
+    ],
+  },
+  {
+    id: 'template',
+    name: '템플릿 관리',
+    icon: <Component className='w-4 h-4' />,
+    submenu: [
+      {
+        id: 'card',
+        name: '카드 템플릿 관리',
+        link: {
+          path: '/template/card',
         },
       },
       {
-        id: 'space',
-        name: '공간',
+        id: 'interior',
+        name: '가구 템플릿 관리',
         link: {
-          path: '/dashboard/space',
+          path: '/template/interior',
         },
       },
       {
-        id: 'premium',
-        name: 'IAP 결제 내역',
+        id: 'room',
+        name: '방 템플릿 관리',
         link: {
-          path: '/dashboard/purchase',
+          path: '/template/room',
         },
       },
       {
-        id: 'products',
-        name: 'IAP 상품 관리',
+        id: 'bubble',
+        name: '펫 말풍선 관리',
         link: {
-          path: '/dashboard/products',
+          path: '/template/bubble',
+        },
+      },
+      {
+        id: 'exp',
+        name: '펫 경험치 관리',
+        link: {
+          path: '/template/exp',
+        },
+      },
+      {
+        id: 'snack',
+        name: '펫 간식 관리',
+        link: {
+          path: '/template/snack',
         },
       },
     ],
   },
   {
     id: 'product',
-    name: '템플릿',
-    icon: <Package2 className='w-5 h-5' />,
+    name: '상품 관리',
+    icon: <ShoppingCartIcon className='w-4 h-4' />,
     submenu: [
       {
-        id: 'assets',
-        name: '이미지',
+        id: 'iap-purchase',
+        name: '인앱 결제 내역',
         link: {
-          path: '/product/assets',
+          path: '/product/purchase',
         },
       },
       {
-        id: 'card',
-        name: '카드 템플릿',
+        id: 'iap-product',
+        name: '인앱 상품 관리',
         link: {
-          path: '/product/card',
-        },
-      },
-      {
-        id: 'interior',
-        name: '가구 템플릿',
-        link: {
-          path: '/product/interior',
-        },
-      },
-      {
-        id: 'exp',
-        name: '펫 경험치',
-        link: {
-          path: '/product/exp',
-        },
-      },
-      {
-        id: 'bubble',
-        name: '펫 말풍선',
-        link: {
-          path: '/product/bubble',
-        },
-      },
-      {
-        id: 'snack',
-        name: '펫 간식',
-        link: {
-          path: '/product/snack',
-        },
-      },
-      {
-        id: 'locale',
-        name: '다국어',
-        link: {
-          path: '/product/locales',
-        },
-      },
-      {
-        id: 'push',
-        name: '푸시 알림',
-        link: {
-          path: '/product/push',
-        },
-      },
-      {
-        id: 'banner',
-        name: '이벤트 배너',
-        link: {
-          path: '/product/banner',
-        },
-      },
-      {
-        id: 'room',
-        name: '방',
-        link: {
-          path: '/product/room',
+          path: '/product/iap-product',
         },
       },
       {
         id: 'coupon',
-        name: '쿠폰',
+        name: '쿠폰 관리',
         link: {
           path: '/product/coupon',
+        },
+      },
+    ],
+  },
+  {
+    id: 'marketing',
+    name: '마케팅 관리',
+    icon: <MegaphoneIcon className='w-4 h-4' />,
+    submenu: [
+      {
+        id: 'banner',
+        name: '배너 관리',
+        link: {
+          path: '/marketing/banner',
+        },
+      },
+      {
+        id: 'push',
+        name: '푸시 관리',
+        link: {
+          path: '/marketing/push/list',
+        },
+      },
+    ],
+  },
+  {
+    id: 'resource',
+    name: '리소스 관리',
+    icon: <Folders className='w-4 h-4' />,
+    submenu: [
+      {
+        id: 'assets',
+        name: '이미지 관리',
+        link: {
+          path: '/resource/assets',
+        },
+      },
+      {
+        id: 'locales',
+        name: '다국어 관리',
+        link: {
+          path: '/resource/locales',
         },
       },
     ],
@@ -143,13 +155,11 @@ const mainMenuData: IMenu[] = [
 const MainMenu = () => {
   return (
     <>
-      <>
-        <Divider orientation='left' plain>
-          메인
-        </Divider>
-
-        <Menu data={mainMenuData} />
-      </>
+      {/* <Divider orientation='left' plain>
+          <span className='text-xl font-semibold'>메인</span>
+        </Divider> */}
+      <Divider />
+      <Menu data={mainMenuData} />
     </>
   );
 };

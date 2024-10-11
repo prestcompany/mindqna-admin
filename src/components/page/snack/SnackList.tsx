@@ -1,9 +1,9 @@
-import { removeSnack } from "@/client/snack";
-import { ImgItem, Snack } from "@/client/types";
-import useSnacks from "@/hooks/useSnack";
-import { Button, Drawer, Image, Modal, Table, TableProps, Tag, message } from "antd";
-import { useState } from "react";
-import SnackForm from "./SnackForm";
+import { removeSnack } from '@/client/snack';
+import { ImgItem, Snack } from '@/client/types';
+import useSnacks from '@/hooks/useSnack';
+import { Button, Drawer, Image, Modal, Table, TableProps, Tag, message } from 'antd';
+import { useState } from 'react';
+import SnackForm from './SnackForm';
 
 function SnackList() {
   const [modal, holder] = Modal.useModal();
@@ -34,80 +34,80 @@ function SnackList() {
     });
   };
 
-  const columns: TableProps<Snack>["columns"] = [
+  const columns: TableProps<Snack>['columns'] = [
     {
-      title: "이미지",
-      dataIndex: "Img",
-      key: "Img",
+      title: '이미지',
+      dataIndex: 'Img',
+      key: 'Img',
       render: (value: ImgItem) => {
-        return <Image width={"100%"} height={60} src={value?.uri ?? ""} alt="img" style={{ objectFit: "contain" }} />;
+        return <Image width={'100%'} height={60} src={value?.uri ?? ''} alt='img' style={{ objectFit: 'contain' }} />;
       },
     },
     {
-      title: "id",
-      dataIndex: "id",
-      key: "id",
+      title: '번호',
+      dataIndex: 'id',
+      key: 'id',
     },
 
     {
-      title: "이름",
-      dataIndex: "name",
-      key: "name",
+      title: '이름',
+      dataIndex: 'name',
+      key: 'name',
     },
     {
-      title: "설명",
-      dataIndex: "desc",
-      key: "desc",
+      title: '설명',
+      dataIndex: 'desc',
+      key: 'desc',
     },
     {
-      title: "종류",
-      dataIndex: "kind",
-      key: "kind",
+      title: '종류',
+      dataIndex: 'kind',
+      key: 'kind',
     },
     {
-      title: "진화하는 펫",
-      dataIndex: "type",
-      key: "type",
+      title: '진화하는 펫',
+      dataIndex: 'type',
+      key: 'type',
     },
     {
-      title: "경험치",
-      dataIndex: "exp",
-      key: "exp",
+      title: '경험치',
+      dataIndex: 'exp',
+      key: 'exp',
     },
 
     {
-      title: "순서",
-      dataIndex: "order",
-      key: "order",
+      title: '순서',
+      dataIndex: 'order',
+      key: 'order',
     },
     {
-      title: "가격",
-      dataIndex: "price",
-      key: "price",
+      title: '가격',
+      dataIndex: 'price',
+      key: 'price',
     },
     {
-      title: "스타/하트",
-      dataIndex: "isPaid",
-      key: "isPaid",
+      title: '스타/하트',
+      dataIndex: 'isPaid',
+      key: 'isPaid',
       render: (value: boolean) => {
-        return <Tag color={value ? "gold" : "red"}>{value ? "스타" : "하트"}</Tag>;
+        return <Tag color={value ? 'gold' : 'red'}>{value ? '스타' : '하트'}</Tag>;
       },
     },
     {
-      title: "활성화",
-      dataIndex: "isActive",
-      key: "isActive",
+      title: '활성화',
+      dataIndex: 'isActive',
+      key: 'isActive',
       render: (value: boolean) => {
-        return <Tag color={value ? "green" : "default"}>{value ? "활성화" : "비활성화"}</Tag>;
+        return <Tag color={value ? 'green' : 'default'}>{value ? '활성화' : '비활성화'}</Tag>;
       },
     },
 
     {
-      title: "Action",
-      dataIndex: "",
-      key: "x",
+      title: 'Action',
+      dataIndex: '',
+      key: 'x',
       render: (value) => (
-        <div className="flex gap-4">
+        <div className='flex gap-4'>
           <Button onClick={() => handleEdit(value)}>수정</Button>
           <Button onClick={() => handleRemove(value)}>삭제</Button>
         </div>
@@ -122,8 +122,8 @@ function SnackList() {
           setFocused(undefined);
           setOpenCreate(true);
         }}
-        type="primary"
-        size="large"
+        type='primary'
+        size='large'
       >
         추가
       </Button>

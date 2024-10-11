@@ -1,130 +1,136 @@
-import { createLocale, updateLocale } from "@/client/locale";
-import { AdminPush } from "@/client/push";
-import { Locale } from "@/client/types";
-import { Button, Checkbox, Form, Input, Spin, message } from "antd";
-import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import { createPush, CreatePushParams } from '@/client/push';
+import DefaultForm from '@/components/shared/form/ui/default-form';
+import FormGroup from '@/components/shared/form/ui/form-group';
+import FormSection from '@/components/shared/form/ui/form-section';
+import { Button, Divider, Form, Input, message, Radio } from 'antd';
+import { useForm } from 'antd/lib/form/Form';
+import TextArea from 'antd/lib/input/TextArea';
+import React, { useState } from 'react';
 
-type PushFormProps = {
-  init?: AdminPush;
-  reload: () => Promise<any>;
-  close: () => void;
-};
+interface IPushFormProps {
+  id?: string;
+  initialValues?: Partial<CreatePushParams>;
+}
 
-function LocaleForm({ init, reload, close }: PushFormProps) {
-  const [isLoading, setLoading] = useState(false);
-  const [focusedId, setFocusedId] = useState<number>();
-  const [locales, setLocales] = useState<Locale[]>(["ko", "en", "ja", "zh"]);
-  const [key, setKey] = useState("");
-  const [pushAt, setPushAt] = useState(dayjs().add(7, "day").toDate());
-  const [valueKo, setValueKo] = useState("");
-  const [valueEn, setValueEn] = useState("");
-  const [valueJa, setValueJa] = useState("");
-  const [valueZh, setValueZh] = useState("");
-
-  useEffect(() => {
-    if (!init) return;
-
-    setFocusedId(init.id);
-    setLocales([init.locale]);
-    setKey(init.key);
-    setValue(init.value);
-  }, [init]);
+const PushForm = ({ id, initialValues }: IPushFormProps) => {
+  const [form] = useForm();
+  const [isLoading, setIsLoading] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
+  const [pushType, setPushType] = useState<string>('');
 
   const localeOptions = [
-    { label: "ko", value: "ko" },
-    { label: "en", value: "en" },
-    { label: "ja", value: "ja" },
-    { label: "zh", value: "zh" },
+    { label: 'ko', value: 'ko' },
+    { label: 'en', value: 'en' },
+    { label: 'ja', value: 'ja' },
+    { label: 'zh', value: 'zh' },
+    { label: 'zhTw', value: 'zhTw' },
+    { label: 'es', value: 'es' },
   ];
 
-  const save = async () => {
+  const handleFinish = async (formValue: CreatePushParams) => {
     try {
-      setLoading(true);
-      if (focusedId) {
-        await updateLocale({
-          id: focusedId,
-          key,
-          locale: locales[0],
-          value,
-        });
-      } else {
-        if (locales.includes("ko"))
-          await createLocale({
-            key,
-            locale: "ko",
-            value: valueKo,
-          });
-        if (locales.includes("en"))
-          await createLocale({
-            key,
-            locale: "en",
-            value: valueEn,
-          });
-        if (locales.includes("ja"))
-          await createLocale({
-            key,
-            locale: "ja",
-            value: valueJa,
-          });
-        if (locales.includes("zh"))
-          await createLocale({
-            key,
-            locale: "zh",
-            value: valueZh,
-          });
-      }
+      setIsLoading(true);
 
-      await reload();
-      close();
-    } catch (err) {
-      message.error(`${err}`);
+      const updatedFormValue = {
+        ...formValue,
+        pushAt: new Date().toISOString(),
+        isActive: true,
+      };
+
+      if (id) {
+        // await updatePush(id);
+        messageApi.success('수정되었습니다');
+      } else {
+        await createPush(updatedFormValue);
+        messageApi.success('생성되었습니다');
+      }
+    } catch (e: unknown) {
+      messageApi.error('에러가 발생했습니다');
+    } finally {
+      setTimeout(() => setIsLoading(false), 500);
     }
-    setLoading(false);
   };
 
   return (
     <>
-      <Spin spinning={isLoading} fullscreen />
-      <Form>
-        <Form.Item label="locale">
-          <Checkbox.Group
-            options={localeOptions}
-            value={locales}
-            onChange={(values) => setLocales(values as Locale[])}
-            disabled={!!focusedId}
-          />
-        </Form.Item>
-        <Form.Item label="key">
-          <Input value={key} onChange={(e) => setKey(e.target.value)} />
-        </Form.Item>
-        {focusedId ? (
-          <Form.Item label="value">
-            <Input value={value} onChange={(e) => setValue(e.target.value)} />
-          </Form.Item>
-        ) : (
-          <>
-            <Form.Item label="ko">
-              <Input value={valueKo} onChange={(e) => setValueKo(e.target.value)} />
+      {contextHolder}
+      <DefaultForm<CreatePushParams> form={form} initialValues={initialValues} onFinish={handleFinish}>
+        <FormSection title='푸시 발송 등록' description='발송할 푸시 정보를 입력해주세요'>
+          <FormGroup title='언어 종류*'>
+            <Form.Item name='locale' rules={[{ required: true, message: '' }]}>
+              <Radio.Group>
+                {localeOptions.map((locale) => (
+                  <Radio key={locale.value} value={locale.value}>
+                    {locale.label}
+                  </Radio>
+                ))}
+              </Radio.Group>
             </Form.Item>
-            <Form.Item label="en">
-              <Input value={valueEn} onChange={(e) => setValueEn(e.target.value)} />
-            </Form.Item>
-            <Form.Item label="ja">
-              <Input value={valueJa} onChange={(e) => setValueJa(e.target.value)} />
-            </Form.Item>
-            <Form.Item label="zh">
-              <Input value={valueZh} onChange={(e) => setValueZh(e.target.value)} />
-            </Form.Item>
-          </>
-        )}
+          </FormGroup>
 
-        <Button onClick={save} size="large" type="primary">
-          저장
-        </Button>
-      </Form>
+          <Divider />
+
+          <FormGroup title='푸시 종류*'>
+            <Form.Item name='target' rules={[{ required: true, message: '' }]}>
+              <Radio.Group onChange={(e) => setPushType(e.target.value)}>
+                <Radio value='ALL'>전체</Radio>
+                <Radio value='USER'>개인</Radio>
+              </Radio.Group>
+            </Form.Item>
+          </FormGroup>
+
+          {pushType === 'USER' && ( // 조건부 렌더링 추가
+            <>
+              <Divider />
+              <FormGroup title='사용자 ID*'>
+                <Form.Item name='userNames' rules={[{ required: pushType === 'USER', message: '' }]}>
+                  <TextArea placeholder='사용자 ID를 입력하세요 ("," 로 구분합니다.)' />
+                </Form.Item>
+              </FormGroup>
+            </>
+          )}
+
+          <Divider />
+
+          <FormGroup title='제목*'>
+            <Form.Item name='title' rules={[{ required: true, message: '' }]}>
+              <Input placeholder='푸시 제목을 입력하세요' />
+            </Form.Item>
+          </FormGroup>
+
+          <Divider />
+
+          <FormGroup title='내용*'>
+            <Form.Item name='message' rules={[{ required: true, message: '' }]}>
+              <TextArea placeholder='내용을 입력하세요' />
+            </Form.Item>
+          </FormGroup>
+
+          <Divider />
+
+          <FormGroup title='링크 URL'>
+            <Form.Item name='link' rules={[{ required: false }]}>
+              <Input placeholder='이동시킬 링크 URL을 입력하세요' />
+            </Form.Item>
+          </FormGroup>
+
+          <Divider />
+
+          <FormGroup title='이미지 URL'>
+            <Form.Item name='imgUrl' rules={[{ required: false }]}>
+              <Input placeholder='이동시킬 링크 URL을 입력하세요' />
+            </Form.Item>
+          </FormGroup>
+        </FormSection>
+
+        <div className='text-center'>
+          <Button htmlType='submit' type='primary' loading={isLoading}>
+            저장
+          </Button>
+        </div>
+      </DefaultForm>
     </>
   );
-}
+};
 
-export default LocaleForm;
+export default React.memo(PushForm);

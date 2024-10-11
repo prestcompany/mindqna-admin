@@ -1,8 +1,8 @@
-import { RoomCategory, RoomTemplate, removeRoom } from "@/client/room";
-import useRooms from "@/hooks/useRooms";
-import { Button, Drawer, Modal, Table, TableProps, Tag, message } from "antd";
-import { useState } from "react";
-import RoomForm, { categoryOptions } from "./RoomForm";
+import { RoomCategory, RoomTemplate, removeRoom } from '@/client/room';
+import useRooms from '@/hooks/useRooms';
+import { Button, Drawer, Modal, Table, TableProps, Tag, message } from 'antd';
+import { useState } from 'react';
+import RoomForm, { categoryOptions } from './RoomForm';
 
 function RoomList() {
   const [modal, holder] = Modal.useModal();
@@ -33,21 +33,21 @@ function RoomList() {
     });
   };
 
-  const columns: TableProps<RoomTemplate>["columns"] = [
+  const columns: TableProps<RoomTemplate>['columns'] = [
     {
-      title: "id",
-      dataIndex: "id",
-      key: "id",
+      title: '번호',
+      dataIndex: 'id',
+      key: 'id',
     },
     {
-      title: "이름",
-      dataIndex: "type",
-      key: "type",
+      title: '이름',
+      dataIndex: 'type',
+      key: 'type',
     },
     {
-      title: "카테고리",
-      dataIndex: "category",
-      key: "category",
+      title: '카테고리',
+      dataIndex: 'category',
+      key: 'category',
       render: (value: RoomCategory) => {
         const v = categoryOptions.find((item) => item.value === value)?.label ?? value;
         return <Tag>{v}</Tag>;
@@ -55,34 +55,34 @@ function RoomList() {
     },
 
     {
-      title: "가격",
-      dataIndex: "price",
-      key: "price",
+      title: '가격',
+      dataIndex: 'price',
+      key: 'price',
     },
 
     {
-      title: "스타/히트",
-      dataIndex: "isPaid",
-      key: "isPaid",
+      title: '스타/히트',
+      dataIndex: 'isPaid',
+      key: 'isPaid',
       render: (value: boolean) => {
-        return <Tag color={value ? "gold" : "red"}>{value ? "스타" : "하트"}</Tag>;
+        return <Tag color={value ? 'gold' : 'red'}>{value ? '스타' : '하트'}</Tag>;
       },
     },
     {
-      title: "활성화",
-      dataIndex: "isActive",
-      key: "isActive",
+      title: '활성화',
+      dataIndex: 'isActive',
+      key: 'isActive',
       render: (value: boolean) => {
-        return <Tag color={value ? "green" : "default"}>{value ? "활성화" : "비활성화"}</Tag>;
+        return <Tag color={value ? 'green' : 'default'}>{value ? '활성화' : '비활성화'}</Tag>;
       },
     },
 
     {
-      title: "Action",
-      dataIndex: "",
-      key: "x",
+      title: 'Action',
+      dataIndex: '',
+      key: 'x',
       render: (value) => (
-        <div className="flex gap-4">
+        <div className='flex gap-4'>
           <Button onClick={() => handleEdit(value)}>수정</Button>
           <Button onClick={() => handleRemove(value)}>삭제</Button>
         </div>
@@ -97,8 +97,8 @@ function RoomList() {
           setFocused(undefined);
           setOpenCreate(true);
         }}
-        type="primary"
-        size="large"
+        type='primary'
+        size='large'
       >
         추가
       </Button>

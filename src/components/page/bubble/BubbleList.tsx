@@ -1,9 +1,9 @@
-import { removeBubble } from "@/client/bubble";
-import { BubbleType, PetBubble } from "@/client/types";
-import useBubbles from "@/hooks/useBubbles";
-import { Button, Drawer, Modal, Select, Table, TableProps, message } from "antd";
-import { useState } from "react";
-import BubbleForm from "./BubbleForm";
+import { removeBubble } from '@/client/bubble';
+import { BubbleType, PetBubble } from '@/client/types';
+import useBubbles from '@/hooks/useBubbles';
+import { Button, Drawer, Modal, Select, Table, TableProps, message } from 'antd';
+import { useState } from 'react';
+import BubbleForm from './BubbleForm';
 
 function BubbleList() {
   const [modal, holder] = Modal.useModal();
@@ -35,40 +35,40 @@ function BubbleList() {
     });
   };
 
-  const columns: TableProps<PetBubble>["columns"] = [
+  const columns: TableProps<PetBubble>['columns'] = [
     {
-      title: "id",
-      dataIndex: "id",
-      key: "id",
+      title: '번호',
+      dataIndex: 'id',
+      key: 'id',
     },
 
     {
-      title: "message",
-      dataIndex: "message",
-      key: "message",
+      title: 'message',
+      dataIndex: 'message',
+      key: 'message',
     },
     {
-      title: "레벨",
-      dataIndex: "level",
-      key: "level",
+      title: '레벨',
+      dataIndex: 'level',
+      key: 'level',
     },
     {
-      title: "타입",
-      dataIndex: "type",
-      key: "type",
+      title: '타입',
+      dataIndex: 'type',
+      key: 'type',
     },
     {
-      title: "locale",
-      dataIndex: "locale",
-      key: "locale",
+      title: 'locale',
+      dataIndex: 'locale',
+      key: 'locale',
     },
 
     {
-      title: "Action",
-      dataIndex: "",
-      key: "x",
+      title: 'Action',
+      dataIndex: '',
+      key: 'x',
       render: (value) => (
-        <div className="flex gap-4">
+        <div className='flex gap-4'>
           <Button onClick={() => handleEdit(value)}>수정</Button>
           <Button onClick={() => handleRemove(value)}>삭제</Button>
         </div>
@@ -83,23 +83,23 @@ function BubbleList() {
           setFocused(undefined);
           setOpenCreate(true);
         }}
-        type="primary"
-        size="large"
+        type='primary'
+        size='large'
       >
         추가
       </Button>
-      <div className="flex items-center gap-2 py-4">
-        <span className="text-lg font-bold">필터</span>
+      <div className='flex items-center gap-2 py-4'>
+        <span className='text-lg font-bold'>필터</span>
         <Select
-          placeholder="언어"
+          placeholder='언어'
           style={{ width: 120 }}
           options={[
-            { label: "ko", value: "ko" },
-            { label: "en", value: "en" },
-            { label: "ja", value: "ja" },
-            { label: "zh", value: "zh" },
-            { label: "zhTw", value: "zhTw" },
-            { label: "es", value: "es" },
+            { label: 'ko', value: 'ko' },
+            { label: 'en', value: 'en' },
+            { label: 'ja', value: 'ja' },
+            { label: 'zh', value: 'zh' },
+            { label: 'zhTw', value: 'zhTw' },
+            { label: 'es', value: 'es' },
           ]}
           value={(filter.locale ?? [])?.[0]}
           onChange={(v: string) => {
@@ -108,13 +108,13 @@ function BubbleList() {
           allowClear
         />
         <Select
-          placeholder="타입"
+          placeholder='타입'
           style={{ width: 120 }}
           options={[
-            { label: "공통", value: "general" },
-            { label: "오전", value: "day" },
-            { label: "오후", value: "night" },
-            { label: "커스텀", value: "custom" },
+            { label: '공통', value: 'general' },
+            { label: '오전', value: 'day' },
+            { label: '오후', value: 'night' },
+            { label: '커스텀', value: 'custom' },
           ]}
           value={(filter.type ?? [])?.[0]}
           onChange={(v: BubbleType) => {

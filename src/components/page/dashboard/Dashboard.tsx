@@ -1,15 +1,15 @@
-import useAdsTest from "@/hooks/useAdsTest";
-import useAnalytics from "@/hooks/useAnaytics";
-import { DatePicker, Statistic, Tabs } from "antd";
-import { TabsProps } from "antd/lib";
-import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from "chart.js";
-import "chart.js/auto";
-import "chartjs-plugin-datalabels";
-import dayjs from "dayjs";
-import localeData from "dayjs/plugin/localeData";
-import weekday from "dayjs/plugin/weekday";
-import { useState } from "react";
-import { Bar, Chart } from "react-chartjs-2";
+import useAdsTest from '@/hooks/useAdsTest';
+import useAnalytics from '@/hooks/useAnaytics';
+import { DatePicker, Statistic, Tabs } from 'antd';
+import { TabsProps } from 'antd/lib';
+import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
+import 'chart.js/auto';
+import 'chartjs-plugin-datalabels';
+import dayjs from 'dayjs';
+import localeData from 'dayjs/plugin/localeData';
+import weekday from 'dayjs/plugin/weekday';
+import { useState } from 'react';
+import { Bar, Chart } from 'react-chartjs-2';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -21,26 +21,24 @@ function Dashboard() {
   const [endedAt, setEndedAt] = useState<dayjs.Dayjs>(dayjs());
 
   const { data: dataAdsTest, isLoading: isLoadingAds } = useAdsTest({
-    startedAt: startedAt.format("YYYY-MM-DD"),
-    endedAt: endedAt.format("YYYY-MM-DD"),
+    startedAt: startedAt.format('YYYY-MM-DD'),
+    endedAt: endedAt.format('YYYY-MM-DD'),
   });
 
   const { data, isLoading } = useAnalytics({
-    startedAt: startedAt.format("YYYY-MM-DD"),
-    endedAt: endedAt.format("YYYY-MM-DD"),
+    startedAt: startedAt.format('YYYY-MM-DD'),
+    endedAt: endedAt.format('YYYY-MM-DD'),
   });
 
   const userCountMap = countSameCreatedAt(
-    (data?.users ?? [])
-      .filter((user) => user.profiles.length > 0)
-      .map((user) => ({ createdAt: dayjs(user.createdAt).format("YYYY-MM-DD") }))
+    (data?.users ?? []).filter((user) => user.profiles.length > 0).map((user) => ({ createdAt: dayjs(user.createdAt).format('YYYY-MM-DD') })),
   );
 
   const dataMap = (data?.users ?? [])
     .filter((user) => user.profiles.length > 0)
     .reduce(
       (acc, user) => {
-        const createdAt = dayjs(user.createdAt).format("YYYY-MM-DD");
+        const createdAt = dayjs(user.createdAt).format('YYYY-MM-DD');
 
         const locale = user.locale;
 
@@ -63,12 +61,12 @@ function Dashboard() {
 
         return acc;
       },
-      {} as Record<string, Record<string, number>>
+      {} as Record<string, Record<string, number>>,
     );
 
   const labels = Object.keys(dataMap).sort();
-  const locales = ["ko", "en", "ja", "zh"];
-  const colors = ["#bbf7d0", "#67e8f9", "#c4b5fd", "#fdba74"];
+  const locales = ['ko', 'en', 'ja', 'zh'];
+  const colors = ['#bbf7d0', '#67e8f9', '#c4b5fd', '#fdba74'];
 
   const datasets = locales.map((locale, index) => {
     return {
@@ -79,13 +77,11 @@ function Dashboard() {
     };
   });
 
-  const spaceCountMap = countSameCreatedAt(
-    (data?.spaces ?? []).map((item) => ({ createdAt: dayjs(item.createdAt).format("YYYY-MM-DD") }))
-  );
+  const spaceCountMap = countSameCreatedAt((data?.spaces ?? []).map((item) => ({ createdAt: dayjs(item.createdAt).format('YYYY-MM-DD') })));
 
   const spaceDataMap = (data?.spaces ?? []).reduce(
     (acc, space) => {
-      const createdAt = dayjs(space.createdAt).format("YYYY-MM-DD");
+      const createdAt = dayjs(space.createdAt).format('YYYY-MM-DD');
 
       const locale = space.spaceInfo.locale;
 
@@ -108,7 +104,7 @@ function Dashboard() {
 
       return acc;
     },
-    {} as Record<string, Record<string, number>>
+    {} as Record<string, Record<string, number>>,
   );
 
   const spaceLabels = Object.keys(dataMap).sort();
@@ -123,23 +119,23 @@ function Dashboard() {
 
   const spaceTypeCountMap = countItemsWithSameKey(
     (data?.spaces ?? []).map((space) => ({ type: space.spaceInfo.type })),
-    "type"
+    'type',
   );
 
-  const spaceItems: TabsProps["items"] = [
+  const spaceItems: TabsProps['items'] = [
     {
-      key: "1",
-      label: "생성수",
+      key: '1',
+      label: '생성수',
       children: (
-        <div className="flex gap-12">
-          <div className="w-[600px] h-[600px]">
+        <div className='flex gap-12'>
+          <div className='w-[600px] h-[600px]'>
             <Chart
-              type="bar"
+              type='bar'
               options={{
                 plugins: {
                   datalabels: {
                     display: true,
-                    color: "white",
+                    color: 'white',
                   },
                 },
               }}
@@ -149,19 +145,19 @@ function Dashboard() {
               }}
             />
           </div>
-          <div className="flex flex-col gap-4">
+          <div className='flex flex-col gap-4'>
             {Object.entries(spaceCountMap).map(([type, count]) => {
               return (
                 <div key={type}>
-                  <div className="text-xl font-bold">{type}</div>
-                  <div className="flex items-center gap-2">
-                    <div className="text-lg font-medium">total {count}</div>
+                  <div className='text-xl font-bold'>{type}</div>
+                  <div className='flex items-center gap-2'>
+                    <div className='text-lg font-medium'>total {count}</div>
 
                     {Object.entries(spaceDataMap[type] ?? {}).map(([locale, count], idx) => {
                       if (count === 0) return;
 
                       return (
-                        <div key={locale} className="px-2 rounded" style={{ backgroundColor: colors[idx] }}>
+                        <div key={locale} className='px-2 rounded' style={{ backgroundColor: colors[idx] }}>
                           {locale}: {count}
                         </div>
                       );
@@ -175,18 +171,18 @@ function Dashboard() {
       ),
     },
     {
-      key: "2",
-      label: "타입 통계",
+      key: '2',
+      label: '타입 통계',
       children: (
-        <div className="flex gap-12">
-          <div className="w-[600px] h-[600px]">
+        <div className='flex gap-12'>
+          <div className='w-[600px] h-[600px]'>
             <Chart
-              type="pie"
+              type='pie'
               options={{
                 plugins: {
                   datalabels: {
                     display: true,
-                    color: "white",
+                    color: 'white',
                   },
                 },
               }}
@@ -194,14 +190,14 @@ function Dashboard() {
                 labels: Object.keys(spaceTypeCountMap),
                 datasets: [
                   {
-                    label: "공간 수",
+                    label: '공간 수',
                     data: Object.values(spaceTypeCountMap),
                   },
                 ],
               }}
             />
           </div>
-          <div className="flex flex-col gap-4">
+          <div className='flex flex-col gap-4'>
             {Object.entries(spaceTypeCountMap).map(([type, count]) => {
               return (
                 <div key={type}>
@@ -215,19 +211,19 @@ function Dashboard() {
     },
   ];
 
-  const items: TabsProps["items"] = [
+  const items: TabsProps['items'] = [
     {
-      key: "1",
-      label: "가입자",
+      key: '1',
+      label: '가입자',
       children: (
-        <div className="flex gap-12">
-          <div className="w-[600px] h-[600px]">
+        <div className='flex gap-12'>
+          <div className='w-[600px] h-[600px]'>
             <Bar
               options={{
                 plugins: {
                   datalabels: {
                     display: true,
-                    color: "white",
+                    color: 'white',
                   },
                 },
                 scales: {
@@ -240,19 +236,19 @@ function Dashboard() {
               }}
             />
           </div>
-          <div className="flex flex-col gap-4">
+          <div className='flex flex-col gap-4'>
             {Object.entries(userCountMap).map(([type, count]) => {
               return (
                 <div key={type}>
-                  <div className="text-xl font-bold">{type}</div>
-                  <div className="flex items-center gap-2">
-                    <div className="text-lg font-medium">total {count}</div>
+                  <div className='text-xl font-bold'>{type}</div>
+                  <div className='flex items-center gap-2'>
+                    <div className='text-lg font-medium'>total {count}</div>
 
                     {Object.entries(dataMap[type] ?? {}).map(([locale, count], idx) => {
                       if (count === 0) return;
 
                       return (
-                        <div key={locale} className="px-2 rounded" style={{ backgroundColor: colors[idx] }}>
+                        <div key={locale} className='px-2 rounded' style={{ backgroundColor: colors[idx] }}>
                           {locale}: {count}
                         </div>
                       );
@@ -266,23 +262,23 @@ function Dashboard() {
       ),
     },
     {
-      key: "2",
-      label: "공간",
-      children: <Tabs defaultActiveKey="1" items={spaceItems} />,
+      key: '2',
+      label: '공간',
+      children: <Tabs defaultActiveKey='1' items={spaceItems} />,
     },
     {
-      key: "3",
-      label: "광고",
+      key: '3',
+      label: '광고',
       children: (
-        <div className="flex gap-12">
-          <div className="w-[600px] h-[600px]">
+        <div className='flex gap-12'>
+          <div className='w-[600px] h-[600px]'>
             <Chart
-              type="pie"
+              type='pie'
               data={{
-                labels: ["A", "B"],
+                labels: ['A', 'B'],
                 datasets: [
                   {
-                    label: "A/B",
+                    label: 'A/B',
                     data: [dataAdsTest?.userA, dataAdsTest?.userB],
                   },
                 ],
@@ -295,13 +291,13 @@ function Dashboard() {
   ];
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex gap-8">
-        <Statistic title="총 가입자" value={data?.total.users} loading={isLoading} />
-        <Statistic title="총 공간 수" value={data?.total.spaces} loading={isLoading} />
-        <Statistic title="총 멤버 수" value={data?.total.profiles} loading={isLoading} />
+    <div className='flex flex-col gap-8'>
+      <div className='flex gap-8'>
+        <Statistic title='총 가입자' value={data?.total.users} loading={isLoading} />
+        <Statistic title='총 공간 수' value={data?.total.spaces} loading={isLoading} />
+        <Statistic title='총 멤버 수' value={data?.total.profiles} loading={isLoading} />
       </div>
-      <div className="flex items-center gap-4">
+      <div className='flex items-center gap-4'>
         <div>
           시작일
           <DatePicker onChange={(day) => setStartedAt(dayjs(day?.toDate()))} value={startedAt} />
@@ -312,7 +308,7 @@ function Dashboard() {
         </div>
       </div>
       <div>
-        <Tabs defaultActiveKey="1" items={items} />
+        <Tabs defaultActiveKey='1' items={items} />
       </div>
     </div>
   );

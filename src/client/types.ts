@@ -1,8 +1,18 @@
+import { RcFile } from 'antd/es/upload';
+
 export type CreateCardTemplateParams = {
   name: string;
   locale: string;
   type: CardTemplateType;
   spaceTypes: SpaceType[];
+  order?: number;
+};
+
+export type CreateBulkCardTemplatesParams = {
+  locale: string;
+  cardType: CardTemplateType;
+  spaceType: SpaceType;
+  file: RcFile;
 };
 
 export type UpdateCardTemplateParams = CreateCardTemplateParams & {
