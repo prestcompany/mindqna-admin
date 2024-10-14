@@ -57,6 +57,6 @@ export type CreatePushParams = {
 };
 
 export type UpdatePushParams = CreatePushParams & {
-  id: number;
+  id: string;
   isActive: boolean;
 };

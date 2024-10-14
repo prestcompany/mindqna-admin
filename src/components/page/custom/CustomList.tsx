@@ -4,8 +4,12 @@ import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import useCustoms from '@/hooks/useCustoms';
 import { Button, Image, Modal, Table, Tag, message } from 'antd';
 import { TableProps } from 'antd/lib';
+import dynamic from 'next/dynamic';
 import { useState } from 'react';
-import CustomForm from './CustomForm';
+import CustomFormModal from './CustomFormModal';
+import LottieCDNPlayer from './LottieCDNPlayer';
+
+const Lottie = dynamic(() => import('react-lottie-player'), { ssr: false });
 
 function CustomList() {
   const [modal, holder] = Modal.useModal();
@@ -17,6 +21,8 @@ function CustomList() {
   const [focused, setFocused] = useState<PetCustomTemplate | undefined>(undefined);
 
   const { templates, totalPage, isLoading, refetch } = useCustoms({ page: currentPage });
+
+  console.log(templates);
 
   const handleEdit = (value: PetCustomTemplate) => {
     setFocused(value);
@@ -39,14 +45,6 @@ function CustomList() {
 
   const columns: TableProps<PetCustomTemplate>['columns'] = [
     {
-      title: '이미지',
-      dataIndex: 'img',
-      key: 'img',
-      render: (value: ImgItem) => {
-        return <Image width={'100%'} height={100} src={value?.uri ?? ''} alt='img' style={{ objectFit: 'contain' }} />;
-      },
-    },
-    {
       title: '번호',
       dataIndex: 'id',
       key: 'id',
@@ -58,38 +56,81 @@ function CustomList() {
       key: 'name',
     },
     {
+      title: '순서',
+      dataIndex: 'order',
+      key: 'order',
+    },
+    {
       title: '타입',
       dataIndex: 'type',
       key: 'type',
+      render: (value: string) => {
+        return <Tag color='cyan-inverse'>{value}</Tag>;
+      },
     },
     {
-      title: '카테고리',
-      dataIndex: 'category',
-      key: 'category',
+      title: '키 값',
+      dataIndex: 'fileKey',
+      key: 'fileKey',
+    },
+    {
+      title: '펫 타입',
+      dataIndex: 'petType',
+      key: 'petType',
+      render: (value: string) => {
+        return <Tag color='blue-inverse'>{value}</Tag>;
+      },
+    },
+    {
+      title: '펫 레벨',
+      dataIndex: 'petLevel',
+      key: 'petLevel',
+      render: (value: string) => {
+        return <Tag color='purple-inverse'>{value}</Tag>;
+      },
+    },
+
+    {
+      title: '스타/하트',
+      dataIndex: 'isPaid',
+      key: 'isPaid',
+      render: (value: boolean) => {
+        return <Tag color={value ? 'gold-inverse' : 'red-inverse'}>{value ? '스타' : '하트'}</Tag>;
+      },
     },
     {
       title: '가격',
       dataIndex: 'price',
       key: 'price',
-    },
-    {
-      title: '스타/히트',
-      dataIndex: 'isPaid',
-      key: 'isPaid',
-      render: (value: boolean) => {
-        return <Tag color={value ? 'gold' : 'red'}>{value ? '스타' : '하트'}</Tag>;
+      render: (value: number) => {
+        return <Tag color='green-inverse'>{value}</Tag>;
       },
     },
     {
-      title: 'width',
-      dataIndex: 'width',
-      key: 'width',
+      title: '상태',
+      dataIndex: 'isActive',
+      key: 'isActive',
+      render: (value: boolean) => {
+        return <Tag color={value ? 'green' : 'red'}>{value ? '활성' : '비활성'}</Tag>;
+      },
     },
     {
-      title: 'height',
-      dataIndex: 'height',
-      key: 'height',
+      title: '썸네일',
+      dataIndex: 'img',
+      key: 'img',
+      render: (value: ImgItem) => {
+        return <Image width={60} height={60} src={value?.uri ?? ''} alt='img' style={{ objectFit: 'contain' }} />;
+      },
     },
+    {
+      title: '로티 파일',
+      dataIndex: 'fileUrl',
+      key: 'fileUrl',
+      render: (value: string) => {
+        return <LottieCDNPlayer fileUrl={value} width={150} height={150} />;
+      },
+    },
+
     {
       title: 'Action',
       dataIndex: '',
@@ -131,10 +172,11 @@ function CustomList() {
           showSizeChanger: false,
         }}
         loading={isLoading}
+        rowKey={(record) => record.id}
       />
-      <Modal closeIcon open={isOpenCreate} onCancel={() => setOpenCreate(false)} maskClosable={false}>
-        <CustomForm reload={refetch} close={() => setOpenCreate(false)} />
-      </Modal>
+
+      {isOpenCreate && <CustomFormModal isOpen={isOpenCreate} reload={refetch} close={() => setOpenCreate(false)} />}
+      {isOpenEdit && <CustomFormModal isOpen={isOpenEdit} reload={refetch} close={() => setOpenEdit(false)} init={focused} />}
     </>
   );
 }

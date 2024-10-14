@@ -86,22 +86,31 @@ export type PetCustomTemplateType = 'effect' | 'closet' | 'buddy';
 
 export type CreatePetCustomTemplateParams = {
   imgId: number;
-  type: PetCustomTemplateType;
   name: string;
+  type: PetCustomTemplateType;
+  order: number;
+  petType: PetType;
+  petLevel: number;
+  fileKey: string;
+  fileUrl: string;
   price: number;
   isPaid: boolean;
-  order: number;
+  isActive: boolean;
 };
 
 export type PetCustomTemplate = {
   id: number;
-  type: PetCustomTemplateType;
   name: string;
+  type: PetCustomTemplateType;
+  order: number;
+  petType: PetType;
+  petLevel: number;
   price: number;
   isPaid: boolean;
-  order: number;
+  isActive: boolean;
   img: ImgItem;
-  file: RcFile;
+  fileKey: string;
+  fileUrl: string;
   createdAt: string;
   updatedAt: string;
 };

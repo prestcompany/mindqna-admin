@@ -77,7 +77,7 @@ function InteriorList() {
       key: 'price',
     },
     {
-      title: '스타/히트',
+      title: '스타/하트',
       dataIndex: 'isPaid',
       key: 'isPaid',
       render: (value: boolean) => {

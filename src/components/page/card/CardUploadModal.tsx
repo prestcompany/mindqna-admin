@@ -88,7 +88,7 @@ export const CardUploadModal = () => {
           allowClear
         />
       </div>
-      <CardUploader setFile={handleFile} />
+      <CardUploader setFile={handleFile} accept='.xls,.xlsx' />
 
       <div className='pt-10'>
         <Button type='primary' disabled={isUploadDisable} onClick={handleUpload}>
