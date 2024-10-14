@@ -59,6 +59,13 @@ const mainMenuData: IMenu[] = [
       },
       {
         id: 'bubble',
+        name: '펫 커스텀 관리',
+        link: {
+          path: '/template/custom',
+        },
+      },
+      {
+        id: 'bubble',
         name: '펫 말풍선 관리',
         link: {
           path: '/template/bubble',

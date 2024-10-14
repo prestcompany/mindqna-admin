@@ -1,12 +1,12 @@
-import { getInteriorTemplates } from '@/client/interior';
+import { getCustomTemplates } from '@/client/custom';
 import { useQuery } from '@tanstack/react-query';
 
-function useInteriors(by: { page: number }) {
+function useCustoms(by: { page: number }) {
   const { page } = by;
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['interiors', page],
-    queryFn: () => getInteriorTemplates(page),
+    queryKey: ['customs', page],
+    queryFn: () => getCustomTemplates(page),
   });
 
   const templates = data?.templates ?? [];
@@ -16,4 +16,4 @@ function useInteriors(by: { page: number }) {
   return { templates, totalPage, isLoading, refetch };
 }
 
-export default useInteriors;
+export default useCustoms;

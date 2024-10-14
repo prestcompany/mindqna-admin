@@ -82,6 +82,30 @@ export type InteriorTemplate = {
   updatedAt: string;
 };
 
+export type PetCustomTemplateType = 'effect' | 'closet' | 'buddy';
+
+export type CreatePetCustomTemplateParams = {
+  imgId: number;
+  type: PetCustomTemplateType;
+  name: string;
+  price: number;
+  isPaid: boolean;
+  order: number;
+};
+
+export type PetCustomTemplate = {
+  id: number;
+  type: PetCustomTemplateType;
+  name: string;
+  price: number;
+  isPaid: boolean;
+  order: number;
+  img: ImgItem;
+  file: RcFile;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type ImgItem = {
   id: number;
   uri: string;
@@ -101,6 +125,11 @@ export type GetAssetsResult = {
 export type GetInteriorTemplatesResult = {
   pageInfo: TotalPageInfo;
   templates: InteriorTemplate[];
+};
+
+export type GetPetCustomTemplatesResult = {
+  pageInfo: TotalPageInfo;
+  templates: PetCustomTemplate[];
 };
 
 export type CreateLocaleParams = {

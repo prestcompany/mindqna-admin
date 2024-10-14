@@ -1,18 +1,18 @@
-import { createInteriorTemplate, updateInteriorTemplate } from '@/client/interior';
+import { createCustomTemplate, updateCustomTemplate } from '@/client/custom';
 import { createLocale } from '@/client/locale';
-import { ImgItem, InteriorTemplate, InteriorTemplateType } from '@/client/types';
+import { ImgItem, PetCustomTemplate, PetCustomTemplateType } from '@/client/types';
 import useTotalRooms from '@/hooks/useTotalRooms';
 import { Button, Form, Image, Input, InputNumber, Radio, Spin, message } from 'antd';
 import { useEffect, useState } from 'react';
 import AssetsDrawer from '../assets/AssetsDrawer';
 
-type InteriorFormProps = {
-  init?: InteriorTemplate;
+type CustomFormProps = {
+  init?: PetCustomTemplate;
   reload: () => Promise<any>;
   close: () => void;
 };
 
-function InteriorForm({ init, reload, close }: InteriorFormProps) {
+function CustomForm({ init, reload, close }: CustomFormProps) {
   const [isLoading, setLoading] = useState(false);
 
   const { items } = useTotalRooms();
@@ -20,71 +20,13 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
   const [focusedId, setFocusedId] = useState<number | undefined>(undefined);
   const [image, setImage] = useState<ImgItem>();
   const [name, setName] = useState('');
-  const [type, setType] = useState<InteriorTemplateType>('item');
+  const [type, setType] = useState<PetCustomTemplateType>();
   const [category, setCategory] = useState('furniture');
   const [room, setRoom] = useState('room');
   const [isPremium, setIsPremium] = useState(true);
   const [price, setPrice] = useState(0);
   const [width, setWidth] = useState(1);
   const [height, setHeight] = useState(1);
-  const [coords, setCoords] = useState<{ x: number; y: number }[]>([
-    { x: 0, y: 5 },
-    { x: 1, y: 5 },
-    { x: 2, y: 5 },
-    { x: 3, y: 5 },
-    { x: 4, y: 5 },
-    { x: 5, y: 5 },
-    { x: 6, y: 5 },
-    { x: 0, y: 7 },
-    { x: 1, y: 7 },
-    { x: 2, y: 7 },
-    { x: 3, y: 7 },
-    { x: 4, y: 7 },
-    { x: 5, y: 7 },
-    { x: 6, y: 7 },
-    { x: 0, y: 6 },
-    { x: 1, y: 6 },
-    { x: 2, y: 6 },
-    { x: 3, y: 6 },
-    { x: 4, y: 6 },
-    { x: 5, y: 6 },
-    { x: 6, y: 6 },
-    { x: 0, y: 8 },
-    { x: 1, y: 8 },
-    { x: 2, y: 8 },
-    { x: 3, y: 8 },
-    { x: 4, y: 8 },
-    { x: 5, y: 8 },
-    { x: 6, y: 8 },
-    { x: 0, y: 9 },
-    { x: 1, y: 9 },
-    { x: 2, y: 9 },
-    { x: 3, y: 9 },
-    { x: 4, y: 9 },
-    { x: 5, y: 9 },
-    { x: 6, y: 9 },
-    { x: 0, y: 10 },
-    { x: 1, y: 10 },
-    { x: 2, y: 10 },
-    { x: 3, y: 10 },
-    { x: 4, y: 10 },
-    { x: 5, y: 10 },
-    { x: 6, y: 10 },
-    { x: 0, y: 11 },
-    { x: 1, y: 11 },
-    { x: 2, y: 11 },
-    { x: 3, y: 11 },
-    { x: 4, y: 11 },
-    { x: 5, y: 11 },
-    { x: 6, y: 11 },
-    { x: 0, y: 12 },
-    { x: 1, y: 12 },
-    { x: 2, y: 12 },
-    { x: 3, y: 12 },
-    { x: 4, y: 12 },
-    { x: 5, y: 12 },
-    { x: 6, y: 12 },
-  ]);
 
   const [valueKo, setValueKo] = useState('');
   const [valueEn, setValueEn] = useState('');
@@ -100,31 +42,14 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
     }
     setName(init.name);
     setType(init.type);
-    setCategory(init.category);
-    setRoom(init.room);
     setIsPremium(init.isPaid);
     setPrice(init.price);
-    setWidth(init.width);
-    setHeight(init.height);
-    setCoords(findMismatchedCoordsXY(convertCoordinates(init.disablePositions), coordOptions));
   }, [init]);
 
-  const coordOptions = Array.from({ length: 7 * 13 }, (_, index) => ({
-    x: index % 7,
-    y: Math.floor(index / 7),
-  })).map((coord) => ({ label: `(${coord.x},${coord.y})`, value: coord }));
-
   const typeOptions = [
-    { label: '아이템', value: 'item' },
-    { label: '벽지', value: 'wall' },
-    { label: '바닥', value: 'floor' },
-    { label: '이벤트', value: 'event' },
-  ];
-
-  const categoriOptions = [
-    { label: '가구', value: 'furniture' },
-    { label: '벽지', value: 'wall' },
-    { label: '바닥', value: 'floor' },
+    { label: '효과', value: 'effect' },
+    { label: '옷장', value: 'closet' },
+    { label: '짝궁', value: 'buddy' },
   ];
 
   const roomOptions = items.map((item) => ({ label: item.type, value: item.type }));
@@ -139,31 +64,23 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
     try {
       setLoading(true);
       if (focusedId) {
-        await updateInteriorTemplate({
+        await updateCustomTemplate({
           id: focusedId,
           imgId: image.id,
-          room,
           name,
-          category,
-          disablePositions: findMismatchedCoords(coords, coordOptions),
-          height,
           isPaid: isPremium,
           price,
-          type: 'item',
-          width,
+          type: 'buddy',
+          order: 0,
         });
       } else {
-        await createInteriorTemplate({
+        await createCustomTemplate({
           imgId: image.id,
-          room,
           name,
-          category,
-          disablePositions: findMismatchedCoords(coords, coordOptions),
-          height,
           isPaid: isPremium,
           price,
-          type: 'item',
-          width,
+          type: 'buddy',
+          order: 0,
         });
         await createLocale({
           key: name,
@@ -229,9 +146,6 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
         <Form.Item label='타입'>
           <Radio.Group options={typeOptions} optionType='button' buttonStyle='solid' value={type} onChange={(e) => setType(e.target.value)} />
         </Form.Item>
-        <Form.Item label='카테고리'>
-          <Radio.Group options={categoriOptions} optionType='button' buttonStyle='solid' value={category} onChange={(e) => setCategory(e.target.value)} />
-        </Form.Item>
         <Form.Item label='방 타입'>
           <Radio.Group options={roomOptions} optionType='button' buttonStyle='solid' value={room} onChange={(e) => setRoom(e.target.value)} />
         </Form.Item>
@@ -251,61 +165,6 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
             <InputNumber min={1} max={13} value={height} onChange={(v) => setHeight(v ? v : 1)} />
           </Form.Item>
         </div>
-        <Form.Item label='배치 가능 좌표'>
-          <div className='flex'>
-            <div className='flex flex-col mt-[46px] mr-4'>
-              {Array(13)
-                .fill(0)
-                .map((v, idx) => {
-                  const handlePress = () => {
-                    if (coords.some((item) => item.y === idx)) setCoords((prev) => prev.filter(({ y }) => y !== idx));
-                    else setCoords((prev) => [...prev, ...coordOptions.filter((item) => item.value.y === idx).map((item) => item.value)]);
-                  };
-                  return (
-                    <Button onClick={handlePress} key={idx} className='flex-1'>
-                      all
-                    </Button>
-                  );
-                })}
-            </div>
-            <div>
-              <div className='grid grid-cols-7 mb-4'>
-                {Array(7)
-                  .fill(0)
-                  .map((v, idx) => {
-                    const handlePress = () => {
-                      if (coords.some((item) => item.x === idx)) setCoords((prev) => prev.filter(({ x }) => x !== idx));
-                      else setCoords((prev) => [...prev, ...coordOptions.filter((item) => item.value.x === idx).map((item) => item.value)]);
-                    };
-                    return (
-                      <Button onClick={handlePress} key={idx}>
-                        all
-                      </Button>
-                    );
-                  })}
-              </div>
-              <div className='grid grid-cols-7'>
-                {coordOptions.map((option, index) => {
-                  const isSelected = coords.some(({ x, y }) => x === option.value.x && y === option.value.y);
-
-                  const handlePress = () => {
-                    if (isSelected) setCoords((prev) => prev.filter(({ x, y }) => x !== option.value.x || y !== option.value.y));
-                    else setCoords((prev) => [...prev, option.value]);
-                  };
-                  return (
-                    <Button
-                      onClick={handlePress}
-                      key={option.label}
-                      style={{ backgroundColor: isSelected ? 'skyblue' : option.value.y >= 5 ? 'beige' : undefined }}
-                    >
-                      {option.label}
-                    </Button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </Form.Item>
         <Button onClick={save} size='large' type='primary'>
           저장
         </Button>
@@ -314,7 +173,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
   );
 }
 
-export default InteriorForm;
+export default CustomForm;
 
 function findMismatchedCoords(coords: { x: number; y: number }[], coordOptions: { label: string; value: { x: number; y: number } }[]): string {
   const mismatchedLabels: string[] = [];
