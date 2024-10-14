@@ -8,6 +8,7 @@ import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import CustomFormModal from './CustomFormModal';
 import LottieCDNPlayer from './LottieCDNPlayer';
+import { PetCustomTypeOptions, petTypeOptions } from './constant';
 
 const Lottie = dynamic(() => import('react-lottie-player'), { ssr: false });
 
@@ -61,24 +62,30 @@ function CustomList() {
       key: 'order',
     },
     {
+      title: '키 값',
+      dataIndex: 'fileKey',
+      key: 'fileKey',
+      render: (value: string) => {
+        return <p className='font-bold'>{value}</p>;
+      },
+    },
+    {
       title: '타입',
       dataIndex: 'type',
       key: 'type',
       render: (value: string) => {
-        return <Tag color='cyan-inverse'>{value}</Tag>;
+        const label = PetCustomTypeOptions.find((item) => item.value === value)?.label;
+        return <Tag color='cyan-inverse'>{label}</Tag>;
       },
     },
-    {
-      title: '키 값',
-      dataIndex: 'fileKey',
-      key: 'fileKey',
-    },
+
     {
       title: '펫 타입',
       dataIndex: 'petType',
       key: 'petType',
       render: (value: string) => {
-        return <Tag color='blue-inverse'>{value}</Tag>;
+        const label = petTypeOptions.find((item) => item.value === value)?.label;
+        return <Tag color='blue-inverse'>{label}</Tag>;
       },
     },
     {

@@ -11,6 +11,7 @@ import dynamic from 'next/dynamic';
 import React, { useCallback, useEffect, useState } from 'react';
 import AssetsDrawer from '../assets/AssetsDrawer';
 import { CardUploader } from '../card/CardUploader';
+import { PetCustomTypeOptions, petTypeOptions, premiumOptions } from './constant';
 
 const Lottie = dynamic(() => import('react-lottie-player'), { ssr: false });
 
@@ -20,28 +21,6 @@ type CustomFormProps = {
   reload: () => Promise<any>;
   close: () => void;
 };
-
-const typeOptions = [
-  { label: '효과', value: 'effect' },
-  { label: '옷장', value: 'closet' },
-  { label: '짝궁', value: 'buddy' },
-];
-
-const petTypeOptions: { label: string; value: PetType }[] = [
-  { label: '곰', value: 'bear' },
-  { label: '고양이', value: 'cat' },
-  { label: '강아지', value: 'dog' },
-  { label: '펭귄', value: 'penguin' },
-  { label: '병아리', value: 'chick' },
-  { label: '토끼', value: 'rebbit' },
-  { label: '햄스터', value: 'hamster' },
-  { label: '다람쥐', value: 'squirrel' },
-];
-
-const premiumOptions = [
-  { label: '스타', value: true },
-  { label: '하트', value: false },
-];
 
 const CustomFormModal = ({ isOpen, init, reload, close }: CustomFormProps) => {
   const [form] = Form.useForm();
@@ -234,7 +213,7 @@ const CustomFormModal = ({ isOpen, init, reload, close }: CustomFormProps) => {
           )}
           <FormGroup title='타입*'>
             <Form.Item name='type' rules={[{ required: true, message: '' }]}>
-              <Radio.Group options={typeOptions} optionType='button' buttonStyle='solid' value={type} onChange={(e) => setType(e.target.value)} />
+              <Radio.Group options={PetCustomTypeOptions} optionType='button' buttonStyle='solid' value={type} onChange={(e) => setType(e.target.value)} />
             </Form.Item>
           </FormGroup>
 
