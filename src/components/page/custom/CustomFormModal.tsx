@@ -5,7 +5,8 @@ import { CreatePetCustomTemplateParams, ImgItem, PetCustomTemplate, PetCustomTem
 import DefaultForm from '@/components/shared/form/ui/default-form';
 import FormGroup from '@/components/shared/form/ui/form-group';
 import FormSection from '@/components/shared/form/ui/form-section';
-import { Divider, Form, Image, Input, InputNumber, Modal, Radio, Spin, message } from 'antd';
+import DefaultModal from '@/components/shared/ui/default-modal';
+import { Divider, Form, Image, Input, InputNumber, Radio, Spin, message } from 'antd';
 import { RcFile } from 'antd/es/upload';
 import dynamic from 'next/dynamic';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -45,31 +46,42 @@ const CustomFormModal = ({ isOpen, init, reload, close }: CustomFormProps) => {
   const [valueJa, setValueJa] = useState('');
   const [valueZh, setValueZh] = useState('');
 
+  const fields = [
+    { name: 'name', value: name },
+    { name: 'type', value: type },
+    { name: 'petType', value: petType },
+    { name: 'petLevel', value: petLevel },
+    { name: 'isActive', value: isActive },
+    { name: 'isPremium', value: isPremium },
+    { name: 'price', value: price },
+    { name: 'img', value: image },
+    { name: 'file', value: uploadFile },
+    { name: 'fileKey', value: fileKey },
+  ];
+
   const resetForm = useCallback(() => {
     form.resetFields();
-    setFocusedId(undefined);
-    setImage(undefined);
-    setUploadFile(undefined);
-    setAnimationData(undefined);
   }, [form]);
 
   useEffect(() => {
     if (!init) {
       resetForm();
+      handleReset();
       return;
     }
-
     setFocusedId(init.id);
     setType(init.type);
-    if (init.name) setName(init.name);
+    setName(init.name);
     setPetLevel(init.petLevel);
     setPetType(init.petType);
     setIsPremium(init.isPaid);
     setIsActive(init.isActive);
     setPrice(init.price);
+    setFileKey(init.fileKey);
 
     if (init.img) setImage(init.img);
   }, [init, form, resetForm]);
+
   const handleReset = () => {
     setFocusedId(undefined);
     setType('buddy');
@@ -82,6 +94,7 @@ const CustomFormModal = ({ isOpen, init, reload, close }: CustomFormProps) => {
     setImage(undefined);
     setUploadFile(undefined);
     setAnimationData(undefined);
+    setFileKey('');
     setValueKo('');
     setValueEn('');
     setValueJa('');
@@ -183,14 +196,14 @@ const CustomFormModal = ({ isOpen, init, reload, close }: CustomFormProps) => {
   };
 
   return (
-    <Modal closeIcon open={isOpen} onCancel={close} maskClosable={false} width={800} okText='저장' onOk={save}>
+    <DefaultModal handleHide={close} open={isOpen} maskClosable={false} width={800} okText='저장' onOk={save}>
       {contextHolder}
       <Spin spinning={isLoading} fullscreen />
-      <DefaultForm<CreatePetCustomTemplateParams> form={form}>
+      <DefaultForm<CreatePetCustomTemplateParams> form={form} fields={fields}>
         <FormSection title={focusedId ? '펫 커스텀 수정' : '펫 커스텀 등록'} description='추가할 펫 커스텀 정보를 입력해주세요.'>
           <FormGroup title='이름*'>
             <Form.Item name='name' rules={[{ required: true, message: '' }]}>
-              <Input placeholder='커스텀 명을 입력하세요.' value={name} onChange={(e) => setName(e.target.value)} />
+              <Input placeholder='커스텀 명을 입력하세요.' onChange={(e) => setName(e.target.value)} />
             </Form.Item>
           </FormGroup>
 
@@ -198,22 +211,22 @@ const CustomFormModal = ({ isOpen, init, reload, close }: CustomFormProps) => {
           {!focusedId && (
             <FormGroup title='다국어*'>
               <Form.Item name='ko' rules={[{ required: true, message: '' }]}>
-                <Input placeholder='ko' value={valueKo} onChange={(e) => setValueKo(e.target.value)} />
+                <Input placeholder='ko' onChange={(e) => setValueKo(e.target.value)} />
               </Form.Item>
               <Form.Item name='en' rules={[{ required: true, message: '' }]}>
-                <Input placeholder='en' value={valueEn} onChange={(e) => setValueEn(e.target.value)} />
+                <Input placeholder='en' onChange={(e) => setValueEn(e.target.value)} />
               </Form.Item>
               <Form.Item name='ja' rules={[{ required: true, message: '' }]}>
-                <Input placeholder='ja' value={valueJa} onChange={(e) => setValueJa(e.target.value)} />
+                <Input placeholder='ja' onChange={(e) => setValueJa(e.target.value)} />
               </Form.Item>
               <Form.Item name='zh' rules={[{ required: true, message: '' }]}>
-                <Input placeholder='zh' value={valueZh} onChange={(e) => setValueZh(e.target.value)} />
+                <Input placeholder='zh' onChange={(e) => setValueZh(e.target.value)} />
               </Form.Item>
             </FormGroup>
           )}
           <FormGroup title='타입*'>
             <Form.Item name='type' rules={[{ required: true, message: '' }]}>
-              <Radio.Group options={PetCustomTypeOptions} optionType='button' buttonStyle='solid' value={type} onChange={(e) => setType(e.target.value)} />
+              <Radio.Group options={PetCustomTypeOptions} optionType='button' buttonStyle='solid' onChange={(e) => setType(e.target.value)} />
             </Form.Item>
           </FormGroup>
 
@@ -221,7 +234,7 @@ const CustomFormModal = ({ isOpen, init, reload, close }: CustomFormProps) => {
 
           <FormGroup title='펫 타입*'>
             <Form.Item name='petType' rules={[{ required: true, message: '' }]}>
-              <Radio.Group options={petTypeOptions} optionType='button' buttonStyle='solid' value={petType} onChange={(e) => setPetType(e.target.value)} />
+              <Radio.Group options={petTypeOptions} optionType='button' buttonStyle='solid' onChange={(e) => setPetType(e.target.value)} />
             </Form.Item>
           </FormGroup>
 
@@ -229,17 +242,17 @@ const CustomFormModal = ({ isOpen, init, reload, close }: CustomFormProps) => {
 
           <FormGroup title='펫 레벨*'>
             <Form.Item name='petLevel' rules={[{ required: true, message: '' }]}>
-              <InputNumber type='number' min={0} max={16} value={petLevel} onChange={(value) => setPetLevel(value ?? 0)} />
+              <InputNumber type='number' min={0} max={16} onChange={(value) => setPetLevel(value ?? 0)} />
             </Form.Item>
           </FormGroup>
 
           <Divider />
 
-          {/* <FormGroup title='키 값*'>
+          <FormGroup title='키 값*'>
             <Form.Item name='fileKey' rules={[{ required: true, message: '' }]}>
-              <Input placeholder='로티 파일명으로 자동입력 됩니다.' value={fileKey} />
+              <Input placeholder='로티 파일명으로 자동입력 됩니다.' disabled={!focusedId} />
             </Form.Item>
-          </FormGroup> */}
+          </FormGroup>
 
           <FormGroup title='결제 설정*'>
             <div className='flex items-center gap-6'>
@@ -293,7 +306,7 @@ const CustomFormModal = ({ isOpen, init, reload, close }: CustomFormProps) => {
           </FormGroup>
         </FormSection>
       </DefaultForm>
-    </Modal>
+    </DefaultModal>
   );
 };
 
