@@ -1,4 +1,4 @@
-import { PetType } from '@/client/types';
+import { PetTypeForCustom } from '@/client/types';
 
 export const PetCustomTypeOptions = [
   { label: '효과', value: 'effect' },
@@ -11,7 +11,8 @@ export const premiumOptions = [
   { label: '하트', value: false },
 ];
 
-export const petTypeOptions: { label: string; value: PetType }[] = [
+export const petTypeOptions: { label: string; value: PetTypeForCustom }[] = [
+  { label: '전체', value: 'null' },
   { label: '곰', value: 'bear' },
   { label: '고양이', value: 'cat' },
   { label: '강아지', value: 'dog' },

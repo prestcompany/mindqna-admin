@@ -4,13 +4,10 @@ import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import useCustoms from '@/hooks/useCustoms';
 import { Button, Image, Modal, Table, Tag, message } from 'antd';
 import { TableProps } from 'antd/lib';
-import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import CustomFormModal from './CustomFormModal';
 import LottieCDNPlayer from './LottieCDNPlayer';
 import { PetCustomTypeOptions, petTypeOptions } from './constant';
-
-const Lottie = dynamic(() => import('react-lottie-player'), { ssr: false });
 
 function CustomList() {
   const [modal, holder] = Modal.useModal();

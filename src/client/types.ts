@@ -89,7 +89,7 @@ export type CreatePetCustomTemplateParams = {
   name: string;
   type: PetCustomTemplateType;
   order: number;
-  petType: PetType;
+  petType: PetType | null;
   petLevel: number;
   fileKey: string;
   fileUrl: string;
@@ -103,7 +103,7 @@ export type PetCustomTemplate = {
   name: string;
   type: PetCustomTemplateType;
   order: number;
-  petType: PetType;
+  petType: PetType | null;
   petLevel: number;
   price: number;
   isPaid: boolean;
@@ -208,6 +208,7 @@ export type CreateSnackParams = {
 };
 
 export type PetType = 'dog' | 'cat' | 'rebbit' | 'squirrel' | 'bear' | 'hamster' | 'chick' | 'penguin';
+export type PetTypeForCustom = PetType | 'null';
 
 export type GetSnacksResult = {
   pageInfo: TotalPageInfo;

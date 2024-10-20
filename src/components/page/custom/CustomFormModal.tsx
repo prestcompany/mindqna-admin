@@ -1,12 +1,12 @@
 import { uploadSingleFile } from '@/client/assets';
 import { createCustomTemplate, updateCustomTemplate } from '@/client/custom';
 import { createLocale } from '@/client/locale';
-import { CreatePetCustomTemplateParams, ImgItem, PetCustomTemplate, PetCustomTemplateType, PetType } from '@/client/types';
+import { CreatePetCustomTemplateParams, ImgItem, PetCustomTemplate, PetCustomTemplateType, PetTypeForCustom } from '@/client/types';
 import DefaultForm from '@/components/shared/form/ui/default-form';
 import FormGroup from '@/components/shared/form/ui/form-group';
 import FormSection from '@/components/shared/form/ui/form-section';
 import DefaultModal from '@/components/shared/ui/default-modal';
-import { Divider, Form, Image, Input, InputNumber, Radio, Spin, message } from 'antd';
+import { Button, Divider, Form, Image, Input, InputNumber, Radio, Spin, message } from 'antd';
 import { RcFile } from 'antd/es/upload';
 import dynamic from 'next/dynamic';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -33,7 +33,7 @@ const CustomFormModal = ({ isOpen, init, reload, close }: CustomFormProps) => {
   const [image, setImage] = useState<ImgItem>();
   const [name, setName] = useState('');
   const [type, setType] = useState<PetCustomTemplateType>('buddy');
-  const [petType, setPetType] = useState<PetType>('bear');
+  const [petType, setPetType] = useState<PetTypeForCustom>('null');
   const [petLevel, setPetLevel] = useState(0);
   const [fileKey, setFileKey] = useState('');
   const [isActive, setIsActive] = useState(true);
@@ -73,7 +73,7 @@ const CustomFormModal = ({ isOpen, init, reload, close }: CustomFormProps) => {
     setType(init.type);
     setName(init.name);
     setPetLevel(init.petLevel);
-    setPetType(init.petType);
+    setPetType(init.petType == null ? 'null' : init.petType);
     setIsPremium(init.isPaid);
     setIsActive(init.isActive);
     setPrice(init.price);
@@ -138,7 +138,7 @@ const CustomFormModal = ({ isOpen, init, reload, close }: CustomFormProps) => {
           fileKey: fileKey,
           fileUrl: fileUrl,
           petLevel: petLevel,
-          petType: petType,
+          petType: petType == 'null' ? null : petType,
           isActive: isActive,
           isPaid: isPremium,
           price: price,
@@ -153,7 +153,7 @@ const CustomFormModal = ({ isOpen, init, reload, close }: CustomFormProps) => {
           fileKey: fileKey,
           fileUrl: fileUrl,
           petLevel: petLevel,
-          petType: petType,
+          petType: petType == 'null' ? null : petType,
           isActive: isActive,
           isPaid: isPremium,
           price: price,
@@ -196,7 +196,7 @@ const CustomFormModal = ({ isOpen, init, reload, close }: CustomFormProps) => {
   };
 
   return (
-    <DefaultModal handleHide={close} open={isOpen} maskClosable={false} width={800} okText='저장' onOk={save}>
+    <DefaultModal handleHide={close} open={isOpen} maskClosable={false} width={800}>
       {contextHolder}
       <Spin spinning={isLoading} fullscreen />
       <DefaultForm<CreatePetCustomTemplateParams> form={form} fields={fields}>
@@ -305,6 +305,11 @@ const CustomFormModal = ({ isOpen, init, reload, close }: CustomFormProps) => {
             </Form.Item>
           </FormGroup>
         </FormSection>
+        <div className='text-center'>
+          <Button htmlType='submit' type='primary' loading={isLoading} onClick={save}>
+            저장
+          </Button>
+        </div>
       </DefaultForm>
     </DefaultModal>
   );
