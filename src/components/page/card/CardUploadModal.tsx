@@ -52,6 +52,7 @@ export const CardUploadModal = () => {
             { label: 'zh', value: 'zh' },
             { label: 'zhTw', value: 'zhTw' },
             { label: 'es', value: 'es' },
+            { label: 'id', value: 'id' },
           ]}
           value={locale}
           onChange={(v: string) => {

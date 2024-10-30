@@ -43,8 +43,11 @@ const CustomFormModal = ({ isOpen, init, reload, close }: CustomFormProps) => {
   const [animationData, setAnimationData] = useState<any>();
   const [valueKo, setValueKo] = useState('');
   const [valueEn, setValueEn] = useState('');
+  const [valueEs, setValueEs] = useState('');
   const [valueJa, setValueJa] = useState('');
   const [valueZh, setValueZh] = useState('');
+  const [valueZhTw, setValueZhTw] = useState('');
+  const [valueId, setValueId] = useState('');
 
   const fields = [
     { name: 'name', value: name },
@@ -181,6 +184,21 @@ const CustomFormModal = ({ isOpen, init, reload, close }: CustomFormProps) => {
           locale: 'zh',
           value: valueZh,
         });
+        await createLocale({
+          key: fileKey,
+          locale: 'zhTw',
+          value: valueZhTw,
+        });
+        await createLocale({
+          key: fileKey,
+          locale: 'es',
+          value: valueEs,
+        });
+        await createLocale({
+          key: fileKey,
+          locale: 'id',
+          value: valueId,
+        });
       }
     } catch (err) {
       message.error(`${err}`);
@@ -221,6 +239,15 @@ const CustomFormModal = ({ isOpen, init, reload, close }: CustomFormProps) => {
               </Form.Item>
               <Form.Item name='zh' rules={[{ required: true, message: '' }]}>
                 <Input placeholder='zh' onChange={(e) => setValueZh(e.target.value)} />
+              </Form.Item>
+              <Form.Item name='zhTw' rules={[{ required: true, message: '' }]}>
+                <Input placeholder='zhTw' onChange={(e) => setValueZhTw(e.target.value)} />
+              </Form.Item>
+              <Form.Item name='es' rules={[{ required: true, message: '' }]}>
+                <Input placeholder='es' onChange={(e) => setValueEs(e.target.value)} />
+              </Form.Item>
+              <Form.Item name='id' rules={[{ required: true, message: '' }]}>
+                <Input placeholder='id' onChange={(e) => setValueId(e.target.value)} />
               </Form.Item>
             </FormGroup>
           )}

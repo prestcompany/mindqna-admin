@@ -147,7 +147,7 @@ export type CreateLocaleParams = {
   locale: Locale;
 };
 
-export type Locale = 'ko' | 'en' | 'zh' | 'ja' | 'zhTw' | 'es';
+export type Locale = 'ko' | 'en' | 'zh' | 'ja' | 'zhTw' | 'es' | 'id';
 
 export type GetLocalesResult = {
   pageInfo: TotalPageInfo;
