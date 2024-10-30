@@ -25,6 +25,7 @@ const PushForm = ({ id, initialValues }: IPushFormProps) => {
     { label: 'zh', value: 'zh' },
     { label: 'zhTw', value: 'zhTw' },
     { label: 'es', value: 'es' },
+    { label: 'id', value: 'id' },
   ];
 
   const handleFinish = async (formValue: CreatePushParams) => {

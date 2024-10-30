@@ -170,6 +170,7 @@ function UserList() {
             { label: 'zh', value: 'zh' },
             { label: 'zhTw', value: 'zhTw' },
             { label: 'es', value: 'es' },
+            { label: 'id', value: 'id' },
           ]}
           value={(filter.locale ?? [])?.[0]}
           onChange={(v: string) => {

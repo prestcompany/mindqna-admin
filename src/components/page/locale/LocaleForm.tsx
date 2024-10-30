@@ -36,6 +36,8 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
     { label: 'zh', value: 'zh' },
     { label: 'zhTw', value: 'zhTw' },
     { label: 'es', value: 'es' },
+    { label: 'id', value: 'id' },
+    { label: 'id', value: 'id' },
   ];
 
   const save = async () => {

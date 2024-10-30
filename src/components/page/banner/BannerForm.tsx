@@ -48,6 +48,7 @@ function BannerForm({ init, reload, close }: Props) {
     { label: 'zh', value: 'zh' },
     { label: 'zhTw', value: 'zhTw' },
     { label: 'es', value: 'es' },
+    { label: 'id', value: 'id' },
   ];
 
   const activeOptions = [
