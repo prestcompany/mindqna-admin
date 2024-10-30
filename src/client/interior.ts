@@ -1,5 +1,5 @@
-import client from "./@base";
-import { CreateInteriorTemplateParams, GetInteriorTemplatesResult } from "./types";
+import client from './@base';
+import { CreateInteriorTemplateParams, GetInteriorTemplatesResult } from './types';
 
 export async function createInteriorTemplate(params: CreateInteriorTemplateParams) {
   const { ...body } = params;
@@ -10,7 +10,7 @@ export async function createInteriorTemplate(params: CreateInteriorTemplateParam
 }
 
 export async function getInteriorTemplates(page: number) {
-  const res = await client.get<GetInteriorTemplatesResult>("/interior", { params: { page } });
+  const res = await client.get<GetInteriorTemplatesResult>('/interior', { params: { page } });
 
   return res.data;
 }

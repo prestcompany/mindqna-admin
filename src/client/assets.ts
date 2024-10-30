@@ -25,6 +25,15 @@ export async function uploadAssets(imges: File[]) {
   return res.data;
 }
 
+export async function uploadSingleFile(file: File) {
+  const formdata = new FormData();
+  formdata.append('file', file);
+
+  const res = await client.post('/file-upload', formdata);
+
+  return res.data;
+}
+
 export async function removeAsset(id: number) {
   const res = await client.delete(`/assets/${id}`);
 

@@ -1,10 +1,10 @@
-import { createInteriorTemplate, updateInteriorTemplate } from "@/client/interior";
-import { createLocale } from "@/client/locale";
-import { ImgItem, InteriorTemplate, InteriorTemplateType } from "@/client/types";
-import useTotalRooms from "@/hooks/useTotalRooms";
-import { Button, Form, Image, Input, InputNumber, Radio, Spin, message } from "antd";
-import { useEffect, useState } from "react";
-import AssetsDrawer from "../assets/AssetsDrawer";
+import { createInteriorTemplate, updateInteriorTemplate } from '@/client/interior';
+import { createLocale } from '@/client/locale';
+import { ImgItem, InteriorTemplate, InteriorTemplateType } from '@/client/types';
+import useTotalRooms from '@/hooks/useTotalRooms';
+import { Button, Form, Image, Input, InputNumber, Radio, Spin, message } from 'antd';
+import { useEffect, useState } from 'react';
+import AssetsDrawer from '../assets/AssetsDrawer';
 
 type InteriorFormProps = {
   init?: InteriorTemplate;
@@ -19,10 +19,10 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
 
   const [focusedId, setFocusedId] = useState<number | undefined>(undefined);
   const [image, setImage] = useState<ImgItem>();
-  const [name, setName] = useState("");
-  const [type, setType] = useState<InteriorTemplateType>("item");
-  const [category, setCategory] = useState("furniture");
-  const [room, setRoom] = useState("room");
+  const [name, setName] = useState('');
+  const [type, setType] = useState<InteriorTemplateType>('item');
+  const [category, setCategory] = useState('furniture');
+  const [room, setRoom] = useState('room');
   const [isPremium, setIsPremium] = useState(true);
   const [price, setPrice] = useState(0);
   const [width, setWidth] = useState(1);
@@ -86,10 +86,10 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
     { x: 6, y: 12 },
   ]);
 
-  const [valueKo, setValueKo] = useState("");
-  const [valueEn, setValueEn] = useState("");
-  const [valueJa, setValueJa] = useState("");
-  const [valueZh, setValueZh] = useState("");
+  const [valueKo, setValueKo] = useState('');
+  const [valueEn, setValueEn] = useState('');
+  const [valueJa, setValueJa] = useState('');
+  const [valueZh, setValueZh] = useState('');
 
   useEffect(() => {
     if (!init) return;
@@ -115,23 +115,23 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
   })).map((coord) => ({ label: `(${coord.x},${coord.y})`, value: coord }));
 
   const typeOptions = [
-    { label: "아이템", value: "item" },
-    { label: "벽지", value: "wall" },
-    { label: "바닥", value: "floor" },
-    { label: "이벤트", value: "event" },
+    { label: '아이템', value: 'item' },
+    { label: '벽지', value: 'wall' },
+    { label: '바닥', value: 'floor' },
+    { label: '이벤트', value: 'event' },
   ];
 
   const categoriOptions = [
-    { label: "가구", value: "furniture" },
-    { label: "벽지", value: "wall" },
-    { label: "바닥", value: "floor" },
+    { label: '가구', value: 'furniture' },
+    { label: '벽지', value: 'wall' },
+    { label: '바닥', value: 'floor' },
   ];
 
   const roomOptions = items.map((item) => ({ label: item.type, value: item.type }));
 
   const premiumOptions = [
-    { label: "스타", value: true },
-    { label: "하트", value: false },
+    { label: '스타', value: true },
+    { label: '하트', value: false },
   ];
 
   const save = async () => {
@@ -149,7 +149,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
           height,
           isPaid: isPremium,
           price,
-          type: "item",
+          type: 'item',
           width,
         });
       } else {
@@ -162,27 +162,27 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
           height,
           isPaid: isPremium,
           price,
-          type: "item",
+          type: 'item',
           width,
         });
         await createLocale({
           key: name,
-          locale: "ko",
+          locale: 'ko',
           value: valueKo,
         });
         await createLocale({
           key: name,
-          locale: "en",
+          locale: 'en',
           value: valueEn,
         });
         await createLocale({
           key: name,
-          locale: "ja",
+          locale: 'ja',
           value: valueJa,
         });
         await createLocale({
           key: name,
-          locale: "zh",
+          locale: 'zh',
           value: valueZh,
         });
       }
@@ -199,115 +199,83 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
     <>
       <Spin spinning={isLoading} fullscreen />
       <Form>
-        <Form.Item label="이미지">
-          <div className="flex flex-col items-center gap-2">
-            {image && <Image width={200} height={200} src={image.uri} alt="img" style={{ objectFit: "contain" }} />}
+        <Form.Item label='이미지'>
+          <div className='flex flex-col items-center gap-2'>
+            {image && <Image width={200} height={200} src={image.uri} alt='img' style={{ objectFit: 'contain' }} />}
             <AssetsDrawer onClick={setImage} />
           </div>
         </Form.Item>
 
-        <Form.Item label="이름">
+        <Form.Item label='이름'>
           <Input value={name} onChange={(e) => setName(e.target.value)} />
         </Form.Item>
         {!focusedId && (
           <>
-            <Form.Item label="ko">
+            <Form.Item label='ko'>
               <Input value={valueKo} onChange={(e) => setValueKo(e.target.value)} />
             </Form.Item>
-            <Form.Item label="en">
+            <Form.Item label='en'>
               <Input value={valueEn} onChange={(e) => setValueEn(e.target.value)} />
             </Form.Item>
-            <Form.Item label="ja">
+            <Form.Item label='ja'>
               <Input value={valueJa} onChange={(e) => setValueJa(e.target.value)} />
             </Form.Item>
-            <Form.Item label="zh">
+            <Form.Item label='zh'>
               <Input value={valueZh} onChange={(e) => setValueZh(e.target.value)} />
             </Form.Item>
           </>
         )}
 
-        <Form.Item label="타입">
-          <Radio.Group
-            options={typeOptions}
-            optionType="button"
-            buttonStyle="solid"
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-          />
+        <Form.Item label='타입'>
+          <Radio.Group options={typeOptions} optionType='button' buttonStyle='solid' value={type} onChange={(e) => setType(e.target.value)} />
         </Form.Item>
-        <Form.Item label="카테고리">
-          <Radio.Group
-            options={categoriOptions}
-            optionType="button"
-            buttonStyle="solid"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          />
+        <Form.Item label='카테고리'>
+          <Radio.Group options={categoriOptions} optionType='button' buttonStyle='solid' value={category} onChange={(e) => setCategory(e.target.value)} />
         </Form.Item>
-        <Form.Item label="방 타입">
-          <Radio.Group
-            options={roomOptions}
-            optionType="button"
-            buttonStyle="solid"
-            value={room}
-            onChange={(e) => setRoom(e.target.value)}
-          />
+        <Form.Item label='방 타입'>
+          <Radio.Group options={roomOptions} optionType='button' buttonStyle='solid' value={room} onChange={(e) => setRoom(e.target.value)} />
         </Form.Item>
-        <div className="flex items-center gap-6">
-          <Form.Item label="코인 타입">
-            <Radio.Group
-              options={premiumOptions}
-              optionType="button"
-              buttonStyle="solid"
-              value={isPremium}
-              onChange={(e) => setIsPremium(e.target.value)}
-            />
+        <div className='flex items-center gap-6'>
+          <Form.Item label='코인 타입'>
+            <Radio.Group options={premiumOptions} optionType='button' buttonStyle='solid' value={isPremium} onChange={(e) => setIsPremium(e.target.value)} />
           </Form.Item>
-          <Form.Item label="가격">
+          <Form.Item label='가격'>
             <InputNumber min={0} value={price} onChange={(v) => setPrice(v ? v : 0)} />
           </Form.Item>
         </div>
-        <div className="flex gap-4">
-          <Form.Item label="width">
+        <div className='flex gap-4'>
+          <Form.Item label='width'>
             <InputNumber min={1} max={7} value={width} onChange={(v) => setWidth(v ? v : 1)} />
           </Form.Item>
-          <Form.Item label="height">
+          <Form.Item label='height'>
             <InputNumber min={1} max={13} value={height} onChange={(v) => setHeight(v ? v : 1)} />
           </Form.Item>
         </div>
-        <Form.Item label="배치 가능 좌표">
-          <div className="flex">
-            <div className="flex flex-col mt-[46px] mr-4">
+        <Form.Item label='배치 가능 좌표'>
+          <div className='flex'>
+            <div className='flex flex-col mt-[46px] mr-4'>
               {Array(13)
                 .fill(0)
                 .map((v, idx) => {
                   const handlePress = () => {
                     if (coords.some((item) => item.y === idx)) setCoords((prev) => prev.filter(({ y }) => y !== idx));
-                    else
-                      setCoords((prev) => [
-                        ...prev,
-                        ...coordOptions.filter((item) => item.value.y === idx).map((item) => item.value),
-                      ]);
+                    else setCoords((prev) => [...prev, ...coordOptions.filter((item) => item.value.y === idx).map((item) => item.value)]);
                   };
                   return (
-                    <Button onClick={handlePress} key={idx} className="flex-1">
+                    <Button onClick={handlePress} key={idx} className='flex-1'>
                       all
                     </Button>
                   );
                 })}
             </div>
             <div>
-              <div className="grid grid-cols-7 mb-4">
+              <div className='grid grid-cols-7 mb-4'>
                 {Array(7)
                   .fill(0)
                   .map((v, idx) => {
                     const handlePress = () => {
                       if (coords.some((item) => item.x === idx)) setCoords((prev) => prev.filter(({ x }) => x !== idx));
-                      else
-                        setCoords((prev) => [
-                          ...prev,
-                          ...coordOptions.filter((item) => item.value.x === idx).map((item) => item.value),
-                        ]);
+                      else setCoords((prev) => [...prev, ...coordOptions.filter((item) => item.value.x === idx).map((item) => item.value)]);
                     };
                     return (
                       <Button onClick={handlePress} key={idx}>
@@ -316,20 +284,19 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                     );
                   })}
               </div>
-              <div className="grid grid-cols-7">
+              <div className='grid grid-cols-7'>
                 {coordOptions.map((option, index) => {
                   const isSelected = coords.some(({ x, y }) => x === option.value.x && y === option.value.y);
 
                   const handlePress = () => {
-                    if (isSelected)
-                      setCoords((prev) => prev.filter(({ x, y }) => x !== option.value.x || y !== option.value.y));
+                    if (isSelected) setCoords((prev) => prev.filter(({ x, y }) => x !== option.value.x || y !== option.value.y));
                     else setCoords((prev) => [...prev, option.value]);
                   };
                   return (
                     <Button
                       onClick={handlePress}
                       key={option.label}
-                      style={{ backgroundColor: isSelected ? "skyblue" : option.value.y >= 5 ? "beige" : undefined }}
+                      style={{ backgroundColor: isSelected ? 'skyblue' : option.value.y >= 5 ? 'beige' : undefined }}
                     >
                       {option.label}
                     </Button>
@@ -339,7 +306,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
             </div>
           </div>
         </Form.Item>
-        <Button onClick={save} size="large" type="primary">
+        <Button onClick={save} size='large' type='primary'>
           저장
         </Button>
       </Form>
@@ -349,10 +316,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
 
 export default InteriorForm;
 
-function findMismatchedCoords(
-  coords: { x: number; y: number }[],
-  coordOptions: { label: string; value: { x: number; y: number } }[]
-): string {
+function findMismatchedCoords(coords: { x: number; y: number }[], coordOptions: { label: string; value: { x: number; y: number } }[]): string {
   const mismatchedLabels: string[] = [];
 
   coordOptions.forEach((option) => {
@@ -363,13 +327,10 @@ function findMismatchedCoords(
     }
   });
 
-  return mismatchedLabels.join(" ");
+  return mismatchedLabels.join(' ');
 }
 
-function findMismatchedCoordsXY(
-  coords: { x: number; y: number }[],
-  coordOptions: { label: string; value: { x: number; y: number } }[]
-) {
+function findMismatchedCoordsXY(coords: { x: number; y: number }[], coordOptions: { label: string; value: { x: number; y: number } }[]) {
   const mismatchedValues: { x: number; y: number }[] = [];
 
   coordOptions.forEach((option) => {
@@ -384,10 +345,10 @@ function findMismatchedCoordsXY(
 }
 
 function convertCoordinates(input: string) {
-  const coordinates = input.split(" ").map((coord) => {
+  const coordinates = input.split(' ').map((coord) => {
     const [x, y] = coord
-      .replace(/[^\d,]/g, "")
-      .split(",")
+      .replace(/[^\d,]/g, '')
+      .split(',')
       .map((value) => parseInt(value));
     return { x, y };
   });

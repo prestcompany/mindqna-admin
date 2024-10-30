@@ -1,5 +1,5 @@
 // import CodeMirror from "@uiw/react-codemirror";
-import ReactQuill from "react-quill";
+import ReactQuill from 'react-quill';
 
 interface IQuillEditorCoreProps {
   value?: string;
@@ -11,38 +11,19 @@ const modules = {
   toolbar: {
     container: [
       [{ header: [1, 2, 3, false] }],
-      ["bold", "italic", "underline", "strike", "blockquote"],
-      [{ list: "ordered" }, { list: "bullet" }, { indent: "-1" }, { indent: "+1" }],
-      ["link", "image"],
+      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+      [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+      ['link', 'image'],
     ],
   },
 };
 
-const formats = [
-  "header",
-  "bold",
-  "italic",
-  "underline",
-  "strike",
-  "blockquote",
-  "list",
-  "bullet",
-  "indent",
-  "link",
-  "image",
-];
+const formats = ['header', 'bold', 'italic', 'underline', 'strike', 'blockquote', 'list', 'bullet', 'indent', 'link', 'image'];
 
 const QuillEditorCore = ({ value, onChange, placeholder }: IQuillEditorCoreProps) => {
   return (
     <>
-      <ReactQuill
-        theme="snow"
-        value={value || ""}
-        modules={modules}
-        formats={formats}
-        onChange={onChange}
-        placeholder={placeholder}
-      />
+      <ReactQuill theme='snow' value={value || ''} modules={modules} formats={formats} onChange={onChange} placeholder={placeholder} />
     </>
   );
 };

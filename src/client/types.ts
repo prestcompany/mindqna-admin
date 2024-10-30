@@ -82,6 +82,39 @@ export type InteriorTemplate = {
   updatedAt: string;
 };
 
+export type PetCustomTemplateType = 'effect' | 'closet' | 'buddy';
+
+export type CreatePetCustomTemplateParams = {
+  imgId: number;
+  name: string;
+  type: PetCustomTemplateType;
+  order: number;
+  petType: PetType | null;
+  petLevel: number;
+  fileKey: string;
+  fileUrl: string;
+  price: number;
+  isPaid: boolean;
+  isActive: boolean;
+};
+
+export type PetCustomTemplate = {
+  id: number;
+  name: string;
+  type: PetCustomTemplateType;
+  order: number;
+  petType: PetType | null;
+  petLevel: number;
+  price: number;
+  isPaid: boolean;
+  isActive: boolean;
+  img: ImgItem;
+  fileKey: string;
+  fileUrl: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type ImgItem = {
   id: number;
   uri: string;
@@ -101,6 +134,11 @@ export type GetAssetsResult = {
 export type GetInteriorTemplatesResult = {
   pageInfo: TotalPageInfo;
   templates: InteriorTemplate[];
+};
+
+export type GetPetCustomTemplatesResult = {
+  pageInfo: TotalPageInfo;
+  templates: PetCustomTemplate[];
 };
 
 export type CreateLocaleParams = {
@@ -170,6 +208,7 @@ export type CreateSnackParams = {
 };
 
 export type PetType = 'dog' | 'cat' | 'rebbit' | 'squirrel' | 'bear' | 'hamster' | 'chick' | 'penguin';
+export type PetTypeForCustom = PetType | 'null';
 
 export type GetSnacksResult = {
   pageInfo: TotalPageInfo;

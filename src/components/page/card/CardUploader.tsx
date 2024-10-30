@@ -4,11 +4,12 @@ import { InboxIcon } from 'lucide-react';
 
 interface CardUploaderProps {
   setFile: (file: RcFile[]) => void;
+  accept: string;
 }
 
-export const CardUploader = ({ setFile }: CardUploaderProps) => {
+export const CardUploader = ({ setFile, accept }: CardUploaderProps) => {
   const props: UploadProps = {
-    accept: '.xls,.xlsx',
+    accept,
     name: 'file',
     multiple: false,
     onChange(info) {
@@ -34,7 +35,7 @@ export const CardUploader = ({ setFile }: CardUploaderProps) => {
           <p className='items-center self-center'>
             <InboxIcon size={40} />
           </p>
-          <p className='ant-upload-text'>업로드할 파일을 드래그하거나 해당 영역을 클릭하세요!</p>
+          <p>업로드할 파일을 드래그하거나 해당 영역을 클릭하세요!</p>
         </div>
       </Upload.Dragger>
     </div>

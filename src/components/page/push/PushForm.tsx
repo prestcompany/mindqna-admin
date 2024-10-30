@@ -1,4 +1,4 @@
-import { createPush, CreatePushParams } from '@/client/push';
+import { createPush, CreatePushParams, updatePush } from '@/client/push';
 import DefaultForm from '@/components/shared/form/ui/default-form';
 import FormGroup from '@/components/shared/form/ui/form-group';
 import FormSection from '@/components/shared/form/ui/form-section';
@@ -38,7 +38,7 @@ const PushForm = ({ id, initialValues }: IPushFormProps) => {
       };
 
       if (id) {
-        // await updatePush(id);
+        await updatePush({ ...updatedFormValue, id: id, isActive: true });
         messageApi.success('수정되었습니다');
       } else {
         await createPush(updatedFormValue);

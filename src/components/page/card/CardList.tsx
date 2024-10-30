@@ -164,7 +164,6 @@ function CardList() {
       {holder}
       <DefaultTableBtn className='justify-between'>
         <div className='flex items-center gap-2 py-4'>
-          <span className='text-lg font-bold'>필터</span>
           <Select
             placeholder='언어'
             style={{ width: 120 }}
