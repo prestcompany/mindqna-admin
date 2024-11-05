@@ -19,6 +19,9 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
   const [valueEn, setValueEn] = useState('');
   const [valueJa, setValueJa] = useState('');
   const [valueZh, setValueZh] = useState('');
+  const [valueZhTw, setValueZhTw] = useState('');
+  const [valueEs, setValueEs] = useState('');
+  const [valueId, setValueId] = useState('');
 
   useEffect(() => {
     if (!init) return;
@@ -36,7 +39,6 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
     { label: 'zh', value: 'zh' },
     { label: 'zhTw', value: 'zhTw' },
     { label: 'es', value: 'es' },
-    { label: 'id', value: 'id' },
     { label: 'id', value: 'id' },
   ];
 
@@ -75,6 +77,24 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
             locale: 'zh',
             value: valueZh,
           });
+        if (locales.includes('zhTw'))
+          await createLocale({
+            key,
+            locale: 'zhTw',
+            value: valueZhTw,
+          });
+        if (locales.includes('es'))
+          await createLocale({
+            key,
+            locale: 'es',
+            value: valueEs,
+          });
+        if (locales.includes('id'))
+          await createLocale({
+            key,
+            locale: 'id',
+            value: valueId,
+          });
       }
 
       await reload();
@@ -112,6 +132,15 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
             </Form.Item>
             <Form.Item label='zh'>
               <Input value={valueZh} onChange={(e) => setValueZh(e.target.value)} />
+            </Form.Item>
+            <Form.Item label='zhTw'>
+              <Input value={valueZhTw} onChange={(e) => setValueZhTw(e.target.value)} />
+            </Form.Item>
+            <Form.Item label='es'>
+              <Input value={valueEs} onChange={(e) => setValueEs(e.target.value)} />
+            </Form.Item>
+            <Form.Item label='id'>
+              <Input value={valueId} onChange={(e) => setValueId(e.target.value)} />
             </Form.Item>
           </>
         )}
