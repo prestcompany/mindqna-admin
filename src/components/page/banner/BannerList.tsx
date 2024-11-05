@@ -1,5 +1,6 @@
 import { Banner, removeBanner } from '@/client/banner';
-import { BubbleType } from '@/client/types';
+import { BannerLocationType } from '@/client/types';
+import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import useBanners from '@/hooks/useBanners';
 import { Button, Drawer, Image, Modal, Select, Table, TableProps, Tag, message } from 'antd';
 import { useState } from 'react';
@@ -9,8 +10,8 @@ function BannerList() {
   const [modal, holder] = Modal.useModal();
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [filter, setFilter] = useState<{ type?: BubbleType[]; locale?: string[] }>({});
-  const { items, isLoading, refetch, totalPage } = useBanners(currentPage);
+  const [filter, setFilter] = useState<{ location?: BannerLocationType[]; locale?: string[] }>({});
+  const { items, isLoading, refetch, totalPage } = useBanners({ page: currentPage, ...filter });
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
@@ -37,6 +38,11 @@ function BannerList() {
 
   const columns: TableProps<Banner>['columns'] = [
     {
+      title: '번호',
+      dataIndex: 'id',
+      key: 'id',
+    },
+    {
       title: '이미지',
       dataIndex: 'imgUri',
       key: 'imgUri',
@@ -44,15 +50,16 @@ function BannerList() {
         return <Image width={'100%'} height={60} src={value ?? ''} alt='img' style={{ objectFit: 'contain' }} />;
       },
     },
-    {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
-    },
+
     {
       title: '이름',
       dataIndex: 'name',
       key: 'name',
+    },
+    {
+      title: '다국어',
+      dataIndex: 'locale',
+      key: 'locale',
     },
     {
       title: '위치',
@@ -60,19 +67,25 @@ function BannerList() {
       key: 'location',
       render: (value: string) => {
         const label = locationOptions.find((item) => item.value === value)?.label ?? value;
-        return label;
+        return <Tag color='purple'>{label}</Tag>;
       },
+    },
+    {
+      title: '조회수',
+      dataIndex: 'viewCount',
+      key: 'viewCount',
+    },
+    {
+      title: '클릭수',
+      dataIndex: 'clickCount',
+      key: 'clickCount',
     },
     {
       title: '링크',
       dataIndex: 'link',
       key: 'link',
     },
-    {
-      title: 'locale',
-      dataIndex: 'locale',
-      key: 'locale',
-    },
+
     {
       title: '활성화',
       dataIndex: 'isActive',
@@ -97,52 +110,49 @@ function BannerList() {
   return (
     <>
       {holder}
-      <Button
-        onClick={() => {
-          setFocused(undefined);
-          setOpenCreate(true);
-        }}
-        type='primary'
-        size='large'
-      >
-        추가
-      </Button>
-      <div className='flex items-center gap-2 py-4'>
-        <span className='text-lg font-bold'>필터</span>
-        <Select
-          placeholder='언어'
-          style={{ width: 120 }}
-          options={[
-            { label: 'ko', value: 'ko' },
-            { label: 'en', value: 'en' },
-            { label: 'ja', value: 'ja' },
-            { label: 'zh', value: 'zh' },
-            { label: 'zhTw', value: 'zhTw' },
-            { label: 'es', value: 'es' },
-            { label: 'id', value: 'id' },
-          ]}
-          value={(filter.locale ?? [])?.[0]}
-          onChange={(v: string) => {
-            setFilter((prev) => ({ ...prev, locale: [v] }));
+      <DefaultTableBtn className='justify-between'>
+        <div className='flex items-center gap-2 py-4'>
+          <Select
+            placeholder='언어'
+            style={{ width: 120 }}
+            options={[
+              { label: 'ko', value: 'ko' },
+              { label: 'en', value: 'en' },
+              { label: 'ja', value: 'ja' },
+              { label: 'zh', value: 'zh' },
+              { label: 'zhTw', value: 'zhTw' },
+              { label: 'es', value: 'es' },
+              { label: 'id', value: 'id' },
+            ]}
+            value={(filter.locale ?? [])?.[0]}
+            onChange={(v: string) => {
+              setFilter((prev) => ({ ...prev, locale: [v] }));
+            }}
+            allowClear
+          />
+          <Select
+            placeholder='타입'
+            style={{ width: 180 }}
+            options={locationOptions}
+            value={(filter.location ?? [])?.[0]}
+            onChange={(v: BannerLocationType) => {
+              setFilter((prev) => ({ ...prev, location: [v] }));
+            }}
+            allowClear
+          />
+        </div>
+        <Button
+          onClick={() => {
+            setFocused(undefined);
+            setOpenCreate(true);
           }}
-          allowClear
-        />
-        <Select
-          placeholder='타입'
-          style={{ width: 120 }}
-          options={[
-            { label: '공통', value: 'general' },
-            { label: '오전', value: 'day' },
-            { label: '오후', value: 'night' },
-            { label: '커스텀', value: 'custom' },
-          ]}
-          value={(filter.type ?? [])?.[0]}
-          onChange={(v: BubbleType) => {
-            setFilter((prev) => ({ ...prev, type: [v] }));
-          }}
-          allowClear
-        />
-      </div>
+          type='primary'
+          size='large'
+        >
+          추가
+        </Button>
+      </DefaultTableBtn>
+
       <Table
         dataSource={items}
         columns={columns}

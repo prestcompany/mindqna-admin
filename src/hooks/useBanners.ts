@@ -1,10 +1,19 @@
-import { getBanners } from "@/client/banner";
-import { useQuery } from "@tanstack/react-query";
+import { getBanners } from '@/client/banner';
+import { BannerLocationType } from '@/client/types';
+import { useQuery } from '@tanstack/react-query';
 
-function useBanners(page: number) {
+type Props = {
+  page: number;
+  locale?: string[];
+  location?: BannerLocationType[];
+};
+
+function useBanners(by: Props) {
+  const { page, locale, location } = by;
+
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["banners", page],
-    queryFn: () => getBanners(page),
+    queryKey: ['banners', page, locale, location],
+    queryFn: () => getBanners(page, locale, location),
   });
 
   const items = data?.items ?? [];
