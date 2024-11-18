@@ -45,7 +45,7 @@ function UserList() {
       render: (_, user) => {
         return (
           <div>
-            <Tag color={user.profiles.length > 0 ? 'green' : 'default'}>{user.profiles.length > 0 ? '가입완료' : '가입중'}</Tag>
+            <Tag color={user._count.profiles > 0 ? 'green' : 'default'}>{user._count.profiles > 0 ? '가입완료' : '가입중'}</Tag>
           </div>
         );
       },

@@ -16,7 +16,7 @@ function UserSearch() {
   const { data, refetch } = useQuery({ queryKey: ['user', id], queryFn: () => getUser(id), enabled: false });
 
   const renderItem = (user: User) => {
-    const { id, username, locale, socialAccount, profiles, createdAt, reserveUnregisterAt, spaceMaxCount } = user;
+    const { id, username, locale, socialAccount, createdAt, _count, reserveUnregisterAt, spaceMaxCount } = user;
 
     const created = dayjs(createdAt);
     const diffFromNow = dayjs().diff(created, 'day');
@@ -61,7 +61,7 @@ function UserSearch() {
 
                 <div>{socialAccount.email}</div>
 
-                <Tag color={user.profiles.length > 0 ? 'green' : 'default'}>{user.profiles.length > 0 ? '가입완료' : '가입중'}</Tag>
+                <Tag color={user._count.profiles > 0 ? 'green' : 'default'}>{user._count.profiles > 0 ? '가입완료' : '가입중'}</Tag>
 
                 <Tag>생성일: D+{diffFromNow}</Tag>
                 {created.format('YY.MM.DD HH:mm')}
@@ -69,7 +69,7 @@ function UserSearch() {
               </div>
               <div className='flex items-center gap-1'>
                 <Tag>언어 : {locale}</Tag>
-                <Tag>공간 수 : {profiles.length}</Tag>
+                <Tag>공간 수 : {_count.profiles}</Tag>
                 <Tag>공간 최대 치 : {spaceMaxCount}</Tag>
               </div>
 

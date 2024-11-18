@@ -281,25 +281,28 @@ export type User = {
   updateAt: string;
 
   socialAccount: SocialAccount;
+  _count: {
+    profiles: number;
+  };
 
-  profiles: {
-    _count: {
-      PushMeta: number;
-      cardCommentLikeMetas: number;
-      cardComments: number;
-      cardMetas: number;
-      coinMetas: number;
-      diaries: number;
-      diaryCommentLikeMeta: number;
-      diaryComments: number;
-      diaryLikeMetas: number;
-      diaryMemberMetas: number;
-      goldClubMeta: number;
-      premiumTickets: number;
-      replies: number;
-      spaceJoinMetas: number;
-    };
-  }[];
+  // profiles: {
+  //   _count: {
+  //     PushMeta: number;
+  //     cardCommentLikeMetas: number;
+  //     cardComments: number;
+  //     cardMetas: number;
+  //     coinMetas: number;
+  //     diaries: number;
+  //     diaryCommentLikeMeta: number;
+  //     diaryComments: number;
+  //     diaryLikeMetas: number;
+  //     diaryMemberMetas: number;
+  //     goldClubMeta: number;
+  //     premiumTickets: number;
+  //     replies: number;
+  //     spaceJoinMetas: number;
+  //   };
+  // }[];
 };
 
 export type QueryResultWithPagination<T> = {
