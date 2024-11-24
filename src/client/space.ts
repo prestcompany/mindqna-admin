@@ -1,13 +1,8 @@
-import client from "./@base";
-import { QueryResultWithPagination, Space, SpaceType } from "./types";
+import client from './@base';
+import { QueryResultWithPagination, Space, SpaceType } from './types';
 
-export async function getSpaces(
-  page: number,
-  type?: SpaceType[],
-  locale?: string[],
-  orderBy?: "card" | "replies" | "level" | "members"
-) {
-  const res = await client.get<QueryResultWithPagination<Space>>("/space", { params: { page, type, locale, orderBy } });
+export async function getSpaces(page: number, type?: SpaceType[], locale?: string[], orderBy?: 'card' | 'replies' | 'level' | 'members') {
+  const res = await client.get<QueryResultWithPagination<Space>>('/space', { params: { page, type, locale, orderBy } });
 
   return res.data;
 }
