@@ -20,8 +20,6 @@ function CustomList() {
 
   const { templates, totalPage, isLoading, refetch } = useCustoms({ page: currentPage });
 
-  console.log(templates);
-
   const handleEdit = (value: PetCustomTemplate) => {
     setFocused(value);
     setOpenEdit(true);
