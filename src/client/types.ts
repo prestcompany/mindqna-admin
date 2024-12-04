@@ -61,6 +61,7 @@ export type CreateInteriorTemplateParams = {
   category: string;
   price: number;
   isPaid: boolean;
+  isActive: boolean;
   width: number;
   height: number;
   disablePositions: string; // format (x,y) sperator " " | ex (0,0) (0,4)
@@ -74,6 +75,7 @@ export type InteriorTemplate = {
   category: string;
   price: number;
   isPaid: boolean;
+  isActive: boolean;
   width: number;
   height: number;
   disablePositions: string;

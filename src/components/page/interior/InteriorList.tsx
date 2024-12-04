@@ -38,6 +38,11 @@ function InteriorList() {
 
   const columns: TableProps<InteriorTemplate>['columns'] = [
     {
+      title: '번호',
+      dataIndex: 'id',
+      key: 'id',
+    },
+    {
       title: '이미지',
       dataIndex: 'img',
       key: 'img',
@@ -45,12 +50,6 @@ function InteriorList() {
         return <Image width={'100%'} height={100} src={value?.uri ?? ''} alt='img' style={{ objectFit: 'contain' }} />;
       },
     },
-    {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
-    },
-
     {
       title: '이름',
       dataIndex: 'name',
@@ -82,6 +81,14 @@ function InteriorList() {
       key: 'isPaid',
       render: (value: boolean) => {
         return <Tag color={value ? 'gold' : 'red'}>{value ? '스타' : '하트'}</Tag>;
+      },
+    },
+    {
+      title: '상태',
+      dataIndex: 'isActive',
+      key: 'isActive',
+      render: (value: boolean) => {
+        return <Tag color={value ? 'green' : 'red'}>{value ? '활성' : '비활성'}</Tag>;
       },
     },
     {
@@ -121,6 +128,7 @@ function InteriorList() {
         추가
       </Button>
       <Table
+        rowKey={(record) => record.id}
         dataSource={templates}
         columns={columns}
         pagination={{

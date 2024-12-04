@@ -24,6 +24,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
   const [category, setCategory] = useState('furniture');
   const [room, setRoom] = useState('room');
   const [isPremium, setIsPremium] = useState(true);
+  const [isActive, setIsActive] = useState(true);
   const [price, setPrice] = useState(0);
   const [width, setWidth] = useState(1);
   const [height, setHeight] = useState(1);
@@ -90,19 +91,21 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
   const [valueEn, setValueEn] = useState('');
   const [valueJa, setValueJa] = useState('');
   const [valueZh, setValueZh] = useState('');
+  const [valueZhTw, setValueZhTw] = useState('');
+  const [valueEs, setValueEs] = useState('');
+  const [valueId, setValueId] = useState('');
 
   useEffect(() => {
     if (!init) return;
 
     setFocusedId(init.id);
-    if (init.img) {
-      setImage(init.img);
-    }
+    if (init.img) setImage(init.img);
     setName(init.name);
     setType(init.type);
     setCategory(init.category);
     setRoom(init.room);
     setIsPremium(init.isPaid);
+    setIsActive(init.isActive);
     setPrice(init.price);
     setWidth(init.width);
     setHeight(init.height);
@@ -148,6 +151,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
           disablePositions: findMismatchedCoords(coords, coordOptions),
           height,
           isPaid: isPremium,
+          isActive: isActive,
           price,
           type: 'item',
           width,
@@ -161,6 +165,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
           disablePositions: findMismatchedCoords(coords, coordOptions),
           height,
           isPaid: isPremium,
+          isActive: false,
           price,
           type: 'item',
           width,
@@ -184,6 +189,21 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
           key: name,
           locale: 'zh',
           value: valueZh,
+        });
+        await createLocale({
+          key: name,
+          locale: 'zhTw',
+          value: valueZh,
+        });
+        await createLocale({
+          key: name,
+          locale: 'es',
+          value: valueEs,
+        });
+        await createLocale({
+          key: name,
+          locale: 'id',
+          value: valueId,
         });
       }
 
@@ -222,6 +242,15 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
             </Form.Item>
             <Form.Item label='zh'>
               <Input value={valueZh} onChange={(e) => setValueZh(e.target.value)} />
+            </Form.Item>
+            <Form.Item label='zhTw'>
+              <Input value={valueZhTw} onChange={(e) => setValueZhTw(e.target.value)} />
+            </Form.Item>
+            <Form.Item label='es'>
+              <Input value={valueEs} onChange={(e) => setValueEs(e.target.value)} />
+            </Form.Item>
+            <Form.Item label='id'>
+              <Input value={valueId} onChange={(e) => setValueId(e.target.value)} />
             </Form.Item>
           </>
         )}
@@ -305,6 +334,17 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
               </div>
             </div>
           </div>
+        </Form.Item>
+        <Form.Item name='isActive' label='활성화' initialValue={isActive}>
+          <Radio.Group
+            options={[
+              { label: '활성화', value: true },
+              { label: '비활성화', value: false },
+            ]}
+            optionType='button'
+            buttonStyle='solid'
+            onChange={(e) => setIsActive(e.target.value)}
+          />
         </Form.Item>
         <Button onClick={save} size='large' type='primary'>
           저장
