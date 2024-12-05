@@ -124,7 +124,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
     { label: '이벤트', value: 'event' },
   ];
 
-  const categoriOptions = [
+  const categoryOptions = [
     { label: '가구', value: 'furniture' },
     { label: '벽지', value: 'wall' },
     { label: '바닥', value: 'floor' },
@@ -153,7 +153,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
           isPaid: isPremium,
           isActive: isActive,
           price,
-          type: 'item',
+          type,
           width,
         });
       } else {
@@ -167,7 +167,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
           isPaid: isPremium,
           isActive: false,
           price,
-          type: 'item',
+          type,
           width,
         });
         await createLocale({
@@ -259,7 +259,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
           <Radio.Group options={typeOptions} optionType='button' buttonStyle='solid' value={type} onChange={(e) => setType(e.target.value)} />
         </Form.Item>
         <Form.Item label='카테고리'>
-          <Radio.Group options={categoriOptions} optionType='button' buttonStyle='solid' value={category} onChange={(e) => setCategory(e.target.value)} />
+          <Radio.Group options={categoryOptions} optionType='button' buttonStyle='solid' value={category} onChange={(e) => setCategory(e.target.value)} />
         </Form.Item>
         <Form.Item label='방 타입'>
           <Radio.Group options={roomOptions} optionType='button' buttonStyle='solid' value={room} onChange={(e) => setRoom(e.target.value)} />
