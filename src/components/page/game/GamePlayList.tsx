@@ -48,7 +48,7 @@ function GamePlayList() {
       },
     },
     {
-      title: '점수',
+      title: '획득 점수',
       dataIndex: 'score',
       key: 'score',
       width: 200,
