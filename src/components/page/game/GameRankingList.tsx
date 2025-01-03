@@ -1,54 +1,66 @@
-import { Game } from '@/client/game';
+import { GameRanking } from '@/client/game';
+import { Profile, Space } from '@/client/types';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
-import { useGames } from '@/hooks/useGame';
+import { useGameRankings } from '@/hooks/useGame';
 import { Button, Drawer, Modal, Table, TableProps, Tag } from 'antd';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
-function GameList() {
+function GameRankingList() {
   const router = useRouter();
   const [modal, holder] = Modal.useModal();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<{ locale?: string[] }>({});
-  const { items, totalPage, isLoading, refetch } = useGames({ page: currentPage });
+  const { items, totalPage, isLoading, refetch } = useGameRankings({ page: currentPage });
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
 
-  console.log('items', items);
-
-  const columns: TableProps<Game>['columns'] = [
+  const columns: TableProps<GameRanking>['columns'] = [
     {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
-    },
-
-    {
-      title: '게임명',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: '상태',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      render: (value) => {
-        if (value) return <Tag color='green'>활성</Tag>;
-        if (!value) return <Tag color='red'>비활성</Tag>;
+      title: '순위',
+      dataIndex: 'rank',
+      key: 'rank',
+      width: 80,
+      render: (rank) => {
+        const color = rank <= 5 ? 'gold' : '';
+        return <Tag color={color}>{rank}</Tag>;
       },
     },
+
     {
-      title: '',
-      dataIndex: '',
-      key: 'x',
-      render: (value) => (
-        <div className='flex gap-4'>
-          {/* <Button onClick={() => handleEdit(value)}>상태변경</Button> */}
-          {/* <Button onClick={() => handleRemove(value)}>삭제</Button> */}
-        </div>
-      ),
+      title: '닉네임',
+      dataIndex: 'profile',
+      key: 'profile.nickname',
+      width: 150,
+      render: (profile: Profile) => {
+        return (
+          <div style={{ display: 'flex', flexDirection: 'row', gap: '4px' }}>
+            <Tag color='black'>{profile.nickname}</Tag>
+          </div>
+        );
+      },
+    },
+
+    {
+      title: '점수',
+      dataIndex: 'score',
+      key: 'score',
+      width: 150,
+      render: (score) => {
+        return <Tag color='green'>{score} P</Tag>;
+      },
+    },
+
+    {
+      title: '공간 ID',
+      dataIndex: 'space',
+      key: 'space.id',
+      width: 150,
+      render: (space: Space) => {
+        return <Tag>{space.id}</Tag>;
+      },
     },
   ];
   return (
@@ -79,4 +91,4 @@ function GameList() {
   );
 }
 
-export default GameList;
+export default GameRankingList;

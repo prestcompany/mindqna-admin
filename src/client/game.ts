@@ -1,8 +1,8 @@
 import client from './@base';
 import { Locale, Profile, QueryResultWithPagination, Space } from './types';
 
-export async function getGames(page: number, limit: number) {
-  const res = await client.get<QueryResultWithPagination<Game>>('/game', { params: { page, limit } });
+export async function getGames(page: number) {
+  const res = await client.get<QueryResultWithPagination<Game>>('/games', { params: { page } });
 
   return res.data;
 }
@@ -30,9 +30,25 @@ export async function removeGame(id: number) {
   return res.data;
 }
 
-export async function getGameRankings(gameId: number, page: number, limit: number) {
-  const res = await client.get<QueryResultWithPagination<GameRanking>>(`/games/${gameId}/rankings`, {
-    params: { page, limit },
+export async function getGameRankings(page: number) {
+  const res = await client.get<QueryResultWithPagination<GameRanking>>(`/games/rankings`, {
+    params: { page },
+  });
+
+  return res.data;
+}
+
+export async function getGamePlays(page: number) {
+  const res = await client.get<QueryResultWithPagination<GamePlay>>(`/games/plays`, {
+    params: { page },
+  });
+
+  return res.data;
+}
+
+export async function getGamePlayLogs(gameId: number, page: number) {
+  const res = await client.get<QueryResultWithPagination<GamePlayLog>>(`/games/${gameId}/play-logs`, {
+    params: { page },
   });
 
   return res.data;
@@ -118,7 +134,9 @@ export interface GamePlay {
   endedAt?: Date | null;
   updatedAt: Date;
   createdAt: Date;
-  game: Game;
+  game?: Game;
+  profile?: Profile;
+  space?: Space;
   playLogs?: GamePlayLog[];
 }
 

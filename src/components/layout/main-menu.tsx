@@ -1,5 +1,5 @@
 import { Divider } from 'antd';
-import { Component, Folders, LucideLayoutGrid, MegaphoneIcon, ShoppingCartIcon, UsersIcon } from 'lucide-react';
+import { Component, Folders, Gamepad2Icon, LucideLayoutGrid, MegaphoneIcon, ShoppingCartIcon, UsersIcon } from 'lucide-react';
 import React from 'react';
 import Menu, { IMenu } from './nav';
 
@@ -111,6 +111,34 @@ const mainMenuData: IMenu[] = [
         name: '쿠폰 관리',
         link: {
           path: '/product/coupon',
+        },
+      },
+    ],
+  },
+  {
+    id: 'game',
+    name: '게임 관리',
+    icon: <Gamepad2Icon className='w-4 h-4' />,
+    submenu: [
+      {
+        id: 'game-list',
+        name: '게임 관리',
+        link: {
+          path: '/game/list',
+        },
+      },
+      {
+        id: 'game-ranking-list',
+        name: '게임 랭킹 관리',
+        link: {
+          path: '/game/ranking/list',
+        },
+      },
+      {
+        id: 'game-play-list',
+        name: '게임 플레이 관리',
+        link: {
+          path: '/game/play/list',
         },
       },
     ],
