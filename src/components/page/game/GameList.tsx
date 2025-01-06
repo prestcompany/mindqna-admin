@@ -16,8 +16,6 @@ function GameList() {
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
 
-  console.log('items', items);
-
   const columns: TableProps<Game>['columns'] = [
     {
       title: '번호',
@@ -29,6 +27,39 @@ function GameList() {
       title: '게임명',
       dataIndex: 'name',
       key: 'name',
+    },
+    {
+      title: '게임 타입',
+      dataIndex: 'type',
+      key: 'type',
+      render: (value) => {
+        return <Tag color='black'>{value}</Tag>;
+      },
+    },
+
+    {
+      title: '라이프',
+      dataIndex: 'playLimitLife',
+      key: 'playLimitLife',
+      render: (value) => {
+        return <Tag color='pink-inverse'>{value} 개</Tag>;
+      },
+    },
+    {
+      title: '제한시간',
+      dataIndex: 'timeLimitSecond',
+      key: 'timeLimitSecond',
+      render: (value) => {
+        return <Tag>{value} 초</Tag>;
+      },
+    },
+    {
+      title: '일일 플레이 제한',
+      dataIndex: 'dailyPlayLimit',
+      key: 'dailyPlayLimit',
+      render: (value) => {
+        return <Tag color='blue'>{value} 회</Tag>;
+      },
     },
     {
       title: '상태',
