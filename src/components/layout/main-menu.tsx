@@ -186,22 +186,22 @@ const mainMenuData: IMenu[] = [
     ],
   },
   {
-    id: 'library',
+    id: 'square-library',
     name: '라이브러리 관리',
     icon: <Folders className='w-4 h-4' />,
     submenu: [
       {
-        id: 'assets',
+        id: 'info',
         name: '소식 관리',
         link: {
-          path: '/library/info',
+          path: '/square-library/info',
         },
       },
       {
-        id: 'locales',
+        id: 'article',
         name: '아티클 관리',
         link: {
-          path: '/library/article/list',
+          path: '/square-library/article',
         },
       },
     ],

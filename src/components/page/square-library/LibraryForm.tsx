@@ -1,8 +1,9 @@
-import { createSquareLibrary, LibraryData, LibrarySubType, LibraryType, updateSquareLibrary } from '@/client/library';
+import { createSquareLibrary, LibraryData, LibrarySubType, LibraryType, updateSquareLibrary } from '@/client/square-library';
 import { Locale } from '@/client/types';
 import { Button, Form, Input, message, Radio, Spin } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import { useEffect, useState } from 'react';
+import { subCategoryOptions } from './LibraryList';
 
 type Props = {
   init?: LibraryData;
@@ -26,7 +27,19 @@ function LibraryForm({ init, type, reload, close }: Props) {
   const [name, setName] = useState('');
 
   useEffect(() => {
-    if (!init) return;
+    if (!init) {
+      setImg('');
+      setFocusedId(undefined);
+      setLocale('ko');
+      setSubCategory(undefined);
+      setTitle('');
+      setContent('');
+      setLink('');
+      setIsActive(false);
+      setIsFixed(false);
+      setName('');
+      return;
+    }
     setImg(init.img ?? '');
     setFocusedId(init.id);
     setLocale(init.locale);
@@ -104,8 +117,17 @@ function LibraryForm({ init, type, reload, close }: Props) {
         <Form.Item label='이미지'>
           <Input value={img} onChange={(e) => setImg(e.target.value)} />
         </Form.Item>
-        <Form.Item label='locale'>
+        <Form.Item label='국가'>
           <Radio.Group options={localeOptions} optionType='button' buttonStyle='solid' value={locale} onChange={(e) => setLocale(e.target.value)} />
+        </Form.Item>
+        <Form.Item label='타입'>
+          <Radio.Group
+            options={subCategoryOptions[type]}
+            optionType='button'
+            buttonStyle='solid'
+            value={subCategory}
+            onChange={(e) => setSubCategory(e.target.value)}
+          />
         </Form.Item>
         <Form.Item label='이름'>
           <Input value={name} onChange={(e) => setName(e.target.value)} />

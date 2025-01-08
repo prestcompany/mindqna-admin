@@ -1,4 +1,4 @@
-import { deleteSquareLibrary, LibraryData, LibrarySubType, LibraryType } from '@/client/library';
+import { deleteSquareLibrary, LibraryData, LibrarySubType, LibraryType } from '@/client/square-library';
 import { Locale } from '@/client/types';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import useLibrary from '@/hooks/useLibrary';
@@ -25,12 +25,22 @@ export const subCategoryOptions = {
   ],
 };
 
+export const LibraryMap: Record<LibrarySubType, string> = {
+  [LibrarySubType.TEST]: '테스트',
+  [LibrarySubType.EVENTEND]: '이벤트 종료',
+  [LibrarySubType.EVENTING]: '이벤트 진행중',
+  [LibrarySubType.EVENTPLAN]: '이벤트 예정',
+  [LibrarySubType.ALONE]: '혼자',
+  [LibrarySubType.FRIEND]: '친구',
+  [LibrarySubType.FAMILY]: '가족',
+  [LibrarySubType.COUPLE]: '연인',
+};
+
 function LibraryList({ type }: Props) {
   const [modal, holder] = Modal.useModal();
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<{ subCategory?: LibrarySubType; locale?: Locale }>({});
   const { items, isLoading, refetch, totalPage } = useLibrary({ category: type, page: currentPage, ...filter });
-
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
   const [focused, setFocused] = useState<LibraryData | undefined>(undefined);
@@ -74,6 +84,14 @@ function LibraryList({ type }: Props) {
       title: '이름',
       dataIndex: 'name',
       key: 'name',
+    },
+    {
+      title: '타입',
+      dataIndex: 'subCategory',
+      key: 'subCategory',
+      render: (value: LibrarySubType) => {
+        return <Tag color='green'>{LibraryMap[value]}</Tag>;
+      },
     },
     {
       title: '다국어',
@@ -121,7 +139,7 @@ function LibraryList({ type }: Props) {
       dataIndex: 'isFixed',
       key: 'isFixed',
       render: (value: boolean) => {
-        return <Tag color={value ? 'green' : 'default'}>{value ? '고정됨' : '고정안됨'}</Tag>;
+        return <Tag color={value ? 'green' : 'default'}>{value ? '고정됨' : '고정 안됨'}</Tag>;
       },
     },
 

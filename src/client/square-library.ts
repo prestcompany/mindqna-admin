@@ -5,10 +5,8 @@ export async function getSquareLibrary(category: string, page: number, subCatego
   const res = await client.get<GetSquareLibrary>(`/square-library/${category}`, {
     params: { page, subCategory, locale },
   });
-
   return res.data;
 }
-
 export async function createSquareLibrary(body: LibraryData) {
   const res = await client.post('/square-library', body);
 

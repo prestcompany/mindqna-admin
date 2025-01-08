@@ -1,4 +1,4 @@
-import { getSquareLibrary, LibrarySubType, LibraryType } from '@/client/library';
+import { getSquareLibrary, LibrarySubType, LibraryType } from '@/client/square-library';
 import { Locale } from '@/client/types';
 import { useQuery } from '@tanstack/react-query';
 
