@@ -16,6 +16,7 @@ export const subCategoryOptions = {
     { label: '이벤트 종료', value: 'eventend' },
     { label: '이벤트 진행중', value: 'eventing' },
     { label: '이벤트 예정', value: 'eventplan' },
+    { label: '특별한 기능', value: 'special' },
   ],
   article: [
     { label: '혼자', value: 'alone' },
@@ -30,6 +31,7 @@ export const LibraryMap: Record<LibrarySubType, string> = {
   [LibrarySubType.EVENTEND]: '이벤트 종료',
   [LibrarySubType.EVENTING]: '이벤트 진행중',
   [LibrarySubType.EVENTPLAN]: '이벤트 예정',
+  [LibrarySubType.SPECIAL]: '특별한 기능',
   [LibrarySubType.ALONE]: '혼자',
   [LibrarySubType.FRIEND]: '친구',
   [LibrarySubType.FAMILY]: '가족',
@@ -68,8 +70,8 @@ function LibraryList({ type }: Props) {
   const columns: TableProps<LibraryData>['columns'] = [
     {
       title: '번호',
-      dataIndex: 'id',
-      key: 'id',
+      key: 'index',
+      render: (_: any, __: LibraryData, index: number) => index + 1,
     },
     {
       title: '이미지',

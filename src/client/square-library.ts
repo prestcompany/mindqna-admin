@@ -60,6 +60,7 @@ export enum LibrarySubType {
   EVENTEND = 'eventend',
   EVENTING = 'eventing',
   EVENTPLAN = 'eventplan',
+  SPECIAL = 'special',
   ALONE = 'alone',
   FRIEND = 'friend',
   FAMILY = 'family',

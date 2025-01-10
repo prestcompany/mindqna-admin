@@ -103,6 +103,16 @@ function LibraryForm({ init, type, reload, close }: Props) {
       }
 
       await reload();
+      setImg('');
+      setFocusedId(undefined);
+      setLocale('ko');
+      setSubCategory(undefined);
+      setTitle('');
+      setContent('');
+      setLink('');
+      setIsActive(false);
+      setIsFixed(false);
+      setName('');
       close();
     } catch (err) {
       message.error(`${err}`);
