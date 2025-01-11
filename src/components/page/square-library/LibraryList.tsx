@@ -71,7 +71,7 @@ function LibraryList({ type }: Props) {
     {
       title: '번호',
       key: 'index',
-      render: (_: any, __: LibraryData, index: number) => index + 1,
+      render: (_: any, __: LibraryData, index: number) => (currentPage - 1) * 10 + index + 1,
     },
     {
       title: '이미지',
@@ -95,18 +95,18 @@ function LibraryList({ type }: Props) {
         return <Tag color='green'>{LibraryMap[value]}</Tag>;
       },
     },
+    // {
+    //   title: '다국어',
+    //   dataIndex: 'locale',
+    //   key: 'locale',
+    // },
     {
-      title: '다국어',
-      dataIndex: 'locale',
-      key: 'locale',
-    },
-    {
-      title: '제목',
+      title: '제목 키',
       dataIndex: 'title',
       key: 'title',
     },
     {
-      title: '내용',
+      title: '내용 키',
       dataIndex: 'content',
       key: 'content',
     },
@@ -125,6 +125,7 @@ function LibraryList({ type }: Props) {
       title: '링크',
       dataIndex: 'link',
       key: 'link',
+      width: 180,
     },
 
     {
@@ -162,7 +163,7 @@ function LibraryList({ type }: Props) {
       {holder}
       <DefaultTableBtn className='justify-between'>
         <div className='flex items-center gap-2 py-4'>
-          <Select
+          {/* <Select
             placeholder='언어'
             style={{ width: 120 }}
             options={[
@@ -179,7 +180,7 @@ function LibraryList({ type }: Props) {
               setFilter((prev) => ({ ...prev, locale: v }));
             }}
             allowClear
-          />
+          /> */}
           <Select
             placeholder='타입'
             style={{ width: 180 }}

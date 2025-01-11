@@ -127,9 +127,9 @@ function LibraryForm({ init, type, reload, close }: Props) {
         <Form.Item label='이미지'>
           <Input value={img} onChange={(e) => setImg(e.target.value)} />
         </Form.Item>
-        <Form.Item label='국가'>
+        {/* <Form.Item label='국가'>
           <Radio.Group options={localeOptions} optionType='button' buttonStyle='solid' value={locale} onChange={(e) => setLocale(e.target.value)} />
-        </Form.Item>
+        </Form.Item> */}
         <Form.Item label='타입'>
           <Radio.Group
             options={subCategoryOptions[type]}
@@ -142,10 +142,10 @@ function LibraryForm({ init, type, reload, close }: Props) {
         <Form.Item label='이름'>
           <Input value={name} onChange={(e) => setName(e.target.value)} />
         </Form.Item>
-        <Form.Item label='제목'>
+        <Form.Item label='제목 키'>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} />
         </Form.Item>
-        <Form.Item label='내용'>
+        <Form.Item label='내용 키'>
           <TextArea value={content} onChange={(e) => setContent(e.target.value)} />
         </Form.Item>
         <Form.Item label='링크'>
