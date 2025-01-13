@@ -142,10 +142,10 @@ function LibraryForm({ init, type, reload, close }: Props) {
         <Form.Item label='이름'>
           <Input value={name} onChange={(e) => setName(e.target.value)} />
         </Form.Item>
-        <Form.Item label='제목 키'>
+        <Form.Item label='제목키'>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} />
         </Form.Item>
-        <Form.Item label='내용 키'>
+        <Form.Item label='내용키'>
           <TextArea value={content} onChange={(e) => setContent(e.target.value)} />
         </Form.Item>
         <Form.Item label='링크'>
