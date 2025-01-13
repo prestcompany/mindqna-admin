@@ -185,6 +185,27 @@ const mainMenuData: IMenu[] = [
       },
     ],
   },
+  {
+    id: 'square-library',
+    name: '라이브러리 관리',
+    icon: <Folders className='w-4 h-4' />,
+    submenu: [
+      {
+        id: 'info',
+        name: '소식 관리',
+        link: {
+          path: '/square-library/info',
+        },
+      },
+      {
+        id: 'article',
+        name: '아티클 관리',
+        link: {
+          path: '/square-library/article',
+        },
+      },
+    ],
+  },
 ];
 
 const MainMenu = () => {

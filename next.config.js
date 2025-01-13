@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@ant-design/icons', 'antd', 'rc-util', 'rc-pagination', 'rc-picker'],
+  transpilePackages: ['@ant-design/icons', '@ant-design/icons-svg', 'antd', 'rc-util', 'rc-pagination', 'rc-picker'],
   typescript: {
     // !! WARN !!
     // Dangerously allow production builds to successfully complete even if
