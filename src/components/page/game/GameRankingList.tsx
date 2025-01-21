@@ -1,7 +1,7 @@
 import { GameRanking } from '@/client/game';
 import { Profile, Space } from '@/client/types';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
-import { useGameRankings } from '@/hooks/useGame';
+import { useGameRankingRewardCreate, useGameRankings } from '@/hooks/useGame';
 import { Button, Drawer, Modal, Table, TableProps, Tag } from 'antd';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -13,9 +13,14 @@ function GameRankingList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<{ locale?: string[] }>({});
   const { items, totalPage, isLoading, refetch } = useGameRankings({ page: currentPage });
+  const { mutate, data } = useGameRankingRewardCreate();
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
+
+  const handleRewardCreate = () => {
+    mutate();
+  };
 
   const columns: TableProps<GameRanking>['columns'] = [
     {
@@ -67,11 +72,9 @@ function GameRankingList() {
     <>
       {holder}
       <DefaultTableBtn className='justify-between'>
-        <div className='flex-item-list'>
-          <Button type='primary' onClick={() => router.push('/game/new')}>
-            게임 생성
-          </Button>
-        </div>
+        <Button type='default' onClick={handleRewardCreate}>
+          랭킹 보상 지급
+        </Button>
       </DefaultTableBtn>
 
       <Table

@@ -1,5 +1,5 @@
-import { getGamePlays, getGameRankings, getGames } from '@/client/game';
-import { useQuery } from '@tanstack/react-query';
+import { createGameRewardForTest, getGamePlays, getGameRankings, getGames } from '@/client/game';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 type Props = {
   page: number;
@@ -50,4 +50,10 @@ export const useGamePlays = (by: Props) => {
   const totalPage = data?.pageInfo.totalPage ?? 1;
 
   return { items, totalPage, isLoading, refetch };
+};
+
+export const useGameRankingRewardCreate = () => {
+  const { mutate, data } = useMutation({ mutationFn: () => createGameRewardForTest() });
+
+  return { mutate, data };
 };

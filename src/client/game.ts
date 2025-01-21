@@ -54,6 +54,12 @@ export async function getGamePlayLogs(gameId: number, page: number) {
   return res.data;
 }
 
+export async function createGameRewardForTest() {
+  const res = await client.post('/games/test/reward');
+
+  return res.data;
+}
+
 export enum GamePlayStatus {
   STARTED = 'STARTED',
   COMPLETED = 'COMPLETED',
