@@ -18,7 +18,7 @@ function GameList() {
 
   const columns: TableProps<Game>['columns'] = [
     {
-      title: '번호',
+      title: 'No.',
       dataIndex: 'id',
       key: 'id',
     },
