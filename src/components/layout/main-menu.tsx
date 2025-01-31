@@ -135,10 +135,17 @@ const mainMenuData: IMenu[] = [
         },
       },
       {
-        id: 'game-play-list',
-        name: '게임 플레이 관리',
+        id: 'game-reward-list',
+        name: '게임 보상 관리',
         link: {
-          path: '/game/play/list',
+          path: '/game/reward/list',
+        },
+      },
+      {
+        id: 'game-reward-policy-list',
+        name: '게임 보상 정책 관리',
+        link: {
+          path: '/game/reward-policy/list',
         },
       },
     ],

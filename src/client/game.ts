@@ -54,6 +54,22 @@ export async function getGamePlayLogs(gameId: number, page: number) {
   return res.data;
 }
 
+export async function getGameRewards(page: number) {
+  const res = await client.get<QueryResultWithPagination<GameReward>>(`/games/rewards`, {
+    params: { page },
+  });
+
+  return res.data;
+}
+
+export async function getGameRewardPolicies(page: number) {
+  const res = await client.get<QueryResultWithPagination<GameRewardPolicy>>(`/games/reward-policies`, {
+    params: { page },
+  });
+
+  return res.data;
+}
+
 export async function createGameRewardForTest() {
   const res = await client.post('/games/test/reward');
 
@@ -208,18 +224,24 @@ export interface GameRewardPolicy {
   game: Game;
 }
 
+export type GameRewardCondition = { rank: number; score: number };
+
 export interface GameReward {
   id: number;
+  year: number;
+  month: number;
+  week: number;
+  rewardType: RewardType;
+  periodType: RewardPeriodType;
+  condition: GameRewardCondition; // JSON type
+  heartsEarned: number;
+  createdAt: Date;
   gameId: number;
   profileId: string;
   spaceId: string;
-  rewardType: RewardType;
-  periodType: RewardPeriodType;
-  periodKey?: string | null;
-  condition: any; // JSON type
-  heartsEarned: number;
-  createdAt: Date;
   game: Game;
+  profile: Profile;
+  space: Space;
 }
 
 export interface ImgItem {

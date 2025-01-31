@@ -1,4 +1,4 @@
-import { createGameRewardForTest, getGamePlays, getGameRankings, getGames } from '@/client/game';
+import { createGameRewardForTest, getGamePlays, getGameRankings, getGameRewardPolicies, getGameRewards, getGames } from '@/client/game';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 type Props = {
@@ -12,8 +12,6 @@ export const useGames = (by: Props) => {
     queryKey: ['games', page],
     queryFn: () => getGames(page),
   });
-
-  console.log('data', data);
 
   const items = data?.items ?? [];
 
@@ -43,6 +41,36 @@ export const useGamePlays = (by: Props) => {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['gamePlays', page],
     queryFn: () => getGamePlays(page),
+  });
+
+  const items = data?.items ?? [];
+
+  const totalPage = data?.pageInfo.totalPage ?? 1;
+
+  return { items, totalPage, isLoading, refetch };
+};
+
+export const useGameRewards = (by: Props) => {
+  const { page } = by;
+
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['gameRewards', page],
+    queryFn: () => getGameRewards(page),
+  });
+
+  const items = data?.items ?? [];
+
+  const totalPage = data?.pageInfo.totalPage ?? 1;
+
+  return { items, totalPage, isLoading, refetch };
+};
+
+export const useGameRewardPolicies = (by: Props) => {
+  const { page } = by;
+
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['gameRewardPolicies', page],
+    queryFn: () => getGameRewardPolicies(page),
   });
 
   const items = data?.items ?? [];
