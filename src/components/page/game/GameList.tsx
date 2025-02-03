@@ -1,9 +1,10 @@
 import { Game } from '@/client/game';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import { useGames } from '@/hooks/useGame';
-import { Button, Drawer, Modal, Table, TableProps, Tag } from 'antd';
+import { Button, Modal, Table, TableProps, Tag } from 'antd';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
+import GameFormModal from './GameFormModal';
 
 function GameList() {
   const router = useRouter();
@@ -15,6 +16,8 @@ function GameList() {
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
+
+  const [selectedGame, setSelectedGame] = useState<Game | undefined>(undefined);
 
   const columns: TableProps<Game>['columns'] = [
     {
@@ -74,9 +77,16 @@ function GameList() {
       title: '',
       dataIndex: '',
       key: 'x',
-      render: (value) => (
+      render: (value, record) => (
         <div className='flex gap-4'>
-          {/* <Button onClick={() => handleEdit(value)}>상태변경</Button> */}
+          <Button
+            onClick={() => {
+              setOpenEdit(true);
+              setSelectedGame(record);
+            }}
+          >
+            수정
+          </Button>
           {/* <Button onClick={() => handleRemove(value)}>삭제</Button> */}
         </div>
       ),
@@ -87,7 +97,7 @@ function GameList() {
       {holder}
       <DefaultTableBtn className='justify-between'>
         <div className='flex-item-list'>
-          <Button type='primary' onClick={() => router.push('/game/new')}>
+          <Button type='primary' onClick={() => setOpenCreate(true)}>
             게임 생성
           </Button>
         </div>
@@ -104,8 +114,8 @@ function GameList() {
         }}
         loading={isLoading}
       />
-      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}></Drawer>
-      <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={600}></Drawer>
+      <GameFormModal isOpen={isOpenCreate} close={() => setOpenCreate(false)} />
+      <GameFormModal isOpen={isOpenEdit} close={() => setOpenEdit(false)} game={selectedGame} />
     </>
   );
 }

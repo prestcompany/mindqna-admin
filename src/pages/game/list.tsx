@@ -3,11 +3,7 @@ import pageHeader from '@/components/layout/page-header';
 import GameList from '@/components/page/game/GameList';
 
 function GamePage() {
-  return (
-    <div>
-      <GameList />
-    </div>
-  );
+  return <GameList />;
 }
 
 GamePage.getLayout = getDefaultLayout;
