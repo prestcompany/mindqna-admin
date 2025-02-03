@@ -9,7 +9,6 @@ import GameFormModal from './GameFormModal';
 function GameList() {
   const router = useRouter();
   const [modal, holder] = Modal.useModal();
-
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<{ locale?: string[] }>({});
   const { items, totalPage, isLoading, refetch } = useGames({ page: currentPage });
@@ -114,8 +113,8 @@ function GameList() {
         }}
         loading={isLoading}
       />
-      <GameFormModal isOpen={isOpenCreate} close={() => setOpenCreate(false)} />
-      <GameFormModal isOpen={isOpenEdit} close={() => setOpenEdit(false)} game={selectedGame} />
+      <GameFormModal isOpen={isOpenCreate} close={() => setOpenCreate(false)} refetch={refetch} />
+      <GameFormModal isOpen={isOpenEdit} close={() => setOpenEdit(false)} game={selectedGame} refetch={refetch} />
     </>
   );
 }

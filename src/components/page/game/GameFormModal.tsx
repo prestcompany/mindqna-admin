@@ -3,8 +3,9 @@ import DefaultForm from '@/components/shared/form/ui/default-form';
 import FormGroup from '@/components/shared/form/ui/form-group';
 import FormSection from '@/components/shared/form/ui/form-section';
 import DefaultModal from '@/components/shared/ui/default-modal';
-import { Button, Divider, Form, Input, message, Radio, Select, Spin } from 'antd';
+import { Button, ColorPicker, Divider, Form, Input, message, Select, Spin, Switch } from 'antd';
 import { useForm } from 'antd/lib/form/Form';
+import { PauseIcon, PlayIcon } from 'lucide-react';
 import React, { useState } from 'react';
 
 // 상수 정의
@@ -27,13 +28,51 @@ interface GameFormProps {
   game?: Game;
   isOpen: boolean;
   close: () => void;
+  refetch: () => void;
 }
 
-const GameFormModal = ({ game, isOpen, close }: GameFormProps) => {
+const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
   const [form] = useForm();
   const [isLoading, setIsLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
-  const [gameType, setGameType] = useState<string>('');
+  const [colors, setColors] = useState({
+    backgroundColor: game?.backgroundColor || '',
+    primaryKeyColor: game?.primaryKeyColor || '',
+    secondaryKeyColor: game?.secondaryKeyColor || '',
+    primaryAccentColor: game?.primaryAccentColor || '',
+    secondaryAccentColor: game?.secondaryAccentColor || '',
+    headerTextColor: game?.headerTextColor || '',
+  });
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const handlePlayAudio = (url: string) => {
+    if (!url) {
+      messageApi.warning('URL을 입력해주세요');
+      return;
+    }
+
+    if (audio) {
+      if (isPlaying) {
+        audio.pause();
+        setIsPlaying(false);
+      } else {
+        audio.play();
+        setIsPlaying(true);
+      }
+    } else {
+      const newAudio = new Audio(url);
+      newAudio.addEventListener('ended', () => setIsPlaying(false));
+      newAudio.play();
+      setAudio(newAudio);
+      setIsPlaying(true);
+    }
+  };
+
+  const handleColorChange = (colorKey: string, value: string) => {
+    setColors((prev) => ({ ...prev, [colorKey]: value }));
+    form.setFieldValue(colorKey, value);
+  };
 
   const handleFinish = async (formValue: GameCreateParams) => {
     try {
@@ -42,6 +81,7 @@ const GameFormModal = ({ game, isOpen, close }: GameFormProps) => {
 
       if (game?.id) {
         await updateGame({ ...updatedFormValue, id: game.id });
+
         messageApi.success('수정되었습니다');
       } else {
         await createGame(updatedFormValue);
@@ -50,19 +90,31 @@ const GameFormModal = ({ game, isOpen, close }: GameFormProps) => {
     } catch (e) {
       messageApi.error('에러가 발생했습니다');
     } finally {
-      setTimeout(() => setIsLoading(false), 500);
+      setTimeout(() => {
+        setIsLoading(false);
+        handleClose();
+        refetch();
+      }, 500);
     }
   };
 
-  console.log(game?.type);
+  const handleClose = () => {
+    if (audio) {
+      audio.pause();
+      setAudio(null);
+      setIsPlaying(false);
+    }
+    form.resetFields();
+    close();
+  };
 
   return (
-    <DefaultModal handleHide={close} open={isOpen} maskClosable={false} width={800}>
+    <DefaultModal handleHide={handleClose} open={isOpen} maskClosable={false} width={800}>
       {contextHolder}
       <Spin spinning={isLoading} fullscreen />
-      <DefaultForm<GameCreateParams> form={form} initialValues={game} onFinish={handleFinish}>
+      <DefaultForm<Game> form={form} initialValues={game} onFinish={handleFinish}>
         <FormSection title={game ? '게임 수정' : '게임 등록'} description={game ? '게임 정보를 수정해주세요' : '등록할 게임 정보를 입력해주세요.'}>
-          <FormGroup title='언어 종류*'>
+          {/* <FormGroup title='언어 종류*'>
             <Form.Item name='locale' rules={[{ required: true, message: '' }]}>
               <Radio.Group>
                 {LOCALE_OPTIONS.map(({ label, value }) => (
@@ -72,12 +124,11 @@ const GameFormModal = ({ game, isOpen, close }: GameFormProps) => {
                 ))}
               </Radio.Group>
             </Form.Item>
-          </FormGroup>
+          </FormGroup> */}
 
-          <Divider />
           <FormGroup title='게임 타입*'>
             <Form.Item name='type' rules={[{ required: true, message: '' }]}>
-              <Select>
+              <Select disabled={!!game}>
                 <Select.Option value='SPEED_MATH'>사칙연산 빨리하기</Select.Option>
                 <Select.Option value='MEMORY_TAP'>기억하고 누르기</Select.Option>
                 <Select.Option value='SEQUENCE_TAP'>따라 누르기</Select.Option>
@@ -96,13 +147,219 @@ const GameFormModal = ({ game, isOpen, close }: GameFormProps) => {
               <Input placeholder='게임 제목을 입력해주세요.' />
             </Form.Item>
           </FormGroup>
-
           <Divider />
+          <FormGroup title='라이프 제한'>
+            <Form.Item name='playLimitLife'>
+              <Input type='number' placeholder='라이프 제한을 입력해주세요.' />
+            </Form.Item>
+          </FormGroup>
+          <Divider />
+          <FormGroup title='제한시간 (초)'>
+            <Form.Item name='timeLimitSecond'>
+              <Input type='number' placeholder='제한시간을 입력해주세요.' />
+            </Form.Item>
+          </FormGroup>
+          <Divider />
+          <FormGroup title='일일 플레이 제한'>
+            <Form.Item name='dailyPlayLimit'>
+              <Input type='number' placeholder='일일 플레이 제한을 입력해주세요.' />
+            </Form.Item>
+          </FormGroup>
+          <Divider />
+
+          <FormGroup title='게임 배경음'>
+            <Form.Item name='bgmUrl'>
+              <Input.Group compact style={{ display: 'flex' }}>
+                <Form.Item name='bgmUrl' noStyle>
+                  <Input style={{ width: 'calc(100% - 40px)' }} placeholder='게임 배경음 URL을 입력해주세요.' />
+                </Form.Item>
+                <Button
+                  style={{
+                    height: '32px', // Input의 기본 높이와 동일하게
+                    width: '40px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  icon={isPlaying ? <PauseIcon /> : <PlayIcon />}
+                  onClick={() => handlePlayAudio(form.getFieldValue('bgmUrl'))}
+                />
+              </Input.Group>
+            </Form.Item>
+          </FormGroup>
+          <Divider />
+          <FormGroup title='게임 배경색'>
+            <Form.Item name='backgroundColor'>
+              <Input.Group compact style={{ display: 'flex' }}>
+                <Form.Item name='backgroundColor' noStyle>
+                  <Input
+                    style={{ width: 'calc(30% - 40px)' }}
+                    placeholder='#000000'
+                    onChange={(e) => {
+                      const color = e.target.value;
+                      if (/^#[0-9A-F]{6}$/i.test(color)) {
+                        handleColorChange('backgroundColor', color);
+                      }
+                    }}
+                  />
+                </Form.Item>
+                <ColorPicker
+                  format='hex'
+                  value={colors.backgroundColor}
+                  style={{ width: '40px', justifyContent: 'center', alignItems: 'center', display: 'flex' }}
+                  onChange={(color) => {
+                    handleColorChange('backgroundColor', color.toHexString());
+                  }}
+                />
+              </Input.Group>
+            </Form.Item>
+          </FormGroup>
+          <Divider />
+          <FormGroup title='게임 주요 색상'>
+            <Form.Item name='primaryKeyColor'>
+              <Input.Group compact style={{ display: 'flex' }}>
+                <Form.Item name='primaryKeyColor' noStyle>
+                  <Input
+                    style={{ width: 'calc(30% - 40px)' }}
+                    placeholder='#000000'
+                    onChange={(e) => {
+                      const color = e.target.value;
+                      if (/^#[0-9A-F]{6}$/i.test(color)) {
+                        handleColorChange('primaryKeyColor', color);
+                      }
+                    }}
+                  />
+                </Form.Item>
+                <ColorPicker
+                  format='hex'
+                  value={colors.primaryKeyColor}
+                  style={{ width: '40px', justifyContent: 'center', alignItems: 'center', display: 'flex' }}
+                  onChange={(color) => {
+                    handleColorChange('primaryKeyColor', color.toHexString());
+                  }}
+                />
+              </Input.Group>
+            </Form.Item>
+          </FormGroup>
+          <Divider />
+          <FormGroup title='게임 보조 색상'>
+            <Form.Item name='secondaryKeyColor'>
+              <Input.Group compact style={{ display: 'flex' }}>
+                <Form.Item name='secondaryKeyColor' noStyle>
+                  <Input
+                    style={{ width: 'calc(30% - 40px)' }}
+                    placeholder='#000000'
+                    onChange={(e) => {
+                      const color = e.target.value;
+                      if (/^#[0-9A-F]{6}$/i.test(color)) {
+                        handleColorChange('secondaryKeyColor', color);
+                      }
+                    }}
+                  />
+                </Form.Item>
+                <ColorPicker
+                  format='hex'
+                  value={colors.secondaryKeyColor}
+                  style={{ width: '40px', justifyContent: 'center', alignItems: 'center', display: 'flex' }}
+                  onChange={(color) => {
+                    handleColorChange('secondaryKeyColor', color.toHexString());
+                  }}
+                />
+              </Input.Group>
+            </Form.Item>
+          </FormGroup>
+          <Divider />
+          <FormGroup title='게임 주요 강조 색상'>
+            <Form.Item name='primaryAccentColor'>
+              <Input.Group compact style={{ display: 'flex' }}>
+                <Form.Item name='primaryAccentColor' noStyle>
+                  <Input
+                    style={{ width: 'calc(30% - 40px)' }}
+                    placeholder='#000000'
+                    onChange={(e) => {
+                      const color = e.target.value;
+                      if (/^#[0-9A-F]{6}$/i.test(color)) {
+                        handleColorChange('primaryAccentColor', color);
+                      }
+                    }}
+                  />
+                </Form.Item>
+                <ColorPicker
+                  format='hex'
+                  value={colors.primaryAccentColor}
+                  style={{ width: '40px', justifyContent: 'center', alignItems: 'center', display: 'flex' }}
+                  onChange={(color) => {
+                    handleColorChange('primaryAccentColor', color.toHexString());
+                  }}
+                />
+              </Input.Group>
+            </Form.Item>
+          </FormGroup>
+          <Divider />
+          <FormGroup title='게임 보조 강조 색상'>
+            <Form.Item name='secondaryAccentColor'>
+              <Input.Group compact style={{ display: 'flex' }}>
+                <Form.Item name='secondaryAccentColor' noStyle>
+                  <Input
+                    style={{ width: 'calc(30% - 40px)' }}
+                    placeholder='#000000'
+                    onChange={(e) => {
+                      const color = e.target.value;
+                      if (/^#[0-9A-F]{6}$/i.test(color)) {
+                        handleColorChange('secondaryAccentColor', color);
+                      }
+                    }}
+                  />
+                </Form.Item>
+                <ColorPicker
+                  format='hex'
+                  value={colors.secondaryAccentColor}
+                  style={{ width: '40px', justifyContent: 'center', alignItems: 'center', display: 'flex' }}
+                  onChange={(color) => {
+                    handleColorChange('secondaryAccentColor', color.toHexString());
+                  }}
+                />
+              </Input.Group>
+            </Form.Item>
+          </FormGroup>
+          <Divider />
+          <FormGroup title='헤더 텍스트 색상'>
+            <Form.Item name='headerTextColor'>
+              <Input.Group compact style={{ display: 'flex' }}>
+                <Form.Item name='headerTextColor' noStyle>
+                  <Input
+                    style={{ width: 'calc(30% - 40px)' }}
+                    placeholder='#000000'
+                    onChange={(e) => {
+                      const color = e.target.value;
+                      if (/^#[0-9A-F]{6}$/i.test(color)) {
+                        handleColorChange('headerTextColor', color);
+                      }
+                    }}
+                  />
+                </Form.Item>
+                <ColorPicker
+                  format='hex'
+                  value={colors.headerTextColor}
+                  style={{ width: '40px', justifyContent: 'center', alignItems: 'center', display: 'flex' }}
+                  onChange={(color) => {
+                    handleColorChange('headerTextColor', color.toHexString());
+                  }}
+                />
+              </Input.Group>
+            </Form.Item>
+          </FormGroup>
+          <Divider />
+          <FormGroup title='활성 상태'>
+            <Form.Item name='isActive' valuePropName='checked'>
+              <Switch />
+            </Form.Item>
+          </FormGroup>
         </FormSection>
 
         <div className='text-center'>
           <Button htmlType='submit' type='primary' loading={isLoading}>
-            저장
+            {game ? '수정' : '생성'}
           </Button>
         </div>
       </DefaultForm>
