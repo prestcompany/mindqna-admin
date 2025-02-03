@@ -166,6 +166,18 @@ const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
             </Form.Item>
           </FormGroup>
           <Divider />
+          <FormGroup title='이용권 충전 (하트)'>
+            <Form.Item name='ticketRechargeHeart'>
+              <Input type='number' placeholder='하트 충전량을 입력해주세요.' />
+            </Form.Item>
+          </FormGroup>
+          <Divider />
+          <FormGroup title='이용권 충전 (별)'>
+            <Form.Item name='ticketRechargeStar'>
+              <Input type='number' placeholder='별 충전량을 입력해주세요.' />
+            </Form.Item>
+          </FormGroup>
+          <Divider />
 
           <FormGroup title='게임 배경음'>
             <Form.Item name='bgmUrl'>
