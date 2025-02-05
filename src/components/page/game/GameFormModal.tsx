@@ -3,10 +3,10 @@ import DefaultForm from '@/components/shared/form/ui/default-form';
 import FormGroup from '@/components/shared/form/ui/form-group';
 import FormSection from '@/components/shared/form/ui/form-section';
 import DefaultModal from '@/components/shared/ui/default-modal';
-import { Button, ColorPicker, Divider, Form, Input, message, Select, Spin, Switch } from 'antd';
+import { Button, ColorPicker, Divider, Form, Input, InputNumber, message, Select, Spin, Switch } from 'antd';
 import { useForm } from 'antd/lib/form/Form';
 import { PauseIcon, PlayIcon } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 // 상수 정의
 const LOCALE_OPTIONS = [
@@ -32,16 +32,16 @@ interface GameFormProps {
 }
 
 const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
-  const [form] = useForm();
+  const [form] = useForm<GameCreateParams>();
   const [isLoading, setIsLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const [colors, setColors] = useState({
-    backgroundColor: game?.backgroundColor || '',
-    primaryKeyColor: game?.primaryKeyColor || '',
-    secondaryKeyColor: game?.secondaryKeyColor || '',
-    primaryAccentColor: game?.primaryAccentColor || '',
-    secondaryAccentColor: game?.secondaryAccentColor || '',
-    headerTextColor: game?.headerTextColor || '',
+    backgroundColor: game?.backgroundColor || '#000000',
+    primaryKeyColor: game?.primaryKeyColor || '#000000',
+    secondaryKeyColor: game?.secondaryKeyColor || '#000000',
+    primaryAccentColor: game?.primaryAccentColor || '#000000',
+    secondaryAccentColor: game?.secondaryAccentColor || '#000000',
+    headerTextColor: game?.headerTextColor || '#000000',
   });
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -108,11 +108,24 @@ const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
     close();
   };
 
+  useEffect(() => {
+    if (game) {
+      setColors({
+        backgroundColor: game.backgroundColor || '#000000',
+        primaryKeyColor: game.primaryKeyColor || '#000000',
+        secondaryKeyColor: game.secondaryKeyColor || '#000000',
+        primaryAccentColor: game.primaryAccentColor || '#000000',
+        secondaryAccentColor: game.secondaryAccentColor || '#000000',
+        headerTextColor: game.headerTextColor || '#000000',
+      });
+    }
+  }, [game]);
+
   return (
     <DefaultModal handleHide={handleClose} open={isOpen} maskClosable={false} width={800}>
       {contextHolder}
       <Spin spinning={isLoading} fullscreen />
-      <DefaultForm<Game> form={form} initialValues={game} onFinish={handleFinish}>
+      <DefaultForm<GameCreateParams> form={form} initialValues={game} onFinish={handleFinish}>
         <FormSection title={game ? '게임 수정' : '게임 등록'} description={game ? '게임 정보를 수정해주세요' : '등록할 게임 정보를 입력해주세요.'}>
           {/* <FormGroup title='언어 종류*'>
             <Form.Item name='locale' rules={[{ required: true, message: '' }]}>
@@ -150,31 +163,31 @@ const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
           <Divider />
           <FormGroup title='라이프 제한'>
             <Form.Item name='playLimitLife'>
-              <Input type='number' placeholder='라이프 제한을 입력해주세요.' />
+              <InputNumber type='number' placeholder='라이프 제한을 입력해주세요.' />
             </Form.Item>
           </FormGroup>
           <Divider />
           <FormGroup title='제한시간 (초)'>
             <Form.Item name='timeLimitSecond'>
-              <Input type='number' placeholder='제한시간을 입력해주세요.' />
+              <InputNumber type='number' placeholder='제한시간을 입력해주세요.' />
             </Form.Item>
           </FormGroup>
           <Divider />
           <FormGroup title='일일 플레이 제한'>
             <Form.Item name='dailyPlayLimit'>
-              <Input type='number' placeholder='일일 플레이 제한을 입력해주세요.' />
+              <InputNumber type='number' placeholder='일일 플레이 제한을 입력해주세요.' />
             </Form.Item>
           </FormGroup>
           <Divider />
           <FormGroup title='이용권 충전 (하트)'>
             <Form.Item name='ticketRechargeHeart'>
-              <Input type='number' placeholder='하트 충전량을 입력해주세요.' />
+              <InputNumber type='number' placeholder='하트 충전량을 입력해주세요.' />
             </Form.Item>
           </FormGroup>
           <Divider />
           <FormGroup title='이용권 충전 (별)'>
             <Form.Item name='ticketRechargeStar'>
-              <Input type='number' placeholder='별 충전량을 입력해주세요.' />
+              <InputNumber type='number' placeholder='별 충전량을 입력해주세요.' />
             </Form.Item>
           </FormGroup>
           <Divider />
@@ -247,6 +260,7 @@ const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
                   value={colors.primaryKeyColor}
                   style={{ width: '40px', justifyContent: 'center', alignItems: 'center', display: 'flex' }}
                   onChange={(color) => {
+                    alert(color.toHexString());
                     handleColorChange('primaryKeyColor', color.toHexString());
                   }}
                 />
