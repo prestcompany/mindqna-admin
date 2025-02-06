@@ -2,7 +2,7 @@ import { deleteSquareLibrary, LibraryData, LibrarySubType, LibraryType } from '@
 import { Locale } from '@/client/types';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import useLibrary from '@/hooks/useLibrary';
-import { Button, Drawer, Image, message, Modal, Select, Table, TableProps, Tag } from 'antd';
+import { Button, Drawer, Image, message, Modal, Select, Table, TableProps, Tag, Tooltip } from 'antd';
 import { useState } from 'react';
 import LibraryForm from './LibraryForm';
 
@@ -67,6 +67,13 @@ function LibraryList({ type }: Props) {
     });
   };
 
+  const truncateText = (text: string, limit: number) => {
+    if (text.length > limit) {
+      return `${text.slice(0, limit)}...`;
+    }
+    return text;
+  };
+
   const columns: TableProps<LibraryData>['columns'] = [
     {
       title: '번호',
@@ -104,11 +111,13 @@ function LibraryList({ type }: Props) {
       title: '제목 키',
       dataIndex: 'title',
       key: 'title',
+      render: (text: string) => <Tooltip title={text}>{truncateText(text, 10)}</Tooltip>,
     },
     {
       title: '내용 키',
       dataIndex: 'content',
       key: 'content',
+      render: (text: string) => <Tooltip title={text}>{truncateText(text, 15)}</Tooltip>,
     },
 
     {
