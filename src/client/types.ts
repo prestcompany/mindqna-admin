@@ -173,7 +173,7 @@ export type CreateBubbleParams = {
 };
 
 export type BubbleType = 'general' | 'day' | 'night' | 'custom';
-export type BannerLocationType = 'main_bottom' | 'main_right_small' | 'push_top' | 'wallet_charge_top' | 'wallet_charge' | 'main_poup';
+export type BannerLocationType = 'main_bottom' | 'main_right_small' | 'push_top' | 'wallet_charge_top' | 'wallet_charge' | 'main_poup' | 'square_library_top';
 
 export type GetBubblesResult = {
   pageInfo: TotalPageInfo;

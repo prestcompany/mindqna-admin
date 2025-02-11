@@ -21,6 +21,7 @@
     "dayjs": "^1.11.11",
     "framer-motion": "^10.15.0",
     "immer": "^10.0.4",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.263.1",
     "next": "13.4.12",
     "next-auth": "^4.22.3",

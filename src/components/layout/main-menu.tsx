@@ -1,5 +1,5 @@
 import { Divider } from 'antd';
-import { Component, Folders, LucideLayoutGrid, MegaphoneIcon, ShoppingCartIcon, UsersIcon } from 'lucide-react';
+import { Component, Folders, Gamepad2Icon, LucideLayoutGrid, MegaphoneIcon, ShoppingCartIcon, UsersIcon } from 'lucide-react';
 import React from 'react';
 import Menu, { IMenu } from './nav';
 
@@ -116,6 +116,41 @@ const mainMenuData: IMenu[] = [
     ],
   },
   {
+    id: 'game',
+    name: '게임 관리',
+    icon: <Gamepad2Icon className='w-4 h-4' />,
+    submenu: [
+      {
+        id: 'game-list',
+        name: '게임 관리',
+        link: {
+          path: '/game/list',
+        },
+      },
+      {
+        id: 'game-ranking-list',
+        name: '게임 랭킹 관리',
+        link: {
+          path: '/game/ranking/list',
+        },
+      },
+      {
+        id: 'game-reward-list',
+        name: '게임 보상 관리',
+        link: {
+          path: '/game/reward/list',
+        },
+      },
+      {
+        id: 'game-reward-policy-list',
+        name: '게임 보상 정책 관리',
+        link: {
+          path: '/game/reward-policy/list',
+        },
+      },
+    ],
+  },
+  {
     id: 'marketing',
     name: '마케팅 관리',
     icon: <MegaphoneIcon className='w-4 h-4' />,
@@ -153,6 +188,27 @@ const mainMenuData: IMenu[] = [
         name: '다국어 관리',
         link: {
           path: '/resource/locales',
+        },
+      },
+    ],
+  },
+  {
+    id: 'square-library',
+    name: '라이브러리 관리',
+    icon: <Folders className='w-4 h-4' />,
+    submenu: [
+      {
+        id: 'info',
+        name: '소식 관리',
+        link: {
+          path: '/square-library/info',
+        },
+      },
+      {
+        id: 'article',
+        name: '아티클 관리',
+        link: {
+          path: '/square-library/article',
         },
       },
     ],
