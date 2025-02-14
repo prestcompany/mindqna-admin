@@ -95,11 +95,7 @@ function GameList() {
     <>
       {holder}
       <DefaultTableBtn className='justify-between'>
-        <div className='flex-item-list'>
-          <Button type='primary' onClick={() => setOpenCreate(true)}>
-            게임 생성
-          </Button>
-        </div>
+        <div className='flex-item-list'></div>
       </DefaultTableBtn>
 
       <Table

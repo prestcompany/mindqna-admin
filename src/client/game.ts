@@ -128,6 +128,7 @@ export interface Game {
   dailyPlayLimit: number;
   ticketRechargeHeart: number;
   ticketRechargeStar: number;
+  stageScore: number;
   backgroundColor: string; // background color: 전체 배경 및 필터 텍스트
   primaryKeyColor: string; // key color 1: 메인 버튼 색상
   secondaryKeyColor: string; // key color 2: 버튼 강조, 타이틀 스트로크, 랭킹 내역
@@ -279,6 +280,7 @@ export interface GameCreateParams {
   dailyPlayLimit?: number;
   ticketRechargeHeart?: number;
   ticketRechargeStar?: number;
+  stageScore?: number;
   backgroundColor?: string;
   primaryKeyColor?: string;
   secondaryKeyColor?: string;

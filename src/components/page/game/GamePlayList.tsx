@@ -2,7 +2,7 @@ import { Game, GamePlay } from '@/client/game';
 import { Profile, Space } from '@/client/types';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import { useGamePlays } from '@/hooks/useGame';
-import { Button, Drawer, Modal, Table, TableProps, Tag } from 'antd';
+import { Drawer, Modal, Table, TableProps, Tag } from 'antd';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -94,11 +94,7 @@ function GamePlayList() {
     <>
       {holder}
       <DefaultTableBtn className='justify-between'>
-        <div className='flex-item-list'>
-          <Button type='primary' onClick={() => router.push('/game/new')}>
-            게임 생성
-          </Button>
-        </div>
+        <div className='flex-item-list'></div>
       </DefaultTableBtn>
 
       <Table
