@@ -166,6 +166,7 @@ const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
               <InputNumber type='number' placeholder='스테이지 점수를 입력해주세요.' />
             </Form.Item>
           </FormGroup>
+          <Divider />
           <FormGroup title='라이프 제한'>
             <Form.Item name='playLimitLife'>
               <InputNumber type='number' placeholder='라이프 제한을 입력해주세요.' />
