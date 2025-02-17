@@ -2,6 +2,7 @@ import { Game, GameRewardPolicy } from '@/client/game';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import { useGameRewardPolicies } from '@/hooks/useGame';
 import { Drawer, Modal, Table, TableProps, Tag } from 'antd';
+import { Button } from 'antd/lib';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
@@ -38,7 +39,7 @@ function GameRewardPolicyList() {
       key: 'condition',
       width: 100,
       render: (condition: any) => {
-        return <Tag>{JSON.stringify(condition)}</Tag>;
+        return <Button>정책 보기</Button>;
       },
     },
     {

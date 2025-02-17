@@ -1,3 +1,4 @@
+import { GameRankingsParams } from '@/hooks/useGame';
 import client from './@base';
 import { Locale, Profile, QueryResultWithPagination, Space } from './types';
 
@@ -30,9 +31,9 @@ export async function removeGame(id: number) {
   return res.data;
 }
 
-export async function getGameRankings(page: number) {
+export async function getGameRankings(params: GameRankingsParams) {
   const res = await client.get<QueryResultWithPagination<GameRanking>>(`/games/rankings`, {
-    params: { page },
+    params,
   });
 
   return res.data;
@@ -54,9 +55,9 @@ export async function getGamePlayLogs(gameId: number, page: number) {
   return res.data;
 }
 
-export async function getGameRewards(page: number) {
+export async function getGameRewards(params: GameRankingsParams) {
   const res = await client.get<QueryResultWithPagination<GameReward>>(`/games/rewards`, {
-    params: { page },
+    params,
   });
 
   return res.data;
@@ -200,9 +201,10 @@ export interface GameRanking {
   spaceId: string;
   score: number;
   rank: number;
-  week?: number | null;
-  month?: number | null;
+  week: number;
+  month: number;
   year: number;
+  isRead: boolean;
   createdAt: Date;
   updatedAt: Date;
   game?: Game | null;
