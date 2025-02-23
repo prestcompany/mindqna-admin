@@ -91,6 +91,11 @@ function GameList() {
       ),
     },
   ];
+
+  const handleCloseEdit = () => {
+    setOpenEdit(false);
+    setSelectedGame(undefined); // 선택된 게임 데이터 초기화
+  };
   return (
     <>
       {holder}
@@ -110,7 +115,7 @@ function GameList() {
         loading={isLoading}
       />
       <GameFormModal isOpen={isOpenCreate} close={() => setOpenCreate(false)} refetch={refetch} />
-      <GameFormModal isOpen={isOpenEdit} close={() => setOpenEdit(false)} game={selectedGame} refetch={refetch} />
+      <GameFormModal isOpen={isOpenEdit} close={handleCloseEdit} game={selectedGame} refetch={refetch} />
     </>
   );
 }
