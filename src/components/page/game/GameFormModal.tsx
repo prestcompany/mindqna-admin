@@ -6,7 +6,7 @@ import DefaultModal from '@/components/shared/ui/default-modal';
 import { Button, ColorPicker, Divider, Form, Input, InputNumber, message, Select, Spin, Switch } from 'antd';
 import { useForm } from 'antd/lib/form/Form';
 import { PauseIcon, PlayIcon } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // 상수 정의
 const LOCALE_OPTIONS = [
@@ -399,4 +399,4 @@ const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
   );
 };
 
-export default React.memo(GameFormModal);
+export default GameFormModal;

@@ -86,7 +86,6 @@ function GameList() {
           >
             수정
           </Button>
-          {/* <Button onClick={() => handleRemove(value)}>삭제</Button> */}
         </div>
       ),
     },
