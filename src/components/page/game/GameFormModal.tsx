@@ -105,11 +105,19 @@ const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
       setIsPlaying(false);
     }
     form.resetFields();
+    setColors({
+      backgroundColor: '#000000',
+      primaryKeyColor: '#000000',
+      secondaryKeyColor: '#000000',
+      primaryAccentColor: '#000000',
+      secondaryAccentColor: '#000000',
+      headerTextColor: '#000000',
+    });
     close();
   };
 
   useEffect(() => {
-    if (game) {
+    if (isOpen && game) {
       setColors({
         backgroundColor: game.backgroundColor || '#000000',
         primaryKeyColor: game.primaryKeyColor || '#000000',
@@ -118,8 +126,19 @@ const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
         secondaryAccentColor: game.secondaryAccentColor || '#000000',
         headerTextColor: game.headerTextColor || '#000000',
       });
+      form.setFieldsValue(game);
+    } else if (isOpen && !game) {
+      setColors({
+        backgroundColor: '#000000',
+        primaryKeyColor: '#000000',
+        secondaryKeyColor: '#000000',
+        primaryAccentColor: '#000000',
+        secondaryAccentColor: '#000000',
+        headerTextColor: '#000000',
+      });
+      form.resetFields();
     }
-  }, [game]);
+  }, [isOpen, game, form]);
 
   return (
     <DefaultModal handleHide={handleClose} open={isOpen} maskClosable={false} width={800}>

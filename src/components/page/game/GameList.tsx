@@ -1,4 +1,4 @@
-import { Game } from '@/client/game';
+import { Game, GameType } from '@/client/game';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import { useGames } from '@/hooks/useGame';
 import { Button, Modal, Table, TableProps, Tag } from 'antd';
@@ -18,6 +18,16 @@ function GameList() {
 
   const [selectedGame, setSelectedGame] = useState<Game | undefined>(undefined);
 
+  const gameTypeMap: Record<GameType, string> = {
+    SPEED_MATH: '사칙연산 빨리하기',
+    MEMORY_TAP: '기억하고 누르기',
+    SEQUENCE_TAP: '따라 누르기',
+    SEQUENCE_TAP_2: '따라 누르기 2',
+    SWIPE_MATCH: '문지르기',
+    DODGE_AND_COLLECT: '물건 피하고 재화 받기',
+    ETC: '기타',
+  };
+
   const columns: TableProps<Game>['columns'] = [
     {
       title: 'No.',
@@ -34,8 +44,8 @@ function GameList() {
       title: '게임 타입',
       dataIndex: 'type',
       key: 'type',
-      render: (value) => {
-        return <Tag color='black'>{value}</Tag>;
+      render: (type: GameType) => {
+        return <Tag color='black'>{gameTypeMap[type] || type}</Tag>;
       },
     },
 
