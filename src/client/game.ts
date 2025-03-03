@@ -25,6 +25,14 @@ export async function updateGame(params: GameUpdateParams) {
   return res.data;
 }
 
+export async function updateGameRewardPolicy(params: GameRewardPolicyUpdateParams) {
+  const { id, ...body } = params;
+
+  const res = await client.put(`/games/rewards/policies/${id}`, body);
+
+  return res.data;
+}
+
 export async function removeGame(id: number) {
   const res = await client.delete(`/games/${id}`);
 
@@ -217,7 +225,7 @@ export interface GameRewardPolicy {
   gameId: number;
   rewardType: RewardType;
   periodType: RewardPeriodType;
-  condition: any; // JSON type
+  condition: GameRewardCondition; // JSON type
   hearts: number;
   isActive: boolean;
   startDate?: Date | null;
@@ -227,7 +235,10 @@ export interface GameRewardPolicy {
   game: Game;
 }
 
-export type GameRewardCondition = { rank: number; score: number };
+export type GameRewardCondition = {
+  rangeRank: { hearts: number; rankEnd: number; rankStart: number };
+  individualRanks: { [key: string]: { rank: number; hearts: number } };
+};
 
 export interface GameReward {
   id: number;
@@ -293,6 +304,8 @@ export interface GameCreateParams {
 }
 
 export type GameUpdateParams = Partial<GameCreateParams> & { id: number };
+
+export type GameRewardPolicyUpdateParams = Partial<GameRewardPolicy> & { id: number };
 
 interface GameImgItem {
   type: 'game';

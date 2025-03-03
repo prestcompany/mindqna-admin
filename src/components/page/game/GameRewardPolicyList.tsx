@@ -1,10 +1,11 @@
-import { Game, GameRewardPolicy } from '@/client/game';
+import { Game, GameRewardCondition, GameRewardPolicy } from '@/client/game';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import { useGameRewardPolicies } from '@/hooks/useGame';
-import { Drawer, Modal, Table, TableProps, Tag } from 'antd';
+import { Modal, Table, TableProps, Tag } from 'antd';
 import { Button } from 'antd/lib';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
+import GameRewardPolicyModal from './GameRewardPolicyModal';
 
 function GameRewardPolicyList() {
   const router = useRouter();
@@ -14,7 +15,7 @@ function GameRewardPolicyList() {
   const [filter, setFilter] = useState<{ locale?: string[] }>({});
   const { items, totalPage, isLoading, refetch } = useGameRewardPolicies({ page: currentPage });
 
-  const [isOpenCreate, setOpenCreate] = useState(false);
+  const [selectedGameRewardPolicy, setSelectedGameRewardPolicy] = useState<GameRewardPolicy | undefined>(undefined);
   const [isOpenEdit, setOpenEdit] = useState(false);
 
   const columns: TableProps<GameRewardPolicy>['columns'] = [
@@ -38,8 +39,17 @@ function GameRewardPolicyList() {
       dataIndex: 'condition',
       key: 'condition',
       width: 100,
-      render: (condition: any) => {
-        return <Button>정책 보기</Button>;
+      render: (condition: GameRewardCondition, record: GameRewardPolicy) => {
+        return (
+          <Button
+            onClick={() => {
+              setSelectedGameRewardPolicy(record);
+              setOpenEdit(true);
+            }}
+          >
+            정책 수정
+          </Button>
+        );
       },
     },
     {
@@ -61,6 +71,7 @@ function GameRewardPolicyList() {
       <Table
         dataSource={items}
         columns={columns}
+        rowKey={(record) => record.id}
         pagination={{
           total: totalPage * 10,
           current: currentPage,
@@ -69,8 +80,7 @@ function GameRewardPolicyList() {
         }}
         loading={isLoading}
       />
-      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}></Drawer>
-      <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={600}></Drawer>
+      <GameRewardPolicyModal isOpen={isOpenEdit} close={() => setOpenEdit(false)} refetch={refetch} gameRewardPolicy={selectedGameRewardPolicy} />
     </>
   );
 }
