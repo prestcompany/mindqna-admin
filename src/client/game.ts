@@ -232,7 +232,7 @@ export interface GameRewardPolicy {
   endDate?: Date | null;
   createdAt: Date;
   updatedAt: Date;
-  game: Game;
+  game?: Game;
 }
 
 export type GameRewardCondition = {

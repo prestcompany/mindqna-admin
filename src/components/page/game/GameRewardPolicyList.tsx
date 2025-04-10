@@ -31,7 +31,7 @@ function GameRewardPolicyList() {
       key: 'game.name',
       width: 250,
       render: (game: Game) => {
-        return <Tag color={game.primaryKeyColor}>{game.name}</Tag>;
+        return <Tag color={game?.primaryKeyColor}>{game ? game.name : '전체 랭킹'}</Tag>;
       },
     },
     {
