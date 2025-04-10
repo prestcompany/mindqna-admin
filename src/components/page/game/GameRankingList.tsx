@@ -101,11 +101,11 @@ function GameRankingList() {
 
     {
       title: '점수',
-      dataIndex: 'score',
-      key: 'score',
+      dataIndex: 'bestScore',
+      key: 'bestScore',
       width: 150,
-      render: (score) => {
-        return <Tag color='green'>{score} P</Tag>;
+      render: (bestScore) => {
+        return <Tag color='green'>{bestScore.toLocaleString()} P</Tag>;
       },
     },
 
