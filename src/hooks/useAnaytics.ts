@@ -1,6 +1,6 @@
-import { getAnalytics } from "@/client/dashboard";
-import { SpaceType } from "@/client/types";
-import { useQuery } from "@tanstack/react-query";
+import { getAnalytics } from '@/client/dashboard';
+import { SpaceType } from '@/client/types';
+import { useQuery } from '@tanstack/react-query';
 
 type Props = {
   startedAt?: string;
@@ -13,7 +13,7 @@ function useAnalytics(by: Props) {
   const { startedAt, endedAt, spaceType, locale } = by;
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["analytics", by],
+    queryKey: ['analytics', by],
     queryFn: () => getAnalytics({ startedAt, endedAt, locale, spaceType }),
   });
 

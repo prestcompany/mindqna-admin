@@ -1,5 +1,5 @@
-import client from "./@base";
-import { Profile, Space, SpaceType, User } from "./types";
+import client from './@base';
+import { Profile, Space, SpaceType, User } from './types';
 
 export async function getAnalytics(by: {
   startedAt?: string;
@@ -7,13 +7,13 @@ export async function getAnalytics(by: {
   spaceType?: SpaceType[];
   locale?: string[];
 }) {
-  const res = await client.get<Result>("/analytics", { params: by });
+  const res = await client.get<Result>('/analytics', { params: by });
 
   return res.data;
 }
 
 export async function getAdsTest(by: { startedAt?: string; endedAt?: string }) {
-  const res = await client.get<{ userA: number; userB: number }>("/ads", { params: by });
+  const res = await client.get<{ userA: number; userB: number }>('/ads', { params: by });
 
   return res.data;
 }
