@@ -388,10 +388,7 @@ export type Space = {
   id: string;
   coin: number;
   coinPaid: number;
-  profiles: Profile[];
-  rooms: Room[];
   pet: Pet;
-  InteriorItem: InteriorItem[];
   cardOrder: number;
   cardGenDate: string;
   dueRemovedAt: string | null;
@@ -399,6 +396,9 @@ export type Space = {
   createdAt: string;
   updatedAt: string;
   spaceInfo: SpaceInfo;
+  profiles: Profile[];
+  rooms: Room[];
+  InteriorItem: InteriorItem[];
 };
 
 export type InteriorItem = {

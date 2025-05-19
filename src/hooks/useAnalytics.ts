@@ -29,9 +29,14 @@ function useUsersAnalytics(by: Props) {
 }
 function useSpaceAnalytics(by: Props) {
   const { startedAt, endedAt, spaceType, locale } = by;
+
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['analytics/space', by],
-    queryFn: () => getSpaceAnalytics({ startedAt, endedAt, spaceType, locale }),
+    queryFn: async () => {
+      const response = await getSpaceAnalytics({ startedAt, endedAt, spaceType, locale });
+      console.log('API Response in useSpaceAnalytics:', response);
+      return response;
+    },
   });
 
   return { data, isLoading, refetch };

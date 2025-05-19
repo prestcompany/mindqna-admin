@@ -17,10 +17,18 @@ const pretendard = localFont({
   variable: '--font-pretendard',
 });
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 0,
+    },
+  },
+});
 
 export default function App({ Component, pageProps: { session, ...pageProps } }: AppProps) {
-  const getLayout = (Component as IDefaultLayoutPage).getLayout || ((Page: NextComponentType, props: Record<string, unknown>) => <Page {...props} />);
+  const getLayout =
+    (Component as IDefaultLayoutPage).getLayout ||
+    ((Page: NextComponentType, props: Record<string, unknown>) => <Page {...props} />);
 
   return (
     <>
