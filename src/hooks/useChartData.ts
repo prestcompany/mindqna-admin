@@ -76,7 +76,7 @@ export const useChartData = (data: { users?: User[]; spaces?: Space[] } | undefi
       (acc, space) => {
         const createdAt = dayjs(space.createdAt).format('YYYY-MM-DD');
         const locale = space.spaceInfo?.locale || 'ko';
-        const defaultLocaleMap = { ko: 0, en: 0, ja: 0, zh: 0 };
+        const defaultLocaleMap = { ko: 0, en: 0, ja: 0, zh: 0, zhTw: 0, es: 0, id: 0 };
 
         if (!acc[createdAt]) {
           acc[createdAt] = defaultLocaleMap;
@@ -94,7 +94,7 @@ export const useChartData = (data: { users?: User[]; spaces?: Space[] } | undefi
 
     const spaceLabels = Object.keys(spaceDataMap).sort();
 
-    const spaceDatasets = locales.slice(0, 4).map((locale, index) => {
+    const spaceDatasets = locales.map((locale, index) => {
       return {
         label: locale,
         data: spaceLabels.map((label) => spaceDataMap[label][locale] || 0),
@@ -102,6 +102,8 @@ export const useChartData = (data: { users?: User[]; spaces?: Space[] } | undefi
         stack: locale,
       };
     });
+
+    console.log('sapces', spaces);
 
     const spaceTypeCountMap = countItemsWithSameKey(
       spaces.map((space) => ({

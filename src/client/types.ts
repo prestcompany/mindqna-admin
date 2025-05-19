@@ -39,6 +39,62 @@ export type CardTemplate = {
   updatedAt: string;
 };
 
+export type Card = {
+  id: number;
+  templateId: number;
+  spaceId: string;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+  space: Space;
+  template: CardTemplate;
+  comments: CardComment[];
+  metas: CardMeta[];
+  stat?: CardStat;
+  replies: Reply[];
+};
+
+export type CardStat = {
+  cardId: number;
+  views: number;
+  replies: number;
+  comments: number;
+  card: Card;
+};
+
+export type CardComment = {
+  id: number;
+  cardId: number;
+  profileId: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  card: Card;
+  profile: Profile;
+};
+
+export type CardMeta = {
+  id: number;
+  cardId: number;
+  profileId: string;
+  isBookmarked: boolean;
+  createdAt: string;
+  updatedAt: string;
+  card: Card;
+  profile: Profile;
+};
+
+export type Reply = {
+  id: number;
+  profileId: string;
+  cardId: number;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  card: Card;
+  profile: Profile;
+};
+
 export type GetCardTemplatesParams = {
   page: number;
   type?: CardTemplateType[];
@@ -173,7 +229,14 @@ export type CreateBubbleParams = {
 };
 
 export type BubbleType = 'general' | 'day' | 'night' | 'custom';
-export type BannerLocationType = 'main_bottom' | 'main_right_small' | 'push_top' | 'wallet_charge_top' | 'wallet_charge' | 'main_poup' | 'square_library_top';
+export type BannerLocationType =
+  | 'main_bottom'
+  | 'main_right_small'
+  | 'push_top'
+  | 'wallet_charge_top'
+  | 'wallet_charge'
+  | 'main_poup'
+  | 'square_library_top';
 
 export type GetBubblesResult = {
   pageInfo: TotalPageInfo;
@@ -323,7 +386,6 @@ export type SocialAccount = {
 
 export type Space = {
   id: string;
-  spaceInfo: SpaceInfo;
   coin: number;
   coinPaid: number;
   profiles: Profile[];
@@ -336,6 +398,7 @@ export type Space = {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  spaceInfo: SpaceInfo;
 };
 
 export type InteriorItem = {
@@ -348,15 +411,15 @@ export type InteriorItem = {
 
 export type SpaceInfo = {
   spaceId: string;
-  type: SpaceType;
+  ownerId: string;
+  members: number;
+  replies: number;
+  type: string;
   name: string;
   petName: string;
   startedAt: string;
-  ownerId: string;
   locale: string;
   noticeTime: string;
-  members: number;
-  replies: number;
   createdAt: string;
   updatedAt: string;
 };

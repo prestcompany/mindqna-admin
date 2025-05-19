@@ -1,12 +1,11 @@
 import 'chart.js/auto';
 import 'chartjs-plugin-datalabels';
 import dayjs from 'dayjs';
-import { useEffect } from 'react';
 
 import StatCard from '@/components/ui/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ActivityIcon, ChartIcon, CreditCardIcon, LayoutIcon } from '@/components/ui/icons';
-import useAnalytics from '@/hooks/useAnaytics';
+import { LayoutIcon } from '@/components/ui/icons';
+import { useSpaceAnalytics } from '@/hooks/useAnalytics';
 import useChartData from '@/hooks/useChartData';
 import SpaceChart from '../charts/SpaceChart';
 import SpaceTypeChart from '../charts/SpaceTypeChart';
@@ -17,71 +16,31 @@ interface SpaceTabProps {
 }
 
 function SpaceTab({ startedAt, endedAt }: SpaceTabProps) {
-  const { data, isLoading, refetch } = useAnalytics({
+  const { data, isLoading, refetch } = useSpaceAnalytics({
     startedAt: startedAt.format('YYYY-MM-DD'),
     endedAt: endedAt.format('YYYY-MM-DD'),
   });
 
-  // 날짜 변경 시 데이터 다시 가져오기
-  useEffect(() => {
-    refetch();
-  }, [startedAt, endedAt, refetch]);
+  console.log('data', data);
 
   // 차트 데이터 처리 로직을 커스텀 훅으로 분리
   const chartData = useChartData({ spaces: data?.spaces });
-
-  // 공간 차트 데이터
-  const spaceChartData = {
-    labels: chartData.spaceLabels || [],
-    datasets: chartData.spaceDatasets || [],
-  };
-
+  const totalSpaceCount = data?.total.spaces ?? 0;
+  const totalDeletedSpaceCount = data?.total.removedSpaces ?? 0;
   return (
     <>
       {/* 통계 카드 */}
-      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-2'>
         <StatCard
           title='총 공간 수'
-          value='3,845'
+          value={totalSpaceCount.toLocaleString()}
           icon={<LayoutIcon className='w-4 h-4 text-muted-foreground' />}
-          change={{
-            value: '+15.3%',
-            isPositive: true,
-            label: '지난 달 대비',
-          }}
         />
 
         <StatCard
-          title='활성 공간'
-          value='1,284'
-          icon={<ActivityIcon className='w-4 h-4 text-muted-foreground' />}
-          change={{
-            value: '+28.4%',
-            isPositive: true,
-            label: '지난 달 대비',
-          }}
-        />
-
-        <StatCard
-          title='공간 수익'
-          value='₩28,415,000'
-          icon={<ChartIcon className='w-4 h-4 text-muted-foreground' />}
-          change={{
-            value: '+12.7%',
-            isPositive: true,
-            label: '지난 달 대비',
-          }}
-        />
-
-        <StatCard
-          title='공간 결제'
-          value='+567'
-          icon={<CreditCardIcon className='w-4 h-4 text-muted-foreground' />}
-          change={{
-            value: '+23%',
-            isPositive: true,
-            label: '지난 달 대비',
-          }}
+          title='총 삭제 공간 수'
+          value={totalDeletedSpaceCount.toLocaleString()}
+          icon={<LayoutIcon className='w-4 h-4 text-muted-foreground' />}
         />
       </div>
 

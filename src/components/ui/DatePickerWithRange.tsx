@@ -27,13 +27,20 @@ export function DatePickerWithRange({
   setEndedAt,
   onDateChange,
 }: DatePickerWithRangeProps) {
+  // 기존 date 상태는 실제 반영된 날짜, pendingDate는 사용자가 선택 중인 날짜
   const [date, setDate] = React.useState<DateRange | undefined>({
     from: startedAt.toDate(),
     to: endedAt.toDate(),
   });
+  const [pendingDate, setPendingDate] = React.useState<DateRange | undefined>({
+    from: startedAt.toDate(),
+    to: endedAt.toDate(),
+  });
+  // Popover open 상태 관리
+  const [open, setOpen] = React.useState(false);
 
   // 달력 표시 월 상태 관리
-  const [currentMonth, setCurrentMonth] = React.useState<Date>(date?.from || new Date());
+  const [currentMonth, setCurrentMonth] = React.useState<Date>(pendingDate?.from || new Date());
 
   // 년도 배열 생성 (현재 년도부터 5년 전까지)
   const years = React.useMemo(() => {
@@ -46,27 +53,33 @@ export function DatePickerWithRange({
     return Array.from({ length: 12 }, (_, i) => i);
   }, []);
 
-  // 날짜 범위가 변경될 때
-  const handleDateChange = (range: DateRange | undefined) => {
-    setDate(range);
+  // 날짜 범위가 변경될 때 (달력에서 선택 시)
+  const handlePendingDateChange = (range: DateRange | undefined) => {
+    setPendingDate(range);
+  };
 
-    if (range?.from) {
-      setStartedAt(dayjs(range.from));
+  // '확인' 버튼 클릭 시 실제 날짜 반영
+  const handleConfirm = () => {
+    if (pendingDate?.from) {
+      setStartedAt(dayjs(pendingDate.from));
     }
-
-    if (range?.to) {
-      setEndedAt(dayjs(range.to));
+    if (pendingDate?.to) {
+      setEndedAt(dayjs(pendingDate.to));
     }
-
-    // 날짜 변경 시 콜백
-    if (range?.from && range?.to && onDateChange) {
+    setDate(pendingDate);
+    if (pendingDate?.from && pendingDate?.to && onDateChange) {
       onDateChange();
     }
+    setOpen(false); // 확인 시 팝오버 닫기
   };
 
   // Dayjs 날짜가 변경되면 내부 상태도 업데이트
   React.useEffect(() => {
     setDate({
+      from: startedAt.toDate(),
+      to: endedAt.toDate(),
+    });
+    setPendingDate({
       from: startedAt.toDate(),
       to: endedAt.toDate(),
     });
@@ -88,7 +101,7 @@ export function DatePickerWithRange({
 
   return (
     <div className={cn('grid gap-2', className)}>
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             id='date'
@@ -139,14 +152,19 @@ export function DatePickerWithRange({
           <Calendar
             initialFocus
             mode='range'
-            defaultMonth={date?.from}
-            selected={date}
-            onSelect={handleDateChange}
+            defaultMonth={pendingDate?.from}
+            selected={pendingDate}
+            onSelect={handlePendingDateChange}
             month={currentMonth}
             onMonthChange={setCurrentMonth}
             numberOfMonths={2}
             locale={ko}
           />
+          <div className='flex justify-end p-3 border-t'>
+            <Button onClick={handleConfirm} disabled={!pendingDate?.from || !pendingDate?.to}>
+              확인
+            </Button>
+          </div>
         </PopoverContent>
       </Popover>
     </div>

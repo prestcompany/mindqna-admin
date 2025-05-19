@@ -1,30 +1,58 @@
 import client from './@base';
-import { Profile, Space, SpaceType, User } from './types';
+import { CardTemplateType, Locale, Profile, Space, SpaceType, User } from './types';
 
-export async function getAnalytics(by: {
+export async function getUsersAnalytics(by: {
   startedAt?: string;
   endedAt?: string;
   spaceType?: SpaceType[];
   locale?: string[];
 }) {
-  const res = await client.get<Result>('/analytics', { params: by });
+  const res = await client.get<UsersStatistics>('/analytics/user', { params: by });
 
   return res.data;
 }
 
-export async function getAdsTest(by: { startedAt?: string; endedAt?: string }) {
-  const res = await client.get<{ userA: number; userB: number }>('/ads', { params: by });
+export async function getSpaceAnalytics(by: {
+  startedAt?: string;
+  endedAt?: string;
+  spaceType?: SpaceType[];
+  locale?: string[];
+}) {
+  const res = await client.get<SpaceStatistics>('/analytics/space', { params: by });
 
   return res.data;
 }
 
-type Result = {
+export async function getCardAnalytics() {
+  const res = await client.get<CardStatistics>('/analytics/card');
+
+  return res.data;
+}
+
+export interface CardStatistics {
+  cardStats: {
+    locale: Locale;
+    type: CardTemplateType;
+    spaceType: SpaceType;
+    maxOrder: number;
+    spaceMaxOrder?: number;
+  }[];
+}
+
+export interface UsersStatistics {
   users: User[];
-  spaces: Space[];
   profiles: Profile[];
   total: {
     users: number;
-    spaces: number;
     profiles: number;
+    removedProfiles: number;
   };
-};
+}
+
+export interface SpaceStatistics {
+  spaces: Space[];
+  total: {
+    spaces: number;
+    removedSpaces: number;
+  };
+}
