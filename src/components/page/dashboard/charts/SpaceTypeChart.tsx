@@ -21,15 +21,17 @@ function SpaceTypeChart({ spaceTypeCountMap, colors }: SpaceTypeChartProps) {
               {
                 label: '공간 수',
                 data: Object.values(spaceTypeCountMap),
+                backgroundColor: colors,
               },
             ],
           }}
         />
       </div>
       <div className='flex flex-col gap-4'>
-        {Object.entries(spaceTypeCountMap).map(([type, count]) => {
+        {Object.entries(spaceTypeCountMap).map(([type, count], index) => {
           return (
-            <div key={type}>
+            <div key={type} className='flex items-center gap-2'>
+              <div className='w-4 h-4 rounded-full' style={{ backgroundColor: colors[index] }}></div>
               {type} : {count}
             </div>
           );
