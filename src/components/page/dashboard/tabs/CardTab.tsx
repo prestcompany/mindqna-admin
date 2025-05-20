@@ -39,10 +39,18 @@ const LOCALE_NAME_MAP: Record<string, string> = {
   id: '인도네시아어',
 };
 
-function CardTab() {
+interface CardTabProps {
+  setLoading: (loading: boolean) => void;
+}
+
+function CardTab({ setLoading }: CardTabProps) {
   const { data, isLoading } = useCardAnalytics();
   const [cardStats, setCardStats] = useState<CardStatistics['cardStats']>([]);
   const [displayData, setDisplayData] = useState<DisplayCountryData[]>([]);
+
+  useEffect(() => {
+    setLoading(isLoading);
+  }, [isLoading, setLoading]);
 
   useEffect(() => {
     if (data && data.cardStats) {

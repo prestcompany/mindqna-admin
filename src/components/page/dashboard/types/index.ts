@@ -15,14 +15,22 @@ export type ChartProps = {
   colors: string[];
 };
 
-export type UserChartProps = ChartProps & {
+export type UserChartProps = Omit<ChartProps, 'colors'>;
+
+export type UserTableProps = {
+  labels: string[];
   userCountMap: CountMap;
   dataMap: LocaleMap;
+  colors: string[];
 };
 
-export type SpaceChartProps = ChartProps & {
+export type SpaceChartProps = Omit<ChartProps, 'colors'>;
+
+export type SpaceTableProps = {
+  labels: string[];
   spaceCountMap: CountMap;
   spaceDataMap: LocaleMap;
+  colors: string[];
 };
 
 export type SpaceTypeChartProps = {

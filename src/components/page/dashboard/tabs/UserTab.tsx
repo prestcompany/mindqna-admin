@@ -4,29 +4,34 @@ import 'chartjs-plugin-datalabels';
 import dayjs from 'dayjs';
 
 import StatCard from '@/components/ui/StatCard';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UsersIcon } from '@/components/ui/icons';
 import { useUsersAnalytics } from '@/hooks/useAnalytics';
 import useChartData from '@/hooks/useChartData';
+import { useEffect } from 'react';
 import UserChart from '../charts/UserChart';
+import { UserTable } from '../tables/UserTable';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 interface UserTabProps {
   startedAt: dayjs.Dayjs;
   endedAt: dayjs.Dayjs;
+  setLoading: (loading: boolean) => void;
 }
 
-function UserTab({ startedAt, endedAt }: UserTabProps) {
+function UserTab({ startedAt, endedAt, setLoading }: UserTabProps) {
   const { data, isLoading } = useUsersAnalytics({
     startedAt: startedAt.format('YYYY-MM-DD'),
     endedAt: endedAt.format('YYYY-MM-DD'),
   });
 
+  useEffect(() => {
+    setLoading(isLoading);
+  }, [isLoading, setLoading]);
+
   // 차트 데이터 처리 로직을 커스텀 훅으로 분리
   const chartData = useChartData({ users: data?.users });
-  const profiles = data?.profiles ?? [];
   const totalUserCount = data?.total.users ?? 0;
   const totalProfileCount = data?.total.profiles ?? 0;
   const totalUserRemovedCount = data?.total.removedProfiles ?? 0;
@@ -77,17 +82,24 @@ function UserTab({ startedAt, endedAt }: UserTabProps) {
             <CardTitle>사용자 분석</CardTitle>
           </CardHeader>
           <CardContent>
-            <UserChart
+            <UserChart labels={chartData.labels || []} datasets={chartData.datasets || []} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>사용자 통계</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <UserTable
               labels={chartData.labels || []}
-              datasets={chartData.datasets || []}
               userCountMap={chartData.userCountMap || {}}
               dataMap={chartData.dataMap || {}}
               colors={chartData.colors}
             />
           </CardContent>
         </Card>
-
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle>최근 가입자</CardTitle>
             <CardDescription>현재 날짜에 {profiles.length}개의 프로필이 생성됐습니다.</CardDescription>
@@ -110,7 +122,7 @@ function UserTab({ startedAt, endedAt }: UserTabProps) {
               ))}
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </>
   );

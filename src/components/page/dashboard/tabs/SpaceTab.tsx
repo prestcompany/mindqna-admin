@@ -7,26 +7,32 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LayoutIcon } from '@/components/ui/icons';
 import { useSpaceAnalytics } from '@/hooks/useAnalytics';
 import useChartData from '@/hooks/useChartData';
+import { useEffect } from 'react';
 import SpaceChart from '../charts/SpaceChart';
 import SpaceTypeChart from '../charts/SpaceTypeChart';
+import { SpaceTable } from '../tables/SpaceTable';
 
 interface SpaceTabProps {
   startedAt: dayjs.Dayjs;
   endedAt: dayjs.Dayjs;
+  setLoading: (loading: boolean) => void;
 }
 
-function SpaceTab({ startedAt, endedAt }: SpaceTabProps) {
+function SpaceTab({ startedAt, endedAt, setLoading }: SpaceTabProps) {
   const { data, isLoading, refetch } = useSpaceAnalytics({
     startedAt: startedAt.format('YYYY-MM-DD'),
     endedAt: endedAt.format('YYYY-MM-DD'),
   });
 
-  console.log('data', data);
+  useEffect(() => {
+    setLoading(isLoading);
+  }, [isLoading, setLoading]);
 
   // 차트 데이터 처리 로직을 커스텀 훅으로 분리
   const chartData = useChartData({ spaces: data?.spaces });
   const totalSpaceCount = data?.total.spaces ?? 0;
   const totalDeletedSpaceCount = data?.total.removedSpaces ?? 0;
+
   return (
     <>
       {/* 통계 카드 */}
@@ -50,13 +56,7 @@ function SpaceTab({ startedAt, endedAt }: SpaceTabProps) {
             <CardTitle>공간 통계</CardTitle>
           </CardHeader>
           <CardContent>
-            <SpaceChart
-              labels={chartData.spaceLabels || []}
-              datasets={chartData.spaceDatasets || []}
-              spaceCountMap={chartData.spaceCountMap || {}}
-              spaceDataMap={chartData.spaceDataMap || {}}
-              colors={chartData.colors}
-            />
+            <SpaceChart labels={chartData.spaceLabels || []} datasets={chartData.spaceDatasets || []} />
           </CardContent>
         </Card>
 
@@ -66,6 +66,20 @@ function SpaceTab({ startedAt, endedAt }: SpaceTabProps) {
           </CardHeader>
           <CardContent>
             <SpaceTypeChart spaceTypeCountMap={chartData.spaceTypeCountMap || {}} colors={chartData.colors} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>공간 타입 분석</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SpaceTable
+              labels={chartData.spaceLabels || []}
+              spaceCountMap={chartData.spaceCountMap || {}}
+              spaceDataMap={chartData.spaceDataMap || {}}
+              colors={chartData.colors}
+            />
           </CardContent>
         </Card>
       </div>

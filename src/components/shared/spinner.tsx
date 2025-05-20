@@ -8,7 +8,7 @@ interface ISpinnerProps {
 const Spinner = ({ color = 'gray' }: ISpinnerProps) => {
   return (
     <div className={style.spinner}>
-      <div className={`mx-auto lds-spinner lds-spinner-${color}`}>
+      <div className={`mx-auto  lds-spinner lds-spinner-${color}`}>
         <div />
         <div />
         <div />
