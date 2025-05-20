@@ -5,6 +5,14 @@ type Props = {
   page: number;
 };
 
+export type GameRankingsParams = {
+  page: number;
+  gameId?: number;
+  year?: number;
+  month?: number;
+  week?: number;
+};
+
 export const useGames = (by: Props) => {
   const { page } = by;
 
@@ -20,12 +28,12 @@ export const useGames = (by: Props) => {
   return { items, totalPage, isLoading, refetch };
 };
 
-export const useGameRankings = (by: Props) => {
-  const { page } = by;
+export const useGameRankings = (by: GameRankingsParams) => {
+  const { page, ...filter } = by;
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['gameRankings', page],
-    queryFn: () => getGameRankings(page),
+    queryKey: ['gameRankings', page, by.gameId, by.year, by.month, by.week],
+    queryFn: () => getGameRankings({ page, ...filter }),
   });
 
   const items = data?.items ?? [];
@@ -50,12 +58,12 @@ export const useGamePlays = (by: Props) => {
   return { items, totalPage, isLoading, refetch };
 };
 
-export const useGameRewards = (by: Props) => {
-  const { page } = by;
+export const useGameRewards = (by: GameRankingsParams) => {
+  const { page, ...filter } = by;
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['gameRewards', page],
-    queryFn: () => getGameRewards(page),
+    queryKey: ['gameRewards', page, by.gameId, by.year, by.month, by.week],
+    queryFn: () => getGameRewards({ page, ...filter }),
   });
 
   const items = data?.items ?? [];

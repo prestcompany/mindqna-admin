@@ -6,7 +6,7 @@ import DefaultModal from '@/components/shared/ui/default-modal';
 import { Button, ColorPicker, Divider, Form, Input, InputNumber, message, Select, Spin, Switch } from 'antd';
 import { useForm } from 'antd/lib/form/Form';
 import { PauseIcon, PlayIcon } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // 상수 정의
 const LOCALE_OPTIONS = [
@@ -105,11 +105,19 @@ const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
       setIsPlaying(false);
     }
     form.resetFields();
+    setColors({
+      backgroundColor: '#000000',
+      primaryKeyColor: '#000000',
+      secondaryKeyColor: '#000000',
+      primaryAccentColor: '#000000',
+      secondaryAccentColor: '#000000',
+      headerTextColor: '#000000',
+    });
     close();
   };
 
   useEffect(() => {
-    if (game) {
+    if (isOpen && game) {
       setColors({
         backgroundColor: game.backgroundColor || '#000000',
         primaryKeyColor: game.primaryKeyColor || '#000000',
@@ -118,8 +126,19 @@ const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
         secondaryAccentColor: game.secondaryAccentColor || '#000000',
         headerTextColor: game.headerTextColor || '#000000',
       });
+      form.setFieldsValue(game);
+    } else if (isOpen && !game) {
+      setColors({
+        backgroundColor: '#000000',
+        primaryKeyColor: '#000000',
+        secondaryKeyColor: '#000000',
+        primaryAccentColor: '#000000',
+        secondaryAccentColor: '#000000',
+        headerTextColor: '#000000',
+      });
+      form.resetFields();
     }
-  }, [game]);
+  }, [isOpen, game, form]);
 
   return (
     <DefaultModal handleHide={handleClose} open={isOpen} maskClosable={false} width={800}>
@@ -158,6 +177,12 @@ const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
           <FormGroup title='게임명*'>
             <Form.Item name='name' rules={[{ required: true, message: '' }]}>
               <Input placeholder='게임 제목을 입력해주세요.' />
+            </Form.Item>
+          </FormGroup>
+          <Divider />
+          <FormGroup title='스테이지 점수'>
+            <Form.Item name='stageScore'>
+              <InputNumber type='number' placeholder='스테이지 점수를 입력해주세요.' />
             </Form.Item>
           </FormGroup>
           <Divider />
@@ -393,4 +418,4 @@ const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
   );
 };
 
-export default React.memo(GameFormModal);
+export default GameFormModal;

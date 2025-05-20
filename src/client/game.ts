@@ -1,3 +1,4 @@
+import { GameRankingsParams } from '@/hooks/useGame';
 import client from './@base';
 import { Locale, Profile, QueryResultWithPagination, Space } from './types';
 
@@ -24,15 +25,23 @@ export async function updateGame(params: GameUpdateParams) {
   return res.data;
 }
 
+export async function updateGameRewardPolicy(params: GameRewardPolicyUpdateParams) {
+  const { id, ...body } = params;
+
+  const res = await client.put(`/games/rewards/policies/${id}`, body);
+
+  return res.data;
+}
+
 export async function removeGame(id: number) {
   const res = await client.delete(`/games/${id}`);
 
   return res.data;
 }
 
-export async function getGameRankings(page: number) {
+export async function getGameRankings(params: GameRankingsParams) {
   const res = await client.get<QueryResultWithPagination<GameRanking>>(`/games/rankings`, {
-    params: { page },
+    params,
   });
 
   return res.data;
@@ -54,9 +63,9 @@ export async function getGamePlayLogs(gameId: number, page: number) {
   return res.data;
 }
 
-export async function getGameRewards(page: number) {
+export async function getGameRewards(params: GameRankingsParams) {
   const res = await client.get<QueryResultWithPagination<GameReward>>(`/games/rewards`, {
-    params: { page },
+    params,
   });
 
   return res.data;
@@ -128,6 +137,7 @@ export interface Game {
   dailyPlayLimit: number;
   ticketRechargeHeart: number;
   ticketRechargeStar: number;
+  stageScore: number;
   backgroundColor: string; // background color: 전체 배경 및 필터 텍스트
   primaryKeyColor: string; // key color 1: 메인 버튼 색상
   secondaryKeyColor: string; // key color 2: 버튼 강조, 타이틀 스트로크, 랭킹 내역
@@ -199,9 +209,10 @@ export interface GameRanking {
   spaceId: string;
   score: number;
   rank: number;
-  week?: number | null;
-  month?: number | null;
+  week: number;
+  month: number;
   year: number;
+  isRead: boolean;
   createdAt: Date;
   updatedAt: Date;
   game?: Game | null;
@@ -214,17 +225,20 @@ export interface GameRewardPolicy {
   gameId: number;
   rewardType: RewardType;
   periodType: RewardPeriodType;
-  condition: any; // JSON type
+  condition: GameRewardCondition; // JSON type
   hearts: number;
   isActive: boolean;
   startDate?: Date | null;
   endDate?: Date | null;
   createdAt: Date;
   updatedAt: Date;
-  game: Game;
+  game?: Game;
 }
 
-export type GameRewardCondition = { rank: number; score: number };
+export type GameRewardCondition = {
+  rangeRank: { hearts: number; rankEnd: number; rankStart: number };
+  individualRanks: { [key: string]: { rank: number; hearts: number } };
+};
 
 export interface GameReward {
   id: number;
@@ -279,6 +293,7 @@ export interface GameCreateParams {
   dailyPlayLimit?: number;
   ticketRechargeHeart?: number;
   ticketRechargeStar?: number;
+  stageScore?: number;
   backgroundColor?: string;
   primaryKeyColor?: string;
   secondaryKeyColor?: string;
@@ -289,6 +304,8 @@ export interface GameCreateParams {
 }
 
 export type GameUpdateParams = Partial<GameCreateParams> & { id: number };
+
+export type GameRewardPolicyUpdateParams = Partial<GameRewardPolicy> & { id: number };
 
 interface GameImgItem {
   type: 'game';

@@ -1,14 +1,14 @@
-import client from "./@base";
-import { QueryResultWithPagination } from "./types";
+import client from './@base';
+import { QueryResultWithPagination } from './types';
 
 export async function getRooms(page: number) {
-  const res = await client.get<QueryResultWithPagination<RoomTemplate>>("/room", { params: { page } });
+  const res = await client.get<QueryResultWithPagination<RoomTemplate>>('/room', { params: { page } });
 
   return res.data;
 }
 
 export async function getToalRooms() {
-  const res = await client.get<{ type: string }[]>("/room-total");
+  const res = await client.get<{ type: string }[]>('/room-total');
 
   return res.data;
 }
@@ -16,7 +16,7 @@ export async function getToalRooms() {
 export async function createRoom(params: CreateRoomParams) {
   const { ...body } = params;
 
-  const res = await client.post("/room", body);
+  const res = await client.post('/room', body);
 
   return res.data;
 }
@@ -46,7 +46,7 @@ export type RoomTemplate = {
   updatedAt: Date;
 };
 
-export type RoomCategory = "rooftop" | "inner" | "outer";
+export type RoomCategory = 'rooftop' | 'inner' | 'outer';
 
 export type CreateRoomParams = {
   category: RoomCategory;
