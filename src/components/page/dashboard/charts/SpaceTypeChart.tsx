@@ -4,7 +4,7 @@ import { SpaceTypeChartProps } from '../types';
 function SpaceTypeChart({ spaceTypeCountMap, colors }: SpaceTypeChartProps) {
   return (
     <div className='flex gap-12'>
-      <div className='w-[600px] h-[600px]'>
+      <div className='w-[400px] h-[400px]'>
         <Chart
           type='pie'
           options={{
