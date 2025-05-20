@@ -19,6 +19,8 @@ export function UserTable({ labels, userCountMap, dataMap, colors }: UserTablePr
   const totalUsers = Object.values(totalCounts).reduce((sum, count) => sum + count, 0);
   const daysCount = labels.length;
   const avgUsersPerDay = daysCount > 0 ? Math.round(totalUsers / daysCount) : 0;
+  const allPanelKeys = Object.keys(userCountMap);
+
   return (
     <div className='flex flex-col gap-4'>
       <div className='flex items-center gap-4'>
@@ -40,7 +42,7 @@ export function UserTable({ labels, userCountMap, dataMap, colors }: UserTablePr
       <div className='mt-4'>
         <div className='mb-2 text-xl font-bold'>일자별 세부 데이터</div>
         <div className='max-h-[800px] overflow-y-auto'>
-          <Collapse>
+          <Collapse activeKey={allPanelKeys}>
             {Object.entries(userCountMap).map(([date, totalCount]) => (
               <Collapse.Panel header={`${date} (총 ${totalCount}명)`} key={date}>
                 <div className='flex flex-col gap-2'>

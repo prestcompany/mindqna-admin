@@ -20,6 +20,8 @@ export function SpaceTable({ labels, spaceCountMap, spaceDataMap, colors }: Spac
   const daysCount = labels.length;
   const avgSpacesPerDay = daysCount > 0 ? Math.round(totalSpaces / daysCount) : 0;
 
+  const allPanelKeys = Object.keys(spaceCountMap);
+
   return (
     <div className='flex flex-col gap-4'>
       <div className='flex items-center gap-4'>
@@ -41,7 +43,7 @@ export function SpaceTable({ labels, spaceCountMap, spaceDataMap, colors }: Spac
       <div className='mt-4'>
         <div className='mb-2 text-xl font-bold'>일자별 세부 데이터</div>
         <div className='max-h-[800px] overflow-y-auto pr-2'>
-          <Collapse>
+          <Collapse activeKey={allPanelKeys}>
             {Object.entries(spaceCountMap).map(([date, totalCount]) => (
               <Collapse.Panel header={`${date} (총 ${totalCount}개)`} key={date}>
                 <div className='flex flex-col gap-2'>
