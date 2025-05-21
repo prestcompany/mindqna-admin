@@ -14,7 +14,7 @@ dayjs.extend(localeData);
 
 function Dashboard() {
   const [loading, setLoading] = useState<boolean>(true);
-  const [startedAt, setStartedAt] = useState<dayjs.Dayjs>(dayjs().subtract(1, 'day'));
+  const [startedAt, setStartedAt] = useState<dayjs.Dayjs>(dayjs().subtract(7, 'day'));
   const [endedAt, setEndedAt] = useState<dayjs.Dayjs>(dayjs());
   const [activeTab, setActiveTab] = useState<string>('overview');
 
