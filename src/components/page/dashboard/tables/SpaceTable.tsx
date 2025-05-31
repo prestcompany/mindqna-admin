@@ -22,13 +22,41 @@ export function SpaceTable({ labels, spaceCountMap, spaceDataMap, colors }: Spac
 
   const allPanelKeys = Object.keys(spaceCountMap);
 
+  const avgSpacesPerLocalePerDay: Record<string, number> = {};
+  if (daysCount > 0) {
+    Object.entries(totalCounts).forEach(([locale, count]) => {
+      avgSpacesPerLocalePerDay[locale] = Math.round(count / daysCount);
+    });
+  }
+
   return (
     <div className='flex flex-col gap-4'>
       <div className='flex items-center gap-4'>
         <div className='text-lg font-medium'>총 생성 공간 수: {totalSpaces}개</div>
         <div className='text-lg font-medium text-blue-600'>(일 평균: {avgSpacesPerDay}개)</div>
       </div>
-      <div className='flex flex-wrap gap-2 mt-2'>
+
+      {/* 언어별 일 평균 사용자 수 섹션 */}
+      <div className='flex gap-2'>
+        <div className='mb-2 text-lg font-medium'>언어별 일 평균 생성 공간 수:</div>
+        <div className='flex flex-wrap gap-2'>
+          {Object.entries(avgSpacesPerLocalePerDay).map(([locale, avgCount], idx) => {
+            if (totalCounts[locale] === 0) return null; // 총 사용자 수가 0이면 평균도 표시하지 않음
+            return (
+              <div
+                key={`${locale}-avg`}
+                className='px-3 py-1 font-bold rounded'
+                style={{ backgroundColor: colors[idx % colors.length], color: '#000000' }}
+              >
+                {locale}: {avgCount}개
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className='flex flex-wrap gap-2'>
+        <div className='mb-2 text-lg font-medium'>언어별 총 생성 공간 수:</div>
         {Object.entries(totalCounts).map(([locale, count], idx) => {
           if (count === 0) return null;
           return (

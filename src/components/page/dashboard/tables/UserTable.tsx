@@ -19,20 +19,49 @@ export function UserTable({ labels, userCountMap, dataMap, colors }: UserTablePr
   const totalUsers = Object.values(totalCounts).reduce((sum, count) => sum + count, 0);
   const daysCount = labels.length;
   const avgUsersPerDay = daysCount > 0 ? Math.round(totalUsers / daysCount) : 0;
+
+  const avgUsersPerLocalePerDay: Record<string, number> = {};
+  if (daysCount > 0) {
+    Object.entries(totalCounts).forEach(([locale, count]) => {
+      avgUsersPerLocalePerDay[locale] = Math.round(count / daysCount);
+    });
+  }
+
   const allPanelKeys = Object.keys(userCountMap);
 
   return (
     <div className='flex flex-col gap-4'>
       <div className='flex items-center gap-4'>
-        <div className='text-lg font-medium'>총 사용자 수: {totalUsers}명</div>
+        <div className='text-lg font-medium'>총 가입자 수: {totalUsers}명</div>
         <div className='text-lg font-medium text-blue-600'>(일 평균: {avgUsersPerDay}명)</div>
       </div>
-      <div className='flex flex-wrap gap-2 mt-2'>
+
+      {/* 언어별 일 평균 사용자 수 섹션 */}
+      <div className='flex gap-2'>
+        <div className='mb-2 text-lg font-medium'>언어별 일 평균 가입자 수:</div>
+        <div className='flex flex-wrap gap-2'>
+          {Object.entries(avgUsersPerLocalePerDay).map(([locale, avgCount], idx) => {
+            if (totalCounts[locale] === 0) return null; // 총 사용자 수가 0이면 평균도 표시하지 않음
+            return (
+              <div
+                key={`${locale}-avg`}
+                className='px-3 py-1 font-bold rounded'
+                style={{ backgroundColor: colors[idx % colors.length], color: '#000000' }}
+              >
+                {locale}: {avgCount}명
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className='flex flex-wrap gap-2'>
+        <div className='mb-2 text-lg font-medium'>언어별 총 가입자 수:</div>
         {Object.entries(totalCounts).map(([locale, count], idx) => {
           if (count === 0) return null;
           return (
             <div key={locale} className='px-3 py-1 font-bold rounded' style={{ backgroundColor: colors[idx] }}>
-              {locale} : {count}명
+              {locale} : {count} 명
             </div>
           );
         })}
