@@ -12,14 +12,21 @@ export const CardUploader = ({ setFile, accept }: CardUploaderProps) => {
     accept,
     name: 'file',
     multiple: false,
+    maxCount: 1,
+    beforeUpload: () => false,
     onChange(info) {
       const { status } = info.file;
-      if (status !== 'uploading') {
-        console.log(info.file, info.fileList);
-        setFile(info.fileList.map((file) => file.originFileObj as RcFile));
+
+      if (info.fileList.length > 0) {
+        const latestFile = info.fileList[info.fileList.length - 1];
+        if (latestFile.originFileObj) {
+          setFile([latestFile.originFileObj as RcFile]);
+        }
+      } else {
+        setFile([]);
       }
-      if (status === 'done') {
-      } else if (status === 'error') {
+
+      if (status === 'error') {
         console.error(`${info.file.name} file upload failed.`);
       }
     },
