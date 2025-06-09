@@ -178,7 +178,9 @@ function CustomList() {
       />
 
       {isOpenCreate && <CustomFormModal isOpen={isOpenCreate} reload={refetch} close={() => setOpenCreate(false)} />}
-      {isOpenEdit && <CustomFormModal isOpen={isOpenEdit} reload={refetch} close={() => setOpenEdit(false)} init={focused} />}
+      {isOpenEdit && (
+        <CustomFormModal isOpen={isOpenEdit} reload={refetch} close={() => setOpenEdit(false)} init={focused} />
+      )}
     </>
   );
 }
