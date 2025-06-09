@@ -53,6 +53,23 @@ const AnimationFileUploader: React.FC<AnimationFileUploaderProps> = ({
     }
   };
 
+  // 버튼 텍스트와 동작 정의
+  const getButtonConfig = () => {
+    if (isEditMode) {
+      return {
+        replaceText: '파일 교체',
+        cancelText: fileState.uploadFile ? '취소' : '기존 파일로',
+        showCancel: true,
+      };
+    } else {
+      return {
+        replaceText: '파일 교체',
+        cancelText: '파일 제거',
+        showCancel: true,
+      };
+    }
+  };
+
   if (fileState.isLoading) {
     return <Spin size='large' />;
   }
@@ -62,64 +79,31 @@ const AnimationFileUploader: React.FC<AnimationFileUploaderProps> = ({
     return <CardUploader setFile={handleFileSelect} accept='.json' />;
   }
 
+  const buttonConfig = getButtonConfig();
+
   return (
     <div className='flex flex-col gap-4'>
-      {/* 새로 업로드된 파일이 있으면 Lottie로 표시 */}
+      {/* 파일 미리보기 */}
       {fileState.uploadFile && fileState.animationData ? (
         <Lottie loop animationData={fileState.animationData} play style={{ width: 150, height: 150 }} />
       ) : fileState.existingFileUrl ? (
-        // 기존 파일이 있으면 LottieCDNPlayer로 표시
         <LottieCDNPlayer fileUrl={fileState.existingFileUrl} width={150} height={150} />
       ) : null}
 
-      {/* 파일이 있을 때 버튼들 표시 */}
-      {(fileState.animationData || fileState.existingFileUrl) && (
-        <div className='flex gap-2'>
-          {isEditMode ? (
-            // 수정 모드 버튼들
-            <>
-              {!fileState.uploadFile && (
-                <>
-                  <Button type='dashed' onClick={handleFileReplace}>
-                    파일 교체
-                  </Button>
-                  <input
-                    ref={fileInputRef}
-                    type='file'
-                    accept='.json'
-                    style={{ display: 'none' }}
-                    onChange={handleInputChange}
-                  />
-                </>
-              )}
-              {fileState.uploadFile && (
-                <Button type='default' onClick={handleCancel}>
-                  취소
-                </Button>
-              )}
-            </>
-          ) : (
-            // 신규 생성 모드 버튼들
-            <>
-              <Button type='dashed' onClick={handleFileReplace}>
-                파일 교체
-              </Button>
-              <Button type='default' onClick={handleCancel}>
-                파일 제거
-              </Button>
-              <input
-                ref={fileInputRef}
-                type='file'
-                accept='.json'
-                style={{ display: 'none' }}
-                onChange={handleInputChange}
-              />
-            </>
-          )}
-        </div>
-      )}
+      {/* 일관된 버튼 레이아웃 */}
+      <div className='flex gap-2'>
+        <Button type='dashed' onClick={handleFileReplace}>
+          {buttonConfig.replaceText}
+        </Button>
 
-      {!isEditMode && <CardUploader setFile={handleFileSelect} accept='.json' />}
+        {buttonConfig.showCancel && (
+          <Button type='default' onClick={handleCancel}>
+            {buttonConfig.cancelText}
+          </Button>
+        )}
+
+        <input ref={fileInputRef} type='file' accept='.json' style={{ display: 'none' }} onChange={handleInputChange} />
+      </div>
     </div>
   );
 };

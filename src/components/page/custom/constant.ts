@@ -2,8 +2,8 @@ import { PetTypeForCustom } from '@/client/types';
 
 export const PetCustomTypeOptions = [
   { label: '효과', value: 'effect' },
-  { label: '옷장', value: 'closet' },
   { label: '짝궁', value: 'buddy' },
+  { label: '옷장', value: 'closet' },
 ];
 
 export const premiumOptions = [

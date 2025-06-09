@@ -19,6 +19,7 @@ export const useCustomForm = (init?: PetCustomTemplate) => {
   const [formData, setFormData] = useState<CustomFormData>(initialFormData);
   const [locale, setLocale] = useState<Locale>('ko');
   const [focusedId, setFocusedId] = useState<number | undefined>();
+  const [hasFile, setHasFile] = useState(false);
 
   const updateFormData = useCallback((updates: Partial<CustomFormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
@@ -28,10 +29,15 @@ export const useCustomForm = (init?: PetCustomTemplate) => {
     setLocale(locale);
   }, []);
 
+  const setFileUploaded = useCallback((uploaded: boolean) => {
+    setHasFile(uploaded);
+  }, []);
+
   const resetForm = useCallback(() => {
     setFormData(initialFormData);
     setLocale('ko');
     setFocusedId(undefined);
+    setHasFile(false);
     form.resetFields();
   }, [form]);
 
@@ -53,6 +59,8 @@ export const useCustomForm = (init?: PetCustomTemplate) => {
       price: init.price,
       image: init.img,
     });
+
+    setHasFile(true);
   }, [init, resetForm]);
 
   useEffect(() => {
@@ -70,6 +78,7 @@ export const useCustomForm = (init?: PetCustomTemplate) => {
     { name: 'price', value: formData.price },
     { name: 'img', value: formData.image },
     { name: 'fileKey', value: formData.fileKey },
+    { name: 'file', value: hasFile ? 'uploaded' : '' },
   ];
 
   return {
@@ -78,8 +87,10 @@ export const useCustomForm = (init?: PetCustomTemplate) => {
     locale,
     focusedId,
     fields,
+    hasFile,
     updateFormData,
     updateLocale,
+    setFileUploaded,
     resetForm,
   };
 };

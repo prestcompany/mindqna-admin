@@ -26,7 +26,8 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ isOpen, init, reload, clos
     id: '',
   });
 
-  const { form, formData, locale, focusedId, fields, updateFormData, updateLocale, resetForm } = useCustomForm(init);
+  const { form, formData, focusedId, fields, hasFile, updateFormData, setFileUploaded, resetForm } =
+    useCustomForm(init);
 
   const { fileState, loadExistingAnimation, handleFileUpload, resetToExisting, removeFile, resetFile } =
     useAnimationFile();
@@ -39,6 +40,12 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ isOpen, init, reload, clos
       resetFile();
     }
   }, [init?.fileUrl, loadExistingAnimation, resetFile]);
+
+  // 파일 상태 변경 시 Form 상태 동기화
+  useEffect(() => {
+    const hasFileUploaded = !!(fileState.animationData || fileState.existingFileUrl);
+    setFileUploaded(hasFileUploaded);
+  }, [fileState.animationData, fileState.existingFileUrl, setFileUploaded]);
 
   const handleFileUploadWithKey = (files: any[]) => {
     handleFileUpload(files, (key) => {
@@ -87,6 +94,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ isOpen, init, reload, clos
         close();
       }, 500);
     } catch (err) {
+      console.log(err);
       message.error(`${err}`);
       setLoading(false);
     }
@@ -233,7 +241,21 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ isOpen, init, reload, clos
           <Divider />
 
           <FormGroup title='로티 파일*'>
-            <Form.Item name='file' rules={[{ required: !focusedId, message: '로티 파일은 필수입니다.' }]}>
+            <Form.Item
+              name='file'
+              rules={[
+                {
+                  required: !focusedId,
+                  message: '로티 파일은 필수입니다.',
+                  validator: async (_, value) => {
+                    if (!focusedId && !hasFile) {
+                      throw new Error('로티 파일을 업로드해주세요.');
+                    }
+                    return Promise.resolve();
+                  },
+                },
+              ]}
+            >
               <AnimationFileUploader
                 fileState={fileState}
                 isEditMode={!!focusedId}
