@@ -233,7 +233,25 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ isOpen, init, reload, clos
             </Form.Item>
             {formData.image && (
               <Form.Item>
-                <Image width={100} height={100} src={formData.image.uri} alt='img' style={{ objectFit: 'contain' }} />
+                <div className='relative inline-block'>
+                  <Image width={100} height={100} src={formData.image.uri} alt='img' style={{ objectFit: 'contain' }} />
+                  <Button
+                    type='text'
+                    danger
+                    size='small'
+                    className='absolute bg-white shadow-md -top-2 -right-2'
+                    onClick={() => updateFormData({ image: undefined })}
+                  >
+                    ✕
+                  </Button>
+                </div>
+                <div className='mt-2 text-sm text-gray-500'>
+                  {(() => {
+                    const fileName = formData.image.uri.split('/').pop() || '';
+                    const imgPart = fileName.includes('img') ? 'img' + fileName.split('img')[1] : fileName;
+                    return imgPart || `이미지 ID: ${formData.image.id}`;
+                  })()}
+                </div>
               </Form.Item>
             )}
           </FormGroup>

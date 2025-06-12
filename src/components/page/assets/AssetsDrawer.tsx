@@ -42,7 +42,14 @@ function AssetsDrawer({ onClick }: AssetsDrawerProps) {
             };
             return (
               <button onClick={handleClick} key={item.id} className='hover:opacity-35'>
-                <Image width={180} height={180} src={item.uri} alt='asset' style={{ objectFit: 'contain' }} preview={false} />
+                <Image
+                  width={180}
+                  height={180}
+                  src={item.uri}
+                  alt='asset'
+                  style={{ objectFit: 'contain' }}
+                  preview={false}
+                />
               </button>
             );
           })}

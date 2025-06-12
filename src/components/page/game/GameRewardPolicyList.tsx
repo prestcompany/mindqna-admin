@@ -80,7 +80,12 @@ function GameRewardPolicyList() {
         }}
         loading={isLoading}
       />
-      <GameRewardPolicyModal isOpen={isOpenEdit} close={() => setOpenEdit(false)} refetch={refetch} gameRewardPolicy={selectedGameRewardPolicy} />
+      <GameRewardPolicyModal
+        isOpen={isOpenEdit}
+        close={() => setOpenEdit(false)}
+        refetch={refetch}
+        gameRewardPolicy={selectedGameRewardPolicy}
+      />
     </>
   );
 }
