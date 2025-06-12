@@ -105,7 +105,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ isOpen, init, reload, clos
   };
 
   return (
-    <DefaultModal handleHide={close} open={isOpen} maskClosable={false} width={800}>
+    <DefaultModal handleHide={close} open={isOpen} maskClosable={false} width={900}>
       {contextHolder}
       <Spin spinning={isLoading} fullscreen />
 
