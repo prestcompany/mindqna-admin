@@ -18,9 +18,9 @@ function PurchaseMetaList() {
     endDate?: string;
   }>({});
 
-  // 날짜 범위 상태
-  const [startedAt, setStartedAt] = useState(dayjs().subtract(7, 'day'));
-  const [endedAt, setEndedAt] = useState(dayjs());
+  // 날짜 범위 상태 (초기값 없음)
+  const [startedAt, setStartedAt] = useState<dayjs.Dayjs | null>(null);
+  const [endedAt, setEndedAt] = useState<dayjs.Dayjs | null>(null);
 
   const { items, isLoading, refetch, totalPage } = usePurchases({
     page: currentPage,
@@ -279,18 +279,28 @@ function PurchaseMetaList() {
   const handleSearch = () => {
     const values = form.getFieldsValue();
 
-    // 유저 ID가 있으면 유저 ID로만 검색, 없으면 날짜 범위로 검색
+    // 유저 ID가 있으면 유저 ID로만 검색
     if (values.username && values.username.trim()) {
       setSearchFilters({
         username: values.username.trim(),
         startDate: undefined,
         endDate: undefined,
       });
-    } else {
+    }
+    // 날짜 범위가 모두 선택되었으면 날짜 범위로 검색
+    else if (startedAt && endedAt) {
       setSearchFilters({
         username: undefined,
         startDate: startedAt.format('YYYY-MM-DD'),
         endDate: endedAt.format('YYYY-MM-DD'),
+      });
+    }
+    // 아무것도 선택되지 않았으면 전체 검색
+    else {
+      setSearchFilters({
+        username: undefined,
+        startDate: undefined,
+        endDate: undefined,
       });
     }
     setCurrentPage(1);
@@ -299,8 +309,8 @@ function PurchaseMetaList() {
   const handleReset = () => {
     form.resetFields();
     setSearchFilters({});
-    setStartedAt(dayjs().subtract(7, 'day'));
-    setEndedAt(dayjs());
+    setStartedAt(null);
+    setEndedAt(null);
     setCurrentPage(1);
   };
 
@@ -309,6 +319,9 @@ function PurchaseMetaList() {
       {holder}
       <div className='flex gap-2 items-center py-4'>
         <span className='text-lg font-bold'>필터</span>
+        {Object.keys(searchFilters).length > 0 && (
+          <span className='px-2 py-1 text-sm text-blue-600 bg-blue-50 rounded'>필터 적용됨</span>
+        )}
       </div>
 
       <Form form={form} layout='inline' className='p-4 mb-4 bg-gray-50 rounded' onFinish={handleSearch}>
