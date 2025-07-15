@@ -45,7 +45,9 @@ function UserList() {
       render: (_, user) => {
         return (
           <div>
-            <Tag color={user._count.profiles > 0 ? 'green' : 'default'}>{user._count.profiles > 0 ? '가입완료' : '가입중'}</Tag>
+            <Tag color={user._count.profiles > 0 ? 'green' : 'default'}>
+              {user._count.profiles > 0 ? '가입완료' : '가입중'}
+            </Tag>
           </div>
         );
       },
@@ -154,7 +156,7 @@ function UserList() {
   return (
     <>
       {holder}
-      <div className='flex items-center gap-2 py-6 '>
+      <div className='flex gap-2 items-center py-6'>
         <Button onClick={() => setOpenCreate(true)} type='primary'>
           검색하기
         </Button>

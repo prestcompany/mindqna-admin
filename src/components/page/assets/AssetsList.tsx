@@ -50,9 +50,9 @@ function AssetsList() {
       {contextHolder}
 
       {/* 검색 영역 */}
-      <div className='p-6 border-b border-gray-200 bg-gray-50'>
-        <div className='flex items-center justify-between mb-4'>
-          <div className='flex items-center gap-3'>
+      <div className='p-6 bg-gray-50 border-b border-gray-200'>
+        <div className='flex justify-between items-center mb-4'>
+          <div className='flex gap-3 items-center'>
             <div className='p-2 bg-blue-100 rounded-lg'>
               <ImageIcon size={20} className='text-blue-600' />
             </div>
@@ -75,7 +75,7 @@ function AssetsList() {
 
       {/* 이미지 그리드 */}
       {filteredImgs.length === 0 && !isLoading ? (
-        <div className='flex flex-col items-center justify-center py-16 text-gray-500'>
+        <div className='flex flex-col justify-center items-center py-16 text-gray-500'>
           <ImageIcon size={48} className='mb-4 text-gray-300' />
           <p className='text-lg font-medium'>{searchQuery ? '검색 결과가 없습니다' : '업로드된 이미지가 없습니다'}</p>
           <p className='text-sm'>{searchQuery ? '다른 검색어를 시도해보세요' : '새로운 이미지를 업로드해보세요'}</p>
@@ -90,7 +90,7 @@ function AssetsList() {
             return (
               <div
                 key={item.id}
-                className='relative overflow-hidden transition-all duration-200 bg-white rounded-lg shadow-md group hover:shadow-lg'
+                className='overflow-hidden relative bg-white rounded-lg shadow-md transition-all duration-200 group hover:shadow-lg'
               >
                 <div className='relative aspect-square'>
                   <Image
@@ -122,7 +122,7 @@ function AssetsList() {
 
       {/* 무한 스크롤 로딩 */}
       {(hasNextPage || isLoading) && (
-        <div ref={sentryRef} className='flex items-center justify-center p-8'>
+        <div ref={sentryRef} className='flex justify-center items-center p-8'>
           <Loader />
         </div>
       )}

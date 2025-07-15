@@ -3,6 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 
 type Props = {
   page: number;
+  username?: string;
+  startDate?: string;
+  endDate?: string;
 };
 
 function usePurchases(by: Props) {

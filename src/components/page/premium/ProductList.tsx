@@ -95,7 +95,7 @@ function ProductList() {
   return (
     <>
       {holder}
-      <div className='flex items-center gap-2 py-4'>
+      <div className='flex gap-2 items-center py-4'>
         <span className='text-lg font-bold'>필터</span>
       </div>
       <Table

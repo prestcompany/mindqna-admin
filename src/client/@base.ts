@@ -33,7 +33,9 @@ client.interceptors.request.use(async (config) => {
     // 토큰이 만료되었는지 확인
     if (isTokenExpired(session.accessToken)) {
       try {
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/admin/auth/refresh`, { refreshToken: session.refreshToken });
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/admin/auth/refresh`, {
+          refreshToken: session.refreshToken,
+        });
         config.headers.Authorization = `Bearer ${response.data.accessToken}`;
       } catch (error) {
         await signOut({ redirect: true, callbackUrl: '/login' });

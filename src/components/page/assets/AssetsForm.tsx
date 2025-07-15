@@ -43,10 +43,10 @@ function AssetsForm() {
   };
 
   return (
-    <div className='p-6 bg-white border border-gray-200 shadow-sm rounded-xl'>
+    <div className='p-6 bg-white rounded-xl border border-gray-200 shadow-sm'>
       {/* 헤더 */}
       <div className='mb-6'>
-        <div className='flex items-center gap-3 mb-2'>
+        <div className='flex gap-3 items-center mb-2'>
           <div className='p-2 bg-blue-100 rounded-lg'>
             <UploadIcon size={20} className='text-blue-600' />
           </div>
@@ -58,8 +58,8 @@ function AssetsForm() {
       {/* 업로드 영역 */}
       <div className='mb-6'>
         <Upload.Dragger {...props} className='transition-colors hover:border-blue-400'>
-          <div className='flex flex-col items-center justify-center py-8'>
-            <div className='p-4 mb-4 rounded-full bg-blue-50'>
+          <div className='flex flex-col justify-center items-center py-8'>
+            <div className='p-4 mb-4 bg-blue-50 rounded-full'>
               <ImageIcon size={32} className='text-blue-500' />
             </div>
             <p className='mb-2 text-lg font-medium text-gray-700'>이미지를 드래그하거나 클릭하여 업로드</p>
@@ -70,8 +70,8 @@ function AssetsForm() {
 
       {/* 선택된 파일 정보 */}
       {images.length > 0 && (
-        <div className='p-4 mb-6 rounded-lg bg-gray-50'>
-          <div className='flex items-center justify-between mb-2'>
+        <div className='p-4 mb-6 bg-gray-50 rounded-lg'>
+          <div className='flex justify-between items-center mb-2'>
             <span className='text-sm font-medium text-gray-700'>선택된 파일: {images.length}개</span>
             <Button size='small' type='text' onClick={handleClear} disabled={uploading}>
               전체 삭제

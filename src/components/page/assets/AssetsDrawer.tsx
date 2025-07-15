@@ -44,13 +44,13 @@ function AssetsDrawer({ onClick, selectedImage }: AssetsDrawerProps) {
 
   return (
     <>
-      <Button type='primary' icon={<ImageIcon size={16} />} onClick={showModal} className='flex items-center gap-2'>
+      <Button type='primary' icon={<ImageIcon size={16} />} onClick={showModal} className='flex gap-2 items-center'>
         이미지 선택
       </Button>
 
       <Modal
         title={
-          <div className='flex items-center gap-3'>
+          <div className='flex gap-3 items-center'>
             <div className='p-2 bg-blue-100 rounded-lg'>
               <ImageIcon size={20} className='text-blue-600' />
             </div>
@@ -71,7 +71,7 @@ function AssetsDrawer({ onClick, selectedImage }: AssetsDrawerProps) {
       >
         <div className='flex flex-col' style={{ height: '80vh' }}>
           {/* 검색 영역 */}
-          <div className='flex-shrink-0 p-6 border-b border-gray-200 bg-gray-50'>
+          <div className='flex-shrink-0 p-6 bg-gray-50 border-b border-gray-200'>
             <Input
               placeholder='이미지 ID나 파일명으로 검색...'
               prefix={<Search size={16} className='text-gray-400' />}
@@ -83,9 +83,9 @@ function AssetsDrawer({ onClick, selectedImage }: AssetsDrawerProps) {
           </div>
 
           {/* 이미지 그리드 */}
-          <div className='flex-1 p-6 overflow-y-auto'>
+          <div className='overflow-y-auto flex-1 p-6'>
             {filteredImgs.length === 0 && !isLoading ? (
-              <div className='flex flex-col items-center justify-center py-16 text-gray-500'>
+              <div className='flex flex-col justify-center items-center py-16 text-gray-500'>
                 <ImageIcon size={48} className='mb-4 text-gray-300' />
                 <p className='text-lg font-medium'>검색 결과가 없습니다</p>
                 <p className='text-sm'>다른 검색어를 시도해보세요</p>
@@ -113,13 +113,13 @@ function AssetsDrawer({ onClick, selectedImage }: AssetsDrawerProps) {
                     >
                       {/* 선택 체크 아이콘 */}
                       {isSelected && (
-                        <div className='absolute z-10 p-1 text-white bg-blue-500 rounded-full top-2 right-2'>
+                        <div className='absolute top-2 right-2 z-10 p-1 text-white bg-blue-500 rounded-full'>
                           <Check size={12} />
                         </div>
                       )}
 
                       {/* 이미지 */}
-                      <div className='relative overflow-hidden bg-gray-100 aspect-square'>
+                      <div className='overflow-hidden relative bg-gray-100 aspect-square'>
                         <Image
                           src={item.uri}
                           alt='asset'
@@ -129,7 +129,7 @@ function AssetsDrawer({ onClick, selectedImage }: AssetsDrawerProps) {
                         />
 
                         {/* 호버 오버레이 */}
-                        <div className='absolute inset-0 transition-all duration-200 bg-black bg-opacity-0 group-hover:bg-opacity-20' />
+                        <div className='absolute inset-0 bg-black bg-opacity-0 transition-all duration-200 group-hover:bg-opacity-20' />
                       </div>
 
                       {/* 이미지 정보 */}
@@ -147,7 +147,7 @@ function AssetsDrawer({ onClick, selectedImage }: AssetsDrawerProps) {
 
             {/* 무한 스크롤 로딩 */}
             {(hasNextPage || isLoading) && (
-              <div ref={sentryRef} className='flex items-center justify-center py-8'>
+              <div ref={sentryRef} className='flex justify-center items-center py-8'>
                 <Spin size='large' />
               </div>
             )}

@@ -21,7 +21,10 @@ export interface IMenu {
 }
 
 export const isEqualPath = (router: NextRouter, link: IMenu['link']) => {
-  return router.pathname === link?.path && Object.keys(link.query || {}).every((k) => String(link.query?.[k]) === router.query[k]);
+  return (
+    router.pathname === link?.path &&
+    Object.keys(link.query || {}).every((k) => String(link.query?.[k]) === router.query[k])
+  );
 };
 
 const Nav = ({ data }: INavProps) => {

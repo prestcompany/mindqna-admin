@@ -1,7 +1,7 @@
 import client from './@base';
 import { GiveCoinBulkParams, GiveCoinParams, GiveTicketParams, PurchaseMeta, QueryResultWithPagination } from './types';
 
-export async function getPurchases(by: { page: number }) {
+export async function getPurchases(by: { page: number; username?: string; startDate?: string; endDate?: string }) {
   const res = await client.get<QueryResultWithPagination<PurchaseMeta>>('/purchase', { params: by });
 
   return res.data;
