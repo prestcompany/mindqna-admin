@@ -1,8 +1,8 @@
-import { ChevronRight } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/router";
-import React from "react";
-import { IMenu, isEqualPath } from ".";
+import { ChevronRight } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import React from 'react';
+import { IMenu, isEqualPath } from '.';
 
 interface INavItemProps {
   item: IMenu;
@@ -15,14 +15,14 @@ const NavItem = ({ item }: INavItemProps) => {
     <li>
       <Link
         href={{
-          pathname: item.link?.path ?? "/",
+          pathname: item.link?.path ?? '/',
           query: item.link?.query,
         }}
-        className={(item.isActive || isEqualPath)(router, item.link) ? "active" : ""}
+        className={(item.isActive || isEqualPath)(router, item.link) ? 'active' : ''}
       >
         {item.icon}
-        <span className="cursor-pointer grow">{item.name}</span>
-        <ChevronRight className="w-6 h-6 text-white active-check" />
+        <span className='cursor-pointer grow'>{item.name}</span>
+        <ChevronRight className='w-6 h-6 text-white active-check' />
       </Link>
     </li>
   );

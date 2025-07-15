@@ -11,7 +11,9 @@ interface INavMenuProps {
 const NavMenu = ({ menu }: INavMenuProps) => {
   const router = useRouter();
   const [isShowSubMenu, setIsShowSubMenu] = useState(
-    menu.submenu && menu.submenu.length > 0 && menu.submenu.find((v) => (v.isActive || isEqualPath)(router, v.link)) ? true : false,
+    menu.submenu && menu.submenu.length > 0 && menu.submenu.find((v) => (v.isActive || isEqualPath)(router, v.link))
+      ? true
+      : false,
   );
 
   if (menu.submenu) {

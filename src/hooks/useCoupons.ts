@@ -1,9 +1,9 @@
-import { getCoupons } from "@/client/coupon";
-import { useQuery } from "@tanstack/react-query";
+import { getCoupons } from '@/client/coupon';
+import { useQuery } from '@tanstack/react-query';
 
 function useCoupons(page: number) {
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["coupons", page],
+    queryKey: ['coupons', page],
     queryFn: () => getCoupons(page),
   });
 

@@ -12,10 +12,10 @@ import { cn } from '@/lib/utils';
 import dayjs from 'dayjs';
 
 interface DatePickerWithRangeProps extends React.HTMLAttributes<HTMLDivElement> {
-  startedAt: dayjs.Dayjs;
-  endedAt: dayjs.Dayjs;
-  setStartedAt: (date: dayjs.Dayjs) => void;
-  setEndedAt: (date: dayjs.Dayjs) => void;
+  startedAt: dayjs.Dayjs | null;
+  endedAt: dayjs.Dayjs | null;
+  setStartedAt: (date: dayjs.Dayjs | null) => void;
+  setEndedAt: (date: dayjs.Dayjs | null) => void;
   onDateChange?: () => void;
 }
 
@@ -28,19 +28,25 @@ export function DatePickerWithRange({
   onDateChange,
 }: DatePickerWithRangeProps) {
   // 기존 date 상태는 실제 반영된 날짜, pendingDate는 사용자가 선택 중인 날짜
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: startedAt.toDate(),
-    to: endedAt.toDate(),
-  });
-  const [pendingDate, setPendingDate] = React.useState<DateRange | undefined>({
-    from: startedAt.toDate(),
-    to: endedAt.toDate(),
-  });
+  const [date, setDate] = React.useState<DateRange | undefined>(
+    startedAt && endedAt ? {
+      from: startedAt.toDate(),
+      to: endedAt.toDate(),
+    } : undefined
+  );
+  const [pendingDate, setPendingDate] = React.useState<DateRange | undefined>(
+    startedAt && endedAt ? {
+      from: startedAt.toDate(),
+      to: endedAt.toDate(),
+    } : undefined
+  );
   // Popover open 상태 관리
   const [open, setOpen] = React.useState(false);
 
   // 달력 표시 월 상태 관리
-  const [currentMonth, setCurrentMonth] = React.useState<Date>(pendingDate?.from || new Date());
+  const [currentMonth, setCurrentMonth] = React.useState<Date>(
+    (startedAt && startedAt.toDate()) || new Date()
+  );
 
   // 년도 배열 생성 (현재 년도부터 5년 전까지)
   const years = React.useMemo(() => {
@@ -60,29 +66,37 @@ export function DatePickerWithRange({
 
   // '확인' 버튼 클릭 시 실제 날짜 반영
   const handleConfirm = () => {
-    if (pendingDate?.from) {
+    if (pendingDate?.from && pendingDate?.to) {
       setStartedAt(dayjs(pendingDate.from));
-    }
-    if (pendingDate?.to) {
       setEndedAt(dayjs(pendingDate.to));
-    }
-    setDate(pendingDate);
-    if (pendingDate?.from && pendingDate?.to && onDateChange) {
-      onDateChange();
+      setDate(pendingDate);
+      if (onDateChange) {
+        onDateChange();
+      }
+    } else {
+      // 날짜가 완전히 선택되지 않았으면 null로 설정
+      setStartedAt(null);
+      setEndedAt(null);
+      setDate(undefined);
     }
     setOpen(false); // 확인 시 팝오버 닫기
   };
 
   // Dayjs 날짜가 변경되면 내부 상태도 업데이트
   React.useEffect(() => {
-    setDate({
-      from: startedAt.toDate(),
-      to: endedAt.toDate(),
-    });
-    setPendingDate({
-      from: startedAt.toDate(),
-      to: endedAt.toDate(),
-    });
+    if (startedAt && endedAt) {
+      setDate({
+        from: startedAt.toDate(),
+        to: endedAt.toDate(),
+      });
+      setPendingDate({
+        from: startedAt.toDate(),
+        to: endedAt.toDate(),
+      });
+    } else {
+      setDate(undefined);
+      setPendingDate(undefined);
+    }
   }, [startedAt, endedAt]);
 
   // 년도 변경 처리
