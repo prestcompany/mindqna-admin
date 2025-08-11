@@ -265,7 +265,7 @@ function SpaceList() {
       <Spin spinning={isFetching} fullscreen />
       {holder}
       {contextHolder}
-      <div className='flex items-center gap-2 py-4'>
+      <div className='flex gap-2 items-center py-4'>
         <Button onClick={() => setOpenCreate(true)} type='primary'>
           검색하기
         </Button>
@@ -382,7 +382,7 @@ function SpaceList() {
 
             return (
               <Card key={profile.id} style={{ background: '#fefefe' }}>
-                <div className='flex items-center gap-2'>
+                <div className='flex gap-2 items-center'>
                   <Image src={profile.img?.uri} style={{ width: 40, height: 40 }} />
                   {profile.nickname}
                   {isOwner && <Tag color='black'>OWNER</Tag>}
