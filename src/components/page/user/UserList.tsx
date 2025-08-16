@@ -1,219 +1,139 @@
 import { User } from '@/client/types';
 import { removeUser } from '@/client/user';
 import useUsers from '@/hooks/useUsers';
-import { Button, Drawer, Modal, Select, Table, TableProps, Tag, message } from 'antd';
-import dayjs from 'dayjs';
-import { useState } from 'react';
+import { Drawer, Modal, Spin, Table, message } from 'antd';
 import TicketForm from './TicketForm';
 import UserSearch from './UserSearch';
+import { createUserTableColumns } from './UserTableColumns';
+import UserFilterBar from './components/UserFilterBar';
+import UserMigrationModal from './components/UserMigrationModal';
+import { useUserFilters } from './hooks/useUserFilters';
+import { useUserModals } from './hooks/useUserModals';
 
 function UserList() {
   const [modal, holder] = Modal.useModal();
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isOpenCreate, setOpenCreate] = useState(false);
-  const [isOpenTicket, setOpenTicket] = useState(false);
-  const [focused, setFocused] = useState<string>('');
+  // 커스텀 훅들
+  const { filter, currentPage, setCurrentPage, updateFilter } = useUserFilters();
+  const {
+    isOpenSearch,
+    isOpenTicket,
+    isOpenMigration,
+    focusedUser,
+    focusedUsername,
+    openSearch,
+    closeSearch,
+    openTicket,
+    closeTicket,
+    openMigration,
+    closeMigration,
+  } = useUserModals();
 
-  const [filter, setFilter] = useState<{ locale?: string[] }>({});
-  const { items, totalPage, isLoading, refetch } = useUsers({ page: currentPage, locale: filter.locale });
+  // 데이터 페칭
+  const { items, totalPage, isLoading, refetch } = useUsers({
+    page: currentPage,
+    locale: filter.locale,
+  });
 
-  const handleRemove = (value: User) => {
+  // 유틸리티 함수들
+  const copyId = (id: string) => {
+    navigator.clipboard.writeText(id);
+    message.success(`${id} 복사됨`);
+  };
+
+  // 액션 핸들러들
+  const handleRemove = (user: User) => {
     modal.confirm({
-      title: `삭제 (${value.username}) ${value.socialAccount.email}`,
+      title: `사용자 삭제`,
+      content: (
+        <div className='space-y-3'>
+          <div>
+            <p>
+              <strong>{user.username}</strong> 사용자를 삭제하시겠습니까?
+            </p>
+            <div className='mt-2 text-sm text-gray-600'>
+              <p>• 이메일: {user.socialAccount.email}</p>
+              <p>• 가입일: {new Date(user.createdAt).toLocaleDateString()}</p>
+              <p>• 공간 수: {user._count.profiles}개</p>
+            </div>
+          </div>
+          <div className='p-3 bg-red-50 rounded'>
+            <p className='font-medium text-red-600'>⚠️ 이 작업은 되돌릴 수 없습니다</p>
+            <p className='mt-1 text-sm text-red-500'>사용자와 관련된 모든 데이터가 영구적으로 삭제됩니다.</p>
+          </div>
+        </div>
+      ),
+      okText: '삭제',
+      okType: 'danger',
+      cancelText: '취소',
+      width: 450,
       onOk: async () => {
         try {
-          await removeUser(value.id);
+          await removeUser(user.id);
           await refetch();
+          message.success(`${user.username} 사용자가 삭제되었습니다`);
         } catch (err) {
-          message.error(`${err}`);
+          message.error(`삭제 실패: ${err}`);
         }
       },
     });
   };
 
-  const columns: TableProps<User>['columns'] = [
-    {
-      title: '유저 ID',
-      dataIndex: 'username',
-      key: 'username',
-    },
-    {
-      title: '가입상태',
-      dataIndex: '',
-      key: 'x',
-      render: (_, user) => {
-        return (
-          <div>
-            <Tag color={user._count.profiles > 0 ? 'green' : 'default'}>
-              {user._count.profiles > 0 ? '가입완료' : '가입중'}
-            </Tag>
-          </div>
-        );
-      },
-    },
+  const handleMigrationSuccess = async () => {
+    await refetch();
+    message.success('로그인 수단 교체가 완료되었습니다');
+  };
 
-    {
-      title: '이메일',
-      dataIndex: ['socialAccount', 'email'],
-      key: 'email',
-    },
-    {
-      title: 'LOGIN BY',
-      dataIndex: ['socialAccount', 'provider'],
-      key: 'provider',
-      render: (value) => {
-        const colorMap: Record<string, string> = {
-          GOOGLE: 'red',
-          KAKAO: 'yellow',
-          APPLE: 'black',
-          LINE: 'green',
-        };
-        return <Tag color={colorMap[value]}>{value}</Tag>;
-      },
-    },
-    {
-      title: '언어',
-      dataIndex: 'locale',
-      key: 'locale',
-    },
+  // 테이블 컬럼 생성
+  const tableColumns = createUserTableColumns({
+    onOpenTicket: openTicket,
+    onRemove: handleRemove,
+    copyId,
+  });
 
-    {
-      title: '공간 수',
-      dataIndex: ['profiles', 'length'],
-      key: 'spaceLength',
-    },
-
-    {
-      title: '공간최대치',
-      dataIndex: 'spaceMaxCount',
-      key: 'spaceMaxCount',
-      render: (value: number) => {
-        return (
-          <div>
-            <Tag color={value > 5 ? 'gold' : 'default'}>{value}</Tag>
-          </div>
-        );
-      },
-    },
-    {
-      title: '가입일',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (value) => {
-        const day = dayjs(value);
-        const diffFromNow = dayjs().diff(day, 'day');
-
-        return (
-          <div>
-            <Tag>D+{diffFromNow}</Tag>
-            {day.format('YY.MM.DD HH:mm')}
-          </div>
-        );
-      },
-    },
-    {
-      title: '탈퇴예정일',
-      dataIndex: 'reserveUnregisterAt',
-      key: 'reserveUnregisterAt',
-      render: (value: string, item: User) => {
-        const day = dayjs(value);
-        const diff = day.add(-48, 'hour').diff(item.createdAt, 'minute');
-        const gap = diff > 60 ? `${Math.floor(diff / 60)}시간 ${diff % 60}분` : `${diff}분`;
-
-        if (!value) return;
-
-        return (
-          <div>
-            <Tag color={'error'}>{gap}만에 탈퇴</Tag>
-            {day.format('YY.MM.DD HH:mm')}
-          </div>
-        );
-      },
-    },
-
-    {
-      title: 'Action',
-      dataIndex: '',
-      key: 'x',
-      render: (value, user) => (
-        <div className='flex gap-4'>
-          <Button
-            type='primary'
-            onClick={() => {
-              setOpenTicket(true);
-              setFocused(user.username);
-            }}
-          >
-            티켓 지급
-          </Button>
-
-          <Button onClick={() => handleRemove(value)}>삭제</Button>
-        </div>
-      ),
-    },
-  ];
   return (
     <>
-      {holder}
-      <div className='flex gap-2 items-center py-6'>
-        <Button onClick={() => setOpenCreate(true)} type='primary'>
-          검색하기
-        </Button>
-        <span className='text-lg font-bold'>필터</span>
+      <Spin spinning={isLoading} tip='데이터 로딩 중...'>
+        {holder}
 
-        <Select
-          placeholder='언어'
-          style={{ width: 120 }}
-          options={[
-            { label: 'ko', value: 'ko' },
-            { label: 'en', value: 'en' },
-            { label: 'ja', value: 'ja' },
-            { label: 'zh', value: 'zh' },
-            { label: 'zhTw', value: 'zhTw' },
-            { label: 'es', value: 'es' },
-            { label: 'id', value: 'id' },
-          ]}
-          value={(filter.locale ?? [])?.[0]}
-          onChange={(v: string) => {
-            setFilter((prev) => ({ ...prev, locale: [v] }));
-          }}
-          allowClear
+        {/* 필터 바 */}
+        <UserFilterBar
+          filter={filter}
+          onFilterChange={updateFilter}
+          onOpenSearch={openSearch}
+          onOpenMigration={openMigration}
+          loading={isLoading}
         />
-      </div>
 
-      <Table
-        dataSource={items}
-        columns={columns}
-        pagination={{
-          total: totalPage * 10,
-          current: currentPage,
-          onChange: (page) => setCurrentPage(page),
-          showSizeChanger: false,
-        }}
-        loading={isLoading}
-      />
+        {/* 메인 테이블 */}
+        <Table
+          dataSource={items}
+          columns={tableColumns}
+          rowKey='id'
+          scroll={{ x: 1000 }}
+          pagination={{
+            total: totalPage * 10,
+            current: currentPage,
+            onChange: setCurrentPage,
+            showSizeChanger: false,
+          }}
+          loading={isLoading}
+          className='bg-white rounded-lg shadow-sm'
+        />
+      </Spin>
 
-      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={1200}>
+      {/* 검색 드로어 */}
+      <Drawer open={isOpenSearch} onClose={closeSearch} width={1200} title='🔍 사용자 검색'>
         <UserSearch />
       </Drawer>
-      <Drawer
-        open={isOpenTicket}
-        onClose={() => {
-          setOpenTicket(false);
-          setFocused('');
-        }}
-        width={600}
-      >
-        <TicketForm
-          reload={refetch}
-          close={() => {
-            setOpenTicket(false);
-            setFocused('');
-          }}
-          username={focused}
-        />
+
+      {/* 티켓 지급 드로어 */}
+      <Drawer open={isOpenTicket} onClose={closeTicket} width={600} title='🎫 티켓 지급'>
+        <TicketForm reload={refetch} close={closeTicket} username={focusedUsername} />
       </Drawer>
+
+      {/* 로그인 수단 교체 모달 */}
+      <UserMigrationModal open={isOpenMigration} onClose={closeMigration} onSuccess={handleMigrationSuccess} />
     </>
   );
 }

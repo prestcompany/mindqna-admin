@@ -85,7 +85,7 @@ const PushForm = ({ id, initialValues }: IPushFormProps) => {
               <Divider />
               <FormGroup title='사용자 ID*'>
                 <Form.Item name='userNames' rules={[{ required: pushType === 'USER', message: '' }]}>
-                  <TextArea placeholder='사용자 ID를 입력하세요 ("," 로 구분합니다.)' />
+                  <TextArea placeholder='유저 코드를 입력하세요 ("," 로 구분합니다.)' />
                 </Form.Item>
               </FormGroup>
             </>

@@ -18,7 +18,7 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): TableP
     key: 'id',
     width: 120,
     render: (id) => (
-      <Button size='small' type='default' onClick={() => actions.copyId(id)}>
+      <Button size='small' type='default' onClick={() => actions.copyId(id)} className='flex gap-1'>
         {id}
         <Copy className='w-4 h-4' />
       </Button>
@@ -120,7 +120,7 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): TableP
       return (
         <div className='flex flex-row gap-1 items-center'>
           <Tag color={diffFromNow < 7 ? 'green' : diffFromNow < 30 ? 'orange' : 'default'}>D+{diffFromNow}</Tag>
-          <div className='text-sm text-gray-500'>{day.format('YY.MM.DD')}</div>
+          <div className='text-sm text-gray-500'>{day.format('YY.MM.DD HH:mm:ss')}</div>
         </div>
       );
     },
@@ -147,7 +147,7 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): TableP
       return (
         <div>
           <Tag color={isUrgent ? 'error' : 'warning'}>{gap}만에 삭제</Tag>
-          <div className='text-xs text-gray-500'>{day.format('MM.DD')}</div>
+          <div className='text-xs text-gray-500'>{day.format('YY.MM.DD HH:mm:ss')}</div>
         </div>
       );
     },
