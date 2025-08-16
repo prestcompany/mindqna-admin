@@ -18,3 +18,14 @@ export async function removeUser(id: string) {
 
   return res.data;
 }
+
+export interface TransferUserParams {
+  oldUserName: string;
+  newUserName: string;
+}
+
+export async function transferUser(params: TransferUserParams) {
+  const res = await client.post('/admin/user/transfer', { body: params });
+
+  return res.data;
+}
