@@ -2,6 +2,7 @@ import { Space } from '@/client/types';
 import { Button, Tag } from 'antd';
 import { TableProps } from 'antd/lib';
 import dayjs from 'dayjs';
+import { Copy } from 'lucide-react';
 
 export interface SpaceTableActionsProps {
   onViewProfiles: (space: Space) => void;
@@ -12,13 +13,14 @@ export interface SpaceTableActionsProps {
 
 export const createSpaceTableColumns = (actions: SpaceTableActionsProps): TableProps<Space>['columns'] => [
   {
-    title: 'ID',
+    title: '공간 ID',
     dataIndex: 'id',
     key: 'id',
     width: 120,
     render: (id) => (
-      <Button size='small' type='text' onClick={() => actions.copyId(id)}>
-        {id.slice(0, 8)}...
+      <Button size='small' type='default' onClick={() => actions.copyId(id)}>
+        {id}
+        <Copy className='w-4 h-4' />
       </Button>
     ),
   },
@@ -116,9 +118,9 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): TableP
       const day = dayjs(value);
       const diffFromNow = dayjs().diff(day, 'day');
       return (
-        <div>
+        <div className='flex flex-row gap-1 items-center'>
           <Tag color={diffFromNow < 7 ? 'green' : diffFromNow < 30 ? 'orange' : 'default'}>D+{diffFromNow}</Tag>
-          <div className='text-xs text-gray-500'>{day.format('MM.DD')}</div>
+          <div className='text-sm text-gray-500'>{day.format('YY.MM.DD')}</div>
         </div>
       );
     },
@@ -158,10 +160,10 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): TableP
     render: (_, space) => (
       <div className='flex gap-1'>
         <Button size='small' type='link' onClick={() => actions.onViewProfiles(space)}>
-          멤버
+          멤버 목록
         </Button>
         <Button size='small' type='primary' onClick={() => actions.onOpenCoin(space)}>
-          코인
+          코인 괸리
         </Button>
         <Button size='small' danger onClick={() => actions.onRemove(space)}>
           삭제
