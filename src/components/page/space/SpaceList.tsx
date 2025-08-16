@@ -219,7 +219,6 @@ function SpaceList() {
             showSizeChanger: false,
           }}
           loading={isLoading}
-          bordered
         />
       </Spin>
 

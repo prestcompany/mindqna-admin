@@ -129,7 +129,7 @@ function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
               onChange={(e) => setAmount(e ?? 1)}
               style={{ width: '100%' }}
               size='large'
-              formatter={(value) => `${value}개`}
+              formatter={(value) => `${value}`}
               parser={(value) => value!.replace('개', '') as unknown as number}
             />
           </Form.Item>
