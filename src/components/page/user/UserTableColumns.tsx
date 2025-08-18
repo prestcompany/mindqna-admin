@@ -42,15 +42,11 @@ export const createUserTableColumns = (actions: UserTableActionsProps): TablePro
     render: (_, user) => {
       const isCompleted = user._count.profiles > 0;
       const statusMap = {
-        completed: { text: '완료', color: 'green', icon: '✅' },
-        pending: { text: '진행중', color: 'orange', icon: '⏳' },
+        completed: { text: '완료', color: 'green', icon: '' },
+        pending: { text: '진행중', color: 'orange', icon: '' },
       };
       const config = statusMap[isCompleted ? 'completed' : 'pending'];
-      return (
-        <Tag color={config.color}>
-          {config.icon} {config.text}
-        </Tag>
-      );
+      return <Tag color={config.color}>{config.text}</Tag>;
     },
   },
   {
@@ -67,21 +63,17 @@ export const createUserTableColumns = (actions: UserTableActionsProps): TablePro
     width: 100,
     render: (provider) => {
       const providerMap = {
-        GOOGLE: { text: 'Google', color: 'red', icon: '🔍' },
-        KAKAO: { text: 'Kakao', color: 'gold', icon: '💬' },
-        APPLE: { text: 'Apple', color: 'default', icon: '🍎' },
-        LINE: { text: 'Line', color: 'green', icon: '💚' },
+        GOOGLE: { text: 'Google', color: 'red', icon: '' },
+        KAKAO: { text: 'Kakao', color: 'gold', icon: '' },
+        APPLE: { text: 'Apple', color: 'default', icon: '' },
+        LINE: { text: 'Line', color: 'green', icon: '' },
       };
       const config = providerMap[provider as keyof typeof providerMap] || {
         text: provider,
         color: 'default',
-        icon: '🔗',
+        icon: '',
       };
-      return (
-        <Tag color={config.color}>
-          {config.icon} {config.text}
-        </Tag>
-      );
+      return <Tag color={config.color}>{config.text}</Tag>;
     },
   },
   {
@@ -91,20 +83,16 @@ export const createUserTableColumns = (actions: UserTableActionsProps): TablePro
     width: 80,
     render: (locale) => {
       const localeMap = {
-        ko: { flag: '🇰🇷', code: 'KO' },
-        en: { flag: '🇺🇸', code: 'EN' },
-        ja: { flag: '🇯🇵', code: 'JA' },
-        zh: { flag: '🇨🇳', code: 'ZH' },
-        zhTw: { flag: '🇹🇼', code: 'TW' },
-        es: { flag: '🇪🇸', code: 'ES' },
-        id: { flag: '🇮🇩', code: 'ID' },
+        ko: { flag: '', code: 'KO' },
+        en: { flag: '', code: 'EN' },
+        ja: { flag: '', code: 'JA' },
+        zh: { flag: '', code: 'ZH' },
+        zhTw: { flag: '', code: 'TW' },
+        es: { flag: '', code: 'ES' },
+        id: { flag: '', code: 'ID' },
       };
-      const config = localeMap[locale as keyof typeof localeMap] || { flag: '🌐', code: locale?.toUpperCase() };
-      return (
-        <Tag>
-          {config.flag} {config.code}
-        </Tag>
-      );
+      const config = localeMap[locale as keyof typeof localeMap] || { flag: '', code: locale?.toUpperCase() };
+      return <Tag>{config.code}</Tag>;
     },
   },
   {
@@ -113,9 +101,9 @@ export const createUserTableColumns = (actions: UserTableActionsProps): TablePro
     width: 120,
     render: (_, user) => (
       <div className='flex gap-1'>
-        <Tag color='blue'>🏠 {user._count.profiles || 0}</Tag>
+        <Tag color='blue'>공간 {user._count.profiles || 0}</Tag>
         <Tag color={user.spaceMaxCount > 5 ? 'gold' : user.spaceMaxCount > 2 ? 'green' : 'default'}>
-          🏆 {user.spaceMaxCount}
+          최대 {user.spaceMaxCount}
         </Tag>
       </div>
     ),

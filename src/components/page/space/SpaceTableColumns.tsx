@@ -81,8 +81,8 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): TableP
     width: 120,
     render: (_, space) => (
       <div className='flex gap-1'>
-        <Tag color='red'>❤️ {space.coin}</Tag>
-        <Tag color='gold'>⭐ {space.coinPaid}</Tag>
+        <Tag color='red'>하트 {space.coin}</Tag>
+        <Tag color='gold'>스타 {space.coinPaid}</Tag>
       </div>
     ),
   },
@@ -104,8 +104,8 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): TableP
     width: 100,
     render: (_, space) => (
       <div className='flex gap-1'>
-        <Tag color='purple'>🏠 {space.rooms?.length || 0}</Tag>
-        <Tag color='orange'>🪑 {space.InteriorItem?.length || 0}</Tag>
+        <Tag color='purple'>방 {space.rooms?.length || 0}</Tag>
+        <Tag color='orange'>인테리어 {space.InteriorItem?.length || 0}</Tag>
       </div>
     ),
   },

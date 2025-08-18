@@ -92,8 +92,8 @@ function SpaceList() {
               defaultValue='give'
               onChange={(e) => (operation = e.target.value)}
               options={[
-                { label: '🎁 지급', value: 'give' },
-                { label: '📤 회수', value: 'take' },
+                { label: '지급', value: 'give' },
+                { label: '회수', value: 'take' },
               ]}
               optionType='button'
               buttonStyle='solid'
@@ -120,8 +120,8 @@ function SpaceList() {
               defaultValue={false}
               onChange={(e) => (isStar = e.target.value)}
               options={[
-                { label: '❤️ 하트', value: false },
-                { label: '⭐ 스타', value: true },
+                { label: '하트', value: false },
+                { label: '스타', value: true },
               ]}
               optionType='button'
               buttonStyle='solid'
@@ -223,12 +223,12 @@ function SpaceList() {
       </Spin>
 
       {/* 검색 드로어 */}
-      <Drawer open={isOpenSearch} onClose={closeSearch} width={1200} title='🔍 공간 검색'>
+      <Drawer open={isOpenSearch} onClose={closeSearch} width={1200} title='공간 검색'>
         <SpaceSearch />
       </Drawer>
 
       {/* 코인 관리 드로어 */}
-      <Drawer open={isOpenCoin} onClose={closeCoin} width={600} title='💰 코인 관리'>
+      <Drawer open={isOpenCoin} onClose={closeCoin} width={600} title='코인 관리'>
         <CoinForm
           reload={refetch}
           close={closeCoin}
