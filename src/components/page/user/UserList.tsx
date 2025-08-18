@@ -58,7 +58,7 @@ function UserList() {
             </div>
           </div>
           <div className='p-3 bg-red-50 rounded'>
-            <p className='font-medium text-red-600'>⚠️ 이 작업은 되돌릴 수 없습니다</p>
+            <p className='font-medium text-red-600'>이 작업은 되돌릴 수 없습니다</p>
             <p className='mt-1 text-sm text-red-500'>사용자와 관련된 모든 데이터가 영구적으로 삭제됩니다.</p>
           </div>
         </div>
@@ -123,12 +123,12 @@ function UserList() {
       </Spin>
 
       {/* 검색 드로어 */}
-      <Drawer open={isOpenSearch} onClose={closeSearch} width={1200} title='🔍 사용자 검색'>
+      <Drawer open={isOpenSearch} onClose={closeSearch} width={1200} title='사용자 검색'>
         <UserSearch />
       </Drawer>
 
       {/* 티켓 지급 드로어 */}
-      <Drawer open={isOpenTicket} onClose={closeTicket} width={600} title='🎫 티켓 지급'>
+      <Drawer open={isOpenTicket} onClose={closeTicket} width={600} title='티켓 지급'>
         <TicketForm reload={refetch} close={closeTicket} username={focusedUsername} />
       </Drawer>
 
