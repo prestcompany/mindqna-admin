@@ -156,7 +156,7 @@ function SpaceList() {
           setFetching(true);
           const finalAmount = operation === 'take' ? -amount : amount;
 
-          await giveCoinBulk({
+          const result = await giveCoinBulk({
             spaceIds,
             isStar,
             amount: finalAmount,
@@ -170,6 +170,10 @@ function SpaceList() {
                 <div className='text-sm'>
                   처리된 공간: {spaceIds.length}개<br />
                   {isStar ? '스타' : '하트'} {amount}개 {operation === 'give' ? '지급' : '회수'}
+                </div>
+                <div className='flex-auto gap-2 py-4 item-center'>
+                  <label>단체 지급 결과</label>
+                  <p>{JSON.stringify(result)}</p>
                 </div>
               </div>
             ),
