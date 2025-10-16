@@ -1,47 +1,22 @@
-import { deleteSquareLibrary, LibraryData, LibrarySubType, LibraryType } from '@/client/square-library';
-import { Locale } from '@/client/types';
+import { LibraryData, LibrarySubType, LibraryType } from '@/client/square-library';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import useLibrary from '@/hooks/useLibrary';
-import { Button, Drawer, Image, message, Modal, Select, Table, TableProps, Tag, Tooltip } from 'antd';
+import { Button, Drawer, Modal, Select, Table } from 'antd';
 import { useState } from 'react';
+import { createColumns } from './columns';
+import { subCategoryOptions } from './constants';
+import { createDeleteHandler } from './handlers';
 import LibraryForm from './LibraryForm';
+import { useLibraryFilter } from './useLibraryFilter';
 
 type Props = {
   type: LibraryType;
 };
 
-export const subCategoryOptions = {
-  info: [
-    { label: '테스트', value: 'test' },
-    { label: '이벤트 종료', value: 'eventend' },
-    { label: '이벤트 진행중', value: 'eventing' },
-    { label: '이벤트 예정', value: 'eventplan' },
-    { label: '특별한 기능', value: 'special' },
-  ],
-  article: [
-    { label: '혼자', value: 'alone' },
-    { label: '친구', value: 'friend' },
-    { label: '가족', value: 'family' },
-    { label: '연인', value: 'couple' },
-  ],
-};
-
-export const LibraryMap: Record<LibrarySubType, string> = {
-  [LibrarySubType.TEST]: '테스트',
-  [LibrarySubType.EVENTEND]: '이벤트 종료',
-  [LibrarySubType.EVENTING]: '이벤트 진행중',
-  [LibrarySubType.EVENTPLAN]: '이벤트 예정',
-  [LibrarySubType.SPECIAL]: '특별한 기능',
-  [LibrarySubType.ALONE]: '혼자',
-  [LibrarySubType.FRIEND]: '친구',
-  [LibrarySubType.FAMILY]: '가족',
-  [LibrarySubType.COUPLE]: '연인',
-};
-
 function LibraryList({ type }: Props) {
   const [modal, holder] = Modal.useModal();
   const [currentPage, setCurrentPage] = useState(1);
-  const [filter, setFilter] = useState<{ subCategory?: LibrarySubType; locale?: Locale }>({});
+  const { filter, updateFilter } = useLibraryFilter();
   const { items, isLoading, refetch, totalPage } = useLibrary({ category: type, page: currentPage, ...filter });
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
@@ -52,126 +27,18 @@ function LibraryList({ type }: Props) {
     setOpenEdit(true);
   };
 
-  const handleRemove = (value: LibraryData) => {
-    modal.confirm({
-      title: `삭제 (${value.name})`,
-      onOk: async () => {
-        try {
-          if (!value.id) return;
-          await deleteSquareLibrary(value.id);
-          await refetch();
-        } catch (err) {
-          message.error(`${err}`);
-        }
-      },
-    });
-  };
+  const handleRemove = createDeleteHandler(modal, refetch);
 
-  const truncateText = (text: string, limit: number) => {
-    if (text.length > limit) {
-      return `${text.slice(0, limit)}...`;
-    }
-    return text;
-  };
-
-  const columns: TableProps<LibraryData>['columns'] = [
-    {
-      title: '번호',
-      key: 'index',
-      render: (_: any, __: LibraryData, index: number) => (currentPage - 1) * 10 + index + 1,
-    },
-    {
-      title: '이미지',
-      dataIndex: 'img',
-      key: 'img',
-      render: (value: string) => {
-        return <Image width={'100%'} height={60} src={value ?? ''} alt='img' style={{ objectFit: 'contain' }} />;
-      },
-    },
-
-    {
-      title: '이름',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: '타입',
-      dataIndex: 'subCategory',
-      key: 'subCategory',
-      render: (value: LibrarySubType) => {
-        return <Tag color='green'>{LibraryMap[value]}</Tag>;
-      },
-    },
-    // {
-    //   title: '다국어',
-    //   dataIndex: 'locale',
-    //   key: 'locale',
-    // },
-    {
-      title: '제목 키',
-      dataIndex: 'title',
-      key: 'title',
-      render: (text: string) => <Tooltip title={text}>{truncateText(text, 10)}</Tooltip>,
-    },
-    {
-      title: '내용 키',
-      dataIndex: 'content',
-      key: 'content',
-      render: (text: string) => <Tooltip title={text}>{truncateText(text, 15)}</Tooltip>,
-    },
-
-    {
-      title: '조회수',
-      dataIndex: 'viewCount',
-      key: 'viewCount',
-    },
-    {
-      title: '클릭수',
-      dataIndex: 'clickCount',
-      key: 'clickCount',
-    },
-    {
-      title: '링크',
-      dataIndex: 'link',
-      key: 'link',
-      width: 180,
-    },
-
-    {
-      title: '활성화',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      render: (value: boolean) => {
-        return <Tag color={value ? 'green' : 'default'}>{value ? '활성화' : '비활성화'}</Tag>;
-      },
-    },
-
-    {
-      title: '고정',
-      dataIndex: 'isFixed',
-      key: 'isFixed',
-      render: (value: boolean) => {
-        return <Tag color={value ? 'green' : 'default'}>{value ? '고정됨' : '고정 안됨'}</Tag>;
-      },
-    },
-
-    {
-      title: 'Action',
-      dataIndex: '',
-      key: 'x',
-      render: (value) => (
-        <div className='flex gap-4'>
-          <Button onClick={() => handleEdit(value)}>수정</Button>
-          <Button onClick={() => handleRemove(value)}>삭제</Button>
-        </div>
-      ),
-    },
-  ];
+  const columns = createColumns({
+    currentPage,
+    onEdit: handleEdit,
+    onRemove: handleRemove,
+  });
   return (
     <>
       {holder}
       <DefaultTableBtn className='justify-between'>
-        <div className='flex items-center gap-2 py-4'>
+        <div className='flex gap-2 items-center py-4'>
           {/* <Select
             placeholder='언어'
             style={{ width: 120 }}
@@ -196,7 +63,7 @@ function LibraryList({ type }: Props) {
             options={subCategoryOptions[type]}
             value={filter.subCategory}
             onChange={(v: LibrarySubType) => {
-              setFilter((prev) => ({ ...prev, subCategory: v }));
+              updateFilter({ subCategory: v });
             }}
             allowClear
           />
