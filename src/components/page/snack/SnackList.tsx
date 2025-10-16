@@ -142,7 +142,7 @@ function SnackList() {
         <SnackForm close={() => setOpenCreate(false)} reload={refetch} />
       </Drawer>
       <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={720}>
-        <SnackForm init={focused} close={() => setOpenEdit(false)} reload={refetch} />
+        <SnackForm initialSnack={focused} close={() => setOpenEdit(false)} reload={refetch} />
       </Drawer>
     </>
   );

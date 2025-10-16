@@ -173,10 +173,18 @@ export type PetCustomTemplate = {
   updatedAt: string;
 };
 
+export type ImgType = 'asset' | 'interiorTemplate' | 'petCustomTemplate' | 'petSnack' | 'profileId';
+
 export type ImgItem = {
   id: number;
   uri: string;
+  type: ImgType;
   createdAt: string;
+  diaryId?: number;
+  interiorTemplateId?: number;
+  petCustomTemplateId?: number;
+  petSnackId?: number;
+  profileId?: string;
 };
 
 export type PageInfo = {

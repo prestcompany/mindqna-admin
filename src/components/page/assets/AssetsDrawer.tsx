@@ -67,7 +67,7 @@ function AssetsDrawer({ onClick, selectedImage }: AssetsDrawerProps) {
         footer={null}
         width={1200}
         style={{ top: 20 }}
-        bodyStyle={{ padding: 0 }}
+        styles={{ body: { padding: 0 } }}
       >
         <div className='flex flex-col' style={{ height: '80vh' }}>
           {/* 검색 영역 */}
