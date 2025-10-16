@@ -1,9 +1,15 @@
-import { createSquareLibrary, LibraryData, LibrarySubType, LibraryType, updateSquareLibrary } from '@/client/square-library';
+import {
+  createSquareLibrary,
+  LibraryData,
+  LibrarySubType,
+  LibraryType,
+  updateSquareLibrary,
+} from '@/client/square-library';
 import { Locale } from '@/client/types';
 import { Button, Form, Input, message, Radio, Spin } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import { useEffect, useState } from 'react';
-import { subCategoryOptions } from './LibraryList';
+import { subCategoryOptions } from './constants';
 
 type Props = {
   init?: LibraryData;
