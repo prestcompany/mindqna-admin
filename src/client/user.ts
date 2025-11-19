@@ -13,6 +13,12 @@ export async function getUser(username: string) {
   return res.data;
 }
 
+export async function getUserByEmail(email: string) {
+  const res = await client.get<User>(`/user/email/${email}`);
+
+  return res.data;
+}
+
 export async function removeUser(id: string) {
   const res = await client.delete(`/user/${id}`);
 

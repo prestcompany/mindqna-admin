@@ -1,5 +1,5 @@
 import { User } from '@/client/types';
-import { getUser, removeUser } from '@/client/user';
+import { getUser, getUserByEmail, removeUser } from '@/client/user';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Card, Drawer, Input, Modal, Space, Tag, message } from 'antd';
 import dayjs from 'dayjs';
@@ -12,10 +12,17 @@ function UserSearch() {
   const [id, setId] = useState('');
   const [isOpenTicket, setOpenTicket] = useState(false);
   const [focused, setFocused] = useState<string>('');
+  const [email, setEmail] = useState('');
 
-  const { data, refetch, isLoading } = useQuery({
-    queryKey: ['user', id],
-    queryFn: () => getUser(id),
+  const { data, refetch, isLoading, isFetched } = useQuery({
+    queryKey: ['user', id, email],
+    queryFn: () => {
+      if (id) {
+        return getUser(id);
+      } else if (email) {
+        return getUserByEmail(email);
+      }
+    },
     enabled: false,
   });
 
@@ -162,13 +169,39 @@ function UserSearch() {
             size='large'
           />
           <Button onClick={() => refetch()} type='primary' size='large' loading={isLoading} disabled={!id.trim()}>
-            🔍 검색
+            🔍 유저코드 검색
+          </Button>
+        </div>
+      </Card>
+
+      <Card size='small' title='🔍 이메일 검색'>
+        <div className='flex gap-2'>
+          <Input
+            placeholder='이메일을 입력하세요...'
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onPressEnter={() => refetch()}
+            size='large'
+          />
+          <Button onClick={() => refetch()} type='primary' size='large' loading={isLoading} disabled={!email.trim()}>
+            🔍 이메일 검색
           </Button>
         </div>
       </Card>
 
       {/* 검색 결과 */}
       {data && renderUserCard(data)}
+
+      {/* 검색 결과가 없는 경우 */}
+      {!data && !isLoading && isFetched && (
+        <Card className='py-8 text-center'>
+          <div className='text-gray-400'>
+            <p className='mb-2 text-lg'>😕</p>
+            <p>검색 결과가 없습니다</p>
+            <p className='mt-1 text-sm'>{id.trim() ? `유저코드: ${id}` : `이메일: ${email}`}</p>
+          </div>
+        </Card>
+      )}
 
       {/* 티켓 지급 드로어 */}
       <Drawer
