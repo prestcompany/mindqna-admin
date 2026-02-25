@@ -1,5 +1,7 @@
 import { removeProfile, removeSpace, searchSpaces } from '@/client/space';
 import { Space, SpaceType } from '@/client/types';
+import FormGroup from '@/components/shared/form/ui/form-group';
+import FormSection from '@/components/shared/form/ui/form-section';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import DataTable from '@/components/shared/ui/data-table';
 import TableRowActions from '@/components/shared/ui/table-row-actions';
@@ -44,12 +46,10 @@ function SpaceSearch() {
   const [isOpenCoin, setOpenCoin] = useState(false);
   const [focused, setFocused] = useState<Space | undefined>(undefined);
 
-  // AlertDialog states
-  const [deleteTarget, setDeleteTarget] = useState<{ space: Space; type: 'space' } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Space | null>(null);
   const [deleteProfileTarget, setDeleteProfileTarget] = useState<{
     profileId: string;
     nickname: string;
-    refetch: () => void;
   } | null>(null);
 
   const { data, refetch, isLoading } = useQuery({
@@ -86,14 +86,24 @@ function SpaceSearch() {
     refetch();
   };
 
+  const handleResetFilters = () => {
+    setSearchParams({
+      id: '',
+      username: '',
+      type: undefined,
+      locale: undefined,
+      dateRange: null,
+    });
+  };
+
   const handleRemoveSpace = (space: Space) => {
-    setDeleteTarget({ space, type: 'space' });
+    setDeleteTarget(space);
   };
 
   const confirmRemoveSpace = async () => {
     if (!deleteTarget) return;
     try {
-      await removeSpace(deleteTarget.space.id);
+      await removeSpace(deleteTarget.id);
       await refetch();
       toast.success('공간이 삭제되었습니다');
     } catch (err) {
@@ -210,7 +220,7 @@ function SpaceSearch() {
   ];
 
   const renderCardItem = (space: Space) => {
-    const { coin, coinPaid, dueRemovedAt, rooms, cardOrder } = space;
+    const { coin, coinPaid, dueRemovedAt, cardOrder } = space;
     const { type, name, locale, petName, ownerId, createdAt } = space.spaceInfo;
     const { level } = space.pet;
 
@@ -218,7 +228,7 @@ function SpaceSearch() {
     const diffFromNow = dayjs().diff(created, 'day');
 
     return (
-      <Card key={space.id} className='mb-4'>
+      <Card key={space.id} className='mb-4 bg-card shadow-sm'>
         <CardHeader className='p-4 pb-2'>
           <div className='flex justify-between items-center'>
             <CardTitle className='text-base'>{name}</CardTitle>
@@ -262,7 +272,7 @@ function SpaceSearch() {
 
               <div className='flex gap-2 items-center'>
                 <Badge variant='secondary'>생성일: D+{diffFromNow}</Badge>
-                <span className='text-sm text-gray-500'>{created.format('YY.MM.DD HH:mm')}</span>
+                <span className='text-sm text-muted-foreground'>{created.format('YY.MM.DD HH:mm')}</span>
               </div>
 
               {dueRemovedAt && <Badge variant='destructive'>삭제 예정일 {dueRemovedAt}</Badge>}
@@ -276,7 +286,7 @@ function SpaceSearch() {
                   const isOwner = userId === ownerId;
 
                   return (
-                    <div key={profile.id} className='flex gap-2 items-center p-2 bg-gray-50 rounded'>
+                    <div key={profile.id} className='flex gap-2 items-center rounded bg-muted/30 p-2'>
                       <img
                         src={profile.img?.uri}
                         alt={profile.nickname}
@@ -308,7 +318,6 @@ function SpaceSearch() {
                               setDeleteProfileTarget({
                                 profileId: profile.id,
                                 nickname: profile.nickname,
-                                refetch: () => refetch(),
                               })
                             }
                           >
@@ -330,115 +339,112 @@ function SpaceSearch() {
   return (
     <>
       <div className='space-y-4'>
-        <details open className='bg-white rounded-lg border'>
-          <summary className='px-4 py-3 font-medium cursor-pointer'>검색 및 필터</summary>
-          <div className='px-4 pb-4'>
-            <div className='grid grid-cols-1 gap-4 mb-4 md:grid-cols-2 lg:grid-cols-4'>
-              <div>
-                <label className='block mb-1 text-sm font-medium'>공간 ID</label>
-                <Input
-                  placeholder='공간 ID'
-                  value={searchParams.id}
-                  onChange={(e) => setSearchParams((prev) => ({ ...prev, id: e.target.value }))}
-                />
-              </div>
+        <FormSection title='공간 검색 및 필터' description='공간 ID/사용자명으로 조회하고 조건을 추가로 필터링합니다.'>
+          <FormGroup title='공간 ID'>
+            <Input
+              placeholder='공간 ID'
+              value={searchParams.id}
+              onChange={(e) => setSearchParams((prev) => ({ ...prev, id: e.target.value }))}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            />
+          </FormGroup>
 
-              <div>
-                <label className='block mb-1 text-sm font-medium'>사용자명</label>
-                <Input
-                  placeholder='사용자명'
-                  value={searchParams.username}
-                  onChange={(e) => setSearchParams((prev) => ({ ...prev, username: e.target.value }))}
-                />
-              </div>
+          <FormGroup title='사용자명'>
+            <Input
+              placeholder='사용자명'
+              value={searchParams.username}
+              onChange={(e) => setSearchParams((prev) => ({ ...prev, username: e.target.value }))}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            />
+          </FormGroup>
 
-              <div>
-                <label className='block mb-1 text-sm font-medium'>공간 타입</label>
-                <Select
-                  value={searchParams.type || '__all__'}
-                  onValueChange={(v) =>
-                    setSearchParams((prev) => ({
-                      ...prev,
-                      type: (v === '__all__' ? undefined : v) as SpaceType | undefined,
-                    }))
-                  }
-                >
-                  <SelectTrigger className='w-full'>
-                    <SelectValue placeholder='공간 타입' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value='__all__'>전체</SelectItem>
-                    <SelectItem value='alone'>혼자</SelectItem>
-                    <SelectItem value='couple'>커플</SelectItem>
-                    <SelectItem value='family'>가족</SelectItem>
-                    <SelectItem value='friends'>친구</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <FormGroup title='공간 타입'>
+            <Select
+              value={searchParams.type || '__all__'}
+              onValueChange={(v) =>
+                setSearchParams((prev) => ({
+                  ...prev,
+                  type: (v === '__all__' ? undefined : v) as SpaceType | undefined,
+                }))
+              }
+            >
+              <SelectTrigger className='w-full sm:w-[220px]'>
+                <SelectValue placeholder='공간 타입' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='__all__'>전체</SelectItem>
+                <SelectItem value='alone'>혼자</SelectItem>
+                <SelectItem value='couple'>커플</SelectItem>
+                <SelectItem value='family'>가족</SelectItem>
+                <SelectItem value='friends'>친구</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormGroup>
 
-              <div>
-                <label className='block mb-1 text-sm font-medium'>언어</label>
-                <Select
-                  value={searchParams.locale || '__all__'}
-                  onValueChange={(v) =>
-                    setSearchParams((prev) => ({ ...prev, locale: v === '__all__' ? undefined : v }))
-                  }
-                >
-                  <SelectTrigger className='w-full'>
-                    <SelectValue placeholder='언어' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value='__all__'>전체</SelectItem>
-                    <SelectItem value='ko'>KO</SelectItem>
-                    <SelectItem value='en'>EN</SelectItem>
-                    <SelectItem value='ja'>JA</SelectItem>
-                    <SelectItem value='zh'>ZH</SelectItem>
-                    <SelectItem value='zhTw'>ZH-TW</SelectItem>
-                    <SelectItem value='es'>ES</SelectItem>
-                    <SelectItem value='id'>ID</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <FormGroup title='언어'>
+            <Select
+              value={searchParams.locale || '__all__'}
+              onValueChange={(v) =>
+                setSearchParams((prev) => ({ ...prev, locale: v === '__all__' ? undefined : v }))
+              }
+            >
+              <SelectTrigger className='w-full sm:w-[220px]'>
+                <SelectValue placeholder='언어' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='__all__'>전체</SelectItem>
+                <SelectItem value='ko'>KO</SelectItem>
+                <SelectItem value='en'>EN</SelectItem>
+                <SelectItem value='ja'>JA</SelectItem>
+                <SelectItem value='zh'>ZH</SelectItem>
+                <SelectItem value='zhTw'>ZH-TW</SelectItem>
+                <SelectItem value='es'>ES</SelectItem>
+                <SelectItem value='id'>ID</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormGroup>
+
+          <FormGroup title='생성일 범위'>
+            <div className='flex items-center gap-2'>
+              <Input
+                type='date'
+                value={searchParams.dateRange?.[0]?.format('YYYY-MM-DD') ?? ''}
+                onChange={(e) => {
+                  const start = e.target.value ? dayjs(e.target.value) : null;
+                  const end = searchParams.dateRange?.[1] ?? null;
+                  setSearchParams((prev) => ({
+                    ...prev,
+                    dateRange: start && end ? [start, end] : start ? [start, dayjs()] : null,
+                  }));
+                }}
+                className='w-full sm:w-[180px]'
+              />
+              <span className='text-sm text-muted-foreground'>~</span>
+              <Input
+                type='date'
+                value={searchParams.dateRange?.[1]?.format('YYYY-MM-DD') ?? ''}
+                onChange={(e) => {
+                  const end = e.target.value ? dayjs(e.target.value) : null;
+                  const start = searchParams.dateRange?.[0] ?? null;
+                  setSearchParams((prev) => ({
+                    ...prev,
+                    dateRange: start && end ? [start, end] : end ? [dayjs(), end] : null,
+                  }));
+                }}
+                className='w-full sm:w-[180px]'
+              />
             </div>
+          </FormGroup>
 
-            <div className='grid grid-cols-1 gap-4 mb-4 md:grid-cols-2'>
-              <div>
-                <label className='block mb-1 text-sm font-medium'>생성일 범위</label>
-                <div className='flex gap-2 items-center'>
-                  <Input
-                    type='date'
-                    value={searchParams.dateRange?.[0]?.format('YYYY-MM-DD') ?? ''}
-                    onChange={(e) => {
-                      const start = e.target.value ? dayjs(e.target.value) : null;
-                      const end = searchParams.dateRange?.[1] ?? null;
-                      setSearchParams((prev) => ({
-                        ...prev,
-                        dateRange: start && end ? [start, end] : start ? [start, dayjs()] : null,
-                      }));
-                    }}
-                  />
-                  <span>~</span>
-                  <Input
-                    type='date'
-                    value={searchParams.dateRange?.[1]?.format('YYYY-MM-DD') ?? ''}
-                    onChange={(e) => {
-                      const end = e.target.value ? dayjs(e.target.value) : null;
-                      const start = searchParams.dateRange?.[0] ?? null;
-                      setSearchParams((prev) => ({
-                        ...prev,
-                        dateRange: start && end ? [start, end] : end ? [dayjs(), end] : null,
-                      }));
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <Button onClick={handleSearch} disabled={isLoading}>
+          <div className='flex justify-end gap-2 pt-2'>
+            <Button type='button' variant='outline' onClick={handleResetFilters} disabled={isLoading}>
+              초기화
+            </Button>
+            <Button type='button' onClick={handleSearch} disabled={isLoading}>
               검색
             </Button>
           </div>
-        </details>
+        </FormSection>
 
         {data && (
           <div className='flex justify-between items-center'>
@@ -516,7 +522,7 @@ function SpaceSearch() {
           <AlertDialogHeader>
             <AlertDialogTitle>삭제</AlertDialogTitle>
             <AlertDialogDescription>
-              {deleteTarget && `(${deleteTarget.space.spaceInfo.name})을(를) 삭제하시겠습니까?`}
+              {deleteTarget && `(${deleteTarget.spaceInfo.name})을(를) 삭제하시겠습니까?`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

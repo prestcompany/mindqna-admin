@@ -1,5 +1,7 @@
 import { User } from '@/client/types';
 import { getUser, getUserByEmail, removeUser } from '@/client/user';
+import FormGroup from '@/components/shared/form/ui/form-group';
+import FormSection from '@/components/shared/form/ui/form-section';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import {
   AlertDialog,
@@ -67,6 +69,19 @@ function UserSearch() {
     }
   };
 
+  const handleSearch = () => {
+    if (!id.trim() && !email.trim()) {
+      toast.warning('유저코드 또는 이메일을 입력해주세요.');
+      return;
+    }
+    refetch();
+  };
+
+  const handleResetSearch = () => {
+    setId('');
+    setEmail('');
+  };
+
   const renderUserCard = (user: User) => {
     const { id, username, locale, socialAccount, createdAt, _count, reserveUnregisterAt, spaceMaxCount } = user;
     const created = dayjs(createdAt);
@@ -87,7 +102,7 @@ function UserSearch() {
     const isCompleted = _count.profiles > 0;
 
     return (
-      <Card className='bg-white shadow-sm'>
+      <Card className='bg-card shadow-sm'>
         <CardHeader className='pb-3'>
           <div className='flex justify-between items-center'>
             <div className='flex gap-2 items-center'>
@@ -122,7 +137,7 @@ function UserSearch() {
           </div>
 
           <div className='flex gap-2 items-center'>
-            <span className='text-sm text-gray-500'>이메일:</span>
+            <span className='text-sm text-muted-foreground'>이메일:</span>
             <span>{socialAccount.email}</span>
           </div>
 
@@ -136,7 +151,7 @@ function UserSearch() {
             </Badge>
           </div>
 
-          <div className='flex gap-2 items-center text-sm text-gray-500'>
+          <div className='flex gap-2 items-center text-sm text-muted-foreground'>
             <span>가입일:</span>
             <span>{created.format('YYYY-MM-DD HH:mm')}</span>
           </div>
@@ -154,60 +169,44 @@ function UserSearch() {
 
   return (
     <div className='space-y-4'>
-      <Card>
-        <CardHeader className='pb-3'>
-          <CardTitle className='text-base flex items-center gap-2'>
-            <Search className='w-4 h-4' />
-            사용자 검색
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className='flex gap-2'>
-            <Input
-              placeholder='유저코드를 입력하세요...'
-              value={id}
-              onChange={(e) => setId(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && refetch()}
-              className='h-10'
-            />
-            <Button onClick={() => refetch()} disabled={isLoading || !id.trim()} className='h-10'>
-              {isLoading ? <Loader2 className='w-4 h-4 animate-spin' /> : <Search className='w-4 h-4' />}
-              유저코드 검색
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <FormSection title='사용자 검색' description='유저코드 또는 이메일로 계정을 조회합니다.'>
+        <FormGroup title='유저코드'>
+          <Input
+            placeholder='유저코드를 입력하세요...'
+            value={id}
+            onChange={(e) => setId(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            className='h-10'
+          />
+        </FormGroup>
 
-      <Card>
-        <CardHeader className='pb-3'>
-          <CardTitle className='text-base flex items-center gap-2'>
-            <Search className='w-4 h-4' />
-            이메일 검색
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className='flex gap-2'>
-            <Input
-              placeholder='이메일을 입력하세요...'
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && refetch()}
-              className='h-10'
-            />
-            <Button onClick={() => refetch()} disabled={isLoading || !email.trim()} className='h-10'>
-              {isLoading ? <Loader2 className='w-4 h-4 animate-spin' /> : <Search className='w-4 h-4' />}
-              이메일 검색
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        <FormGroup title='이메일'>
+          <Input
+            placeholder='이메일을 입력하세요...'
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            className='h-10'
+          />
+        </FormGroup>
+
+        <div className='flex justify-end gap-2 pt-2'>
+          <Button type='button' variant='outline' onClick={handleResetSearch} disabled={isLoading}>
+            초기화
+          </Button>
+          <Button type='button' onClick={handleSearch} disabled={isLoading}>
+            {isLoading ? <Loader2 className='w-4 h-4 animate-spin' /> : <Search className='w-4 h-4' />}
+            검색
+          </Button>
+        </div>
+      </FormSection>
 
       {data && renderUserCard(data)}
 
       {!data && !isLoading && isFetched && (
-        <Card className='py-8 text-center'>
+        <Card className='py-8 text-center bg-card'>
           <CardContent>
-            <div className='text-gray-400'>
+            <div className='text-muted-foreground'>
               <p>검색 결과가 없습니다</p>
               <p className='mt-1 text-sm'>{id.trim() ? `유저코드: ${id}` : `이메일: ${email}`}</p>
             </div>

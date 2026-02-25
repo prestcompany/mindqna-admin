@@ -1,5 +1,6 @@
 import { createBubble, updateBubble } from '@/client/bubble';
 import { BubbleType, Locale, PetBubble } from '@/client/types';
+import { LOCALE_OPTIONS } from '@/components/shared/form/constants/locale-options';
 import FormGroup from '@/components/shared/form/ui/form-group';
 import FormSection from '@/components/shared/form/ui/form-section';
 import { Button } from '@/components/ui/button';
@@ -20,16 +21,6 @@ type Props = {
   reload: () => Promise<any>;
   close: () => void;
 };
-
-const localeOptions = [
-  { label: 'ko', value: 'ko' },
-  { label: 'en', value: 'en' },
-  { label: 'ja', value: 'ja' },
-  { label: 'zh', value: 'zh' },
-  { label: 'zhTw', value: 'zhTw' },
-  { label: 'es', value: 'es' },
-  { label: 'id', value: 'id' },
-];
 
 const typeOptions = [
   { label: '공통', value: 'general' },
@@ -155,7 +146,7 @@ function BubbleForm({ init, reload, close }: Props) {
                         className='grid grid-cols-2 gap-2 sm:grid-cols-4'
                         disabled={!!focusedId}
                       >
-                        {localeOptions.map((opt) => (
+                        {LOCALE_OPTIONS.map((opt) => (
                           <div key={opt.value}>
                             <RadioGroupItem value={opt.value} id={`locale-${opt.value}`} className='peer sr-only' />
                             <Label

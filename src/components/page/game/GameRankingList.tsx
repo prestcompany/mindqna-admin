@@ -1,28 +1,20 @@
 import { Game, GameRanking } from '@/client/game';
 import { Profile, Space } from '@/client/types';
-import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Sheet } from '@/components/ui/sheet';
 import { Select as ShadSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DataTable from '@/components/shared/ui/data-table';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import { useGameRankingRewardCreate, useGameRankings, useGames } from '@/hooks/useGame';
 import { ColumnDef } from '@tanstack/react-table';
-import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 function GameRankingList() {
-  const router = useRouter();
-
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<{ gameId?: number; year?: number; month?: number; week?: number }>({});
-  const { items, totalPage, isLoading, refetch } = useGameRankings({ page: currentPage, ...filter });
+  const { items, totalPage, isLoading } = useGameRankings({ page: currentPage, ...filter });
   const { items: games } = useGames({ page: 1 });
-  const { mutate, data } = useGameRankingRewardCreate();
-
-  const [isOpenCreate, setOpenCreate] = useState(false);
-  const [isOpenEdit, setOpenEdit] = useState(false);
+  const { mutate } = useGameRankingRewardCreate();
 
   const handleRewardCreate = () => {
     mutate();
@@ -207,12 +199,6 @@ function GameRankingList() {
           onChange: (page) => setCurrentPage(page),
         }}
       />
-      <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
-        <AdminSideSheetContent title='랭킹 생성' size='md' />
-      </Sheet>
-      <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
-        <AdminSideSheetContent title='랭킹 수정' size='md' />
-      </Sheet>
     </>
   );
 }

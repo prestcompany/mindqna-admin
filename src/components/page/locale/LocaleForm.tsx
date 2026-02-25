@@ -1,5 +1,6 @@
 import { createLocale, updateLocale } from '@/client/locale';
 import { Locale, LocaleWord } from '@/client/types';
+import { LOCALE_OPTIONS } from '@/components/shared/form/constants/locale-options';
 import FormGroup from '@/components/shared/form/ui/form-group';
 import FormSection from '@/components/shared/form/ui/form-section';
 import { Button } from '@/components/ui/button';
@@ -19,16 +20,6 @@ type LocaleFormProps = {
   reload: () => Promise<any>;
   close: () => void;
 };
-
-const localeOptions: { label: string; value: Locale }[] = [
-  { label: 'ko', value: 'ko' },
-  { label: 'en', value: 'en' },
-  { label: 'ja', value: 'ja' },
-  { label: 'zh', value: 'zh' },
-  { label: 'zhTw', value: 'zhTw' },
-  { label: 'es', value: 'es' },
-  { label: 'id', value: 'id' },
-];
 
 const localeSchema = z.object({
   key: z.string().min(1, '키를 입력해주세요.'),
@@ -184,7 +175,7 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
                   <FormItem>
                     <FormControl>
                       <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
-                        {localeOptions.map((opt) => (
+                        {LOCALE_OPTIONS.map((opt) => (
                           <label
                             key={opt.value}
                             htmlFor={`locale-${opt.value}`}

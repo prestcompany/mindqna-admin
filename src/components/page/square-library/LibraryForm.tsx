@@ -5,7 +5,7 @@ import {
   LibraryType,
   updateSquareLibrary,
 } from '@/client/square-library';
-import { Locale } from '@/client/types';
+import { LOCALE_OPTIONS } from '@/components/shared/form/constants/locale-options';
 import FormGroup from '@/components/shared/form/ui/form-group';
 import FormSection from '@/components/shared/form/ui/form-section';
 import { Button } from '@/components/ui/button';
@@ -28,16 +28,6 @@ type Props = {
   reload: () => Promise<any>;
   close: () => void;
 };
-
-const localeOptions: { label: string; value: Locale }[] = [
-  { label: 'ko', value: 'ko' },
-  { label: 'en', value: 'en' },
-  { label: 'ja', value: 'ja' },
-  { label: 'zh', value: 'zh' },
-  { label: 'zhTw', value: 'zhTw' },
-  { label: 'es', value: 'es' },
-  { label: 'id', value: 'id' },
-];
 
 const optionsByType = subCategoryOptions as Record<LibraryType, { label: string; value: string }[]>;
 
@@ -271,7 +261,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
                   <FormItem>
                     <FormControl>
                       <RadioGroup value={field.value} onValueChange={field.onChange} className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
-                        {localeOptions.map((opt) => (
+                        {LOCALE_OPTIONS.map((opt) => (
                           <div key={opt.value}>
                             <RadioGroupItem value={opt.value} id={`locale-${opt.value}`} className='peer sr-only' />
                             <Label

@@ -1,4 +1,5 @@
 import { createPush, CreatePushParams, updatePush } from '@/client/push';
+import { LOCALE_OPTIONS } from '@/components/shared/form/constants/locale-options';
 import FormGroup from '@/components/shared/form/ui/form-group';
 import FormSection from '@/components/shared/form/ui/form-section';
 import { Button } from '@/components/ui/button';
@@ -49,16 +50,6 @@ const PushForm = ({ id, initialValues }: IPushFormProps) => {
 
   const pushType = form.watch('target');
 
-  const localeOptions = [
-    { label: 'ko', value: 'ko' },
-    { label: 'en', value: 'en' },
-    { label: 'ja', value: 'ja' },
-    { label: 'zh', value: 'zh' },
-    { label: 'zhTw', value: 'zhTw' },
-    { label: 'es', value: 'es' },
-    { label: 'id', value: 'id' },
-  ];
-
   const handleFinish = async (formValue: PushFormValues) => {
     try {
       setIsLoading(true);
@@ -96,7 +87,7 @@ const PushForm = ({ id, initialValues }: IPushFormProps) => {
                   <FormItem>
                     <FormControl>
                       <RadioGroup value={field.value} onValueChange={field.onChange} className='flex flex-wrap gap-4'>
-                        {localeOptions.map((locale) => (
+                        {LOCALE_OPTIONS.map((locale) => (
                           <div key={locale.value} className='flex items-center gap-2'>
                             <RadioGroupItem value={locale.value} id={`locale-${locale.value}`} />
                             <Label htmlFor={`locale-${locale.value}`}>{locale.label}</Label>
