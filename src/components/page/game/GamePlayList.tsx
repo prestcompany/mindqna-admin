@@ -1,24 +1,15 @@
 import { Game, GamePlay } from '@/client/game';
 import { Profile, Space } from '@/client/types';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import DataTable from '@/components/shared/ui/data-table';
-import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import { useGamePlays } from '@/hooks/useGame';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
-import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 function GamePlayList() {
-  const router = useRouter();
-
   const [currentPage, setCurrentPage] = useState(1);
-  const [filter, setFilter] = useState<{ locale?: string[] }>({});
-  const { items, totalPage, isLoading, refetch } = useGamePlays({ page: currentPage });
-
-  const [isOpenCreate, setOpenCreate] = useState(false);
-  const [isOpenEdit, setOpenEdit] = useState(false);
+  const { items, totalPage, isLoading } = useGamePlays({ page: currentPage });
 
   const columns: ColumnDef<GamePlay>[] = [
     {
@@ -89,10 +80,6 @@ function GamePlayList() {
 
   return (
     <>
-      <DefaultTableBtn className='justify-between'>
-        <div className='flex-item-list'></div>
-      </DefaultTableBtn>
-
       <DataTable
         columns={columns}
         data={items || []}
@@ -103,16 +90,6 @@ function GamePlayList() {
           onChange: (page) => setCurrentPage(page),
         }}
       />
-      <Sheet open={isOpenCreate} onOpenChange={(open) => !open && setOpenCreate(false)}>
-        <SheetContent side='right' className='w-[600px] sm:max-w-none overflow-y-auto'>
-          <SheetHeader><SheetTitle></SheetTitle></SheetHeader>
-        </SheetContent>
-      </Sheet>
-      <Sheet open={isOpenEdit} onOpenChange={(open) => !open && setOpenEdit(false)}>
-        <SheetContent side='right' className='w-[600px] sm:max-w-none overflow-y-auto'>
-          <SheetHeader><SheetTitle></SheetTitle></SheetHeader>
-        </SheetContent>
-      </Sheet>
     </>
   );
 }

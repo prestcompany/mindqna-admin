@@ -1,8 +1,9 @@
 import { LibraryData, LibrarySubType, LibraryType } from '@/client/square-library';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import DataTable from '@/components/shared/ui/data-table';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet } from '@/components/ui/sheet';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -118,20 +119,14 @@ function LibraryList({ type }: Props) {
         }}
       />
       <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
-        <SheetContent side='right' className='w-[600px] sm:max-w-[600px] overflow-y-auto'>
-          <SheetHeader>
-            <SheetTitle>라이브러리 추가</SheetTitle>
-          </SheetHeader>
+        <AdminSideSheetContent title='라이브러리 추가' size='md'>
           <LibraryForm reload={refetch} close={() => setOpenCreate(false)} type={type} />
-        </SheetContent>
+        </AdminSideSheetContent>
       </Sheet>
       <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
-        <SheetContent side='right' className='w-[600px] sm:max-w-[600px] overflow-y-auto'>
-          <SheetHeader>
-            <SheetTitle>라이브러리 수정</SheetTitle>
-          </SheetHeader>
+        <AdminSideSheetContent title='라이브러리 수정' size='md'>
           <LibraryForm init={focused} reload={refetch} close={() => setOpenEdit(false)} type={type} />
-        </SheetContent>
+        </AdminSideSheetContent>
       </Sheet>
     </>
   );

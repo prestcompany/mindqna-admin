@@ -1,5 +1,6 @@
 import { User } from '@/client/types';
 import { getUser, getUserByEmail, removeUser } from '@/client/user';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet } from '@/components/ui/sheet';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { Copy, Loader2, Search, Ticket } from 'lucide-react';
@@ -223,10 +224,7 @@ function UserSearch() {
           }
         }}
       >
-        <SheetContent side='right' className='w-[600px] sm:max-w-none overflow-y-auto'>
-          <SheetHeader>
-            <SheetTitle>티켓 지급</SheetTitle>
-          </SheetHeader>
+        <AdminSideSheetContent title='티켓 지급' size='md'>
           <TicketForm
             reload={refetch}
             close={() => {
@@ -235,7 +233,7 @@ function UserSearch() {
             }}
             username={focused}
           />
-        </SheetContent>
+        </AdminSideSheetContent>
       </Sheet>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>

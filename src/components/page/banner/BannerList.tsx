@@ -1,7 +1,10 @@
 import { Banner, removeBanner } from '@/client/banner';
 import { BannerLocationType } from '@/client/types';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
+import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
 import DataTable from '@/components/shared/ui/data-table';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +17,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet } from '@/components/ui/sheet';
 import useBanners from '@/hooks/useBanners';
 import { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
@@ -59,26 +62,41 @@ function BannerList() {
     {
       accessorKey: 'id',
       header: '번호',
+      size: 72,
     },
     {
       accessorKey: 'imgUri',
       header: '이미지',
+      size: 252,
       cell: ({ row }) => {
         const value = row.original.imgUri;
-        return <img width='100%' height={60} src={value ?? ''} alt='img' className='object-contain' />;
+        return (
+          <ClickableImagePreview
+            src={value}
+            alt={`${row.original.name} 배너 이미지`}
+            triggerClassName='h-[120px] w-[220px]'
+            imageClassName='h-full w-full object-contain'
+          />
+        );
       },
     },
     {
       accessorKey: 'name',
       header: '이름',
+      size: 160,
+      meta: {
+        truncateMaxWidth: 140,
+      },
     },
     {
       accessorKey: 'locale',
       header: '다국어',
+      size: 88,
     },
     {
       accessorKey: 'location',
       header: '위치',
+      size: 120,
       cell: ({ row }) => {
         const value = row.original.location;
         const label = locationOptions.find((item) => item.value === value)?.label ?? value;
@@ -88,18 +106,25 @@ function BannerList() {
     {
       accessorKey: 'viewCount',
       header: '조회수',
+      size: 88,
     },
     {
       accessorKey: 'clickCount',
       header: '클릭수',
+      size: 88,
     },
     {
       accessorKey: 'link',
       header: '링크',
+      size: 260,
+      meta: {
+        truncateMaxWidth: 240,
+      },
     },
     {
       accessorKey: 'isActive',
       header: '활성화',
+      size: 96,
       cell: ({ row }) => {
         const value = row.original.isActive;
         return <Badge variant={value ? 'success' : 'muted'}>{value ? '활성화' : '비활성화'}</Badge>;
@@ -107,16 +132,22 @@ function BannerList() {
     },
     {
       id: 'actions',
-      header: 'Action',
+      header: '관리',
+      size: 84,
       cell: ({ row }) => (
-        <div className='flex gap-4'>
-          <Button variant='outline' onClick={() => handleEdit(row.original)}>
-            수정
-          </Button>
-          <Button variant='outline' onClick={() => handleRemove(row.original)}>
-            삭제
-          </Button>
-        </div>
+        <TableRowActions
+          items={[
+            {
+              label: '수정',
+              onClick: () => handleEdit(row.original),
+            },
+            {
+              label: '삭제',
+              onClick: () => handleRemove(row.original),
+              destructive: true,
+            },
+          ]}
+        />
       ),
     },
   ];
@@ -195,20 +226,14 @@ function BannerList() {
         }}
       />
       <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
-        <SheetContent side='right' className='w-[600px] sm:max-w-[600px] overflow-y-auto'>
-          <SheetHeader>
-            <SheetTitle>배너 추가</SheetTitle>
-          </SheetHeader>
+        <AdminSideSheetContent title='배너 추가' size='md'>
           <BannerForm reload={refetch} close={() => setOpenCreate(false)} />
-        </SheetContent>
+        </AdminSideSheetContent>
       </Sheet>
       <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
-        <SheetContent side='right' className='w-[600px] sm:max-w-[600px] overflow-y-auto'>
-          <SheetHeader>
-            <SheetTitle>배너 수정</SheetTitle>
-          </SheetHeader>
+        <AdminSideSheetContent title='배너 수정' size='md'>
           <BannerForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
-        </SheetContent>
+        </AdminSideSheetContent>
       </Sheet>
     </>
   );

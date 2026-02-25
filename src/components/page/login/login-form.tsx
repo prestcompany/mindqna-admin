@@ -90,9 +90,13 @@ const LoginForm = () => {
             로그인
           </Button>
 
-          <a className='inline-block mt-2 text-gray-400' onClick={() => setShowPasswordModal(true)}>
+          <button
+            type='button'
+            className='mt-2 inline-block text-sm text-muted-foreground transition-colors hover:text-foreground'
+            onClick={() => setShowPasswordModal(true)}
+          >
             비밀번호 찾기
-          </a>
+          </button>
         </form>
       </Form>
 

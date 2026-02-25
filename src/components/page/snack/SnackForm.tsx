@@ -144,7 +144,11 @@ function SnackForm({ initialSnack, close, reload }: Props) {
           <div>
             <Label className='block mb-2'>이미지</Label>
             <div className='flex flex-col gap-2 items-center'>
-              {image && <img width={200} height={200} src={image.uri} alt='img' className='object-contain' />}
+              {image && (
+                <div className='flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border/60 bg-transparent p-2'>
+                  <img src={image.uri} alt='img' className='h-full w-full object-contain' />
+                </div>
+              )}
               <AssetsDrawer onClick={setImage} />
             </div>
           </div>

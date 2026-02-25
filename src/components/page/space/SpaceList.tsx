@@ -1,6 +1,7 @@
 import { giveCoinBulk } from '@/client/premium';
 import { removeProfile, removeSpace } from '@/client/space';
 import { Space } from '@/client/types';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,14 +12,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet } from '@/components/ui/sheet';
 import useSpaces from '@/hooks/useSpaces';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import DataTable from '@/components/shared/ui/data-table';
-import { ColumnDef } from '@tanstack/react-table';
-import dayjs from 'dayjs';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import CoinForm from './CoinForm';
@@ -28,7 +26,6 @@ import SpaceFilterBar from './components/SpaceFilterBar';
 import SpaceProfileModal from './components/SpaceProfileModal';
 import { useSpaceFilters } from './hooks/useSpaceFilters';
 import { useSpaceModals } from './hooks/useSpaceModals';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -160,83 +157,6 @@ function SpaceList() {
     copyId,
   });
 
-  const tableColumns: ColumnDef<Space>[] = [
-    {
-      id: 'expand',
-      size: 40,
-      cell: ({ row }) => (
-        <Button variant='ghost' size='sm' onClick={() => row.toggleExpanded()}>
-          {row.getIsExpanded() ? '▼' : '▶'}
-        </Button>
-      ),
-    },
-    ...baseColumns,
-  ];
-
-  const expandedRowRender = (space: Space) => {
-    const petTypeMap: Record<string, string> = {
-      cat: '고양이',
-      dog: '강아지',
-      hamster: '햄스터',
-      rabbit: '토끼',
-    };
-
-    return (
-      <div className='grid grid-cols-2 gap-x-6 gap-y-3 text-sm md:grid-cols-3'>
-        <div>
-          <span className='text-muted-foreground'>프로필:</span>{' '}
-          <div className='flex flex-wrap gap-1 mt-1'>
-            {space.profiles?.map((p) => (
-              <Badge key={p.id} variant={p.isPremium ? 'warning' : p.isGoldClub ? 'warning' : 'muted'}>
-                {p.nickname}
-                {p.isPremium && ' PREMIUM'}
-                {p.isGoldClub && ' GOLD'}
-              </Badge>
-            ))}
-            {(!space.profiles || space.profiles.length === 0) && <span className='text-gray-400'>없음</span>}
-          </div>
-        </div>
-        <div>
-          <span className='text-muted-foreground'>펫:</span>{' '}
-          <div className='flex gap-1 mt-1'>
-            <Badge variant='info'>Lv.{space.pet.level}</Badge>
-            <Badge variant='info'>EXP {space.pet.exp.toFixed(1)}</Badge>
-            {space.pet.type && <Badge variant='secondary'>{petTypeMap[space.pet.type] ?? space.pet.type}</Badge>}
-            {space.pet.isSnackable && <Badge variant='success'>간식 가능</Badge>}
-            {space.pet.isPatable && <Badge variant='success'>쓰다듬기 가능</Badge>}
-          </div>
-        </div>
-        <div>
-          <span className='text-muted-foreground'>방:</span>{' '}
-          <div className='flex flex-wrap gap-1 mt-1'>
-            {space.rooms?.map((r) => (
-              <Badge key={r.id} variant='default'>
-                {r.name} ({r.category})
-              </Badge>
-            ))}
-            {(!space.rooms || space.rooms.length === 0) && <span className='text-gray-400'>없음</span>}
-          </div>
-        </div>
-        <div>
-          <span className='text-muted-foreground'>인테리어:</span>{' '}
-          <Badge variant='warning'>{space.InteriorItem?.length || 0}개</Badge>
-        </div>
-        <div>
-          <span className='text-muted-foreground'>카드 생성일:</span>{' '}
-          {space.cardGenDate ? dayjs(space.cardGenDate).format('YY.MM.DD HH:mm') : '-'}
-        </div>
-        <div>
-          <span className='text-muted-foreground'>삭제 예정일:</span>{' '}
-          {space.dueRemovedAt ? (
-            <Badge variant='destructive'>{dayjs(space.dueRemovedAt).format('YY.MM.DD HH:mm')}</Badge>
-          ) : (
-            '-'
-          )}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <>
       <div className={isFetching ? 'opacity-50 pointer-events-none' : ''}>
@@ -249,9 +169,8 @@ function SpaceList() {
         />
 
         <DataTable
-          columns={tableColumns}
+          columns={baseColumns}
           data={items || []}
-          expandable={{ expandedRowRender }}
           pagination={{
             total: totalPage * 10,
             page: currentPage,
@@ -264,20 +183,14 @@ function SpaceList() {
 
       {/* 검색 시트 */}
       <Sheet open={isOpenSearch} onOpenChange={(open) => !open && closeSearch()}>
-        <SheetContent side='right' className='w-[1200px] sm:max-w-none overflow-y-auto'>
-          <SheetHeader>
-            <SheetTitle>공간 검색</SheetTitle>
-          </SheetHeader>
+        <AdminSideSheetContent title='공간 검색' size='xl'>
           <SpaceSearch />
-        </SheetContent>
+        </AdminSideSheetContent>
       </Sheet>
 
       {/* 코인 관리 시트 */}
       <Sheet open={isOpenCoin} onOpenChange={(open) => !open && closeCoin()}>
-        <SheetContent side='right' className='w-[600px] sm:max-w-none overflow-y-auto'>
-          <SheetHeader>
-            <SheetTitle>코인 관리</SheetTitle>
-          </SheetHeader>
+        <AdminSideSheetContent title='코인 관리' size='md'>
           <CoinForm
             reload={refetch}
             close={closeCoin}
@@ -291,7 +204,7 @@ function SpaceList() {
                 : undefined
             }
           />
-        </SheetContent>
+        </AdminSideSheetContent>
       </Sheet>
 
       {/* 프로필 모달 */}
@@ -337,7 +250,7 @@ function SpaceList() {
       </AlertDialog>
 
       {/* 단체 코인 지급 다이얼로그 */}
-      <AlertDialog open={isBulkCoinOpen} onOpenChange={(open) => !open && setIsBulkCoinOpen(false)}>
+      <AlertDialog open={isBulkCoinOpen} onOpenChange={setIsBulkCoinOpen}>
         <AlertDialogContent className='max-w-[500px]'>
           <AlertDialogHeader>
             <AlertDialogTitle>단체 코인 지급/회수</AlertDialogTitle>

@@ -1,6 +1,10 @@
 import { removeSnack } from '@/client/snack';
 import { ImgItem, Snack } from '@/client/types';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
+import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
 import DataTable from '@/components/shared/ui/data-table';
+import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,7 +16,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet } from '@/components/ui/sheet';
 import useSnacks from '@/hooks/useSnack';
 import { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
@@ -54,16 +58,25 @@ function SnackList() {
 
   const columns: ColumnDef<Snack>[] = [
     {
-      accessorKey: 'Img',
-      header: '이미지',
-      cell: ({ row }) => {
-        const value = row.original.Img as ImgItem;
-        return <img width='100%' height={60} src={value?.uri ?? ''} alt='img' className='object-contain' />;
-      },
-    },
-    {
       accessorKey: 'id',
       header: '번호',
+      size: 84,
+    },
+    {
+      accessorKey: 'Img',
+      header: '이미지',
+      size: 156,
+      cell: ({ row }) => {
+        const value = row.original.Img as ImgItem;
+        return (
+          <ClickableImagePreview
+            src={value?.uri}
+            alt={`${row.original.name} 간식 이미지`}
+            triggerClassName='h-[120px] w-[120px]'
+            imageClassName='h-full w-full object-contain'
+          />
+        );
+      },
     },
     {
       accessorKey: 'name',
@@ -111,12 +124,21 @@ function SnackList() {
     },
     {
       id: 'actions',
-      header: 'Action',
+      header: '관리',
       cell: ({ row }) => (
-        <div className='flex gap-4'>
-          <Button variant='outline' onClick={() => handleEdit(row.original)}>수정</Button>
-          <Button variant='outline' onClick={() => handleRemove(row.original)}>삭제</Button>
-        </div>
+        <TableRowActions
+          items={[
+            {
+              label: '수정',
+              onClick: () => handleEdit(row.original),
+            },
+            {
+              label: '삭제',
+              onClick: () => handleRemove(row.original),
+              destructive: true,
+            },
+          ]}
+        />
       ),
     },
   ];
@@ -134,15 +156,17 @@ function SnackList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <Button
-        onClick={() => {
-          setFocused(undefined);
-          setOpenCreate(true);
-        }}
-        size='lg'
-      >
-        추가
-      </Button>
+      <DefaultTableBtn className='justify-end'>
+        <Button
+          onClick={() => {
+            setFocused(undefined);
+            setOpenCreate(true);
+          }}
+          size='lg'
+        >
+          추가
+        </Button>
+      </DefaultTableBtn>
       <DataTable
         columns={columns}
         data={items ?? []}
@@ -155,20 +179,14 @@ function SnackList() {
         }}
       />
       <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
-        <SheetContent side='right' className='w-[720px] sm:max-w-[720px] overflow-y-auto'>
-          <SheetHeader>
-            <SheetTitle>간식 추가</SheetTitle>
-          </SheetHeader>
+        <AdminSideSheetContent title='간식 추가' size='lg'>
           <SnackForm close={() => setOpenCreate(false)} reload={refetch} />
-        </SheetContent>
+        </AdminSideSheetContent>
       </Sheet>
       <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
-        <SheetContent side='right' className='w-[720px] sm:max-w-[720px] overflow-y-auto'>
-          <SheetHeader>
-            <SheetTitle>간식 수정</SheetTitle>
-          </SheetHeader>
+        <AdminSideSheetContent title='간식 수정' size='lg'>
           <SnackForm initialSnack={focused} close={() => setOpenEdit(false)} reload={refetch} />
-        </SheetContent>
+        </AdminSideSheetContent>
       </Sheet>
     </>
   );

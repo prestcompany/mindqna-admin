@@ -1,6 +1,7 @@
 import { IDefaultLayoutPage } from '@/components/layout/default-layout';
 import SeoHead from '@/components/layout/seo-head';
 import AuthProvider from '@/lib/auth/auth-provider';
+import { AdminThemeProvider } from '@/lib/design-system/theme-provider';
 import '@/styles/globals.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NextComponentType } from 'next';
@@ -30,7 +31,7 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
     ((Page: NextComponentType, props: Record<string, unknown>) => <Page {...props} />);
 
   return (
-    <>
+    <AdminThemeProvider>
       <SeoHead />
       <Head>
         <link rel='apple-touch-icon' sizes='180x180' href='/apple-touch-icon.png' />
@@ -49,6 +50,6 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
         </SessionProvider>
       </QueryClientProvider>
       <Toaster position='top-right' richColors closeButton />
-    </>
+    </AdminThemeProvider>
   );
 }

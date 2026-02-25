@@ -32,7 +32,7 @@ const Nav = ({ data, label }: INavProps) => {
   return (
     <div className='mb-4'>
       {label && (
-        <h4 className='px-3 mb-1 text-[11px] font-medium tracking-wider uppercase text-muted-foreground'>
+        <h4 className='mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/80'>
           {label}
         </h4>
       )}

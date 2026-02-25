@@ -1,8 +1,9 @@
 import { Game, GameRanking } from '@/client/game';
 import { Profile, Space } from '@/client/types';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet } from '@/components/ui/sheet';
 import { Select as ShadSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DataTable from '@/components/shared/ui/data-table';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
@@ -206,15 +207,11 @@ function GameRankingList() {
           onChange: (page) => setCurrentPage(page),
         }}
       />
-      <Sheet open={isOpenCreate} onOpenChange={(open) => !open && setOpenCreate(false)}>
-        <SheetContent side='right' className='w-[600px] sm:max-w-none overflow-y-auto'>
-          <SheetHeader><SheetTitle></SheetTitle></SheetHeader>
-        </SheetContent>
+      <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
+        <AdminSideSheetContent title='랭킹 생성' size='md' />
       </Sheet>
-      <Sheet open={isOpenEdit} onOpenChange={(open) => !open && setOpenEdit(false)}>
-        <SheetContent side='right' className='w-[600px] sm:max-w-none overflow-y-auto'>
-          <SheetHeader><SheetTitle></SheetTitle></SheetHeader>
-        </SheetContent>
+      <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
+        <AdminSideSheetContent title='랭킹 수정' size='md' />
       </Sheet>
     </>
   );

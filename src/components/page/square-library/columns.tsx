@@ -1,6 +1,7 @@
-import { LibraryData, LibrarySubType } from '@/client/square-library';
+import { LibraryData } from '@/client/square-library';
+import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
@@ -26,9 +27,17 @@ export const createColumns = ({
   {
     accessorKey: 'img',
     header: '이미지',
+    size: 156,
     cell: ({ row }) => {
       const value = row.original.img;
-      return <img width='100%' height={60} src={value ?? ''} alt='img' className='object-contain' />;
+      return (
+        <ClickableImagePreview
+          src={value}
+          alt={`${row.original.name} 라이브러리 이미지`}
+          triggerClassName='h-[120px] w-[120px]'
+          imageClassName='h-full w-full object-contain'
+        />
+      );
     },
   },
   {
@@ -119,12 +128,21 @@ export const createColumns = ({
   },
   {
     id: 'actions',
-    header: 'Action',
+    header: '관리',
     cell: ({ row }) => (
-      <div className='flex gap-4'>
-        <Button variant='outline' onClick={() => onEdit(row.original)}>수정</Button>
-        <Button variant='outline' onClick={() => onRemove(row.original)}>삭제</Button>
-      </div>
+      <TableRowActions
+        items={[
+          {
+            label: '수정',
+            onClick: () => onEdit(row.original),
+          },
+          {
+            label: '삭제',
+            onClick: () => onRemove(row.original),
+            destructive: true,
+          },
+        ]}
+      />
     ),
   },
 ];

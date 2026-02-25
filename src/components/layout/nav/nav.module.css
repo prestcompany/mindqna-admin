@@ -1,17 +1,24 @@
-.menu a {
-  @apply flex items-center gap-3 rounded-md text-muted-foreground cursor-pointer transition-colors duration-150 hover:bg-accent hover:text-accent-foreground;
+.menu {
+  @apply space-y-1;
+}
+
+.menu a,
+.menu button {
+  @apply flex w-full items-center gap-3 rounded-lg text-left text-sm font-medium text-muted-foreground transition-colors duration-150 hover:bg-accent/80 hover:text-foreground;
 }
 
 .menu > li {
-  @apply mb-0.5;
+  @apply mb-1;
 }
 
-.menu > li > a {
-  @apply px-3 py-2 font-medium;
+.menu > li > a,
+.menu > li > button {
+  @apply px-3 py-2;
 }
 
-.menu a:global(.active) {
-  @apply bg-accent text-accent-foreground font-medium;
+.menu a:global(.active),
+.menu button:global(.active) {
+  @apply bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20;
 }
 
 .menu :global(.active-check) {
@@ -19,13 +26,14 @@
 }
 
 .menu > li > ul {
-  @apply mt-0.5;
+  @apply mt-1 space-y-0.5;
 }
 
 .menu > li > ul > li {
   @apply mb-0;
 }
 
-.menu > li > ul > li > a {
-  @apply pl-9 py-1.5 pr-3 text-sm;
+.menu > li > ul > li > a,
+.menu > li > ul > li > button {
+  @apply py-1.5 pl-10 pr-3 text-[13px] font-medium text-muted-foreground;
 }

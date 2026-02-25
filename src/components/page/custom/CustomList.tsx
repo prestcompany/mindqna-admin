@@ -1,7 +1,9 @@
 import { removeCustomTemplate } from '@/client/custom';
 import { ImgItem, PetCustomTemplate } from '@/client/types';
+import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
 import DataTable from '@/components/shared/ui/data-table';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -124,9 +126,17 @@ function CustomList() {
     {
       accessorKey: 'img',
       header: '썸네일',
+      size: 156,
       cell: ({ row }) => {
         const value = row.original.img as ImgItem;
-        return <img width={60} height={60} src={value?.uri ?? ''} alt='img' className='object-contain' />;
+        return (
+          <ClickableImagePreview
+            src={value?.uri}
+            alt={`${row.original.name} 커스텀 이미지`}
+            triggerClassName='h-[120px] w-[120px]'
+            imageClassName='h-full w-full object-contain'
+          />
+        );
       },
     },
     {
@@ -138,12 +148,21 @@ function CustomList() {
     },
     {
       id: 'actions',
-      header: 'Action',
+      header: '관리',
       cell: ({ row }) => (
-        <div className='flex gap-4'>
-          <Button variant='outline' onClick={() => handleEdit(row.original)}>수정</Button>
-          <Button variant='outline' onClick={() => handleRemove(row.original)}>삭제</Button>
-        </div>
+        <TableRowActions
+          items={[
+            {
+              label: '수정',
+              onClick: () => handleEdit(row.original),
+            },
+            {
+              label: '삭제',
+              onClick: () => handleRemove(row.original),
+              destructive: true,
+            },
+          ]}
+        />
       ),
     },
   ];
@@ -161,19 +180,16 @@ function CustomList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <DefaultTableBtn className='justify-between'>
-        <div className='flex items-center gap-2 py-4'></div>
-        <div className='flex items-center gap-4'>
-          <Button
-            onClick={() => {
-              setFocused(undefined);
-              setOpenCreate(true);
-            }}
-            size='lg'
-          >
-            펫 커스텀 추가
-          </Button>
-        </div>
+      <DefaultTableBtn className='justify-end'>
+        <Button
+          onClick={() => {
+            setFocused(undefined);
+            setOpenCreate(true);
+          }}
+          size='lg'
+        >
+          펫 커스텀 추가
+        </Button>
       </DefaultTableBtn>
       <DataTable
         columns={columns}

@@ -1,25 +1,18 @@
 import { Game, GameReward, GameRewardCondition } from '@/client/game';
 import { Profile, Space } from '@/client/types';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Select as ShadSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DataTable from '@/components/shared/ui/data-table';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import { useGameRewards, useGames } from '@/hooks/useGame';
 import { ColumnDef } from '@tanstack/react-table';
-import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 function GameRewardList() {
-  const router = useRouter();
-
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<{ gameId?: number; year?: number; month?: number; week?: number }>({});
-  const { items, totalPage, isLoading, refetch } = useGameRewards({ page: currentPage, ...filter });
+  const { items, totalPage, isLoading } = useGameRewards({ page: currentPage, ...filter });
   const { items: games } = useGames({ page: 1 });
-
-  const [isOpenCreate, setOpenCreate] = useState(false);
-  const [isOpenEdit, setOpenEdit] = useState(false);
 
   const currentYear = new Date().getFullYear();
   const yearOptions = [{ value: currentYear, label: `${currentYear}년` }];
@@ -217,16 +210,6 @@ function GameRewardList() {
           onChange: (page) => setCurrentPage(page),
         }}
       />
-      <Sheet open={isOpenCreate} onOpenChange={(open) => !open && setOpenCreate(false)}>
-        <SheetContent side='right' className='w-[600px] sm:max-w-none overflow-y-auto'>
-          <SheetHeader><SheetTitle></SheetTitle></SheetHeader>
-        </SheetContent>
-      </Sheet>
-      <Sheet open={isOpenEdit} onOpenChange={(open) => !open && setOpenEdit(false)}>
-        <SheetContent side='right' className='w-[600px] sm:max-w-none overflow-y-auto'>
-          <SheetHeader><SheetTitle></SheetTitle></SheetHeader>
-        </SheetContent>
-      </Sheet>
     </>
   );
 }

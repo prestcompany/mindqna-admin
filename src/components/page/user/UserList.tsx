@@ -1,5 +1,6 @@
 import { User } from '@/client/types';
 import { removeUser } from '@/client/user';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,7 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet } from '@/components/ui/sheet';
 import DataTable from '@/components/shared/ui/data-table';
 import useUsers from '@/hooks/useUsers';
 import { useState } from 'react';
@@ -105,21 +106,15 @@ function UserList() {
       />
 
       <Sheet open={isOpenSearch} onOpenChange={(open) => !open && closeSearch()}>
-        <SheetContent side='right' className='w-[1200px] sm:max-w-none overflow-y-auto'>
-          <SheetHeader>
-            <SheetTitle>사용자 검색</SheetTitle>
-          </SheetHeader>
+        <AdminSideSheetContent title='사용자 검색' size='xl'>
           <UserSearch />
-        </SheetContent>
+        </AdminSideSheetContent>
       </Sheet>
 
       <Sheet open={isOpenTicket} onOpenChange={(open) => !open && closeTicket()}>
-        <SheetContent side='right' className='w-[600px] sm:max-w-none overflow-y-auto'>
-          <SheetHeader>
-            <SheetTitle>티켓 지급</SheetTitle>
-          </SheetHeader>
+        <AdminSideSheetContent title='티켓 지급' size='md'>
           <TicketForm reload={refetch} close={closeTicket} username={focusedUsername} />
-        </SheetContent>
+        </AdminSideSheetContent>
       </Sheet>
 
       <UserMigrationModal open={isOpenMigration} onClose={closeMigration} onSuccess={handleMigrationSuccess} />

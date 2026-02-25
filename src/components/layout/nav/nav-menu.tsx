@@ -19,7 +19,12 @@ const NavMenu = ({ menu }: INavMenuProps) => {
   if (menu.submenu) {
     return (
       <li>
-        <a onClick={() => setIsShowSubMenu(!isShowSubMenu)}>
+        <button
+          type='button'
+          onClick={() => setIsShowSubMenu(!isShowSubMenu)}
+          aria-expanded={isShowSubMenu}
+          aria-label={`${menu.name} 메뉴 ${isShowSubMenu ? '접기' : '펼치기'}`}
+        >
           {menu.icon}
           <span className='grow'>{menu.name}</span>
           {menu.submenu.length > 0 && (
@@ -27,7 +32,7 @@ const NavMenu = ({ menu }: INavMenuProps) => {
               className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isShowSubMenu ? 'rotate-180' : ''}`}
             />
           )}
-        </a>
+        </button>
         <ul className={isShowSubMenu ? 'block' : 'hidden'}>
           {menu.submenu.map((sub) => {
             return <NavItem key={sub.id || sub.name} item={sub} />;

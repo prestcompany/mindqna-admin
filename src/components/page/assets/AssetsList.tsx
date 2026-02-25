@@ -1,4 +1,5 @@
 import { removeAsset } from '@/client/assets';
+import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
 import useAssets from '@/hooks/useAssets';
 import {
   AlertDialog,
@@ -117,16 +118,15 @@ function AssetsList() {
                 className='overflow-hidden relative bg-white rounded-lg shadow-md transition-all duration-200 group hover:shadow-lg'
               >
                 <div className='relative aspect-square'>
-                  <img
-                    width='100%'
-                    height='100%'
+                  <ClickableImagePreview
                     src={item.uri}
-                    alt='asset'
-                    className='object-cover rounded-t-lg w-full h-full'
+                    alt={`${displayName} 이미지`}
+                    triggerClassName='h-full w-full rounded-none rounded-t-lg border-0 bg-transparent p-0 hover:bg-transparent focus-visible:ring-offset-0'
+                    imageClassName='h-full w-full rounded-t-lg object-cover'
                   />
                   <button
                     onClick={() => handleClickRemove(item.id)}
-                    className='absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg'
+                    className='absolute top-2 right-2 z-10 rounded-full bg-red-500 p-1.5 text-white opacity-0 shadow-lg transition-opacity duration-200 hover:bg-red-600 group-hover:opacity-100'
                   >
                     <TrashIcon size={14} />
                   </button>

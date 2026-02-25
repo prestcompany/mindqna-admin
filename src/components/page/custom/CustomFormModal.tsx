@@ -450,13 +450,13 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ isOpen, init, reload, clos
               />
               {formData.image && (
                 <div>
-                  <div className='relative inline-block'>
-                    <img width={100} height={100} src={formData.image.uri} alt='img' className='object-contain' />
+                  <div className='relative inline-flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border/60 bg-transparent p-2'>
+                    <img src={formData.image.uri} alt='img' className='h-full w-full object-contain' />
                     <Button
                       variant='ghost'
                       size='sm'
                       type='button'
-                      className='absolute bg-white shadow-md -top-2 -right-2 text-destructive'
+                      className='absolute -right-2 -top-2 bg-background/90 shadow-md text-destructive'
                       onClick={() => {
                         updateFormData({ image: undefined });
                         form.setValue('img', undefined);

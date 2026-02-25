@@ -24,7 +24,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, change, classNa
         <div className='text-2xl font-bold'>{value}</div>
         {change && (
           <p className='text-xs text-muted-foreground'>
-            <span className={change.isPositive !== false ? 'text-green-500' : 'text-red-500'}>{change.value}</span>
+            <span className={change.isPositive !== false ? 'text-success' : 'text-destructive'}>{change.value}</span>
             {change.label && ` ${change.label}`}
           </p>
         )}

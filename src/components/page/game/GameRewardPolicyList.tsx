@@ -1,19 +1,14 @@
-import { Game, GameRewardCondition, GameRewardPolicy } from '@/client/game';
+import { Game, GameRewardPolicy } from '@/client/game';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import DataTable from '@/components/shared/ui/data-table';
-import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import { useGameRewardPolicies } from '@/hooks/useGame';
 import { ColumnDef } from '@tanstack/react-table';
-import { useRouter } from 'next/router';
 import { useState } from 'react';
 import GameRewardPolicyModal from './GameRewardPolicyModal';
 
 function GameRewardPolicyList() {
-  const router = useRouter();
-
   const [currentPage, setCurrentPage] = useState(1);
-  const [filter, setFilter] = useState<{ locale?: string[] }>({});
   const { items, totalPage, isLoading, refetch } = useGameRewardPolicies({ page: currentPage });
 
   const [selectedGameRewardPolicy, setSelectedGameRewardPolicy] = useState<GameRewardPolicy | undefined>(undefined);
@@ -35,20 +30,22 @@ function GameRewardPolicyList() {
       },
     },
     {
-      id: 'condition',
-      header: '정책',
-      size: 100,
+      id: 'actions',
+      header: '관리',
+      size: 90,
       cell: ({ row }) => {
         return (
-          <Button
-            variant='outline'
-            onClick={() => {
-              setSelectedGameRewardPolicy(row.original);
-              setOpenEdit(true);
-            }}
-          >
-            정책 수정
-          </Button>
+          <TableRowActions
+            items={[
+              {
+                label: '정책 수정',
+                onClick: () => {
+                  setSelectedGameRewardPolicy(row.original);
+                  setOpenEdit(true);
+                },
+              },
+            ]}
+          />
         );
       },
     },
@@ -65,8 +62,6 @@ function GameRewardPolicyList() {
 
   return (
     <>
-      <DefaultTableBtn className='justify-between'></DefaultTableBtn>
-
       <DataTable
         columns={columns}
         data={items || []}

@@ -1,9 +1,9 @@
 import { publishCardTemplates, removeCardTemplate, unpublishedCardTemplates } from '@/client/card';
 import { CardTemplate, CardTemplateType, GetCardTemplatesResult, SpaceType } from '@/client/types';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Select as ShadSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
+import DataTable from '@/components/shared/ui/data-table';
+import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,12 +14,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import { SelectContent, SelectItem, SelectTrigger, SelectValue, Select as ShadSelect } from '@/components/ui/select';
+import { Sheet } from '@/components/ui/sheet';
 import useCardTemplates from '@/hooks/useCardTemplates';
 import { useQueryClient } from '@tanstack/react-query';
-import DataTable from '@/components/shared/ui/data-table';
-import { Checkbox } from '@/components/ui/checkbox';
 import { ColumnDef } from '@tanstack/react-table';
 import { produce } from 'immer';
 import { useState } from 'react';
@@ -172,12 +174,21 @@ function CardList() {
     },
     {
       id: 'actions',
-      header: 'Action',
+      header: '관리',
       cell: ({ row }) => (
-        <div className='flex gap-4'>
-          <Button variant='outline' onClick={() => handleEdit(row.original)}>수정</Button>
-          <Button variant='outline' onClick={() => handleRemove(row.original)}>삭제</Button>
-        </div>
+        <TableRowActions
+          items={[
+            {
+              label: '수정',
+              onClick: () => handleEdit(row.original),
+            },
+            {
+              label: '삭제',
+              onClick: () => handleRemove(row.original),
+              destructive: true,
+            },
+          ]}
+        />
       ),
     },
   ];
@@ -187,7 +198,7 @@ function CardList() {
   return (
     <div>
       <DefaultTableBtn className='justify-between'>
-        <div className='flex items-center gap-2 py-4'>
+        <div className='flex gap-2 items-center py-4'>
           <ShadSelect
             value={(filter.locale ?? [])?.[0] ?? '__all__'}
             onValueChange={(v: string) => {
@@ -241,7 +252,7 @@ function CardList() {
             </SelectContent>
           </ShadSelect>
         </div>
-        <div className='flex items-center gap-4'>
+        <div className='flex gap-4 items-center'>
           <Button variant='outline' size='lg' onClick={handleBulkUpload}>
             카드 템플릿 엑셀 업로드
           </Button>
@@ -276,27 +287,23 @@ function CardList() {
           비활성화
         </Button>
       </div>
-      <Sheet open={isOpenCreate} onOpenChange={(open) => !open && setOpenCreate(false)}>
-        <SheetContent side='right' className='w-[600px] sm:max-w-none overflow-y-auto'>
-          <SheetHeader><SheetTitle>카드 템플릿 추가</SheetTitle></SheetHeader>
+      <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
+        <AdminSideSheetContent title='카드 템플릿 추가' size='md'>
           <CardForm reload={refetch} close={() => setOpenCreate(false)} />
-        </SheetContent>
+        </AdminSideSheetContent>
       </Sheet>
 
-      <Sheet open={isOpenEdit} onOpenChange={(open) => !open && setOpenEdit(false)}>
-        <SheetContent side='right' className='w-[600px] sm:max-w-none overflow-y-auto'>
-          <SheetHeader><SheetTitle>카드 템플릿 수정</SheetTitle></SheetHeader>
+      <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
+        <AdminSideSheetContent title='카드 템플릿 수정' size='md'>
           <CardForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
-        </SheetContent>
+        </AdminSideSheetContent>
       </Sheet>
 
       <AlertDialog open={!!confirmDelete} onOpenChange={(open) => !open && setConfirmDelete(undefined)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>삭제 팝업</AlertDialogTitle>
-            <AlertDialogDescription>
-              순서 {confirmDelete?.order} 을 정말 삭제하시겠습니까?
-            </AlertDialogDescription>
+            <AlertDialogDescription>순서 {confirmDelete?.order} 을 정말 삭제하시겠습니까?</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>취소</AlertDialogCancel>
@@ -305,7 +312,7 @@ function CardList() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Dialog open={isUploadOpen} onOpenChange={(open) => !open && setIsUploadOpen(false)}>
+      <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
         <DialogContent className='max-w-lg'>
           <DialogHeader>
             <DialogTitle>카드 템플릿 업로드</DialogTitle>

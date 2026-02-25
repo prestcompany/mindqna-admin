@@ -1,4 +1,5 @@
 import { IAPProduct } from '@/client/premium';
+import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import { Badge } from '@/components/ui/badge';
 import DataTable from '@/components/shared/ui/data-table';
 import useProducts from '@/hooks/useProducts';
@@ -9,7 +10,7 @@ import { useState } from 'react';
 function ProductList() {
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { items, isLoading, refetch, totalPage } = useProducts({
+  const { items, isLoading, totalPage } = useProducts({
     page: currentPage,
   });
 
@@ -17,15 +18,21 @@ function ProductList() {
     {
       accessorKey: 'id',
       header: '번호',
+      size: 72,
     },
     {
       id: 'username',
-      accessorFn: (row) => (row as any).owner?.username,
+      accessorFn: (row) => (row as any).owner?.username ?? '-',
       header: 'username',
+      size: 170,
+      meta: {
+        truncateMaxWidth: 150,
+      },
     },
     {
       accessorKey: 'platform',
       header: '플랫폼',
+      size: 92,
       cell: ({ row }) => {
         const value = row.original.platform;
         if (value === 'EVENT') return <Badge variant='destructive'>EVENT</Badge>;
@@ -37,22 +44,34 @@ function ProductList() {
       id: 'subscription',
       accessorKey: 'dueAt',
       header: '구독/소모품',
+      size: 110,
       cell: ({ row }) => {
         const value = row.original.dueAt;
         return <Badge variant={value ? 'info' : 'secondary'}>{value ? '구독' : '소모품'}</Badge>;
       },
     },
     {
-      accessorKey: 'productId',
+      id: 'productId',
+      accessorFn: (row) => row.productId ?? '-',
       header: 'productId',
+      size: 210,
+      meta: {
+        truncateMaxWidth: 190,
+      },
     },
     {
-      accessorKey: 'transactionId',
+      id: 'transactionId',
+      accessorFn: (row) => row.transactionId ?? '-',
       header: 'transactionId',
+      size: 220,
+      meta: {
+        truncateMaxWidth: 200,
+      },
     },
     {
       accessorKey: 'dueAt',
       header: '만료일',
+      size: 130,
       cell: ({ row }) => {
         const value = row.original.dueAt;
         const day = dayjs(value);
@@ -62,6 +81,7 @@ function ProductList() {
     {
       accessorKey: 'isActive',
       header: '활성화',
+      size: 92,
       cell: ({ row }) => {
         const value = row.original.isActive;
         return <Badge variant={value ? 'success' : 'muted'}>{value ? '활성화' : '만료'}</Badge>;
@@ -70,6 +90,7 @@ function ProductList() {
     {
       accessorKey: 'isProduction',
       header: 'PROD/TEST',
+      size: 104,
       cell: ({ row }) => {
         const value = row.original.isProduction;
         return <Badge variant={value ? 'default' : 'muted'}>{value ? 'PROD' : 'TEST'}</Badge>;
@@ -78,6 +99,7 @@ function ProductList() {
     {
       accessorKey: 'createdAt',
       header: '생성 시간',
+      size: 140,
       cell: ({ row }) => {
         const day = dayjs(row.original.createdAt);
         return <div>{day.format('YY.MM.DD HH:mm')}</div>;
@@ -86,9 +108,9 @@ function ProductList() {
   ];
   return (
     <>
-      <div className='flex gap-2 items-center py-4'>
-        <span className='text-lg font-bold'>필터</span>
-      </div>
+      <DefaultTableBtn className='justify-start'>
+        <span className='text-sm font-medium text-muted-foreground'>상품 결제 내역</span>
+      </DefaultTableBtn>
       <DataTable
         columns={columns}
         data={items || []}

@@ -110,7 +110,7 @@ const systemMenu: IMenu[] = [
 
 const MainMenu = () => {
   return (
-    <nav>
+    <nav className='pb-2'>
       <Menu data={overviewMenu} label='개요' />
       <Menu data={managementMenu} label='관리' />
       <Menu data={contentMenu} label='콘텐츠' />

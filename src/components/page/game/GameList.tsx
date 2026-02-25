@@ -1,21 +1,16 @@
 import { Game, GameType } from '@/client/game';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import DataTable from '@/components/shared/ui/data-table';
-import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import { useGames } from '@/hooks/useGame';
 import { ColumnDef } from '@tanstack/react-table';
-import { useRouter } from 'next/router';
 import { useState } from 'react';
 import GameFormModal from './GameFormModal';
 
 function GameList() {
-  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
-  const [filter, setFilter] = useState<{ locale?: string[] }>({});
   const { items, totalPage, isLoading, refetch } = useGames({ page: currentPage });
 
-  const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
 
   const [selectedGame, setSelectedGame] = useState<Game | undefined>(undefined);
@@ -79,19 +74,19 @@ function GameList() {
     },
     {
       id: 'actions',
-      header: '',
+      header: '관리',
       cell: ({ row }) => (
-        <div className='flex gap-4'>
-          <Button
-            variant='outline'
-            onClick={() => {
-              setOpenEdit(true);
-              setSelectedGame(row.original);
-            }}
-          >
-            수정
-          </Button>
-        </div>
+        <TableRowActions
+          items={[
+            {
+              label: '수정',
+              onClick: () => {
+                setOpenEdit(true);
+                setSelectedGame(row.original);
+              },
+            },
+          ]}
+        />
       ),
     },
   ];
@@ -102,10 +97,6 @@ function GameList() {
   };
   return (
     <>
-      <DefaultTableBtn className='justify-between'>
-        <div className='flex-item-list'></div>
-      </DefaultTableBtn>
-
       <DataTable
         columns={columns}
         data={items || []}
@@ -116,7 +107,6 @@ function GameList() {
           onChange: (page) => setCurrentPage(page),
         }}
       />
-      <GameFormModal isOpen={isOpenCreate} close={() => setOpenCreate(false)} refetch={refetch} />
       <GameFormModal isOpen={isOpenEdit} close={handleCloseEdit} game={selectedGame} refetch={refetch} />
     </>
   );

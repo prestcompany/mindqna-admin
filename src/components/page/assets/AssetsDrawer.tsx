@@ -45,13 +45,13 @@ function AssetsDrawer({ onClick, selectedImage }: AssetsDrawerProps) {
 
   return (
     <>
-      <Button onClick={showModal} className='flex gap-2 items-center'>
+      <Button type='button' onClick={showModal} className='flex gap-2 items-center'>
         <ImageIcon size={16} />
         이미지 선택
       </Button>
 
       <Dialog open={isModalOpen} onOpenChange={(open) => !open && handleCancel()}>
-        <DialogContent className='max-w-[1200px] p-0' style={{ top: 20 }}>
+        <DialogContent className='max-w-[1200px] p-0'>
           <DialogHeader className='p-6 pb-0'>
             <DialogTitle>
               <div className='flex gap-3 items-center'>
@@ -88,7 +88,7 @@ function AssetsDrawer({ onClick, selectedImage }: AssetsDrawerProps) {
                   <p className='text-sm'>다른 검색어를 시도해보세요</p>
                 </div>
               ) : (
-                <div className='grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8'>
+                <div className='grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4'>
                   {filteredImgs.map((item) => {
                     const fileName = item.uri.split('/').pop() || '';
                     const imgPart = fileName.includes('img') ? 'img' + fileName.split('img')[1] : fileName;
@@ -114,11 +114,11 @@ function AssetsDrawer({ onClick, selectedImage }: AssetsDrawerProps) {
                           </div>
                         )}
 
-                        <div className='overflow-hidden relative bg-gray-100 aspect-square'>
+                        <div className='relative aspect-square overflow-hidden bg-transparent'>
                           <img
                             src={item.uri}
                             alt='asset'
-                            className='object-cover w-full h-full'
+                            className='h-full w-full object-contain'
                             loading='lazy'
                           />
 

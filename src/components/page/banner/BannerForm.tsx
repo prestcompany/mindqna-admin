@@ -125,7 +125,11 @@ function BannerForm({ init, reload, close }: Props) {
           <div>
             <Label className='block mb-2'>이미지</Label>
             <div className='flex flex-col gap-2 items-center'>
-              {imageUri && <img width={200} height={200} src={imageUri} alt='img' className='object-contain' />}
+              {imageUri && (
+                <div className='flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border/60 bg-transparent p-2'>
+                  <img src={imageUri} alt='img' className='h-full w-full object-contain' />
+                </div>
+              )}
               <AssetsDrawer onClick={(img) => setImageUri(img.uri)} />
             </div>
           </div>

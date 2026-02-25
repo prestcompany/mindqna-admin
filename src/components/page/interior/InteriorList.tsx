@@ -1,6 +1,10 @@
 import { removeInteriorTemplate } from '@/client/interior';
 import { ImgItem, InteriorTemplate } from '@/client/types';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
+import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
 import DataTable from '@/components/shared/ui/data-table';
+import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,7 +16,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet } from '@/components/ui/sheet';
 import useInteriors from '@/hooks/useInteriors';
 import { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
@@ -61,9 +65,28 @@ function InteriorList() {
     {
       accessorKey: 'img',
       header: '이미지',
+      size: 156,
       cell: ({ row }) => {
         const value = row.original.img as ImgItem;
-        return <img width='100%' height={100} src={value?.uri ?? ''} alt='img' className='object-contain' />;
+        const rawWidth = row.original.width || 100;
+        const rawHeight = row.original.height || 100;
+        const maxPreview = 112;
+        const scale = Math.min(maxPreview / rawWidth, maxPreview / rawHeight);
+        const previewWidth = Math.max(Math.round(rawWidth * scale), 24);
+        const previewHeight = Math.max(Math.round(rawHeight * scale), 24);
+
+        return (
+          <ClickableImagePreview
+            src={value?.uri}
+            alt={`${row.original.name} 인테리어 이미지`}
+            triggerClassName='h-[120px] w-[120px]'
+            imageClassName='object-contain'
+            imageStyle={{
+              width: previewWidth,
+              height: previewHeight,
+            }}
+          />
+        );
       },
     },
     {
@@ -112,12 +135,21 @@ function InteriorList() {
     },
     {
       id: 'actions',
-      header: 'Action',
+      header: '관리',
       cell: ({ row }) => (
-        <div className='flex gap-4'>
-          <Button variant='outline' onClick={() => handleEdit(row.original)}>수정</Button>
-          <Button variant='outline' onClick={() => handleRemove(row.original)}>삭제</Button>
-        </div>
+        <TableRowActions
+          items={[
+            {
+              label: '수정',
+              onClick: () => handleEdit(row.original),
+            },
+            {
+              label: '삭제',
+              onClick: () => handleRemove(row.original),
+              destructive: true,
+            },
+          ]}
+        />
       ),
     },
   ];
@@ -135,15 +167,17 @@ function InteriorList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <Button
-        onClick={() => {
-          setFocused(undefined);
-          setOpenCreate(true);
-        }}
-        size='lg'
-      >
-        추가
-      </Button>
+      <DefaultTableBtn className='justify-end'>
+        <Button
+          onClick={() => {
+            setFocused(undefined);
+            setOpenCreate(true);
+          }}
+          size='lg'
+        >
+          추가
+        </Button>
+      </DefaultTableBtn>
       <DataTable
         columns={columns}
         data={templates ?? []}
@@ -156,20 +190,14 @@ function InteriorList() {
         }}
       />
       <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
-        <SheetContent side='right' className='w-[720px] sm:max-w-[720px] overflow-y-auto'>
-          <SheetHeader>
-            <SheetTitle>인테리어 추가</SheetTitle>
-          </SheetHeader>
+        <AdminSideSheetContent title='인테리어 추가' size='lg'>
           <InteriorForm reload={refetch} close={() => setOpenCreate(false)} />
-        </SheetContent>
+        </AdminSideSheetContent>
       </Sheet>
       <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
-        <SheetContent side='right' className='w-[720px] sm:max-w-[720px] overflow-y-auto'>
-          <SheetHeader>
-            <SheetTitle>인테리어 수정</SheetTitle>
-          </SheetHeader>
+        <AdminSideSheetContent title='인테리어 수정' size='lg'>
           <InteriorForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
-        </SheetContent>
+        </AdminSideSheetContent>
       </Sheet>
     </>
   );

@@ -1,5 +1,8 @@
 import { RoomCategory, RoomTemplate, removeRoom } from '@/client/room';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import DataTable from '@/components/shared/ui/data-table';
+import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +14,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet } from '@/components/ui/sheet';
 import useRooms from '@/hooks/useRooms';
 import { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
@@ -91,12 +94,21 @@ function RoomList() {
     },
     {
       id: 'actions',
-      header: 'Action',
+      header: '관리',
       cell: ({ row }) => (
-        <div className='flex gap-4'>
-          <Button variant='outline' onClick={() => handleEdit(row.original)}>수정</Button>
-          <Button variant='outline' onClick={() => handleRemove(row.original)}>삭제</Button>
-        </div>
+        <TableRowActions
+          items={[
+            {
+              label: '수정',
+              onClick: () => handleEdit(row.original),
+            },
+            {
+              label: '삭제',
+              onClick: () => handleRemove(row.original),
+              destructive: true,
+            },
+          ]}
+        />
       ),
     },
   ];
@@ -114,15 +126,17 @@ function RoomList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <Button
-        onClick={() => {
-          setFocused(undefined);
-          setOpenCreate(true);
-        }}
-        size='lg'
-      >
-        추가
-      </Button>
+      <DefaultTableBtn className='justify-end'>
+        <Button
+          onClick={() => {
+            setFocused(undefined);
+            setOpenCreate(true);
+          }}
+          size='lg'
+        >
+          추가
+        </Button>
+      </DefaultTableBtn>
 
       <DataTable
         columns={columns}
@@ -136,20 +150,14 @@ function RoomList() {
         }}
       />
       <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
-        <SheetContent side='right' className='w-[600px] sm:max-w-[600px] overflow-y-auto'>
-          <SheetHeader>
-            <SheetTitle>방 추가</SheetTitle>
-          </SheetHeader>
+        <AdminSideSheetContent title='방 추가' size='md'>
           <RoomForm reload={refetch} close={() => setOpenCreate(false)} />
-        </SheetContent>
+        </AdminSideSheetContent>
       </Sheet>
       <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
-        <SheetContent side='right' className='w-[600px] sm:max-w-[600px] overflow-y-auto'>
-          <SheetHeader>
-            <SheetTitle>방 수정</SheetTitle>
-          </SheetHeader>
+        <AdminSideSheetContent title='방 수정' size='md'>
           <RoomForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
-        </SheetContent>
+        </AdminSideSheetContent>
       </Sheet>
     </>
   );

@@ -6,6 +6,7 @@ import Header from './header';
 import MainMenu from './main-menu';
 import MenuBtn from './menu-btn';
 import PageHeader from './page-header';
+import { resolveRouteHeader } from './route-labels';
 import Sidebar from './sidebar';
 
 export interface IPageHeader {
@@ -16,12 +17,16 @@ export interface IPageHeader {
 
 export type IDefaultLayoutPage<P = {}> = NextPage<P> & {
   getLayout(page: NextComponentType, props: unknown): React.ReactNode;
-  pageHeader?: IPageHeader;
+  pageHeader?: unknown;
 };
 
 interface IDefaultLayoutProps {
   Page: IDefaultLayoutPage;
 }
+
+const isPageHeaderValue = (value: unknown): value is IPageHeader => {
+  return typeof value === 'object' && value !== null && typeof (value as IPageHeader).title === 'string';
+};
 
 const DefaultLayout = ({ Page, ...props }: IDefaultLayoutProps) => {
   const [isShowSidebar, setIsShowSidebar] = useState(true);
@@ -49,20 +54,26 @@ const DefaultLayout = ({ Page, ...props }: IDefaultLayoutProps) => {
     setActive(false);
   }, [router.asPath, setActive]);
 
+  const resolvedPageHeader = isPageHeaderValue(Page.pageHeader)
+    ? Page.pageHeader
+    : resolveRouteHeader(router.pathname);
+
   return (
-    <div className='min-h-screen'>
+    <div className='min-h-screen bg-background'>
       <Sidebar isShowSidebar={isShowSidebar} hideSidebar={hideSidebar} />
 
       {/* mobile navigation */}
-      <div className='z-40 flex items-center justify-between px-4 border-b border-border h-14 sm:hidden'>
-        <div className='flex items-center gap-2.5'>
-          <div className='flex items-center justify-center w-8 h-8 text-sm font-bold text-primary-foreground rounded-lg bg-primary'>
-            M
+      <div className='border-b border-border/70 bg-background/95 backdrop-blur sm:hidden'>
+        <div className='z-40 flex h-14 items-center justify-between px-4'>
+          <div className='flex items-center gap-2.5'>
+            <div className='flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-sm'>
+              M
+            </div>
+            <span className='text-sm font-semibold text-foreground'>mindBridge</span>
           </div>
-          <span className='text-sm font-semibold text-foreground'>mindBridge</span>
-        </div>
-        <div>
-          <MenuBtn isActive={isShowPopupMenu} setActive={setActive} />
+          <div>
+            <MenuBtn isActive={isShowPopupMenu} setActive={setActive} />
+          </div>
         </div>
       </div>
       <motion.div
@@ -73,19 +84,21 @@ const DefaultLayout = ({ Page, ...props }: IDefaultLayoutProps) => {
           closed: { opacity: 0, y: '-10px', transitionEnd: { display: 'none' } },
         }}
         transition={{ duration: 0.15 }}
-        className='fixed bottom-0 left-0 right-0 z-30 w-full p-4 overflow-auto bg-background border-t border-border'
-        style={{ top: '3.5rem' }}
+        className='fixed inset-x-0 z-30 border-b border-border/70 bg-background/95 p-4 shadow-lg backdrop-blur sm:hidden'
+        style={{ top: '3.5rem', maxHeight: 'calc(100vh - 3.5rem)' }}
       >
         <MainMenu />
       </motion.div>
 
-      <div className={`sm:h-full sm:overflow-auto transition-[margin] duration-200 ${isShowSidebar ? 'sm:ml-64' : ''}`}>
+      <div className={`min-h-screen transition-[margin] duration-200 ${isShowSidebar ? 'sm:ml-72' : ''}`}>
         <div className='hidden sm:block'>
           <Header isShowSidebar={isShowSidebar} showSidebar={showSidebar} />
         </div>
-        {Page.pageHeader && <PageHeader value={Page.pageHeader} />}
-        <section className='px-5 pb-5 sm:px-6'>
-          <Page {...props} />
+        {resolvedPageHeader && <PageHeader value={resolvedPageHeader} />}
+        <section className='px-4 pb-8 pt-5 sm:px-8'>
+          <div className='mx-auto w-full max-w-[1600px]'>
+            <Page {...props} />
+          </div>
         </section>
       </div>
     </div>

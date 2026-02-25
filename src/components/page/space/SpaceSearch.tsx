@@ -1,6 +1,8 @@
 import { removeProfile, removeSpace, searchSpaces } from '@/client/space';
 import { Space, SpaceType } from '@/client/types';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import DataTable from '@/components/shared/ui/data-table';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet } from '@/components/ui/sheet';
 import { useQuery } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
@@ -187,20 +189,22 @@ function SpaceSearch() {
       header: '작업',
       size: 120,
       cell: ({ row }) => (
-        <div className='flex gap-1'>
-          <Button
-            size='sm'
-            onClick={() => {
-              setOpenCoin(true);
-              setFocused(row.original);
-            }}
-          >
-            코인
-          </Button>
-          <Button size='sm' variant='destructive' onClick={() => handleRemoveSpace(row.original)}>
-            삭제
-          </Button>
-        </div>
+        <TableRowActions
+          items={[
+            {
+              label: '코인 관리',
+              onClick: () => {
+                setOpenCoin(true);
+                setFocused(row.original);
+              },
+            },
+            {
+              label: '삭제',
+              onClick: () => handleRemoveSpace(row.original),
+              destructive: true,
+            },
+          ]}
+        />
       ),
     },
   ];
@@ -486,10 +490,7 @@ function SpaceSearch() {
           }
         }}
       >
-        <SheetContent side='right' className='w-[600px] sm:max-w-none overflow-y-auto'>
-          <SheetHeader>
-            <SheetTitle>코인 관리</SheetTitle>
-          </SheetHeader>
+        <AdminSideSheetContent title='코인 관리' size='md'>
           <CoinForm
             reload={refetch}
             close={() => {
@@ -506,7 +507,7 @@ function SpaceSearch() {
                 : undefined
             }
           />
-        </SheetContent>
+        </AdminSideSheetContent>
       </Sheet>
 
       {/* 공간 삭제 확인 */}

@@ -3,7 +3,6 @@ import DataTable from '@/components/shared/ui/data-table';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
 import usePushes from '@/hooks/usePushes';
 import { ColumnDef } from '@tanstack/react-table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -16,9 +15,6 @@ function PushList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<{ locale?: string[] }>({});
   const { items, totalPage, isLoading, refetch } = usePushes({ page: currentPage, locale: filter.locale });
-
-  const [isOpenCreate, setOpenCreate] = useState(false);
-  const [isOpenEdit, setOpenEdit] = useState(false);
 
   const columns: ColumnDef<AdminPush>[] = [
     {
@@ -45,16 +41,6 @@ function PushList() {
         if (value) return <Badge variant='success'>활성</Badge>;
         if (!value) return <Badge variant='destructive'>비활성</Badge>;
       },
-    },
-    {
-      id: 'actions',
-      header: '',
-      cell: ({ row }) => (
-        <div className='flex gap-4'>
-          {/* <Button variant='outline' onClick={() => handleEdit(row.original)}>상태변경</Button> */}
-          {/* <Button variant='outline' onClick={() => handleRemove(row.original)}>삭제</Button> */}
-        </div>
-      ),
     },
   ];
   return (
@@ -101,12 +87,6 @@ function PushList() {
           onChange: (page) => setCurrentPage(page),
         }}
       />
-      <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
-        <SheetContent side='right' className='w-[600px] sm:max-w-[600px]' />
-      </Sheet>
-      <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
-        <SheetContent side='right' className='w-[600px] sm:max-w-[600px]' />
-      </Sheet>
     </>
   );
 }
