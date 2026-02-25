@@ -1,6 +1,8 @@
 import { createInteriorTemplate, updateInteriorTemplate } from '@/client/interior';
 import { createLocale } from '@/client/locale';
 import { ImgItem, InteriorTemplate, InteriorTemplateType } from '@/client/types';
+import FormGroup from '@/components/shared/form/ui/form-group';
+import FormSection from '@/components/shared/form/ui/form-section';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -15,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import useTotalRooms from '@/hooks/useTotalRooms';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -23,7 +26,7 @@ import AssetsDrawer from '../assets/AssetsDrawer';
 
 const schema = z.object({
   name: z.string().min(1, '필수'),
-  type: z.enum(['item', 'wall', 'floor', 'event']),
+  type: z.enum(['item', 'wall', 'floor', 'todayFrame', 'event']),
   category: z.string().min(1),
   room: z.string().min(1),
   isPremium: z.enum(['true', 'false']),
@@ -51,6 +54,7 @@ const typeOptions = [
   { label: '아이템', value: 'item' },
   { label: '벽지', value: 'wall' },
   { label: '바닥', value: 'floor' },
+  { label: '오늘 프레임', value: 'todayFrame' },
   { label: '이벤트', value: 'event' },
 ];
 
@@ -134,7 +138,10 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
   }, [init]);
 
   const save = async (values: FormValues) => {
-    if (!image) return;
+    if (!image) {
+      toast.warning('이미지를 선택해주세요');
+      return;
+    }
     try {
       setLoading(true);
       const isPaid = values.isPremium === 'true';
@@ -173,7 +180,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
         await createLocale({ key: values.name, locale: 'en', value: values.valueEn ?? '' });
         await createLocale({ key: values.name, locale: 'ja', value: values.valueJa ?? '' });
         await createLocale({ key: values.name, locale: 'zh', value: values.valueZh ?? '' });
-        await createLocale({ key: values.name, locale: 'zhTw', value: values.valueZh ?? '' });
+        await createLocale({ key: values.name, locale: 'zhTw', value: values.valueZhTw ?? '' });
         await createLocale({ key: values.name, locale: 'es', value: values.valueEs ?? '' });
         await createLocale({ key: values.name, locale: 'id', value: values.valueId ?? '' });
       }
@@ -182,288 +189,345 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
       close();
     } catch (err) {
       toast.error(`${err}`);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
     <>
       {isLoading && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-background/80'>
-          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary' />
+          <Loader2 className='h-8 w-8 animate-spin text-primary' />
         </div>
       )}
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(save)} className='space-y-4'>
-          <div className='space-y-2'>
-            <Label>이미지</Label>
-            <div className='flex flex-col items-center gap-2'>
-              {image && (
-                <div className='flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border/60 bg-transparent p-2'>
-                  <img src={image.uri} alt='img' className='h-full w-full object-contain' />
-                </div>
-              )}
-              <AssetsDrawer onClick={setImage} />
-            </div>
-          </div>
-
-          <FormField
-            control={form.control}
-            name='name'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>이름</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {!focusedId && (
-            <>
-              {(['valueKo', 'valueEn', 'valueJa', 'valueZh', 'valueZhTw', 'valueEs', 'valueId'] as const).map(
-                (fieldName) => (
-                  <FormField
-                    key={fieldName}
-                    control={form.control}
-                    name={fieldName}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{fieldName.replace('value', '').toLowerCase()}</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                ),
-              )}
-            </>
-          )}
-
-          <FormField
-            control={form.control}
-            name='type'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>타입</FormLabel>
-                <FormControl>
-                  <RadioGroup value={field.value} onValueChange={field.onChange} className='flex gap-4'>
-                    {typeOptions.map((opt) => (
-                      <div key={opt.value} className='flex items-center gap-2'>
-                        <RadioGroupItem value={opt.value} id={`type-${opt.value}`} />
-                        <Label htmlFor={`type-${opt.value}`}>{opt.label}</Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name='category'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>카테고리</FormLabel>
-                <FormControl>
-                  <RadioGroup value={field.value} onValueChange={field.onChange} className='flex gap-4'>
-                    {categoryOptions.map((opt) => (
-                      <div key={opt.value} className='flex items-center gap-2'>
-                        <RadioGroupItem value={opt.value} id={`cat-${opt.value}`} />
-                        <Label htmlFor={`cat-${opt.value}`}>{opt.label}</Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name='room'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>방 타입</FormLabel>
-                <FormControl>
-                  <RadioGroup value={field.value} onValueChange={field.onChange} className='flex gap-4'>
-                    {roomOptions.map((opt) => (
-                      <div key={opt.value} className='flex items-center gap-2'>
-                        <RadioGroupItem value={opt.value} id={`room-${opt.value}`} />
-                        <Label htmlFor={`room-${opt.value}`}>{opt.label}</Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className='flex items-center gap-6'>
-            <FormField
-              control={form.control}
-              name='isPremium'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>코인 타입</FormLabel>
-                  <FormControl>
-                    <RadioGroup value={field.value} onValueChange={field.onChange} className='flex gap-4'>
-                      {premiumOptions.map((opt) => (
-                        <div key={opt.value} className='flex items-center gap-2'>
-                          <RadioGroupItem value={opt.value} id={`premium-${opt.value}`} />
-                          <Label htmlFor={`premium-${opt.value}`}>{opt.label}</Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='price'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>가격</FormLabel>
-                  <FormControl>
-                    <Input type='number' min={0} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className='flex gap-4'>
-            <FormField
-              control={form.control}
-              name='width'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>width</FormLabel>
-                  <FormControl>
-                    <Input type='number' min={1} max={7} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='height'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>height</FormLabel>
-                  <FormControl>
-                    <Input type='number' min={1} max={13} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className='space-y-2'>
-            <Label>배치 가능 좌표</Label>
-            <div className='flex'>
-              <div className='flex flex-col mt-[46px] mr-4'>
-                {Array(13)
-                  .fill(0)
-                  .map((_, idx) => {
-                    const handlePress = () => {
-                      if (coords.some((item) => item.y === idx))
-                        setCoords((prev) => prev.filter(({ y }) => y !== idx));
-                      else
-                        setCoords((prev) => [
-                          ...prev,
-                          ...coordOptions.filter((item) => item.value.y === idx).map((item) => item.value),
-                        ]);
-                    };
-                    return (
-                      <Button type='button' variant='outline' onClick={handlePress} key={idx} className='flex-1'>
-                        all
-                      </Button>
-                    );
-                  })}
+        <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
+          <FormSection title={focusedId ? '인테리어 수정' : '인테리어 추가'} description='이미지와 기본 정보를 설정합니다.'>
+            <FormGroup title='대표 이미지*'>
+              <div className='flex flex-col items-start gap-2'>
+                {image && (
+                  <div className='flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border/60 bg-transparent p-2'>
+                    <img src={image.uri} alt='interior-preview' className='h-full w-full object-contain' />
+                  </div>
+                )}
+                <AssetsDrawer onClick={setImage} />
               </div>
-              <div>
-                <div className='grid grid-cols-7 mb-4'>
-                  {Array(7)
+            </FormGroup>
+
+            <FormGroup title='이름*' description='다국어 키로도 사용됩니다.'>
+              <FormField
+                control={form.control}
+                name='name'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input placeholder='예: interior.modern.sofa.01' {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormGroup>
+
+            {!focusedId && (
+              <FormGroup title='다국어 값' description='신규 생성 시 locale 기본 값을 함께 등록합니다.'>
+                <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                  {(['valueKo', 'valueEn', 'valueJa', 'valueZh', 'valueZhTw', 'valueEs', 'valueId'] as const).map(
+                    (fieldName) => (
+                      <FormField
+                        key={fieldName}
+                        control={form.control}
+                        name={fieldName}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{fieldName.replace('value', '').toLowerCase()}</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    ),
+                  )}
+                </div>
+              </FormGroup>
+            )}
+          </FormSection>
+
+          <FormSection title='템플릿 옵션'>
+            <FormGroup title='타입*'>
+              <FormField
+                control={form.control}
+                name='type'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <RadioGroup value={field.value} onValueChange={field.onChange} className='grid grid-cols-2 gap-2 sm:grid-cols-3'>
+                        {typeOptions.map((opt) => (
+                          <div key={opt.value}>
+                            <RadioGroupItem value={opt.value} id={`type-${opt.value}`} className='peer sr-only' />
+                            <Label
+                              htmlFor={`type-${opt.value}`}
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                            >
+                              {opt.label}
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormGroup>
+
+            <FormGroup title='카테고리*'>
+              <FormField
+                control={form.control}
+                name='category'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <RadioGroup value={field.value} onValueChange={field.onChange} className='grid grid-cols-1 gap-2 sm:grid-cols-3'>
+                        {categoryOptions.map((opt) => (
+                          <div key={opt.value}>
+                            <RadioGroupItem value={opt.value} id={`cat-${opt.value}`} className='peer sr-only' />
+                            <Label
+                              htmlFor={`cat-${opt.value}`}
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                            >
+                              {opt.label}
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormGroup>
+
+            <FormGroup title='방 타입*'>
+              <FormField
+                control={form.control}
+                name='room'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <RadioGroup value={field.value} onValueChange={field.onChange} className='grid grid-cols-2 gap-2 sm:grid-cols-3'>
+                        {roomOptions.map((opt) => (
+                          <div key={opt.value}>
+                            <RadioGroupItem value={opt.value} id={`room-${opt.value}`} className='peer sr-only' />
+                            <Label
+                              htmlFor={`room-${opt.value}`}
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                            >
+                              {opt.label}
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormGroup>
+          </FormSection>
+
+          <FormSection title='가격/사이즈 및 운영'>
+            <FormGroup title='코인 타입*'>
+              <FormField
+                control={form.control}
+                name='isPremium'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <RadioGroup value={field.value} onValueChange={field.onChange} className='grid grid-cols-2 gap-2 sm:max-w-[280px]'>
+                        {premiumOptions.map((opt) => (
+                          <div key={opt.value}>
+                            <RadioGroupItem value={opt.value} id={`premium-${opt.value}`} className='peer sr-only' />
+                            <Label
+                              htmlFor={`premium-${opt.value}`}
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                            >
+                              {opt.label}
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormGroup>
+
+            <FormGroup title='가격*'>
+              <FormField
+                control={form.control}
+                name='price'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input type='number' min={0} {...field} className='w-full sm:w-[220px]' />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormGroup>
+
+            <FormGroup title='사이즈 (W x H)*'>
+              <div className='grid grid-cols-2 gap-3 sm:max-w-[320px]'>
+                <FormField
+                  control={form.control}
+                  name='width'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>width</FormLabel>
+                      <FormControl>
+                        <Input type='number' min={1} max={7} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='height'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>height</FormLabel>
+                      <FormControl>
+                        <Input type='number' min={1} max={13} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </FormGroup>
+
+            <FormGroup title='활성화'>
+              <FormField
+                control={form.control}
+                name='isActive'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <RadioGroup value={field.value} onValueChange={field.onChange} className='grid grid-cols-2 gap-2 sm:max-w-[280px]'>
+                        {activeOptions.map((opt) => (
+                          <div key={opt.value}>
+                            <RadioGroupItem value={opt.value} id={`active-${opt.value}`} className='peer sr-only' />
+                            <Label
+                              htmlFor={`active-${opt.value}`}
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                            >
+                              {opt.label}
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormGroup>
+          </FormSection>
+
+          <FormSection title='배치 가능 좌표' description='클릭한 좌표는 배치 가능 영역으로 처리됩니다.'>
+            <div className='overflow-auto rounded-lg border border-border/70 bg-muted/20 p-3'>
+              <div className='flex min-w-[720px]'>
+                <div className='mr-3 mt-[46px] flex flex-col gap-1'>
+                  {Array(13)
                     .fill(0)
                     .map((_, idx) => {
                       const handlePress = () => {
-                        if (coords.some((item) => item.x === idx))
-                          setCoords((prev) => prev.filter(({ x }) => x !== idx));
-                        else
+                        if (coords.some((item) => item.y === idx)) {
+                          setCoords((prev) => prev.filter(({ y }) => y !== idx));
+                        } else {
                           setCoords((prev) => [
                             ...prev,
-                            ...coordOptions.filter((item) => item.value.x === idx).map((item) => item.value),
+                            ...coordOptions.filter((item) => item.value.y === idx).map((item) => item.value),
                           ]);
+                        }
                       };
                       return (
-                        <Button type='button' variant='outline' onClick={handlePress} key={idx}>
+                        <Button type='button' variant='outline' size='sm' onClick={handlePress} key={idx}>
                           all
                         </Button>
                       );
                     })}
                 </div>
-                <div className='grid grid-cols-7'>
-                  {coordOptions.map((option) => {
-                    const isSelected = coords.some(({ x, y }) => x === option.value.x && y === option.value.y);
-                    const handlePress = () => {
-                      if (isSelected) setCoords((prev) => prev.filter(({ x, y }) => x !== option.value.x || y !== option.value.y));
-                      else setCoords((prev) => [...prev, option.value]);
-                    };
-                    return (
-                      <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handlePress}
-                        key={option.label}
-                        style={{ backgroundColor: isSelected ? 'skyblue' : option.value.y >= 5 ? 'beige' : undefined }}
-                      >
-                        {option.label}
-                      </Button>
-                    );
-                  })}
+                <div className='space-y-2'>
+                  <div className='grid grid-cols-7 gap-1'>
+                    {Array(7)
+                      .fill(0)
+                      .map((_, idx) => {
+                        const handlePress = () => {
+                          if (coords.some((item) => item.x === idx)) {
+                            setCoords((prev) => prev.filter(({ x }) => x !== idx));
+                          } else {
+                            setCoords((prev) => [
+                              ...prev,
+                              ...coordOptions.filter((item) => item.value.x === idx).map((item) => item.value),
+                            ]);
+                          }
+                        };
+                        return (
+                          <Button type='button' variant='outline' size='sm' onClick={handlePress} key={idx}>
+                            all
+                          </Button>
+                        );
+                      })}
+                  </div>
+                  <div className='grid grid-cols-7 gap-1'>
+                    {coordOptions.map((option) => {
+                      const isSelected = coords.some(({ x, y }) => x === option.value.x && y === option.value.y);
+                      const handlePress = () => {
+                        if (isSelected) {
+                          setCoords((prev) => prev.filter(({ x, y }) => x !== option.value.x || y !== option.value.y));
+                        } else {
+                          setCoords((prev) => [...prev, option.value]);
+                        }
+                      };
+                      return (
+                        <Button
+                          type='button'
+                          variant='outline'
+                          size='sm'
+                          onClick={handlePress}
+                          key={option.label}
+                          className='px-1 text-[10px]'
+                          style={{ backgroundColor: isSelected ? 'hsl(var(--primary) / 0.2)' : option.value.y >= 5 ? 'hsl(var(--muted))' : undefined }}
+                        >
+                          {option.label}
+                        </Button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
+          </FormSection>
+
+          <div className='sticky bottom-0 z-10 -mx-6 border-t bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
+            <div className='flex justify-end gap-2'>
+              <Button type='button' variant='outline' onClick={close} disabled={isLoading}>
+                취소
+              </Button>
+              <Button type='submit' size='lg' disabled={isLoading}>
+                {isLoading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                {focusedId ? '변경사항 저장' : '인테리어 저장'}
+              </Button>
+            </div>
           </div>
-
-          <FormField
-            control={form.control}
-            name='isActive'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>활성화</FormLabel>
-                <FormControl>
-                  <RadioGroup value={field.value} onValueChange={field.onChange} className='flex gap-4'>
-                    {activeOptions.map((opt) => (
-                      <div key={opt.value} className='flex items-center gap-2'>
-                        <RadioGroupItem value={opt.value} id={`active-${opt.value}`} />
-                        <Label htmlFor={`active-${opt.value}`}>{opt.label}</Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <Button type='submit' size='lg'>
-            저장
-          </Button>
         </form>
       </Form>
     </>

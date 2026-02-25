@@ -1,6 +1,8 @@
 import { Coupon, createCoupon, updateCoupon } from '@/client/coupon';
+import FormGroup from '@/components/shared/form/ui/form-group';
+import FormSection from '@/components/shared/form/ui/form-section';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -24,13 +26,13 @@ const premiumOptions = [
 ];
 
 const couponSchema = z.object({
-  name: z.string(),
-  count: z.coerce.number(),
-  dueAt: z.string(),
-  reward: z.coerce.number(),
+  name: z.string().min(1, '이름을 입력해주세요.'),
+  count: z.coerce.number().min(0, '0 이상 입력해주세요.'),
+  dueAt: z.string().min(1, '만료일을 입력해주세요.'),
+  reward: z.coerce.number().min(0, '0 이상 입력해주세요.'),
   isPaid: z.boolean(),
-  ticketCount: z.coerce.number(),
-  ticketDueDayNum: z.coerce.number(),
+  ticketCount: z.coerce.number().min(0, '0 이상 입력해주세요.'),
+  ticketDueDayNum: z.coerce.number().min(0, '0 이상 입력해주세요.'),
 });
 
 type CouponFormValues = z.infer<typeof couponSchema>;
@@ -117,132 +119,155 @@ function CouponForm({ init, reload, close }: Props) {
   return (
     <>
       {isLoading && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/20'>
-          <Loader2 className='h-8 w-8 animate-spin' />
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-background/80'>
+          <Loader2 className='h-8 w-8 animate-spin text-primary' />
         </div>
       )}
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(save)} className='space-y-4'>
-          <FormField
-            control={form.control}
-            name='name'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>이름</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
+          <FormSection title={focusedId ? '쿠폰 수정' : '쿠폰 추가'} description='기본 정보와 보상 구성을 설정합니다.'>
+            <FormGroup title='쿠폰 이름*'>
+              <FormField
+                control={form.control}
+                name='name'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input placeholder='예: 신규 가입 보상 쿠폰' {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormGroup>
 
-          <FormField
-            control={form.control}
-            name='count'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>쿠폰 수</FormLabel>
-                <FormControl>
-                  <Input type='number' min={0} {...field} className='w-32' />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormGroup title='발급 수량*' description='0 입력 시 시스템 정책에 따라 발급 처리됩니다.'>
+              <FormField
+                control={form.control}
+                name='count'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input type='number' min={0} {...field} className='w-full sm:w-[220px]' />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormGroup>
+          </FormSection>
 
-          <div className='flex items-end gap-6'>
-            <FormField
-              control={form.control}
-              name='isPaid'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>코인 타입</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      value={String(field.value)}
-                      onValueChange={(v) => field.onChange(v === 'true')}
-                      className='flex gap-4'
-                    >
-                      {premiumOptions.map((opt) => (
-                        <div key={opt.value} className='flex items-center gap-2'>
-                          <RadioGroupItem value={opt.value} id={`isPaid-${opt.value}`} />
-                          <Label htmlFor={`isPaid-${opt.value}`}>{opt.label}</Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <FormSection title='보상 설정'>
+            <FormGroup title='코인 타입*'>
+              <FormField
+                control={form.control}
+                name='isPaid'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <RadioGroup
+                        value={String(field.value)}
+                        onValueChange={(v) => field.onChange(v === 'true')}
+                        className='grid grid-cols-2 gap-2 sm:max-w-[280px]'
+                      >
+                        {premiumOptions.map((opt) => (
+                          <div key={opt.value}>
+                            <RadioGroupItem value={opt.value} id={`isPaid-${opt.value}`} className='peer sr-only' />
+                            <Label
+                              htmlFor={`isPaid-${opt.value}`}
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                            >
+                              {opt.label}
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormGroup>
 
-            <FormField
-              control={form.control}
-              name='reward'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>하트/골드 양</FormLabel>
-                  <FormControl>
-                    <Input type='number' min={0} {...field} className='w-32' />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <FormGroup title='코인 수량*'>
+              <FormField
+                control={form.control}
+                name='reward'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input type='number' min={0} {...field} className='w-full sm:w-[220px]' />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormGroup>
+
+            <FormGroup title='티켓 수량 / 혜택 일수'>
+              <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                <FormField
+                  control={form.control}
+                  name='ticketCount'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input type='number' min={0} {...field} placeholder='티켓 수량' />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='ticketDueDayNum'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input type='number' min={0} {...field} placeholder='혜택 일수 (0=평생권)' />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </FormGroup>
+          </FormSection>
+
+          <FormSection title='유효기간'>
+            <FormGroup title='쿠폰 만료일*'>
+              <FormField
+                control={form.control}
+                name='dueAt'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type='date'
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(e.target.value || dayjs().format('YYYY-MM-DD'))}
+                        className='w-full sm:w-[220px]'
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormGroup>
+          </FormSection>
+
+          <div className='sticky bottom-0 z-10 -mx-6 border-t bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
+            <div className='flex justify-end gap-2'>
+              <Button type='button' variant='outline' onClick={close} disabled={isLoading}>
+                취소
+              </Button>
+              <Button type='submit' size='lg' disabled={disabled || isLoading}>
+                {isLoading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                {focusedId ? '변경사항 저장' : '쿠폰 저장'}
+              </Button>
+            </div>
           </div>
-
-          <FormField
-            control={form.control}
-            name='ticketCount'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>티켓 수</FormLabel>
-                <FormControl>
-                  <Input type='number' min={0} {...field} className='w-32' />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name='ticketDueDayNum'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>티켓 혜택 일 (0=평생권)</FormLabel>
-                <FormControl>
-                  <Input type='number' min={0} {...field} className='w-32' />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name='dueAt'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>쿠폰 사용 만료일</FormLabel>
-                <FormControl>
-                  <Input
-                    type='date'
-                    value={field.value ?? ''}
-                    onChange={(e) => field.onChange(e.target.value || dayjs().format('YYYY-MM-DD'))}
-                    className='w-[200px]'
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <Button type='submit' size='lg' disabled={disabled || isLoading}>
-            {isLoading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-            저장
-          </Button>
         </form>
       </Form>
     </>

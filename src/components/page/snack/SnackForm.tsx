@@ -1,5 +1,7 @@
 import { createSnack, updateSnack } from '@/client/snack';
 import { ImgItem, PetType, Snack, SnackKind } from '@/client/types';
+import FormGroup from '@/components/shared/form/ui/form-group';
+import FormSection from '@/components/shared/form/ui/form-section';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -140,205 +142,245 @@ function SnackForm({ initialSnack, close, reload }: Props) {
       )}
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(save)} className='space-y-4'>
-          <div>
-            <Label className='block mb-2'>이미지</Label>
-            <div className='flex flex-col gap-2 items-center'>
-              {image && (
-                <div className='flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border/60 bg-transparent p-2'>
-                  <img src={image.uri} alt='img' className='h-full w-full object-contain' />
-                </div>
-              )}
-              <AssetsDrawer onClick={setImage} />
+        <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
+          <FormSection title={initialSnack ? '간식 수정' : '간식 추가'} description='이미지, 스탯, 노출 옵션을 설정합니다.'>
+            <FormGroup title='대표 이미지*' description='리스트와 상세 화면에 노출됩니다.'>
+              <div className='flex flex-col gap-2 items-start'>
+                {image && (
+                  <div className='flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border/60 bg-transparent p-2'>
+                    <img src={image.uri} alt='img' className='h-full w-full object-contain' />
+                  </div>
+                )}
+                <AssetsDrawer onClick={setImage} />
+              </div>
+            </FormGroup>
+
+            <FormGroup title='이름*'>
+              <FormField
+                control={form.control}
+                name='name'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormGroup>
+
+            <FormGroup title='설명'>
+              <FormField
+                control={form.control}
+                name='desc'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormGroup>
+          </FormSection>
+
+          <FormSection title='노출/타입 설정'>
+            <FormGroup title='종류*'>
+              <FormField
+                control={form.control}
+                name='kind'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <RadioGroup value={field.value} onValueChange={field.onChange} className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
+                        {KIND_OPTIONS.map((opt) => (
+                          <div key={opt.value}>
+                            <RadioGroupItem value={opt.value} id={`kind-${opt.value}`} className='peer sr-only' />
+                            <Label
+                              htmlFor={`kind-${opt.value}`}
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                            >
+                              {opt.label}
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormGroup>
+
+            <FormGroup title='진화하는 펫 타입'>
+              <FormField
+                control={form.control}
+                name='type'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <RadioGroup value={field.value ?? ''} onValueChange={field.onChange} className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
+                        {TYPE_OPTIONS.map((opt) => (
+                          <div key={opt.value}>
+                            <RadioGroupItem value={opt.value} id={`type-${opt.value}`} className='peer sr-only' />
+                            <Label
+                              htmlFor={`type-${opt.value}`}
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                            >
+                              {opt.label}
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormGroup>
+          </FormSection>
+
+          <FormSection title='가격/운영 설정'>
+            <FormGroup title='순서 / 경험치'>
+              <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                <FormField
+                  control={form.control}
+                  name='order'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>순서</FormLabel>
+                      <FormControl>
+                        <Input
+                          type='number'
+                          min={0}
+                          max={4}
+                          value={field.value}
+                          onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='exp'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>경험치</FormLabel>
+                      <FormControl>
+                        <Input
+                          type='number'
+                          min={0}
+                          value={field.value}
+                          onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </FormGroup>
+
+            <FormGroup title='코인 타입 / 가격'>
+              <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                <FormField
+                  control={form.control}
+                  name='isPaid'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>코인 타입</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          value={String(field.value)}
+                          onValueChange={(v) => field.onChange(v === 'true')}
+                          className='grid grid-cols-2 gap-2'
+                        >
+                          {PREMIUM_OPTIONS.map((opt) => (
+                            <div key={opt.value}>
+                              <RadioGroupItem value={opt.value} id={`isPaid-${opt.value}`} className='peer sr-only' />
+                              <Label
+                                htmlFor={`isPaid-${opt.value}`}
+                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                              >
+                                {opt.label}
+                              </Label>
+                            </div>
+                          ))}
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='price'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>가격</FormLabel>
+                      <FormControl>
+                        <Input
+                          type='number'
+                          min={0}
+                          value={field.value}
+                          onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </FormGroup>
+
+            <FormGroup title='활성 상태'>
+              <FormField
+                control={form.control}
+                name='isActive'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <RadioGroup
+                        value={String(field.value)}
+                        onValueChange={(v) => field.onChange(v === 'true')}
+                        className='grid grid-cols-2 gap-2 sm:max-w-[280px]'
+                      >
+                        {ACTIVE_OPTIONS.map((opt) => (
+                          <div key={opt.value}>
+                            <RadioGroupItem value={opt.value} id={`isActive-${opt.value}`} className='peer sr-only' />
+                            <Label
+                              htmlFor={`isActive-${opt.value}`}
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                            >
+                              {opt.label}
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormGroup>
+          </FormSection>
+
+          <div className='sticky bottom-0 z-10 -mx-6 border-t bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
+            <div className='flex justify-end gap-2'>
+              <Button type='button' variant='outline' onClick={close}>
+                취소
+              </Button>
+              <Button type='submit' size='lg'>
+                {initialSnack ? '변경사항 저장' : '간식 저장'}
+              </Button>
             </div>
           </div>
-
-          <FormField
-            control={form.control}
-            name='name'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>이름</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name='desc'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>설명</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name='kind'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>종류</FormLabel>
-                <FormControl>
-                  <RadioGroup value={field.value} onValueChange={field.onChange} className='flex gap-4'>
-                    {KIND_OPTIONS.map((opt) => (
-                      <div key={opt.value} className='flex gap-2 items-center'>
-                        <RadioGroupItem value={opt.value} id={`kind-${opt.value}`} />
-                        <Label htmlFor={`kind-${opt.value}`}>{opt.label}</Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name='type'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>진화하는 펫 타입</FormLabel>
-                <FormControl>
-                  <RadioGroup value={field.value ?? ''} onValueChange={field.onChange} className='flex flex-wrap gap-4'>
-                    {TYPE_OPTIONS.map((opt) => (
-                      <div key={opt.value} className='flex gap-2 items-center'>
-                        <RadioGroupItem value={opt.value} id={`type-${opt.value}`} />
-                        <Label htmlFor={`type-${opt.value}`}>{opt.label}</Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name='order'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>순서</FormLabel>
-                <FormControl>
-                  <Input
-                    type='number'
-                    min={0}
-                    max={4}
-                    value={field.value}
-                    onChange={(e) => field.onChange(Number(e.target.value) || 0)}
-                    className='w-32'
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name='exp'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>경험치</FormLabel>
-                <FormControl>
-                  <Input
-                    type='number'
-                    min={0}
-                    value={field.value}
-                    onChange={(e) => field.onChange(Number(e.target.value) || 0)}
-                    className='w-32'
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className='flex gap-6 items-end'>
-            <FormField
-              control={form.control}
-              name='isPaid'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>코인 타입</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      value={String(field.value)}
-                      onValueChange={(v) => field.onChange(v === 'true')}
-                      className='flex gap-4'
-                    >
-                      {PREMIUM_OPTIONS.map((opt) => (
-                        <div key={opt.value} className='flex gap-2 items-center'>
-                          <RadioGroupItem value={opt.value} id={`isPaid-${opt.value}`} />
-                          <Label htmlFor={`isPaid-${opt.value}`}>{opt.label}</Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name='price'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>가격</FormLabel>
-                  <FormControl>
-                    <Input
-                      type='number'
-                      min={0}
-                      value={field.value}
-                      onChange={(e) => field.onChange(Number(e.target.value) || 0)}
-                      className='w-32'
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <FormField
-            control={form.control}
-            name='isActive'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>활성화</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    value={String(field.value)}
-                    onValueChange={(v) => field.onChange(v === 'true')}
-                    className='flex gap-4'
-                  >
-                    {ACTIVE_OPTIONS.map((opt) => (
-                      <div key={opt.value} className='flex gap-2 items-center'>
-                        <RadioGroupItem value={opt.value} id={`isActive-${opt.value}`} />
-                        <Label htmlFor={`isActive-${opt.value}`}>{opt.label}</Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <Button type='submit' size='lg'>
-            저장
-          </Button>
         </form>
       </Form>
     </>
