@@ -1,21 +1,22 @@
-import { Modal, ModalProps } from 'antd';
-import { X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import React, { PropsWithChildren } from 'react';
-import style from './default-modal.module.css';
 
-interface IDefaultModalProps extends ModalProps {
+interface IDefaultModalProps {
+  open?: boolean;
   handleHide: () => void;
+  title?: React.ReactNode;
+  children?: React.ReactNode;
+  className?: string;
 }
 
-const DefaultModal = ({ children, handleHide, title, ...modalProps }: PropsWithChildren<IDefaultModalProps>) => {
+const DefaultModal = ({ children, handleHide, title, open, className, ...rest }: PropsWithChildren<IDefaultModalProps>) => {
   return (
-    <Modal footer={null} closable={false} className={style['default-popup']} {...modalProps} onCancel={handleHide}>
-      <button className={style['default-popup-close-btn']} onClick={handleHide}>
-        <X className='w-7 h-7' />
-      </button>
-      <h3 className={style['default-popup-title']}>{title}</h3>
-      <div className={style['default-popup-content']}>{children}</div>
-    </Modal>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleHide()}>
+      <DialogContent className={className}>
+        {title && <DialogHeader><DialogTitle>{title}</DialogTitle></DialogHeader>}
+        {children}
+      </DialogContent>
+    </Dialog>
   );
 };
 

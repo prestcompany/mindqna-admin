@@ -1,14 +1,27 @@
 import { Banner, removeBanner } from '@/client/banner';
 import { BannerLocationType } from '@/client/types';
+import DataTable from '@/components/shared/ui/data-table';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import useBanners from '@/hooks/useBanners';
-import { Button, Drawer, Image, Modal, Select, Table, TableProps, Tag, message } from 'antd';
+import { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import BannerForm, { locationOptions } from './BannerForm';
 
 function BannerList() {
-  const [modal, holder] = Modal.useModal();
-
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<{ location?: BannerLocationType[]; locale?: string[] }>({});
   const { items, isLoading, refetch, totalPage } = useBanners({ page: currentPage, ...filter });
@@ -17,159 +30,186 @@ function BannerList() {
   const [isOpenEdit, setOpenEdit] = useState(false);
   const [focused, setFocused] = useState<Banner | undefined>(undefined);
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState<Banner | undefined>(undefined);
+
   const handleEdit = (value: Banner) => {
     setFocused(value);
     setOpenEdit(true);
   };
 
   const handleRemove = (value: Banner) => {
-    modal.confirm({
-      title: `삭제 (${value.name})`,
-      onOk: async () => {
-        try {
-          await removeBanner(value.id);
-          await refetch();
-        } catch (err) {
-          message.error(`${err}`);
-        }
-      },
-    });
+    setConfirmTarget(value);
+    setConfirmOpen(true);
   };
 
-  const columns: TableProps<Banner>['columns'] = [
+  const handleConfirmRemove = async () => {
+    if (!confirmTarget) return;
+    try {
+      await removeBanner(confirmTarget.id);
+      await refetch();
+    } catch (err) {
+      toast.error(`${err}`);
+    }
+    setConfirmOpen(false);
+    setConfirmTarget(undefined);
+  };
+
+  const columns: ColumnDef<Banner>[] = [
     {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
+      accessorKey: 'id',
+      header: '번호',
     },
     {
-      title: '이미지',
-      dataIndex: 'imgUri',
-      key: 'imgUri',
-      render: (value: string) => {
-        return <Image width={'100%'} height={60} src={value ?? ''} alt='img' style={{ objectFit: 'contain' }} />;
+      accessorKey: 'imgUri',
+      header: '이미지',
+      cell: ({ row }) => {
+        const value = row.original.imgUri;
+        return <img width='100%' height={60} src={value ?? ''} alt='img' className='object-contain' />;
       },
     },
-
     {
-      title: '이름',
-      dataIndex: 'name',
-      key: 'name',
+      accessorKey: 'name',
+      header: '이름',
     },
     {
-      title: '다국어',
-      dataIndex: 'locale',
-      key: 'locale',
+      accessorKey: 'locale',
+      header: '다국어',
     },
     {
-      title: '위치',
-      dataIndex: 'location',
-      key: 'location',
-      render: (value: string) => {
+      accessorKey: 'location',
+      header: '위치',
+      cell: ({ row }) => {
+        const value = row.original.location;
         const label = locationOptions.find((item) => item.value === value)?.label ?? value;
-        return <Tag color='purple'>{label}</Tag>;
+        return <Badge variant='info'>{label}</Badge>;
       },
     },
     {
-      title: '조회수',
-      dataIndex: 'viewCount',
-      key: 'viewCount',
+      accessorKey: 'viewCount',
+      header: '조회수',
     },
     {
-      title: '클릭수',
-      dataIndex: 'clickCount',
-      key: 'clickCount',
+      accessorKey: 'clickCount',
+      header: '클릭수',
     },
     {
-      title: '링크',
-      dataIndex: 'link',
-      key: 'link',
+      accessorKey: 'link',
+      header: '링크',
     },
-
     {
-      title: '활성화',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      render: (value: boolean) => {
-        return <Tag color={value ? 'green' : 'default'}>{value ? '활성화' : '비활성화'}</Tag>;
+      accessorKey: 'isActive',
+      header: '활성화',
+      cell: ({ row }) => {
+        const value = row.original.isActive;
+        return <Badge variant={value ? 'success' : 'muted'}>{value ? '활성화' : '비활성화'}</Badge>;
       },
     },
-
     {
-      title: 'Action',
-      dataIndex: '',
-      key: 'x',
-      render: (value) => (
+      id: 'actions',
+      header: 'Action',
+      cell: ({ row }) => (
         <div className='flex gap-4'>
-          <Button onClick={() => handleEdit(value)}>수정</Button>
-          <Button onClick={() => handleRemove(value)}>삭제</Button>
+          <Button variant='outline' onClick={() => handleEdit(row.original)}>
+            수정
+          </Button>
+          <Button variant='outline' onClick={() => handleRemove(row.original)}>
+            삭제
+          </Button>
         </div>
       ),
     },
   ];
   return (
     <>
-      {holder}
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>삭제 ({confirmTarget?.name})</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmRemove}>확인</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <DefaultTableBtn className='justify-between'>
-        <div className='flex items-center gap-2 py-4'>
+        <div className='flex gap-2 items-center py-4'>
           <Select
-            placeholder='언어'
-            style={{ width: 120 }}
-            options={[
-              { label: 'ko', value: 'ko' },
-              { label: 'en', value: 'en' },
-              { label: 'ja', value: 'ja' },
-              { label: 'zh', value: 'zh' },
-              { label: 'zhTw', value: 'zhTw' },
-              { label: 'es', value: 'es' },
-              { label: 'id', value: 'id' },
-            ]}
-            value={(filter.locale ?? [])?.[0]}
-            onChange={(v: string) => {
-              setFilter((prev) => ({ ...prev, locale: [v] }));
+            value={(filter.locale ?? [])?.[0] ?? ''}
+            onValueChange={(v: string) => {
+              setFilter((prev) => ({ ...prev, locale: v ? [v] : undefined }));
             }}
-            allowClear
-          />
+          >
+            <SelectTrigger className='w-[120px]'>
+              <SelectValue placeholder='언어' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='ko'>ko</SelectItem>
+              <SelectItem value='en'>en</SelectItem>
+              <SelectItem value='ja'>ja</SelectItem>
+              <SelectItem value='zh'>zh</SelectItem>
+              <SelectItem value='zhTw'>zhTw</SelectItem>
+              <SelectItem value='es'>es</SelectItem>
+              <SelectItem value='id'>id</SelectItem>
+            </SelectContent>
+          </Select>
           <Select
-            placeholder='타입'
-            style={{ width: 180 }}
-            options={locationOptions}
-            value={(filter.location ?? [])?.[0]}
-            onChange={(v: BannerLocationType) => {
-              setFilter((prev) => ({ ...prev, location: [v] }));
+            value={(filter.location ?? [])?.[0] ?? ''}
+            onValueChange={(v: string) => {
+              setFilter((prev) => ({ ...prev, location: v ? [v as BannerLocationType] : undefined }));
             }}
-            allowClear
-          />
+          >
+            <SelectTrigger className='w-[180px]'>
+              <SelectValue placeholder='타입' />
+            </SelectTrigger>
+            <SelectContent>
+              {locationOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <Button
           onClick={() => {
             setFocused(undefined);
             setOpenCreate(true);
           }}
-          type='primary'
-          size='large'
+          size='lg'
         >
           추가
         </Button>
       </DefaultTableBtn>
 
-      <Table
-        dataSource={items}
+      <DataTable
         columns={columns}
+        data={items}
+        loading={isLoading}
         pagination={{
           total: totalPage * 10,
-          current: currentPage,
+          page: currentPage,
+          pageSize: 10,
           onChange: (page) => setCurrentPage(page),
-          showSizeChanger: false,
         }}
-        loading={isLoading}
       />
-      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}>
-        <BannerForm reload={refetch} close={() => setOpenCreate(false)} />
-      </Drawer>
-      <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={600}>
-        <BannerForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
-      </Drawer>
+      <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
+        <SheetContent side='right' className='w-[600px] sm:max-w-[600px] overflow-y-auto'>
+          <SheetHeader>
+            <SheetTitle>배너 추가</SheetTitle>
+          </SheetHeader>
+          <BannerForm reload={refetch} close={() => setOpenCreate(false)} />
+        </SheetContent>
+      </Sheet>
+      <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
+        <SheetContent side='right' className='w-[600px] sm:max-w-[600px] overflow-y-auto'>
+          <SheetHeader>
+            <SheetTitle>배너 수정</SheetTitle>
+          </SheetHeader>
+          <BannerForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

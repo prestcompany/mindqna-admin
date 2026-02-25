@@ -1,14 +1,17 @@
 import { Game, GameReward, GameRewardCondition } from '@/client/game';
 import { Profile, Space } from '@/client/types';
+import { Badge } from '@/components/ui/badge';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Select as ShadSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import DataTable from '@/components/shared/ui/data-table';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import { useGameRewards, useGames } from '@/hooks/useGame';
-import { Drawer, Modal, Select, Table, TableProps, Tag } from 'antd';
+import { ColumnDef } from '@tanstack/react-table';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 function GameRewardList() {
   const router = useRouter();
-  const [modal, holder] = Modal.useModal();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<{ gameId?: number; year?: number; month?: number; week?: number }>({});
@@ -21,173 +24,209 @@ function GameRewardList() {
   const currentYear = new Date().getFullYear();
   const yearOptions = [{ value: currentYear, label: `${currentYear}년` }];
 
-  // 월 옵션
   const monthOptions = Array.from({ length: 12 }, (_, i) => ({
     value: i + 1,
     label: `${i + 1}월`,
   }));
 
-  // 주차 옵션
   const weekOptions = Array.from({ length: 53 }, (_, i) => ({
     value: i + 1,
     label: `${i + 1}주차`,
   }));
 
-  const columns: TableProps<GameReward>['columns'] = [
+  const columns: ColumnDef<GameReward>[] = [
     {
-      title: 'No.',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
-      render: (id: number, _, index) => {
-        return <span>{(index + 1) * currentPage}</span>;
+      accessorKey: 'id',
+      header: 'No.',
+      size: 80,
+      cell: ({ row }) => {
+        return <span>{(row.index + 1) * currentPage}</span>;
       },
     },
     {
-      title: '게임',
-      dataIndex: 'game',
-      key: 'game.name',
-      width: 150,
-      render: (game: Game) => {
-        return <Tag color={game.primaryKeyColor}>{game.name}</Tag>;
+      accessorKey: 'game',
+      header: '게임',
+      size: 150,
+      cell: ({ row }) => {
+        const game = row.original.game as Game;
+        return <Badge style={{ backgroundColor: game.primaryKeyColor, color: '#fff' }}>{game.name}</Badge>;
       },
     },
     {
-      title: '닉네임',
-      dataIndex: 'profile',
-      key: 'profile.nickname',
-      width: 200,
-      render: (profile: Profile) => {
+      accessorKey: 'profile',
+      header: '닉네임',
+      size: 200,
+      cell: ({ row }) => {
+        const profile = row.original.profile as Profile;
         return (
           <div style={{ display: 'flex', flexDirection: 'row', gap: '4px' }}>
-            <Tag color='black'>{profile.nickname}</Tag>
+            <Badge variant='default'>{profile.nickname}</Badge>
           </div>
         );
       },
     },
     {
-      title: '월',
-      dataIndex: 'week',
-      key: 'week',
-      width: 50,
-      render: (week: number, record: GameReward) => {
-        return <Tag>{record.month}월</Tag>;
+      id: 'month',
+      accessorKey: 'week',
+      header: '월',
+      size: 50,
+      cell: ({ row }) => {
+        return <Badge variant='secondary'>{row.original.month}월</Badge>;
       },
     },
     {
-      title: '주차',
-      dataIndex: 'week',
-      key: 'week',
-      width: 50,
-      render: (week: number, record: GameReward) => {
-        return <Tag>{week}주차</Tag>;
+      id: 'week',
+      accessorKey: 'week',
+      header: '주차',
+      size: 50,
+      cell: ({ row }) => {
+        return <Badge variant='secondary'>{row.original.week}주차</Badge>;
       },
     },
     {
-      title: '순위',
-      dataIndex: 'condition',
-      key: 'condition.rank',
-      width: 50,
-      render: (condition: GameRewardCondition) => {
-        return <Tag>{condition.rank}위</Tag>;
+      id: 'condition.rank',
+      header: '순위',
+      size: 50,
+      cell: ({ row }) => {
+        const condition = row.original.condition as GameRewardCondition;
+        return <Badge variant='secondary'>{condition.rank}위</Badge>;
       },
     },
     {
-      title: '달성 점수',
-      dataIndex: 'condition',
-      key: 'condition.score',
-      width: 120,
-      render: (condition: GameRewardCondition) => {
-        return <Tag>{condition.score.toLocaleString()}점</Tag>;
+      id: 'condition.score',
+      header: '달성 점수',
+      size: 120,
+      cell: ({ row }) => {
+        const condition = row.original.condition as GameRewardCondition;
+        return <Badge variant='secondary'>{condition.score.toLocaleString()}점</Badge>;
       },
     },
     {
-      title: '획득 보상',
-      dataIndex: 'heartsEarned',
-      key: 'heartsEarned',
-      width: 120,
-      render: (heartsEarned: number) => {
-        return <Tag color='red-inverse'>{heartsEarned} 하트</Tag>;
+      accessorKey: 'heartsEarned',
+      header: '획득 보상',
+      size: 120,
+      cell: ({ row }) => {
+        return <Badge variant='destructive'>{row.original.heartsEarned} 하트</Badge>;
       },
     },
     {
-      title: '보상 확인',
-      dataIndex: 'isRead',
-      key: 'isRead',
-      width: 120,
-      render: (isRead: boolean) => {
-        return <Tag color={isRead ? 'green' : 'red'}>{isRead ? '확인' : '미확인'}</Tag>;
+      accessorKey: 'isRead',
+      header: '보상 확인',
+      size: 120,
+      cell: ({ row }) => {
+        const isRead = row.original.isRead;
+        return <Badge variant={isRead ? 'success' : 'destructive'}>{isRead ? '확인' : '미확인'}</Badge>;
       },
     },
     {
-      title: '공간 ID',
-      dataIndex: 'space',
-      key: 'space.id',
-      render: (space: Space) => {
-        return <Tag>{space.id}</Tag>;
+      accessorKey: 'space',
+      header: '공간 ID',
+      cell: ({ row }) => {
+        const space = row.original.space as Space;
+        return <Badge variant='secondary'>{space.id}</Badge>;
       },
     },
   ];
 
   return (
     <>
-      {holder}
       <DefaultTableBtn className='justify-between'>
         <div className='flex items-center gap-2 py-4'>
-          <Select
-            placeholder='게임'
-            style={{ width: 200 }}
-            options={[
-              { value: '', label: '전체' },
-              ...(games?.map((game) => ({
-                value: game.id,
-                label: game.name,
-              })) || []),
-            ]}
-            onChange={(v: number) => {
-              setFilter({ ...filter, gameId: v });
+          <ShadSelect
+            value={filter.gameId?.toString() ?? '__all__'}
+            onValueChange={(v) => {
+              setFilter({ ...filter, gameId: v === '__all__' ? undefined : Number(v) });
             }}
-          />
-          <Select
-            placeholder='연도'
-            options={[{ value: '', label: '전체' }, ...yearOptions]}
-            style={{ width: 120 }}
-            onChange={(v: number) => {
-              setFilter({ ...filter, year: v });
+          >
+            <SelectTrigger className='w-[200px]'>
+              <SelectValue placeholder='게임' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='__all__'>전체</SelectItem>
+              {games?.map((game) => (
+                <SelectItem key={game.id} value={game.id.toString()}>
+                  {game.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </ShadSelect>
+          <ShadSelect
+            value={filter.year?.toString() ?? '__all__'}
+            onValueChange={(v) => {
+              setFilter({ ...filter, year: v === '__all__' ? undefined : Number(v) });
             }}
-          />
-          <Select
-            placeholder='월'
-            options={[{ value: '', label: '전체' }, ...monthOptions]}
-            style={{ width: 100 }}
-            onChange={(v: number) => {
-              setFilter({ ...filter, month: v });
+          >
+            <SelectTrigger className='w-[120px]'>
+              <SelectValue placeholder='연도' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='__all__'>전체</SelectItem>
+              {yearOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value.toString()}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </ShadSelect>
+          <ShadSelect
+            value={filter.month?.toString() ?? '__all__'}
+            onValueChange={(v) => {
+              setFilter({ ...filter, month: v === '__all__' ? undefined : Number(v) });
             }}
-          />
-          <Select
-            placeholder='주차'
-            options={[{ value: '', label: '전체' }, ...weekOptions]}
-            style={{ width: 100 }}
-            onChange={(v: number) => {
-              setFilter({ ...filter, week: v });
+          >
+            <SelectTrigger className='w-[100px]'>
+              <SelectValue placeholder='월' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='__all__'>전체</SelectItem>
+              {monthOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value.toString()}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </ShadSelect>
+          <ShadSelect
+            value={filter.week?.toString() ?? '__all__'}
+            onValueChange={(v) => {
+              setFilter({ ...filter, week: v === '__all__' ? undefined : Number(v) });
             }}
-          />
+          >
+            <SelectTrigger className='w-[100px]'>
+              <SelectValue placeholder='주차' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='__all__'>전체</SelectItem>
+              {weekOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value.toString()}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </ShadSelect>
         </div>
       </DefaultTableBtn>
 
-      <Table
-        dataSource={items}
+      <DataTable
         columns={columns}
+        data={items || []}
+        loading={isLoading}
         pagination={{
           total: totalPage * 10,
-          current: currentPage,
+          page: currentPage,
           onChange: (page) => setCurrentPage(page),
-          showSizeChanger: false,
         }}
-        loading={isLoading}
       />
-      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}></Drawer>
-      <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={600}></Drawer>
+      <Sheet open={isOpenCreate} onOpenChange={(open) => !open && setOpenCreate(false)}>
+        <SheetContent side='right' className='w-[600px] sm:max-w-none overflow-y-auto'>
+          <SheetHeader><SheetTitle></SheetTitle></SheetHeader>
+        </SheetContent>
+      </Sheet>
+      <Sheet open={isOpenEdit} onOpenChange={(open) => !open && setOpenEdit(false)}>
+        <SheetContent side='right' className='w-[600px] sm:max-w-none overflow-y-auto'>
+          <SheetHeader><SheetTitle></SheetTitle></SheetHeader>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

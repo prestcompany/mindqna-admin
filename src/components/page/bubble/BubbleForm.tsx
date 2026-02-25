@@ -1,7 +1,16 @@
 import { createBubble, updateBubble } from '@/client/bubble';
 import { BubbleType, Locale, PetBubble } from '@/client/types';
-import { Button, Checkbox, Form, Input, Radio, Spin, message } from 'antd';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { z } from 'zod';
 
 type Props = {
   init?: PetBubble;
@@ -9,87 +18,102 @@ type Props = {
   close: () => void;
 };
 
+const localeOptions = [
+  { label: 'ko', value: 'ko' },
+  { label: 'en', value: 'en' },
+  { label: 'ja', value: 'ja' },
+  { label: 'zh', value: 'zh' },
+  { label: 'zhTw', value: 'zhTw' },
+  { label: 'es', value: 'es' },
+  { label: 'id', value: 'id' },
+];
+
+const typeOptions = [
+  { label: '공통', value: 'general' },
+  { label: '오전', value: 'day' },
+  { label: '오후', value: 'night' },
+  { label: '커스텀', value: 'custom' },
+];
+
+const levelOptions = Array(13)
+  .fill(0)
+  .map((_, idx) => ({ label: String(idx), value: idx }));
+
+const bubbleSchema = z.object({
+  locale: z.string(),
+  message: z.string(),
+  types: z.array(z.string()),
+  levels: z.array(z.number()),
+});
+
+type BubbleFormValues = z.infer<typeof bubbleSchema>;
+
 function BubbleForm({ init, reload, close }: Props) {
   const [isLoading, setLoading] = useState(false);
-  const [focusedId, setFocusedId] = useState<number>();
-  const [locale, setLocale] = useState<Locale>('ko');
-  const [_message, setMessage] = useState('');
-  const [types, setTypes] = useState<BubbleType[]>(['general']);
-  const [levels, setLevels] = useState<number[]>([0]);
+  const focusedId = init?.id;
+
+  const form = useForm<BubbleFormValues>({
+    resolver: zodResolver(bubbleSchema),
+    defaultValues: {
+      locale: 'ko',
+      message: '',
+      types: ['general'],
+      levels: [0],
+    },
+  });
 
   useEffect(() => {
     if (!init) return;
-
-    setFocusedId(init.id);
-    setLocale(init.locale);
-    setMessage(init.message);
-    setTypes([init.type]);
-    setLevels([init.level]);
+    form.reset({
+      locale: init.locale,
+      message: init.message,
+      types: [init.type],
+      levels: [init.level],
+    });
   }, [init]);
 
-  const localeOptions = [
-    { label: 'ko', value: 'ko' },
-    { label: 'en', value: 'en' },
-    { label: 'ja', value: 'ja' },
-    { label: 'zh', value: 'zh' },
-    { label: 'zhTw', value: 'zhTw' },
-    { label: 'es', value: 'es' },
-    { label: 'id', value: 'id' },
-  ];
-
-  const typeOptions = [
-    { label: '공통', value: 'general' },
-    { label: '오전', value: 'day' },
-    { label: '오후', value: 'night' },
-    { label: '커스텀', value: 'custom' },
-  ];
-
-  const levelOptions = Array(13)
-    .fill(0)
-    .map((_, idx) => ({ label: idx, value: idx }));
-
-  const save = async () => {
+  const save = async (values: BubbleFormValues) => {
     try {
       setLoading(true);
       if (focusedId) {
         await updateBubble({
           id: focusedId,
-          locale,
-          message: _message,
-          level: levels[0],
-          type: types[0],
+          locale: values.locale as Locale,
+          message: values.message,
+          level: values.levels[0],
+          type: values.types[0] as BubbleType,
         });
       } else {
-        for (const level of levels) {
-          if (types.includes('general')) {
+        for (const level of values.levels) {
+          if (values.types.includes('general')) {
             await createBubble({
-              locale,
-              message: _message,
+              locale: values.locale as Locale,
+              message: values.message,
               level,
               type: 'general',
             });
           }
 
-          if (types.includes('day')) {
+          if (values.types.includes('day')) {
             await createBubble({
-              locale,
-              message: _message,
+              locale: values.locale as Locale,
+              message: values.message,
               level,
               type: 'day',
             });
           }
-          if (types.includes('night')) {
+          if (values.types.includes('night')) {
             await createBubble({
-              locale,
-              message: _message,
+              locale: values.locale as Locale,
+              message: values.message,
               level,
               type: 'night',
             });
           }
-          if (types.includes('custom')) {
+          if (values.types.includes('custom')) {
             await createBubble({
-              locale,
-              message: _message,
+              locale: values.locale as Locale,
+              message: values.message,
               level,
               type: 'custom',
             });
@@ -100,38 +124,114 @@ function BubbleForm({ init, reload, close }: Props) {
       await reload();
       close();
     } catch (err) {
-      message.error(`${err}`);
+      toast.error(`${err}`);
     }
     setLoading(false);
   };
 
   return (
     <>
-      <Spin spinning={isLoading} fullscreen />
-      <Form>
-        <Form.Item label='locale'>
-          <Radio.Group
-            options={localeOptions}
-            optionType='button'
-            buttonStyle='solid'
-            value={locale}
-            onChange={(e) => setLocale(e.target.value)}
-            disabled={!!focusedId}
+      {isLoading && <div className='fixed inset-0 z-50 flex items-center justify-center bg-background/80'><div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary' /></div>}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(save)} className='space-y-4'>
+          <FormField
+            control={form.control}
+            name='locale'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>locale</FormLabel>
+                <RadioGroup
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  className='flex flex-wrap gap-4'
+                  disabled={!!focusedId}
+                >
+                  {localeOptions.map((opt) => (
+                    <div key={opt.value} className='flex items-center gap-2'>
+                      <RadioGroupItem value={opt.value} id={`locale-${opt.value}`} />
+                      <Label htmlFor={`locale-${opt.value}`}>{opt.label}</Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </Form.Item>
-        <Form.Item label='메시지'>
-          <Input value={_message} onChange={(e) => setMessage(e.target.value)} />
-        </Form.Item>
-        <Form.Item label='타입'>
-          <Checkbox.Group options={typeOptions} value={types} onChange={(values) => setTypes(values as BubbleType[])} disabled={!!focusedId} />
-        </Form.Item>
-        <Form.Item label='레벨 (0: all)'>
-          <Checkbox.Group options={levelOptions} value={levels} onChange={(values) => setLevels(values)} disabled={!!focusedId} />
-        </Form.Item>
 
-        <Button onClick={save} size='large' type='primary'>
-          저장
-        </Button>
+          <FormField
+            control={form.control}
+            name='message'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>메시지</FormLabel>
+                <Input {...field} />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name='types'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>타입</FormLabel>
+                <div className='flex flex-wrap gap-4'>
+                  {typeOptions.map((option) => (
+                    <label key={option.value} className='flex items-center gap-2 cursor-pointer'>
+                      <Checkbox
+                        checked={field.value?.includes(option.value)}
+                        onCheckedChange={(checked) => {
+                          field.onChange(
+                            checked
+                              ? [...field.value, option.value]
+                              : field.value.filter((v) => v !== option.value)
+                          );
+                        }}
+                        disabled={!!focusedId}
+                      />
+                      <span className='text-sm'>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name='levels'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>레벨 (0: all)</FormLabel>
+                <div className='flex flex-wrap gap-4'>
+                  {levelOptions.map((option) => (
+                    <label key={option.value} className='flex items-center gap-2 cursor-pointer'>
+                      <Checkbox
+                        checked={field.value?.includes(option.value)}
+                        onCheckedChange={(checked) => {
+                          field.onChange(
+                            checked
+                              ? [...field.value, option.value]
+                              : field.value.filter((v) => v !== option.value)
+                          );
+                        }}
+                        disabled={!!focusedId}
+                      />
+                      <span className='text-sm'>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <Button type='submit' size='lg'>
+            저장
+          </Button>
+        </form>
       </Form>
     </>
   );

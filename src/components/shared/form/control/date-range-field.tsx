@@ -1,4 +1,6 @@
-import { DatePicker, Radio, RadioChangeEvent } from 'antd';
+import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import dayjs from 'dayjs';
 import React from 'react';
 
@@ -17,42 +19,58 @@ const dateRangeOptions = [
 ];
 
 const DateRangeField = ({ value, onChange }: IDateRangeFieldProps) => {
-  const handleDateRangeChange = (e: RadioChangeEvent) => {
-    if (e.target.value === 'today') {
+  const handleDateRangeChange = (v: string) => {
+    if (v === 'today') {
       onChange?.([dayjs(), dayjs()]);
-    } else if (e.target.value === '1week') {
+    } else if (v === '1week') {
       onChange?.([dayjs().subtract(1, 'week'), dayjs()]);
-    } else if (e.target.value === '1month') {
+    } else if (v === '1month') {
       onChange?.([dayjs().subtract(1, 'month'), dayjs()]);
-    } else if (e.target.value === '3months') {
+    } else if (v === '3months') {
       onChange?.([dayjs().subtract(3, 'months'), dayjs()]);
-    } else if (e.target.value === '6months') {
+    } else if (v === '6months') {
       onChange?.([dayjs().subtract(6, 'months'), dayjs()]);
-    } else if (e.target.value === '1year') {
+    } else if (v === '1year') {
       onChange?.([dayjs().subtract(1, 'year'), dayjs()]);
     }
   };
 
   return (
     <div className='flex flex-wrap items-center gap-2'>
-      <DatePicker
+      <Input
+        type='date'
+        className='w-[160px]'
         placeholder='시작 날짜'
-        onChange={(v: dayjs.Dayjs | null) => {
+        value={value?.[0]?.format('YYYY-MM-DD') ?? ''}
+        onChange={(e) => {
+          const v = e.target.value ? dayjs(e.target.value) : null;
           onChange?.([v, value?.[1] || null]);
         }}
-        value={value?.[0]}
       />
       <span>~</span>
-      <DatePicker
+      <Input
+        type='date'
+        className='w-[160px]'
         placeholder='종료 날짜'
-        onChange={(v: dayjs.Dayjs | null) => {
+        value={value?.[1]?.format('YYYY-MM-DD') ?? ''}
+        onChange={(e) => {
+          const v = e.target.value ? dayjs(e.target.value) : null;
           onChange?.([value?.[0] || null, v]);
         }}
-        value={value?.[1]}
       />
-      <div className='flex items-center gap-1'>
-        <Radio.Group size='small' options={dateRangeOptions} optionType='button' buttonStyle='solid' onChange={handleDateRangeChange} />
-      </div>
+      <RadioGroup onValueChange={handleDateRangeChange} className='flex items-center gap-1'>
+        {dateRangeOptions.map((opt) => (
+          <div key={opt.value} className='flex items-center'>
+            <RadioGroupItem value={opt.value} id={`range-${opt.value}`} className='peer sr-only' />
+            <Label
+              htmlFor={`range-${opt.value}`}
+              className='cursor-pointer rounded-md border px-2 py-1 text-xs peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+            >
+              {opt.label}
+            </Label>
+          </div>
+        ))}
+      </RadioGroup>
     </div>
   );
 };

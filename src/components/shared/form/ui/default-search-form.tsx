@@ -1,29 +1,17 @@
-import { Form, FormProps } from 'antd';
-import React, { PropsWithChildren, useCallback } from 'react';
+import React, { PropsWithChildren } from 'react';
 import style from './form.module.css';
 
-interface IDefaultSearchFormProps extends FormProps {}
+interface IDefaultSearchFormProps {
+  children: React.ReactNode;
+  onFinish?: (values: any) => void;
+  [key: string]: any;
+}
 
-const DefaultSearchForm = <T,>({ children, ...formProps }: PropsWithChildren<IDefaultSearchFormProps>) => {
-  const handleFormFailed = useCallback(
-    ({ errorFields }: any) => {
-      formProps.form?.scrollToField(errorFields[0].name);
-    },
-    [formProps.form],
-  );
-
+const DefaultSearchForm = <T,>({ children, onFinish, ...rest }: PropsWithChildren<IDefaultSearchFormProps>) => {
   return (
-    <Form<T>
-      className={style['default-form']}
-      layout='horizontal'
-      requiredMark={false}
-      onFinishFailed={handleFormFailed}
-      labelAlign='left'
-      labelWrap
-      {...formProps}
-    >
+    <div className={style['default-form']} {...rest}>
       {children}
-    </Form>
+    </div>
   );
 };
 

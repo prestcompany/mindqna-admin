@@ -1,8 +1,8 @@
 import Head from "next/head";
 import React from "react";
 
-export const DEFAULT_TITLE = "PREST ADMIN";
-export const DEFAULT_DESCRIPTION = "PREST";
+export const DEFAULT_TITLE = "mindBridge Admin";
+export const DEFAULT_DESCRIPTION = "mindBridge";
 
 interface ISeoHeadProps {
   title?: string;

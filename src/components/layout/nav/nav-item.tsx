@@ -1,4 +1,3 @@
-import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import React from 'react';
@@ -21,8 +20,7 @@ const NavItem = ({ item }: INavItemProps) => {
         className={(item.isActive || isEqualPath)(router, item.link) ? 'active' : ''}
       >
         {item.icon}
-        <span className='cursor-pointer grow'>{item.name}</span>
-        <ChevronRight className='w-6 h-6 text-white active-check' />
+        <span className='grow'>{item.name}</span>
       </Link>
     </li>
   );

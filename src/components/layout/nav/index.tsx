@@ -6,10 +6,11 @@ import style from './nav.module.css';
 
 interface INavProps {
   data: IMenu[];
+  label?: string;
 }
 
 export interface IMenu {
-  id?: string /* 식별자 없으면 name으로 대체 */;
+  id?: string;
   name: string;
   link?: {
     path: string;
@@ -27,13 +28,20 @@ export const isEqualPath = (router: NextRouter, link: IMenu['link']) => {
   );
 };
 
-const Nav = ({ data }: INavProps) => {
+const Nav = ({ data, label }: INavProps) => {
   return (
-    <ul className={style.menu}>
-      {data.map((menu) => {
-        return <NavMenu key={menu.id || menu.name} menu={menu} />;
-      })}
-    </ul>
+    <div className='mb-4'>
+      {label && (
+        <h4 className='px-3 mb-1 text-[11px] font-medium tracking-wider uppercase text-muted-foreground'>
+          {label}
+        </h4>
+      )}
+      <ul className={style.menu}>
+        {data.map((menu) => {
+          return <NavMenu key={menu.id || menu.name} menu={menu} />;
+        })}
+      </ul>
+    </div>
   );
 };
 

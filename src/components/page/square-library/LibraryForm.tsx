@@ -6,9 +6,13 @@ import {
   updateSquareLibrary,
 } from '@/client/square-library';
 import { Locale } from '@/client/types';
-import { Button, Form, Input, message, Radio, Spin } from 'antd';
-import TextArea from 'antd/es/input/TextArea';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Textarea } from '@/components/ui/textarea';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { subCategoryOptions } from './constants';
 
 type Props = {
@@ -58,26 +62,6 @@ function LibraryForm({ init, type, reload, close }: Props) {
     setName(init.name);
   }, [init]);
 
-  const localeOptions = [
-    { label: 'ko', value: 'ko' },
-    { label: 'en', value: 'en' },
-    { label: 'ja', value: 'ja' },
-    { label: 'zh', value: 'zh' },
-    { label: 'zhTw', value: 'zhTw' },
-    { label: 'es', value: 'es' },
-    { label: 'id', value: 'id' },
-  ];
-
-  const activeOptions = [
-    { label: '활성화', value: true },
-    { label: '비활성화', value: false },
-  ];
-
-  const fixOptions = [
-    { label: '고정', value: true },
-    { label: '고정 안함', value: false },
-  ];
-
   const save = async () => {
     try {
       setLoading(true);
@@ -121,67 +105,89 @@ function LibraryForm({ init, type, reload, close }: Props) {
       setName('');
       close();
     } catch (err) {
-      message.error(`${err}`);
+      toast.error(`${err}`);
     }
     setLoading(false);
   };
 
   return (
     <>
-      <Spin spinning={isLoading} fullscreen />
-      <Form>
-        <Form.Item label='이미지'>
+      {isLoading && <div className='fixed inset-0 z-50 flex items-center justify-center bg-background/80'><div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary' /></div>}
+      <div className='space-y-4'>
+        <div className='space-y-2'>
+          <Label>이미지</Label>
           <Input value={img} onChange={(e) => setImg(e.target.value)} />
-        </Form.Item>
-        {/* <Form.Item label='국가'>
-          <Radio.Group options={localeOptions} optionType='button' buttonStyle='solid' value={locale} onChange={(e) => setLocale(e.target.value)} />
-        </Form.Item> */}
-        <Form.Item label='타입'>
-          <Radio.Group
-            options={subCategoryOptions[type]}
-            optionType='button'
-            buttonStyle='solid'
+        </div>
+        <div className='space-y-2'>
+          <Label>타입</Label>
+          <RadioGroup
             value={subCategory}
-            onChange={(e) => setSubCategory(e.target.value)}
-          />
-        </Form.Item>
-        <Form.Item label='이름'>
+            onValueChange={(v) => setSubCategory(v as LibrarySubType)}
+            className='flex flex-wrap gap-4'
+          >
+            {subCategoryOptions[type]?.map((opt) => (
+              <div key={opt.value} className='flex items-center gap-2'>
+                <RadioGroupItem value={opt.value} id={`subcat-${opt.value}`} />
+                <Label htmlFor={`subcat-${opt.value}`}>{opt.label}</Label>
+              </div>
+            ))}
+          </RadioGroup>
+        </div>
+        <div className='space-y-2'>
+          <Label>이름</Label>
           <Input value={name} onChange={(e) => setName(e.target.value)} />
-        </Form.Item>
-        <Form.Item label='제목키'>
+        </div>
+        <div className='space-y-2'>
+          <Label>제목키</Label>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} />
-        </Form.Item>
-        <Form.Item label='내용키'>
-          <TextArea value={content} onChange={(e) => setContent(e.target.value)} />
-        </Form.Item>
-        <Form.Item label='링크'>
+        </div>
+        <div className='space-y-2'>
+          <Label>내용키</Label>
+          <Textarea value={content} onChange={(e) => setContent(e.target.value)} />
+        </div>
+        <div className='space-y-2'>
+          <Label>링크</Label>
           <Input value={link} onChange={(e) => setLink(e.target.value)} />
-        </Form.Item>
-        <Form.Item label='활성화'>
-          <Radio.Group
-            options={activeOptions}
-            optionType='button'
-            buttonStyle='solid'
-            value={isActive}
-            onChange={(e) => setIsActive(e.target.value)}
-            // disabled={!focusedId}
-          />
-        </Form.Item>
-        <Form.Item label='고정'>
-          <Radio.Group
-            options={fixOptions}
-            optionType='button'
-            buttonStyle='solid'
-            value={isFixed}
-            onChange={(e) => setIsFixed(e.target.value)}
-            // disabled={!focusedId}
-          />
-        </Form.Item>
+        </div>
+        <div className='space-y-2'>
+          <Label>활성화</Label>
+          <RadioGroup
+            value={String(isActive)}
+            onValueChange={(v) => setIsActive(v === 'true')}
+            className='flex gap-4'
+          >
+            <div className='flex items-center gap-2'>
+              <RadioGroupItem value='true' id='active-true' />
+              <Label htmlFor='active-true'>활성화</Label>
+            </div>
+            <div className='flex items-center gap-2'>
+              <RadioGroupItem value='false' id='active-false' />
+              <Label htmlFor='active-false'>비활성화</Label>
+            </div>
+          </RadioGroup>
+        </div>
+        <div className='space-y-2'>
+          <Label>고정</Label>
+          <RadioGroup
+            value={String(isFixed)}
+            onValueChange={(v) => setIsFixed(v === 'true')}
+            className='flex gap-4'
+          >
+            <div className='flex items-center gap-2'>
+              <RadioGroupItem value='true' id='fixed-true' />
+              <Label htmlFor='fixed-true'>고정</Label>
+            </div>
+            <div className='flex items-center gap-2'>
+              <RadioGroupItem value='false' id='fixed-false' />
+              <Label htmlFor='fixed-false'>고정 안함</Label>
+            </div>
+          </RadioGroup>
+        </div>
 
-        <Button onClick={save} size='large' type='primary'>
+        <Button onClick={save} size='lg'>
           저장
         </Button>
-      </Form>
+      </div>
     </>
   );
 }

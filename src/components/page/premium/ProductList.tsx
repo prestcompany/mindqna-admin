@@ -1,112 +1,102 @@
 import { IAPProduct } from '@/client/premium';
+import { Badge } from '@/components/ui/badge';
+import DataTable from '@/components/shared/ui/data-table';
 import useProducts from '@/hooks/useProducts';
-import { Modal, Table, TableProps, Tag } from 'antd';
+import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { useState } from 'react';
 
 function ProductList() {
-  const [modal, holder] = Modal.useModal();
-
   const [currentPage, setCurrentPage] = useState(1);
 
   const { items, isLoading, refetch, totalPage } = useProducts({
     page: currentPage,
   });
 
-  const columns: TableProps<IAPProduct>['columns'] = [
+  const columns: ColumnDef<IAPProduct>[] = [
     {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
+      accessorKey: 'id',
+      header: '번호',
     },
     {
-      title: 'username',
-      dataIndex: ['owner', 'username'],
-      key: 'username',
+      id: 'username',
+      accessorFn: (row) => (row as any).owner?.username,
+      header: 'username',
     },
     {
-      title: '플랫폼',
-      dataIndex: 'platform',
-      key: 'platform',
-      render: (value: string) => {
-        if (value === 'EVENT') return <Tag color='red'>EVENT</Tag>;
-        if (value === 'IOS') return <Tag>IOS</Tag>;
-        if (value === 'AOS') return <Tag color='green'>AOS</Tag>;
+      accessorKey: 'platform',
+      header: '플랫폼',
+      cell: ({ row }) => {
+        const value = row.original.platform;
+        if (value === 'EVENT') return <Badge variant='destructive'>EVENT</Badge>;
+        if (value === 'IOS') return <Badge variant='secondary'>IOS</Badge>;
+        if (value === 'AOS') return <Badge variant='success'>AOS</Badge>;
       },
     },
     {
-      title: '구독/소모품',
-      dataIndex: 'dueAt',
-      key: 'dueAt',
-      render: (value: string) => {
-        return <Tag color={value ? 'blue' : 'pink'}>{value ? '구독' : '소모품'}</Tag>;
+      id: 'subscription',
+      accessorKey: 'dueAt',
+      header: '구독/소모품',
+      cell: ({ row }) => {
+        const value = row.original.dueAt;
+        return <Badge variant={value ? 'info' : 'secondary'}>{value ? '구독' : '소모품'}</Badge>;
       },
     },
-
     {
-      title: 'productId',
-      dataIndex: 'productId',
-      key: 'productId',
+      accessorKey: 'productId',
+      header: 'productId',
     },
     {
-      title: 'transactionId',
-      dataIndex: 'transactionId',
-      key: 'transactionId',
+      accessorKey: 'transactionId',
+      header: 'transactionId',
     },
     {
-      title: '만료일',
-      dataIndex: 'dueAt',
-      key: 'dueAt',
-      render: (value: string) => {
+      accessorKey: 'dueAt',
+      header: '만료일',
+      cell: ({ row }) => {
+        const value = row.original.dueAt;
         const day = dayjs(value);
         return <div> {value ? day.format('YY.MM.DD HH:mm') : ''}</div>;
       },
     },
-
     {
-      title: '활성화',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      render: (value: boolean) => {
-        return <Tag color={value ? 'green' : 'default'}>{value ? '활성화' : '만료'}</Tag>;
+      accessorKey: 'isActive',
+      header: '활성화',
+      cell: ({ row }) => {
+        const value = row.original.isActive;
+        return <Badge variant={value ? 'success' : 'muted'}>{value ? '활성화' : '만료'}</Badge>;
       },
     },
     {
-      title: 'PROD/TEST',
-      dataIndex: 'isProduction',
-      key: 'isProduction',
-      render: (value: boolean) => {
-        return <Tag color={value ? 'purple-inverse' : 'default'}>{value ? 'PROD' : 'TEST'}</Tag>;
+      accessorKey: 'isProduction',
+      header: 'PROD/TEST',
+      cell: ({ row }) => {
+        const value = row.original.isProduction;
+        return <Badge variant={value ? 'default' : 'muted'}>{value ? 'PROD' : 'TEST'}</Badge>;
       },
     },
-
     {
-      title: '생성 시간',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (value) => {
-        const day = dayjs(value);
-        const diffFromNow = dayjs().diff(day, 'day');
-
+      accessorKey: 'createdAt',
+      header: '생성 시간',
+      cell: ({ row }) => {
+        const day = dayjs(row.original.createdAt);
         return <div>{day.format('YY.MM.DD HH:mm')}</div>;
       },
     },
   ];
   return (
     <>
-      {holder}
       <div className='flex gap-2 items-center py-4'>
         <span className='text-lg font-bold'>필터</span>
       </div>
-      <Table
-        dataSource={items}
+      <DataTable
         columns={columns}
+        data={items || []}
         loading={isLoading}
         pagination={{
           total: totalPage * 10,
-          current: currentPage,
+          page: currentPage,
           onChange: (page) => setCurrentPage(page),
-          showSizeChanger: false,
         }}
       />
     </>

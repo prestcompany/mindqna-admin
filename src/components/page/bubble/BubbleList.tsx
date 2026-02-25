@@ -1,13 +1,25 @@
 import { removeBubble } from '@/client/bubble';
 import { BubbleType, PetBubble } from '@/client/types';
+import DataTable from '@/components/shared/ui/data-table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import useBubbles from '@/hooks/useBubbles';
-import { Button, Drawer, Modal, Select, Table, TableProps, message } from 'antd';
+import { ColumnDef } from '@tanstack/react-table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import BubbleForm from './BubbleForm';
 
 function BubbleList() {
-  const [modal, holder] = Modal.useModal();
-
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<{ type?: BubbleType[]; locale?: string[] }>({});
   const { items, totalPage, isLoading, refetch } = useBubbles(currentPage, filter.type, filter.locale);
@@ -16,131 +28,151 @@ function BubbleList() {
   const [isOpenEdit, setOpenEdit] = useState(false);
   const [focused, setFocused] = useState<PetBubble | undefined>(undefined);
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState<PetBubble | undefined>(undefined);
+
   const handleEdit = (value: PetBubble) => {
     setFocused(value);
     setOpenEdit(true);
   };
 
   const handleRemove = (value: PetBubble) => {
-    modal.confirm({
-      title: `삭제 (${value.message})`,
-      onOk: async () => {
-        try {
-          await removeBubble(value.id);
-          await refetch();
-        } catch (err) {
-          message.error(`${err}`);
-        }
-      },
-    });
+    setConfirmTarget(value);
+    setConfirmOpen(true);
   };
 
-  const columns: TableProps<PetBubble>['columns'] = [
-    {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
-    },
+  const handleConfirmRemove = async () => {
+    if (!confirmTarget) return;
+    try {
+      await removeBubble(confirmTarget.id);
+      await refetch();
+    } catch (err) {
+      toast.error(`${err}`);
+    }
+    setConfirmOpen(false);
+    setConfirmTarget(undefined);
+  };
 
+  const columns: ColumnDef<PetBubble>[] = [
     {
-      title: 'message',
-      dataIndex: 'message',
-      key: 'message',
+      accessorKey: 'id',
+      header: '번호',
     },
     {
-      title: '레벨',
-      dataIndex: 'level',
-      key: 'level',
+      accessorKey: 'message',
+      header: 'message',
     },
     {
-      title: '타입',
-      dataIndex: 'type',
-      key: 'type',
+      accessorKey: 'level',
+      header: '레벨',
     },
     {
-      title: 'locale',
-      dataIndex: 'locale',
-      key: 'locale',
+      accessorKey: 'type',
+      header: '타입',
     },
-
     {
-      title: 'Action',
-      dataIndex: '',
-      key: 'x',
-      render: (value) => (
+      accessorKey: 'locale',
+      header: 'locale',
+    },
+    {
+      id: 'actions',
+      header: 'Action',
+      cell: ({ row }) => (
         <div className='flex gap-4'>
-          <Button onClick={() => handleEdit(value)}>수정</Button>
-          <Button onClick={() => handleRemove(value)}>삭제</Button>
+          <Button variant='outline' onClick={() => handleEdit(row.original)}>수정</Button>
+          <Button variant='outline' onClick={() => handleRemove(row.original)}>삭제</Button>
         </div>
       ),
     },
   ];
+
   return (
     <>
-      {holder}
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>삭제 ({confirmTarget?.message})</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmRemove}>확인</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <Button
         onClick={() => {
           setFocused(undefined);
           setOpenCreate(true);
         }}
-        type='primary'
-        size='large'
+        size='lg'
       >
         추가
       </Button>
       <div className='flex items-center gap-2 py-4'>
         <span className='text-lg font-bold'>필터</span>
         <Select
-          placeholder='언어'
-          style={{ width: 120 }}
-          options={[
-            { label: 'ko', value: 'ko' },
-            { label: 'en', value: 'en' },
-            { label: 'ja', value: 'ja' },
-            { label: 'zh', value: 'zh' },
-            { label: 'zhTw', value: 'zhTw' },
-            { label: 'es', value: 'es' },
-            { label: 'id', value: 'id' },
-          ]}
-          value={(filter.locale ?? [])?.[0]}
-          onChange={(v: string) => {
-            setFilter((prev) => ({ ...prev, locale: [v] }));
+          value={(filter.locale ?? [])?.[0] ?? ''}
+          onValueChange={(v: string) => {
+            setFilter((prev) => ({ ...prev, locale: v ? [v] : undefined }));
           }}
-          allowClear
-        />
+        >
+          <SelectTrigger className='w-[120px]'>
+            <SelectValue placeholder='언어' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='ko'>ko</SelectItem>
+            <SelectItem value='en'>en</SelectItem>
+            <SelectItem value='ja'>ja</SelectItem>
+            <SelectItem value='zh'>zh</SelectItem>
+            <SelectItem value='zhTw'>zhTw</SelectItem>
+            <SelectItem value='es'>es</SelectItem>
+            <SelectItem value='id'>id</SelectItem>
+          </SelectContent>
+        </Select>
         <Select
-          placeholder='타입'
-          style={{ width: 120 }}
-          options={[
-            { label: '공통', value: 'general' },
-            { label: '오전', value: 'day' },
-            { label: '오후', value: 'night' },
-            { label: '커스텀', value: 'custom' },
-          ]}
-          value={(filter.type ?? [])?.[0]}
-          onChange={(v: BubbleType) => {
-            setFilter((prev) => ({ ...prev, type: [v] }));
+          value={(filter.type ?? [])?.[0] ?? ''}
+          onValueChange={(v: string) => {
+            setFilter((prev) => ({ ...prev, type: v ? [v as BubbleType] : undefined }));
           }}
-          allowClear
-        />
+        >
+          <SelectTrigger className='w-[120px]'>
+            <SelectValue placeholder='타입' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='general'>공통</SelectItem>
+            <SelectItem value='day'>오전</SelectItem>
+            <SelectItem value='night'>오후</SelectItem>
+            <SelectItem value='custom'>커스텀</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
-      <Table
-        dataSource={items}
+      <DataTable
         columns={columns}
+        data={items ?? []}
+        loading={isLoading}
         pagination={{
           total: totalPage * 10,
-          current: currentPage,
+          page: currentPage,
+          pageSize: 10,
           onChange: (page) => setCurrentPage(page),
-          showSizeChanger: false,
         }}
-        loading={isLoading}
       />
-      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}>
-        <BubbleForm reload={refetch} close={() => setOpenCreate(false)} />
-      </Drawer>
-      <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={600}>
-        <BubbleForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
-      </Drawer>
+      <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
+        <SheetContent side='right' className='w-[600px] sm:max-w-[600px] overflow-y-auto'>
+          <SheetHeader>
+            <SheetTitle>말풍선 추가</SheetTitle>
+          </SheetHeader>
+          <BubbleForm reload={refetch} close={() => setOpenCreate(false)} />
+        </SheetContent>
+      </Sheet>
+      <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
+        <SheetContent side='right' className='w-[600px] sm:max-w-[600px] overflow-y-auto'>
+          <SheetHeader>
+            <SheetTitle>말풍선 수정</SheetTitle>
+          </SheetHeader>
+          <BubbleForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

@@ -1,7 +1,11 @@
 import { createLocale, updateLocale } from '@/client/locale';
 import { Locale, LocaleWord } from '@/client/types';
-import { Button, Checkbox, Form, Input, Spin, message } from 'antd';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 type LocaleFormProps = {
   init?: LocaleWord;
@@ -32,15 +36,23 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
     setValue(init.value);
   }, [init]);
 
-  const localeOptions = [
+  const localeOptions: { label: string; value: Locale }[] = [
     { label: 'ko', value: 'ko' },
     { label: 'en', value: 'en' },
     { label: 'ja', value: 'ja' },
     { label: 'zh', value: 'zh' },
-    { label: 'zhTw', value: 'zhTw' },
-    { label: 'es', value: 'es' },
-    { label: 'id', value: 'id' },
+    { label: 'zhTw', value: 'zhTw' as Locale },
+    { label: 'es', value: 'es' as Locale },
+    { label: 'id', value: 'id' as Locale },
   ];
+
+  const toggleLocale = (locale: Locale, checked: boolean) => {
+    if (checked) {
+      setLocales((prev) => [...prev, locale]);
+    } else {
+      setLocales((prev) => prev.filter((l) => l !== locale));
+    }
+  };
 
   const save = async () => {
     try {
@@ -77,22 +89,22 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
             locale: 'zh',
             value: valueZh,
           });
-        if (locales.includes('zhTw'))
+        if (locales.includes('zhTw' as Locale))
           await createLocale({
             key,
-            locale: 'zhTw',
+            locale: 'zhTw' as Locale,
             value: valueZhTw,
           });
-        if (locales.includes('es'))
+        if (locales.includes('es' as Locale))
           await createLocale({
             key,
-            locale: 'es',
+            locale: 'es' as Locale,
             value: valueEs,
           });
-        if (locales.includes('id'))
+        if (locales.includes('id' as Locale))
           await createLocale({
             key,
-            locale: 'id',
+            locale: 'id' as Locale,
             value: valueId,
           });
       }
@@ -100,55 +112,77 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
       await reload();
       close();
     } catch (err) {
-      message.error(`${err}`);
+      toast.error(`${err}`);
     }
     setLoading(false);
   };
 
   return (
     <>
-      <Spin spinning={isLoading} fullscreen />
-      <Form>
-        <Form.Item label='locale'>
-          <Checkbox.Group options={localeOptions} value={locales} onChange={(values) => setLocales(values as Locale[])} disabled={!!focusedId} />
-        </Form.Item>
-        <Form.Item label='key'>
+      {isLoading && <div className='fixed inset-0 z-50 flex items-center justify-center bg-background/80'><div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary' /></div>}
+      <div className='space-y-4'>
+        <div className='space-y-2'>
+          <Label>locale</Label>
+          <div className='flex flex-wrap gap-3'>
+            {localeOptions.map((opt) => (
+              <div key={opt.value} className='flex items-center gap-2'>
+                <Checkbox
+                  id={`locale-${opt.value}`}
+                  checked={locales.includes(opt.value)}
+                  onCheckedChange={(checked) => toggleLocale(opt.value, !!checked)}
+                  disabled={!!focusedId}
+                />
+                <Label htmlFor={`locale-${opt.value}`}>{opt.label}</Label>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className='space-y-2'>
+          <Label>key</Label>
           <Input value={key} onChange={(e) => setKey(e.target.value)} />
-        </Form.Item>
+        </div>
         {focusedId ? (
-          <Form.Item label='value'>
+          <div className='space-y-2'>
+            <Label>value</Label>
             <Input value={value} onChange={(e) => setValue(e.target.value)} />
-          </Form.Item>
+          </div>
         ) : (
           <>
-            <Form.Item label='ko'>
+            <div className='space-y-2'>
+              <Label>ko</Label>
               <Input value={valueKo} onChange={(e) => setValueKo(e.target.value)} />
-            </Form.Item>
-            <Form.Item label='en'>
+            </div>
+            <div className='space-y-2'>
+              <Label>en</Label>
               <Input value={valueEn} onChange={(e) => setValueEn(e.target.value)} />
-            </Form.Item>
-            <Form.Item label='ja'>
+            </div>
+            <div className='space-y-2'>
+              <Label>ja</Label>
               <Input value={valueJa} onChange={(e) => setValueJa(e.target.value)} />
-            </Form.Item>
-            <Form.Item label='zh'>
+            </div>
+            <div className='space-y-2'>
+              <Label>zh</Label>
               <Input value={valueZh} onChange={(e) => setValueZh(e.target.value)} />
-            </Form.Item>
-            <Form.Item label='zhTw'>
+            </div>
+            <div className='space-y-2'>
+              <Label>zhTw</Label>
               <Input value={valueZhTw} onChange={(e) => setValueZhTw(e.target.value)} />
-            </Form.Item>
-            <Form.Item label='es'>
+            </div>
+            <div className='space-y-2'>
+              <Label>es</Label>
               <Input value={valueEs} onChange={(e) => setValueEs(e.target.value)} />
-            </Form.Item>
-            <Form.Item label='id'>
+            </div>
+            <div className='space-y-2'>
+              <Label>id</Label>
               <Input value={valueId} onChange={(e) => setValueId(e.target.value)} />
-            </Form.Item>
+            </div>
           </>
         )}
 
-        <Button onClick={save} size='large' type='primary'>
+        <Button onClick={save} size='lg'>
           저장
         </Button>
-      </Form>
+      </div>
     </>
   );
 }

@@ -1,18 +1,34 @@
 import { User } from '@/client/types';
 import { getUser, getUserByEmail, removeUser } from '@/client/user';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Card, Drawer, Input, Modal, Space, Tag, message } from 'antd';
 import dayjs from 'dayjs';
-import { Copy } from 'lucide-react';
+import { Copy, Loader2, Search, Ticket } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import TicketForm from './TicketForm';
 
 function UserSearch() {
-  const [modal, holder] = Modal.useModal();
   const [id, setId] = useState('');
   const [isOpenTicket, setOpenTicket] = useState(false);
   const [focused, setFocused] = useState<string>('');
   const [email, setEmail] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState<User | null>(null);
 
   const { data, refetch, isLoading, isFetched } = useQuery({
     queryKey: ['user', id, email],
@@ -28,37 +44,26 @@ function UserSearch() {
 
   const copyId = (text: string) => {
     navigator.clipboard.writeText(text);
-    message.success(`${text} 복사됨`);
+    toast.success(`${text} 복사됨`);
   };
 
-  const handleRemove = (user: User) => {
-    modal.confirm({
-      title: `사용자 삭제`,
-      content: (
-        <div className='space-y-2'>
-          <p>
-            <strong>{user.username}</strong> 사용자를 삭제하시겠습니까?
-          </p>
-          <div className='text-sm text-gray-600'>
-            <p>• 이메일: {user.socialAccount.email}</p>
-            <p>• 가입일: {dayjs(user.createdAt).format('YYYY-MM-DD')}</p>
-            <p>• 공간 수: {user._count.profiles}개</p>
-          </div>
-        </div>
-      ),
-      okText: '삭제',
-      okType: 'danger',
-      cancelText: '취소',
-      onOk: async () => {
-        try {
-          await removeUser(user.id);
-          message.success(`${user.username} 사용자가 삭제되었습니다`);
-          await refetch();
-        } catch (err) {
-          message.error(`삭제 실패: ${err}`);
-        }
-      },
-    });
+  const handleRemoveClick = (user: User) => {
+    setConfirmTarget(user);
+    setConfirmOpen(true);
+  };
+
+  const handleRemoveConfirm = async () => {
+    if (!confirmTarget) return;
+    try {
+      await removeUser(confirmTarget.id);
+      toast.success(`${confirmTarget.username} 사용자가 삭제되었습니다`);
+      await refetch();
+    } catch (err) {
+      toast.error(`삭제 실패: ${err}`);
+    } finally {
+      setConfirmOpen(false);
+      setConfirmTarget(null);
+    }
   };
 
   const renderUserCard = (user: User) => {
@@ -66,162 +71,201 @@ function UserSearch() {
     const created = dayjs(createdAt);
     const diffFromNow = dayjs().diff(created, 'day');
 
-    const providerMap = {
-      GOOGLE: { color: 'red', icon: '🔍', text: 'Google' },
-      KAKAO: { color: 'gold', icon: '💬', text: 'Kakao' },
-      APPLE: { color: 'default', icon: '🍎', text: 'Apple' },
-      LINE: { color: 'green', icon: '💚', text: 'Line' },
+    const providerMap: Record<string, { variant: 'destructive' | 'warning' | 'muted' | 'success'; text: string }> = {
+      GOOGLE: { variant: 'destructive', text: 'Google' },
+      KAKAO: { variant: 'warning', text: 'Kakao' },
+      APPLE: { variant: 'muted', text: 'Apple' },
+      LINE: { variant: 'success', text: 'Line' },
     };
 
-    const providerConfig = providerMap[socialAccount.provider as keyof typeof providerMap] || {
-      color: 'default',
-      icon: '🔗',
+    const providerConfig = providerMap[socialAccount.provider as string] || {
+      variant: 'muted' as const,
       text: socialAccount.provider,
     };
 
     const isCompleted = _count.profiles > 0;
 
     return (
-      <Card
-        title={
-          <div className='flex gap-2 items-center'>
-            <span>👤 {username}</span>
-            <Tag color={isCompleted ? 'green' : 'orange'}>{isCompleted ? '✅ 완료' : '⏳ 진행중'}</Tag>
+      <Card className='bg-white shadow-sm'>
+        <CardHeader className='pb-3'>
+          <div className='flex justify-between items-center'>
+            <div className='flex gap-2 items-center'>
+              <CardTitle className='text-base'>{username}</CardTitle>
+              <Badge variant={isCompleted ? 'success' : 'warning'}>{isCompleted ? '완료' : '진행중'}</Badge>
+            </div>
+            <div className='flex items-center gap-2'>
+              <Button
+                size='sm'
+                onClick={() => {
+                  setOpenTicket(true);
+                  setFocused(username);
+                }}
+              >
+                <Ticket className='w-4 h-4' />
+                티켓 지급
+              </Button>
+              <Button size='sm' variant='destructive' onClick={() => handleRemoveClick(user)}>
+                삭제
+              </Button>
+            </div>
           </div>
-        }
-        extra={
-          <Space>
-            <Button
-              size='small'
-              onClick={() => {
-                setOpenTicket(true);
-                setFocused(username);
-              }}
-              type='primary'
-            >
-              티켓 지급
-            </Button>
-            <Button size='small' danger onClick={() => handleRemove(user)}>
-              삭제
-            </Button>
-          </Space>
-        }
-        className='bg-white shadow-sm'
-      >
-        <div className='space-y-3'>
-          {/* 기본 정보 */}
+        </CardHeader>
+        <CardContent className='space-y-3'>
           <div className='flex flex-wrap gap-2'>
-            <Button size='small' type='default' onClick={() => copyId(id)} className='flex gap-1 items-center'>
+            <Button variant='outline' size='sm' onClick={() => copyId(id)}>
               ID: {id.slice(0, 8)}...
               <Copy className='w-3 h-3' />
             </Button>
-            <Tag color={providerConfig.color}>
-              {providerConfig.icon} {providerConfig.text}
-            </Tag>
-            <Tag>{locale?.toUpperCase()}</Tag>
+            <Badge variant={providerConfig.variant}>{providerConfig.text}</Badge>
+            <Badge variant='secondary'>{locale?.toUpperCase()}</Badge>
           </div>
 
-          {/* 이메일 */}
           <div className='flex gap-2 items-center'>
             <span className='text-sm text-gray-500'>이메일:</span>
             <span>{socialAccount.email}</span>
           </div>
 
-          {/* 통계 정보 */}
           <div className='flex flex-wrap gap-2'>
-            <Tag color='blue'>🏠 공간 {_count.profiles}개</Tag>
-            <Tag color={spaceMaxCount > 5 ? 'gold' : spaceMaxCount > 2 ? 'green' : 'default'}>
-              🏆 최대 {spaceMaxCount}개
-            </Tag>
-            <Tag color={diffFromNow < 7 ? 'green' : diffFromNow < 30 ? 'orange' : 'default'}>D+{diffFromNow}</Tag>
+            <Badge variant='info'>공간 {_count.profiles}개</Badge>
+            <Badge variant={spaceMaxCount > 5 ? 'warning' : spaceMaxCount > 2 ? 'success' : 'muted'}>
+              최대 {spaceMaxCount}개
+            </Badge>
+            <Badge variant={diffFromNow < 7 ? 'success' : diffFromNow < 30 ? 'warning' : 'muted'}>
+              D+{diffFromNow}
+            </Badge>
           </div>
 
-          {/* 가입일 */}
           <div className='flex gap-2 items-center text-sm text-gray-500'>
             <span>가입일:</span>
             <span>{created.format('YYYY-MM-DD HH:mm')}</span>
           </div>
 
-          {/* 탈퇴 예정일 */}
           {reserveUnregisterAt && (
             <div className='flex gap-2 items-center'>
-              <Tag color='error'>⚠️ 탈퇴 예정</Tag>
+              <Badge variant='destructive'>탈퇴 예정</Badge>
               <span className='text-sm text-red-600'>{reserveUnregisterAt}</span>
             </div>
           )}
-        </div>
+        </CardContent>
       </Card>
     );
   };
 
   return (
     <div className='space-y-4'>
-      {holder}
-
-      {/* 검색 영역 */}
-      <Card size='small' title='🔍 사용자 검색'>
-        <div className='flex gap-2'>
-          <Input
-            placeholder='유저코드를 입력하세요...'
-            value={id}
-            onChange={(e) => setId(e.target.value)}
-            onPressEnter={() => refetch()}
-            size='large'
-          />
-          <Button onClick={() => refetch()} type='primary' size='large' loading={isLoading} disabled={!id.trim()}>
-            🔍 유저코드 검색
-          </Button>
-        </div>
+      <Card>
+        <CardHeader className='pb-3'>
+          <CardTitle className='text-base flex items-center gap-2'>
+            <Search className='w-4 h-4' />
+            사용자 검색
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className='flex gap-2'>
+            <Input
+              placeholder='유저코드를 입력하세요...'
+              value={id}
+              onChange={(e) => setId(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && refetch()}
+              className='h-10'
+            />
+            <Button onClick={() => refetch()} disabled={isLoading || !id.trim()} className='h-10'>
+              {isLoading ? <Loader2 className='w-4 h-4 animate-spin' /> : <Search className='w-4 h-4' />}
+              유저코드 검색
+            </Button>
+          </div>
+        </CardContent>
       </Card>
 
-      <Card size='small' title='🔍 이메일 검색'>
-        <div className='flex gap-2'>
-          <Input
-            placeholder='이메일을 입력하세요...'
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onPressEnter={() => refetch()}
-            size='large'
-          />
-          <Button onClick={() => refetch()} type='primary' size='large' loading={isLoading} disabled={!email.trim()}>
-            🔍 이메일 검색
-          </Button>
-        </div>
+      <Card>
+        <CardHeader className='pb-3'>
+          <CardTitle className='text-base flex items-center gap-2'>
+            <Search className='w-4 h-4' />
+            이메일 검색
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className='flex gap-2'>
+            <Input
+              placeholder='이메일을 입력하세요...'
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && refetch()}
+              className='h-10'
+            />
+            <Button onClick={() => refetch()} disabled={isLoading || !email.trim()} className='h-10'>
+              {isLoading ? <Loader2 className='w-4 h-4 animate-spin' /> : <Search className='w-4 h-4' />}
+              이메일 검색
+            </Button>
+          </div>
+        </CardContent>
       </Card>
 
-      {/* 검색 결과 */}
       {data && renderUserCard(data)}
 
-      {/* 검색 결과가 없는 경우 */}
       {!data && !isLoading && isFetched && (
         <Card className='py-8 text-center'>
-          <div className='text-gray-400'>
-            <p className='mb-2 text-lg'>😕</p>
-            <p>검색 결과가 없습니다</p>
-            <p className='mt-1 text-sm'>{id.trim() ? `유저코드: ${id}` : `이메일: ${email}`}</p>
-          </div>
+          <CardContent>
+            <div className='text-gray-400'>
+              <p>검색 결과가 없습니다</p>
+              <p className='mt-1 text-sm'>{id.trim() ? `유저코드: ${id}` : `이메일: ${email}`}</p>
+            </div>
+          </CardContent>
         </Card>
       )}
 
-      {/* 티켓 지급 드로어 */}
-      <Drawer
+      <Sheet
         open={isOpenTicket}
-        onClose={() => {
-          setOpenTicket(false);
-          setFocused('');
-        }}
-        width={600}
-        title='🎫 티켓 지급'
-      >
-        <TicketForm
-          reload={refetch}
-          close={() => {
+        onOpenChange={(open) => {
+          if (!open) {
             setOpenTicket(false);
             setFocused('');
-          }}
-          username={focused}
-        />
-      </Drawer>
+          }
+        }}
+      >
+        <SheetContent side='right' className='w-[600px] sm:max-w-none overflow-y-auto'>
+          <SheetHeader>
+            <SheetTitle>티켓 지급</SheetTitle>
+          </SheetHeader>
+          <TicketForm
+            reload={refetch}
+            close={() => {
+              setOpenTicket(false);
+              setFocused('');
+            }}
+            username={focused}
+          />
+        </SheetContent>
+      </Sheet>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>사용자 삭제</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className='space-y-2'>
+                <p>
+                  <strong>{confirmTarget?.username}</strong> 사용자를 삭제하시겠습니까?
+                </p>
+                <div className='text-sm text-gray-600'>
+                  <p>• 이메일: {confirmTarget?.socialAccount.email}</p>
+                  <p>• 가입일: {confirmTarget ? dayjs(confirmTarget.createdAt).format('YYYY-MM-DD') : ''}</p>
+                  <p>• 공간 수: {confirmTarget?._count.profiles}개</p>
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRemoveConfirm}
+              className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+            >
+              삭제
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

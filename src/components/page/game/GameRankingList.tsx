@@ -1,14 +1,18 @@
 import { Game, GameRanking } from '@/client/game';
 import { Profile, Space } from '@/client/types';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Select as ShadSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import DataTable from '@/components/shared/ui/data-table';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import { useGameRankingRewardCreate, useGameRankings, useGames } from '@/hooks/useGame';
-import { Button, Drawer, Modal, Select, Table, TableProps, Tag } from 'antd';
+import { ColumnDef } from '@tanstack/react-table';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 function GameRankingList() {
   const router = useRouter();
-  const [modal, holder] = Modal.useModal();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<{ gameId?: number; year?: number; month?: number; week?: number }>({});
@@ -26,161 +30,192 @@ function GameRankingList() {
   const currentYear = new Date().getFullYear();
   const yearOptions = [{ value: currentYear, label: `${currentYear}년` }];
 
-  // 월 옵션
   const monthOptions = Array.from({ length: 12 }, (_, i) => ({
     value: i + 1,
     label: `${i + 1}월`,
   }));
 
-  // 주차 옵션
   const weekOptions = Array.from({ length: 53 }, (_, i) => ({
     value: i + 1,
     label: `${i + 1}주차`,
   }));
 
-  const columns: TableProps<GameRanking>['columns'] = [
+  const columns: ColumnDef<GameRanking>[] = [
     {
-      title: '순위',
-      dataIndex: 'rank',
-      key: 'rank',
-      width: 80,
-      render: (rank) => {
-        const color = rank <= 5 ? 'gold' : '';
-        return <Tag color={color}>{rank}</Tag>;
+      accessorKey: 'rank',
+      header: '순위',
+      size: 80,
+      cell: ({ row }) => {
+        const rank = row.original.rank;
+        return <Badge variant={rank <= 5 ? 'warning' : 'secondary'}>{rank}</Badge>;
       },
     },
     {
-      title: '게임',
-      dataIndex: 'game',
-      key: 'game.name',
-      width: 150,
-      render: (game: Game) => {
-        return <Tag color={game.primaryKeyColor}>{game.name}</Tag>;
+      accessorKey: 'game',
+      header: '게임',
+      size: 150,
+      cell: ({ row }) => {
+        const game = row.original.game as Game;
+        return <Badge style={{ backgroundColor: game.primaryKeyColor, color: '#fff' }}>{game.name}</Badge>;
       },
     },
     {
-      title: '연도',
-      dataIndex: 'year',
-      key: 'year',
-      width: 80,
-      render: (year) => {
-        return <Tag>{year}년</Tag>;
+      accessorKey: 'year',
+      header: '연도',
+      size: 80,
+      cell: ({ row }) => {
+        return <Badge variant='secondary'>{row.original.year}년</Badge>;
       },
     },
     {
-      title: '월',
-      dataIndex: 'month',
-      key: 'month',
-      width: 80,
-      render: (month) => {
-        return <Tag>{month}월</Tag>;
+      accessorKey: 'month',
+      header: '월',
+      size: 80,
+      cell: ({ row }) => {
+        return <Badge variant='secondary'>{row.original.month}월</Badge>;
       },
     },
     {
-      title: '주차',
-      dataIndex: 'week',
-      key: 'week',
-      width: 80,
-      render: (week) => {
-        return <Tag>{week}주차</Tag>;
+      accessorKey: 'week',
+      header: '주차',
+      size: 80,
+      cell: ({ row }) => {
+        return <Badge variant='secondary'>{row.original.week}주차</Badge>;
       },
     },
     {
-      title: '닉네임',
-      dataIndex: 'profile',
-      key: 'profile.nickname',
-      width: 150,
-      render: (profile: Profile) => {
+      accessorKey: 'profile',
+      header: '닉네임',
+      size: 150,
+      cell: ({ row }) => {
+        const profile = row.original.profile as Profile;
         return (
           <div style={{ display: 'flex', flexDirection: 'row', gap: '4px' }}>
-            <Tag color='black'>{profile.nickname}</Tag>
+            <Badge variant='default'>{profile.nickname}</Badge>
           </div>
         );
       },
     },
-
     {
-      title: '점수',
-      dataIndex: 'bestScore',
-      key: 'bestScore',
-      width: 150,
-      render: (bestScore) => {
-        return <Tag color='green'>{bestScore.toLocaleString()} P</Tag>;
+      accessorKey: 'bestScore',
+      header: '점수',
+      size: 150,
+      cell: ({ row }) => {
+        return <Badge variant='success'>{row.original.bestScore.toLocaleString()} P</Badge>;
       },
     },
-
     {
-      title: '공간 ID',
-      dataIndex: 'space',
-      key: 'space.id',
-      width: 150,
-      render: (space: Space) => {
-        return <Tag>{space.id}</Tag>;
+      accessorKey: 'space',
+      header: '공간 ID',
+      size: 150,
+      cell: ({ row }) => {
+        const space = row.original.space as Space;
+        return <Badge variant='secondary'>{space.id}</Badge>;
       },
     },
   ];
   return (
     <>
-      {holder}
       <DefaultTableBtn className='justify-between'>
         <div className='flex items-center gap-2 py-4'>
-          <Select
-            placeholder='게임'
-            style={{ width: 200 }}
-            options={[
-              { value: '', label: '전체' },
-              ...(games?.map((game) => ({
-                value: game.id,
-                label: game.name,
-              })) || []),
-            ]}
-            onChange={(v: number) => {
-              setFilter({ ...filter, gameId: v });
+          <ShadSelect
+            value={filter.gameId?.toString() ?? '__all__'}
+            onValueChange={(v) => {
+              setFilter({ ...filter, gameId: v === '__all__' ? undefined : Number(v) });
             }}
-          />
-          <Select
-            placeholder='연도'
-            options={[{ value: '', label: '전체' }, ...yearOptions]}
-            style={{ width: 120 }}
-            onChange={(v: number) => {
-              setFilter({ ...filter, year: v });
+          >
+            <SelectTrigger className='w-[200px]'>
+              <SelectValue placeholder='게임' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='__all__'>전체</SelectItem>
+              {games?.map((game) => (
+                <SelectItem key={game.id} value={game.id.toString()}>
+                  {game.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </ShadSelect>
+          <ShadSelect
+            value={filter.year?.toString() ?? '__all__'}
+            onValueChange={(v) => {
+              setFilter({ ...filter, year: v === '__all__' ? undefined : Number(v) });
             }}
-          />
-          <Select
-            placeholder='월'
-            options={[{ value: '', label: '전체' }, ...monthOptions]}
-            style={{ width: 100 }}
-            onChange={(v: number) => {
-              setFilter({ ...filter, month: v });
+          >
+            <SelectTrigger className='w-[120px]'>
+              <SelectValue placeholder='연도' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='__all__'>전체</SelectItem>
+              {yearOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value.toString()}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </ShadSelect>
+          <ShadSelect
+            value={filter.month?.toString() ?? '__all__'}
+            onValueChange={(v) => {
+              setFilter({ ...filter, month: v === '__all__' ? undefined : Number(v) });
             }}
-          />
-          <Select
-            placeholder='주차'
-            options={[{ value: '', label: '전체' }, ...weekOptions]}
-            style={{ width: 100 }}
-            onChange={(v: number) => {
-              setFilter({ ...filter, week: v });
+          >
+            <SelectTrigger className='w-[100px]'>
+              <SelectValue placeholder='월' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='__all__'>전체</SelectItem>
+              {monthOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value.toString()}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </ShadSelect>
+          <ShadSelect
+            value={filter.week?.toString() ?? '__all__'}
+            onValueChange={(v) => {
+              setFilter({ ...filter, week: v === '__all__' ? undefined : Number(v) });
             }}
-          />
+          >
+            <SelectTrigger className='w-[100px]'>
+              <SelectValue placeholder='주차' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='__all__'>전체</SelectItem>
+              {weekOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value.toString()}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </ShadSelect>
         </div>
-        <Button type='default' onClick={handleRewardCreate}>
+        <Button variant='outline' onClick={handleRewardCreate}>
           랭킹 보상 지급
         </Button>
       </DefaultTableBtn>
 
-      <Table
-        dataSource={items}
+      <DataTable
         columns={columns}
+        data={items || []}
+        loading={isLoading}
         pagination={{
           total: totalPage * 10,
-          current: currentPage,
+          page: currentPage,
           onChange: (page) => setCurrentPage(page),
-          showSizeChanger: false,
         }}
-        loading={isLoading}
       />
-      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}></Drawer>
-      <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={600}></Drawer>
+      <Sheet open={isOpenCreate} onOpenChange={(open) => !open && setOpenCreate(false)}>
+        <SheetContent side='right' className='w-[600px] sm:max-w-none overflow-y-auto'>
+          <SheetHeader><SheetTitle></SheetTitle></SheetHeader>
+        </SheetContent>
+      </Sheet>
+      <Sheet open={isOpenEdit} onOpenChange={(open) => !open && setOpenEdit(false)}>
+        <SheetContent side='right' className='w-[600px] sm:max-w-none overflow-y-auto'>
+          <SheetHeader><SheetTitle></SheetTitle></SheetHeader>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

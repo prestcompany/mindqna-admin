@@ -1,5 +1,4 @@
-import { Locale, PetCustomTemplate } from '@/client/types';
-import { Form } from 'antd';
+import { PetCustomTemplate } from '@/client/types';
 import { useCallback, useEffect, useState } from 'react';
 import { CustomFormData } from '../types';
 
@@ -15,18 +14,12 @@ const initialFormData: CustomFormData = {
 };
 
 export const useCustomForm = (init?: PetCustomTemplate) => {
-  const [form] = Form.useForm();
   const [formData, setFormData] = useState<CustomFormData>(initialFormData);
-  const [locale, setLocale] = useState<Locale>('ko');
   const [focusedId, setFocusedId] = useState<number | undefined>();
   const [hasFile, setHasFile] = useState(false);
 
   const updateFormData = useCallback((updates: Partial<CustomFormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
-  }, []);
-
-  const updateLocale = useCallback((locale: Locale) => {
-    setLocale(locale);
   }, []);
 
   const setFileUploaded = useCallback((uploaded: boolean) => {
@@ -35,11 +28,9 @@ export const useCustomForm = (init?: PetCustomTemplate) => {
 
   const resetForm = useCallback(() => {
     setFormData(initialFormData);
-    setLocale('ko');
     setFocusedId(undefined);
     setHasFile(false);
-    form.resetFields();
-  }, [form]);
+  }, []);
 
   const loadInitialData = useCallback(() => {
     if (!init) {
@@ -67,29 +58,11 @@ export const useCustomForm = (init?: PetCustomTemplate) => {
     loadInitialData();
   }, [loadInitialData]);
 
-  // Form fields for Ant Design
-  const fields = [
-    { name: 'name', value: formData.name },
-    { name: 'type', value: formData.type },
-    { name: 'petType', value: formData.petType },
-    { name: 'petLevel', value: formData.petLevel },
-    { name: 'isActive', value: formData.isActive },
-    { name: 'isPremium', value: formData.isPremium },
-    { name: 'price', value: formData.price },
-    { name: 'img', value: formData.image },
-    { name: 'fileKey', value: formData.fileKey },
-    { name: 'file', value: hasFile ? 'uploaded' : '' },
-  ];
-
   return {
-    form,
     formData,
-    locale,
     focusedId,
-    fields,
     hasFile,
     updateFormData,
-    updateLocale,
     setFileUploaded,
     resetForm,
   };

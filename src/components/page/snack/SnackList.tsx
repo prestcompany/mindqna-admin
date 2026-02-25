@@ -1,13 +1,25 @@
 import { removeSnack } from '@/client/snack';
 import { ImgItem, Snack } from '@/client/types';
+import DataTable from '@/components/shared/ui/data-table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import useSnacks from '@/hooks/useSnack';
-import { Button, Drawer, Image, Modal, Table, TableProps, Tag, message } from 'antd';
+import { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import SnackForm from './SnackForm';
 
 function SnackList() {
-  const [modal, holder] = Modal.useModal();
-
   const [currentPage, setCurrentPage] = useState(1);
   const { items, totalPage, isLoading, refetch } = useSnacks(currentPage);
 
@@ -15,135 +27,149 @@ function SnackList() {
   const [isOpenEdit, setOpenEdit] = useState(false);
   const [focused, setFocused] = useState<Snack | undefined>(undefined);
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState<Snack | undefined>(undefined);
+
   const handleEdit = (value: Snack) => {
     setFocused(value);
     setOpenEdit(true);
   };
 
   const handleRemove = (value: Snack) => {
-    modal.confirm({
-      title: `삭제 (${value.name})`,
-      onOk: async () => {
-        try {
-          await removeSnack(value.id);
-          await refetch();
-        } catch (err) {
-          message.error(`${err}`);
-        }
-      },
-    });
+    setConfirmTarget(value);
+    setConfirmOpen(true);
   };
 
-  const columns: TableProps<Snack>['columns'] = [
+  const handleConfirmRemove = async () => {
+    if (!confirmTarget) return;
+    try {
+      await removeSnack(confirmTarget.id);
+      await refetch();
+    } catch (err) {
+      toast.error(`${err}`);
+    }
+    setConfirmOpen(false);
+    setConfirmTarget(undefined);
+  };
+
+  const columns: ColumnDef<Snack>[] = [
     {
-      title: '이미지',
-      dataIndex: 'Img',
-      key: 'Img',
-      render: (value: ImgItem) => {
-        return <Image width={'100%'} height={60} src={value?.uri ?? ''} alt='img' style={{ objectFit: 'contain' }} />;
+      accessorKey: 'Img',
+      header: '이미지',
+      cell: ({ row }) => {
+        const value = row.original.Img as ImgItem;
+        return <img width='100%' height={60} src={value?.uri ?? ''} alt='img' className='object-contain' />;
       },
     },
     {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
-    },
-
-    {
-      title: '이름',
-      dataIndex: 'name',
-      key: 'name',
+      accessorKey: 'id',
+      header: '번호',
     },
     {
-      title: '설명',
-      dataIndex: 'desc',
-      key: 'desc',
+      accessorKey: 'name',
+      header: '이름',
     },
     {
-      title: '종류',
-      dataIndex: 'kind',
-      key: 'kind',
+      accessorKey: 'desc',
+      header: '설명',
     },
     {
-      title: '진화하는 펫',
-      dataIndex: 'type',
-      key: 'type',
+      accessorKey: 'kind',
+      header: '종류',
     },
     {
-      title: '경험치',
-      dataIndex: 'exp',
-      key: 'exp',
-    },
-
-    {
-      title: '순서',
-      dataIndex: 'order',
-      key: 'order',
+      accessorKey: 'type',
+      header: '진화하는 펫',
     },
     {
-      title: '가격',
-      dataIndex: 'price',
-      key: 'price',
+      accessorKey: 'exp',
+      header: '경험치',
     },
     {
-      title: '스타/하트',
-      dataIndex: 'isPaid',
-      key: 'isPaid',
-      render: (value: boolean) => {
-        return <Tag color={value ? 'gold' : 'red'}>{value ? '스타' : '하트'}</Tag>;
+      accessorKey: 'order',
+      header: '순서',
+    },
+    {
+      accessorKey: 'price',
+      header: '가격',
+    },
+    {
+      accessorKey: 'isPaid',
+      header: '스타/하트',
+      cell: ({ row }) => {
+        const value = row.original.isPaid;
+        return <Badge variant={value ? 'warning' : 'destructive'}>{value ? '스타' : '하트'}</Badge>;
       },
     },
     {
-      title: '활성화',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      render: (value: boolean) => {
-        return <Tag color={value ? 'green' : 'default'}>{value ? '활성화' : '비활성화'}</Tag>;
+      accessorKey: 'isActive',
+      header: '활성화',
+      cell: ({ row }) => {
+        const value = row.original.isActive;
+        return <Badge variant={value ? 'success' : 'muted'}>{value ? '활성화' : '비활성화'}</Badge>;
       },
     },
-
     {
-      title: 'Action',
-      dataIndex: '',
-      key: 'x',
-      render: (value) => (
+      id: 'actions',
+      header: 'Action',
+      cell: ({ row }) => (
         <div className='flex gap-4'>
-          <Button onClick={() => handleEdit(value)}>수정</Button>
-          <Button onClick={() => handleRemove(value)}>삭제</Button>
+          <Button variant='outline' onClick={() => handleEdit(row.original)}>수정</Button>
+          <Button variant='outline' onClick={() => handleRemove(row.original)}>삭제</Button>
         </div>
       ),
     },
   ];
+
   return (
     <>
-      {holder}
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>삭제 ({confirmTarget?.name})</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmRemove}>확인</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <Button
         onClick={() => {
           setFocused(undefined);
           setOpenCreate(true);
         }}
-        type='primary'
-        size='large'
+        size='lg'
       >
         추가
       </Button>
-      <Table
-        dataSource={items}
+      <DataTable
         columns={columns}
+        data={items ?? []}
+        loading={isLoading}
         pagination={{
           total: totalPage * 10,
-          current: currentPage,
+          page: currentPage,
+          pageSize: 10,
           onChange: (page) => setCurrentPage(page),
-          showSizeChanger: false,
         }}
-        loading={isLoading}
       />
-      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={720}>
-        <SnackForm close={() => setOpenCreate(false)} reload={refetch} />
-      </Drawer>
-      <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={720}>
-        <SnackForm initialSnack={focused} close={() => setOpenEdit(false)} reload={refetch} />
-      </Drawer>
+      <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
+        <SheetContent side='right' className='w-[720px] sm:max-w-[720px] overflow-y-auto'>
+          <SheetHeader>
+            <SheetTitle>간식 추가</SheetTitle>
+          </SheetHeader>
+          <SnackForm close={() => setOpenCreate(false)} reload={refetch} />
+        </SheetContent>
+      </Sheet>
+      <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
+        <SheetContent side='right' className='w-[720px] sm:max-w-[720px] overflow-y-auto'>
+          <SheetHeader>
+            <SheetTitle>간식 수정</SheetTitle>
+          </SheetHeader>
+          <SnackForm initialSnack={focused} close={() => setOpenEdit(false)} reload={refetch} />
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

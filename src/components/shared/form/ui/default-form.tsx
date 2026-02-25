@@ -1,27 +1,17 @@
-import { Form, FormProps } from "antd";
-import React, { PropsWithChildren, useCallback } from "react";
-import style from "./form.module.css";
+import React, { PropsWithChildren } from 'react';
+import style from './form.module.css';
 
-interface IDefaultFormProps extends FormProps {}
+interface IDefaultFormProps {
+  children: React.ReactNode;
+  onFinish?: (values: any) => void;
+  [key: string]: any;
+}
 
-const DefaultForm = <T,>({ children, ...formProps }: PropsWithChildren<IDefaultFormProps>) => {
-  const handleFormFailed = useCallback(
-    ({ errorFields }: any) => {
-      formProps.form?.scrollToField(errorFields[0].name);
-    },
-    [formProps.form]
-  );
-
+const DefaultForm = <T,>({ children, onFinish, ...rest }: PropsWithChildren<IDefaultFormProps>) => {
   return (
-    <Form<T>
-      className={style["default-form"]}
-      layout="vertical"
-      requiredMark={false}
-      onFinishFailed={handleFormFailed}
-      {...formProps}
-    >
+    <div className={style['default-form']} {...rest}>
       {children}
-    </Form>
+    </div>
   );
 };
 

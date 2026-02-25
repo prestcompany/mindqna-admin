@@ -1,6 +1,6 @@
-import { getDefaultLayout } from "@/components/layout/default-layout";
-import pageHeader from "@/components/layout/page-header";
-import BannerList from "@/components/page/banner/BannerList";
+import { getDefaultLayout } from '@/components/layout/default-layout';
+import pageHeader from '@/components/layout/page-header';
+import BannerList from '@/components/page/banner/BannerList';
 
 function BannerPage() {
   return (

@@ -11,7 +11,7 @@
 }
 
 .search-form {
-  @apply px-5 my-5 bg-gray-100 rounded-lg pt-5 pb-2 block sm:grid gap-x-3 border border-gray-200;
+  @apply px-5 my-5 bg-background rounded-lg pt-5 pb-2 block sm:grid gap-x-3 border border-border;
 }
 
 .search-form :global(.ant-form-item-label) {

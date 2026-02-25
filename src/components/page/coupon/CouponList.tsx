@@ -1,19 +1,33 @@
 import { Coupon, removeCoupon } from '@/client/coupon';
+import DataTable from '@/components/shared/ui/data-table';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import useCoupons from '@/hooks/useCoupons';
-import { Button, Drawer, Modal, Table, TableProps, Tag, message } from 'antd';
+import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import CouponForm from './CouponForm';
 
 function CouponList() {
-  const [modal, holder] = Modal.useModal();
-
   const [currentPage, setCurrentPage] = useState(1);
   const { items, isLoading, refetch, totalPage } = useCoupons(currentPage);
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
   const [focused, setFocused] = useState<Coupon | undefined>(undefined);
+  const [confirmDelete, setConfirmDelete] = useState<Coupon | undefined>(undefined);
 
   const handleEdit = (value: Coupon) => {
     setFocused(value);
@@ -21,133 +35,138 @@ function CouponList() {
   };
 
   const handleRemove = (value: Coupon) => {
-    modal.confirm({
-      title: `삭제 (${value.name})`,
-      onOk: async () => {
-        try {
-          await removeCoupon(value.id);
-          await refetch();
-        } catch (err) {
-          message.error(`${err}`);
-        }
-      },
-    });
+    setConfirmDelete(value);
   };
 
-  const columns: TableProps<Coupon>['columns'] = [
-    {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
-    },
-    {
-      title: '이름',
-      dataIndex: 'name',
-      key: 'name',
-    },
+  const handleConfirmRemove = async () => {
+    if (!confirmDelete) return;
+    try {
+      await removeCoupon(confirmDelete.id);
+      await refetch();
+    } catch (err) {
+      toast.error(`${err}`);
+    }
+    setConfirmDelete(undefined);
+  };
 
+  const columns: ColumnDef<Coupon>[] = [
     {
-      title: 'code',
-      dataIndex: 'code',
-      key: 'code',
+      accessorKey: 'id',
+      header: '번호',
     },
-
     {
-      title: '히트',
-      dataIndex: 'heart',
-      key: 'star',
-      render: (value: number) => {
-        return <Tag color={'red'}>{value}</Tag>;
+      accessorKey: 'name',
+      header: '이름',
+    },
+    {
+      accessorKey: 'code',
+      header: 'code',
+    },
+    {
+      accessorKey: 'heart',
+      header: '히트',
+      cell: ({ row }) => {
+        return <Badge variant='destructive'>{row.original.heart}</Badge>;
       },
     },
     {
-      title: '스타',
-      dataIndex: 'star',
-      key: 'star',
-      render: (value: boolean) => {
-        return <Tag color={'gold'}>{value}</Tag>;
-      },
-    },
-
-    {
-      title: '티켓 수',
-      dataIndex: 'ticketCount',
-      key: 'ticketCount',
-      render: (value: boolean) => {
-        return <Tag color={'purple-inverse'}>{value}</Tag>;
+      accessorKey: 'star',
+      header: '스타',
+      cell: ({ row }) => {
+        return <Badge variant='warning'>{row.original.star}</Badge>;
       },
     },
     {
-      title: '티켓 혜택 일',
-      dataIndex: 'ticketDueDayNum',
-      key: 'ticketDueDayNum',
-      render: (value: boolean) => {
-        return <Tag color={'purple'}>{value}</Tag>;
+      accessorKey: 'ticketCount',
+      header: '티켓 수',
+      cell: ({ row }) => {
+        return <Badge variant='default'>{row.original.ticketCount}</Badge>;
       },
     },
-
     {
-      title: '만료일',
-      dataIndex: 'dueAt',
-      key: 'dueAt',
-      render: (value: string) => {
+      accessorKey: 'ticketDueDayNum',
+      header: '티켓 혜택 일',
+      cell: ({ row }) => {
+        return <Badge variant='default'>{row.original.ticketDueDayNum}</Badge>;
+      },
+    },
+    {
+      accessorKey: 'dueAt',
+      header: '만료일',
+      cell: ({ row }) => {
+        const value = row.original.dueAt;
         const day = dayjs(value);
         return <div>{value ? day.format('YY.MM.DD HH:mm') : ''}</div>;
       },
     },
-
     {
-      title: '사용',
-      dataIndex: 'username',
-      key: 'username',
-      render: (value: string) => {
-        return <div> {value || '미사용'}</div>;
+      accessorKey: 'username',
+      header: '사용',
+      cell: ({ row }) => {
+        return <div> {row.original.username || '미사용'}</div>;
       },
     },
-
     {
-      title: 'Action',
-      dataIndex: '',
-      key: 'x',
-      render: (value) => (
+      id: 'actions',
+      header: 'Action',
+      cell: ({ row }) => (
         <div className='flex gap-4'>
-          <Button onClick={() => handleEdit(value)}>수정</Button>
-          <Button onClick={() => handleRemove(value)}>삭제</Button>
+          <Button variant='outline' onClick={() => handleEdit(row.original)}>수정</Button>
+          <Button variant='outline' onClick={() => handleRemove(row.original)}>삭제</Button>
         </div>
       ),
     },
   ];
   return (
     <>
-      {holder}
       <Button
         onClick={() => {
           setFocused(undefined);
           setOpenCreate(true);
         }}
-        type='primary'
-        size='large'
+        size='lg'
       >
         추가
       </Button>
 
-      <Table
-        dataSource={items}
+      <DataTable
         columns={columns}
+        data={items}
+        loading={isLoading}
         pagination={{
           total: totalPage * 10,
-          current: currentPage,
+          page: currentPage,
+          pageSize: 10,
           onChange: (page) => setCurrentPage(page),
-          showSizeChanger: false,
         }}
-        loading={isLoading}
       />
-      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}>
-        <CouponForm reload={refetch} close={() => setOpenCreate(false)} />
-      </Drawer>
-      <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={600}>
-        <CouponForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
-      </Drawer>
+      <Sheet open={isOpenCreate} onOpenChange={(open) => !open && setOpenCreate(false)}>
+        <SheetContent side='right' className='w-[600px] sm:max-w-none overflow-y-auto'>
+          <SheetHeader><SheetTitle>쿠폰 추가</SheetTitle></SheetHeader>
+          <CouponForm reload={refetch} close={() => setOpenCreate(false)} />
+        </SheetContent>
+      </Sheet>
+      <Sheet open={isOpenEdit} onOpenChange={(open) => !open && setOpenEdit(false)}>
+        <SheetContent side='right' className='w-[600px] sm:max-w-none overflow-y-auto'>
+          <SheetHeader><SheetTitle>쿠폰 수정</SheetTitle></SheetHeader>
+          <CouponForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
+        </SheetContent>
+      </Sheet>
+
+      <AlertDialog open={!!confirmDelete} onOpenChange={(open) => !open && setConfirmDelete(undefined)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>삭제 ({confirmDelete?.name})</AlertDialogTitle>
+            <AlertDialogDescription>
+              이 쿠폰을 정말 삭제하시겠습니까?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmRemove}>확인</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

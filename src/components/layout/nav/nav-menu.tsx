@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import { IMenu, isEqualPath } from '.';
@@ -21,20 +21,16 @@ const NavMenu = ({ menu }: INavMenuProps) => {
       <li>
         <a onClick={() => setIsShowSubMenu(!isShowSubMenu)}>
           {menu.icon}
-          <span className='cursor-pointer grow'>{menu.name}</span>
-          {menu.submenu && menu.submenu.length > 0 ? (
-            isShowSubMenu ? (
-              <ChevronUp className='w-6 h-6 text-gray-500' />
-            ) : (
-              <ChevronDown className='w-6 h-6 text-gray-500' />
-            )
-          ) : (
-            <></>
+          <span className='grow'>{menu.name}</span>
+          {menu.submenu.length > 0 && (
+            <ChevronDown
+              className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isShowSubMenu ? 'rotate-180' : ''}`}
+            />
           )}
         </a>
         <ul className={isShowSubMenu ? 'block' : 'hidden'}>
           {menu.submenu.map((sub) => {
-            return <NavItem key={sub.name} item={sub} />;
+            return <NavItem key={sub.id || sub.name} item={sub} />;
           })}
         </ul>
       </li>

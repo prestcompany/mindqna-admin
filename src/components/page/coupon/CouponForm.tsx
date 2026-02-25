@@ -1,7 +1,16 @@
 import { Coupon, createCoupon, updateCoupon } from '@/client/coupon';
-import { Button, DatePicker, Form, Input, InputNumber, Radio, Spin, message } from 'antd';
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { zodResolver } from '@hookform/resolvers/zod';
 import dayjs from 'dayjs';
+import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { z } from 'zod';
 
 type Props = {
   init?: Coupon;
@@ -9,115 +18,232 @@ type Props = {
   close: () => void;
 };
 
+const premiumOptions = [
+  { label: '스타', value: 'true' },
+  { label: '하트', value: 'false' },
+];
+
+const couponSchema = z.object({
+  name: z.string(),
+  count: z.coerce.number(),
+  dueAt: z.string(),
+  reward: z.coerce.number(),
+  isPaid: z.boolean(),
+  ticketCount: z.coerce.number(),
+  ticketDueDayNum: z.coerce.number(),
+});
+
+type CouponFormValues = z.infer<typeof couponSchema>;
+
 function CouponForm({ init, reload, close }: Props) {
   const [isLoading, setLoading] = useState(false);
-  const [focusedId, setFocusedId] = useState<number>();
+  const focusedId = init?.id;
 
-  const [name, setName] = useState('');
-  const [count, setCount] = useState(1);
-  const [dueAt, setDueAt] = useState(dayjs().format('YYYY-MM-DD'));
-  const [reward, setReward] = useState(0);
-  const [isPaid, setIsPaid] = useState(false);
-  const [ticketCount, setTicketCount] = useState(0);
-  const [ticketDueDayNum, setTicketDueDayNum] = useState(0);
+  const form = useForm<CouponFormValues>({
+    resolver: zodResolver(couponSchema),
+    defaultValues: {
+      name: '',
+      count: 1,
+      dueAt: dayjs().format('YYYY-MM-DD'),
+      reward: 0,
+      isPaid: false,
+      ticketCount: 0,
+      ticketDueDayNum: 0,
+    },
+  });
 
+  const dueAt = form.watch('dueAt');
   const disabled = !dueAt;
-
-  const premiumOptions = [
-    { label: '스타', value: true },
-    { label: '하트', value: false },
-  ];
 
   useEffect(() => {
     if (!init) return;
 
-    setFocusedId(init.id);
-    setName(init.name);
-    setCount(0);
-    setDueAt(dayjs(init.dueAt).format('YYYY-MM-DD'));
+    let isPaid = false;
+    let reward = 0;
     if (init.heart > 0) {
-      setIsPaid(false);
-      setReward(init.heart);
+      isPaid = false;
+      reward = init.heart;
     }
     if (init.star > 0) {
-      setIsPaid(true);
-      setReward(init.star);
+      isPaid = true;
+      reward = init.star;
     }
 
-    setTicketCount(init.ticketCount);
-    setTicketDueDayNum(init.ticketDueDayNum);
+    form.reset({
+      name: init.name,
+      count: 0,
+      dueAt: dayjs(init.dueAt).format('YYYY-MM-DD'),
+      reward,
+      isPaid,
+      ticketCount: init.ticketCount,
+      ticketDueDayNum: init.ticketDueDayNum,
+    });
   }, [init]);
 
-  const save = async () => {
+  const save = async (values: CouponFormValues) => {
     try {
       setLoading(true);
       if (focusedId) {
         await updateCoupon({
           id: focusedId,
-          name,
-          count,
-          dueAt,
-          heart: !isPaid ? reward : 0,
-          star: isPaid ? reward : 0,
-          ticketCount,
-          ticketDueDayNum,
+          name: values.name,
+          count: values.count,
+          dueAt: values.dueAt,
+          heart: !values.isPaid ? values.reward : 0,
+          star: values.isPaid ? values.reward : 0,
+          ticketCount: values.ticketCount,
+          ticketDueDayNum: values.ticketDueDayNum,
         });
       } else {
         await createCoupon({
-          name,
-          count,
-          dueAt,
-          heart: !isPaid ? reward : 0,
-          star: isPaid ? reward : 0,
-          ticketCount,
-          ticketDueDayNum,
+          name: values.name,
+          count: values.count,
+          dueAt: values.dueAt,
+          heart: !values.isPaid ? values.reward : 0,
+          star: values.isPaid ? values.reward : 0,
+          ticketCount: values.ticketCount,
+          ticketDueDayNum: values.ticketDueDayNum,
         });
       }
 
       await reload();
       close();
     } catch (err) {
-      message.error(`${err}`);
+      toast.error(`${err}`);
     }
     setLoading(false);
   };
 
   return (
     <>
-      <Spin spinning={isLoading} fullscreen />
-      <Form>
-        <Form.Item label='이름'>
-          <Input value={name} onChange={(e) => setName(e.target.value)} />
-        </Form.Item>
-
-        <Form.Item label='쿠폰 수'>
-          <InputNumber min={0} value={count} onChange={(v) => setCount(v ? v : 0)} />
-        </Form.Item>
-
-        <div className='flex items-center gap-6'>
-          <Form.Item label='코인 타입'>
-            <Radio.Group options={premiumOptions} optionType='button' buttonStyle='solid' value={isPaid} onChange={(e) => setIsPaid(e.target.value)} />
-          </Form.Item>
-          <Form.Item label='하트/골드 양'>
-            <InputNumber min={0} value={reward} onChange={(v) => setReward(v ? v : 0)} />
-          </Form.Item>
+      {isLoading && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/20'>
+          <Loader2 className='h-8 w-8 animate-spin' />
         </div>
+      )}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(save)} className='space-y-4'>
+          <FormField
+            control={form.control}
+            name='name'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>이름</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <Form.Item label='티켓 수'>
-          <InputNumber min={0} value={ticketCount} onChange={(v) => setTicketCount(v ? v : 0)} />
-        </Form.Item>
+          <FormField
+            control={form.control}
+            name='count'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>쿠폰 수</FormLabel>
+                <FormControl>
+                  <Input type='number' min={0} {...field} className='w-32' />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <Form.Item label='티켓 혜택 일 (0=평생권) '>
-          <InputNumber min={0} value={ticketDueDayNum} onChange={(v) => setTicketDueDayNum(v ? v : 0)} />
-        </Form.Item>
+          <div className='flex items-end gap-6'>
+            <FormField
+              control={form.control}
+              name='isPaid'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>코인 타입</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      value={String(field.value)}
+                      onValueChange={(v) => field.onChange(v === 'true')}
+                      className='flex gap-4'
+                    >
+                      {premiumOptions.map((opt) => (
+                        <div key={opt.value} className='flex items-center gap-2'>
+                          <RadioGroupItem value={opt.value} id={`isPaid-${opt.value}`} />
+                          <Label htmlFor={`isPaid-${opt.value}`}>{opt.label}</Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <Form.Item label='쿠푠 사용 만료일'>
-          <DatePicker onChange={(day) => setDueAt(day?.format('YYYY-MM-DD') ?? dayjs().format('YYYY-MM-DD'))} />
-        </Form.Item>
+            <FormField
+              control={form.control}
+              name='reward'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>하트/골드 양</FormLabel>
+                  <FormControl>
+                    <Input type='number' min={0} {...field} className='w-32' />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-        <Button onClick={save} size='large' type='primary' disabled={disabled}>
-          저장
-        </Button>
+          <FormField
+            control={form.control}
+            name='ticketCount'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>티켓 수</FormLabel>
+                <FormControl>
+                  <Input type='number' min={0} {...field} className='w-32' />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name='ticketDueDayNum'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>티켓 혜택 일 (0=평생권)</FormLabel>
+                <FormControl>
+                  <Input type='number' min={0} {...field} className='w-32' />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name='dueAt'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>쿠폰 사용 만료일</FormLabel>
+                <FormControl>
+                  <Input
+                    type='date'
+                    value={field.value ?? ''}
+                    onChange={(e) => field.onChange(e.target.value || dayjs().format('YYYY-MM-DD'))}
+                    className='w-[200px]'
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <Button type='submit' size='lg' disabled={disabled || isLoading}>
+            {isLoading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+            저장
+          </Button>
+        </form>
       </Form>
     </>
   );

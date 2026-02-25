@@ -1,6 +1,7 @@
 import { User } from '@/client/types';
-import { Button, Tag } from 'antd';
-import { TableProps } from 'antd/lib';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { Copy } from 'lucide-react';
 
@@ -10,167 +11,160 @@ export interface UserTableActionsProps {
   copyId: (id: string) => void;
 }
 
-export const createUserTableColumns = (actions: UserTableActionsProps): TableProps<User>['columns'] => [
+export const createUserTableColumns = (actions: UserTableActionsProps): ColumnDef<User>[] => [
   {
-    title: '유저 ID',
-    dataIndex: 'id',
-    key: 'id',
-    width: 100,
-    render: (id) => (
-      <Button size='small' type='default' onClick={() => actions.copyId(id)} className='flex gap-1'>
-        {id.slice(0, 8)}...
+    accessorKey: 'id',
+    header: '유저 ID',
+    size: 100,
+    cell: ({ row }) => (
+      <Button variant='outline' size='sm' onClick={() => actions.copyId(row.original.id)}>
+        {row.original.id.slice(0, 8)}...
         <Copy className='w-4 h-4' />
       </Button>
     ),
   },
   {
-    title: '유저코드',
-    dataIndex: 'username',
-    key: 'username',
-    width: 150,
-    render: (username) => (
-      <Button size='small' type='default' onClick={() => actions.copyId(username)} className='flex gap-1'>
-        {username}
+    accessorKey: 'username',
+    header: '유저코드',
+    size: 150,
+    cell: ({ row }) => (
+      <Button variant='outline' size='sm' onClick={() => actions.copyId(row.original.username)}>
+        {row.original.username}
         <Copy className='w-4 h-4' />
       </Button>
     ),
   },
   {
-    title: '가입상태',
-    key: 'joinStatus',
-    width: 100,
-    render: (_, user) => {
-      const isCompleted = user._count.profiles > 0;
-      const statusMap = {
-        completed: { text: '완료', color: 'green', icon: '' },
-        pending: { text: '진행중', color: 'orange', icon: '' },
-      };
-      const config = statusMap[isCompleted ? 'completed' : 'pending'];
-      return <Tag color={config.color}>{config.text}</Tag>;
+    id: 'joinStatus',
+    header: '가입상태',
+    size: 100,
+    cell: ({ row }) => {
+      const isCompleted = row.original._count.profiles > 0;
+      return isCompleted ? <Badge variant='success'>완료</Badge> : <Badge variant='warning'>진행중</Badge>;
     },
   },
   {
-    title: '이메일',
-    dataIndex: ['socialAccount', 'email'],
-    key: 'email',
-    width: 200,
-    ellipsis: true,
+    accessorFn: (row) => row.socialAccount?.email,
+    id: 'email',
+    header: '이메일',
+    size: 200,
   },
   {
-    title: '로그인',
-    dataIndex: ['socialAccount', 'provider'],
-    key: 'provider',
-    width: 100,
-    render: (provider) => {
-      const providerMap = {
-        GOOGLE: { text: 'Google', color: 'red', icon: '' },
-        KAKAO: { text: 'Kakao', color: 'gold', icon: '' },
-        APPLE: { text: 'Apple', color: 'default', icon: '' },
-        LINE: { text: 'Line', color: 'green', icon: '' },
+    accessorFn: (row) => row.socialAccount?.provider,
+    id: 'provider',
+    header: '로그인',
+    size: 100,
+    cell: ({ row }) => {
+      const provider = row.original.socialAccount?.provider;
+      const providerMap: Record<string, { text: string; variant: 'destructive' | 'warning' | 'muted' | 'success' }> = {
+        GOOGLE: { text: 'Google', variant: 'destructive' },
+        KAKAO: { text: 'Kakao', variant: 'warning' },
+        APPLE: { text: 'Apple', variant: 'muted' },
+        LINE: { text: 'Line', variant: 'success' },
       };
-      const config = providerMap[provider as keyof typeof providerMap] || {
-        text: provider,
-        color: 'default',
-        icon: '',
-      };
-      return <Tag color={config.color}>{config.text}</Tag>;
+      const config = providerMap[provider as string] || { text: provider, variant: 'muted' as const };
+      return <Badge variant={config.variant}>{config.text}</Badge>;
     },
   },
   {
-    title: '언어',
-    dataIndex: 'locale',
-    key: 'locale',
-    width: 80,
-    render: (locale) => {
-      const localeMap = {
-        ko: { flag: '', code: 'KO' },
-        en: { flag: '', code: 'EN' },
-        ja: { flag: '', code: 'JA' },
-        zh: { flag: '', code: 'ZH' },
-        zhTw: { flag: '', code: 'TW' },
-        es: { flag: '', code: 'ES' },
-        id: { flag: '', code: 'ID' },
+    accessorKey: 'locale',
+    header: '언어',
+    size: 80,
+    cell: ({ row }) => {
+      const locale = row.original.locale;
+      const localeMap: Record<string, string> = {
+        ko: 'KO',
+        en: 'EN',
+        ja: 'JA',
+        zh: 'ZH',
+        zhTw: 'TW',
+        es: 'ES',
+        id: 'ID',
       };
-      const config = localeMap[locale as keyof typeof localeMap] || { flag: '', code: locale?.toUpperCase() };
-      return <Tag>{config.code}</Tag>;
+      const code = localeMap[locale as string] || locale?.toUpperCase();
+      return <Badge variant='secondary'>{code}</Badge>;
     },
   },
   {
-    title: '공간/최대',
-    key: 'spaceInfo',
-    width: 120,
-    render: (_, user) => (
-      <div className='flex gap-1'>
-        <Tag color='blue'>공간 {user._count.profiles || 0}</Tag>
-        <Tag color={user.spaceMaxCount > 5 ? 'gold' : user.spaceMaxCount > 2 ? 'green' : 'default'}>
-          최대 {user.spaceMaxCount}
-        </Tag>
-      </div>
-    ),
+    id: 'spaceInfo',
+    header: '공간/최대',
+    size: 120,
+    cell: ({ row }) => {
+      const user = row.original;
+      return (
+        <div className='flex gap-1'>
+          <Badge variant='info'>공간 {user._count.profiles || 0}</Badge>
+          <Badge
+            variant={user.spaceMaxCount > 5 ? 'warning' : user.spaceMaxCount > 2 ? 'success' : 'muted'}
+          >
+            최대 {user.spaceMaxCount}
+          </Badge>
+        </div>
+      );
+    },
   },
   {
-    title: '가입일',
-    dataIndex: 'createdAt',
-    key: 'createdAt',
-    width: 120,
-    render: (value) => {
-      const day = dayjs(value);
+    accessorKey: 'createdAt',
+    header: '가입일',
+    size: 120,
+    cell: ({ row }) => {
+      const day = dayjs(row.original.createdAt);
       const diffFromNow = dayjs().diff(day, 'day');
       return (
         <div className='flex flex-row gap-1 items-center'>
-          <Tag color={diffFromNow < 7 ? 'green' : diffFromNow < 30 ? 'orange' : 'default'}>D+{diffFromNow}</Tag>
+          <Badge variant={diffFromNow < 7 ? 'success' : diffFromNow < 30 ? 'warning' : 'muted'}>D+{diffFromNow}</Badge>
           <div className='text-sm text-gray-500'>{day.format('YY.MM.DD HH:mm:ss')}</div>
         </div>
       );
     },
   },
   {
-    title: '탈퇴예정일',
-    dataIndex: 'reserveUnregisterAt',
-    key: 'reserveUnregisterAt',
-    width: 180,
-    render: (value: string, item: User) => {
+    accessorKey: 'reserveUnregisterAt',
+    header: '탈퇴예정일',
+    size: 180,
+    cell: ({ row }) => {
+      const value = row.original.reserveUnregisterAt;
       if (!value) return null;
 
       const day = dayjs(value);
-      const diff = day.add(-48, 'hour').diff(item.createdAt, 'minute');
+      const diff = day.add(-48, 'hour').diff(row.original.createdAt, 'minute');
       const gap = diff > 60 ? `${Math.floor(diff / 60)}시간 ${diff % 60}분` : `${diff}분`;
       const isUrgent = diff < 60;
 
       return (
         <div className='flex flex-row gap-1 items-center'>
-          <Tag color={isUrgent ? 'error' : 'warning'}>{gap}만에 삭제</Tag>
+          <Badge variant={isUrgent ? 'destructive' : 'warning'}>{gap}만에 삭제</Badge>
           <div className='text-sm text-gray-500'>{day.format('YY.MM.DD HH:mm:ss')}</div>
         </div>
       );
     },
   },
   {
-    title: '작업',
-    key: 'actions',
-    width: 180,
-    fixed: 'right',
-    render: (_, user) => (
-      <div className='flex gap-1'>
-        <Button size='small' type='primary' onClick={() => actions.onOpenTicket(user)}>
-          티켓 관리
-        </Button>
-        <Button size='small' danger onClick={() => actions.onRemove(user)}>
-          삭제
-        </Button>
-      </div>
-    ),
+    id: 'actions',
+    header: '작업',
+    size: 180,
+    cell: ({ row }) => {
+      const user = row.original;
+      return (
+        <div className='flex gap-1'>
+          <Button size='sm' onClick={() => actions.onOpenTicket(user)}>
+            티켓 관리
+          </Button>
+          <Button size='sm' variant='destructive' onClick={() => actions.onRemove(user)}>
+            삭제
+          </Button>
+        </div>
+      );
+    },
   },
 ];
 
-// 컬럼 설정 타입
 export interface ColumnConfig {
   key: string;
   visible: boolean;
   width?: number;
 }
 
-// 기본 컬럼 설정
 export const defaultColumnConfig: ColumnConfig[] = [
   { key: 'username', visible: true, width: 150 },
   { key: 'joinStatus', visible: true, width: 100 },
@@ -179,15 +173,17 @@ export const defaultColumnConfig: ColumnConfig[] = [
   { key: 'locale', visible: true, width: 80 },
   { key: 'spaceInfo', visible: true, width: 120 },
   { key: 'createdAt', visible: true, width: 120 },
-  { key: 'reserveUnregisterAt', visible: false, width: 120 }, // 기본적으로 숨김
+  { key: 'reserveUnregisterAt', visible: false, width: 120 },
   { key: 'actions', visible: true, width: 180 },
 ];
 
-// 컬럼 필터링 유틸리티
 export const filterColumns = (
-  columns: TableProps<User>['columns'],
+  columns: ColumnDef<User>[],
   config: ColumnConfig[],
-): TableProps<User>['columns'] => {
+): ColumnDef<User>[] => {
   const visibleKeys = new Set(config.filter((c) => c.visible).map((c) => c.key));
-  return columns?.filter((col) => col && 'key' in col && visibleKeys.has(col.key as string));
+  return columns.filter((col) => {
+    const key = col.id || ('accessorKey' in col ? (col.accessorKey as string) : undefined);
+    return key && visibleKeys.has(key);
+  });
 };
