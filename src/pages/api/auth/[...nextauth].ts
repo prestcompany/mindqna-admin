@@ -1,9 +1,9 @@
 import client from '@/client/@base';
 import { jwtDecode } from 'jwt-decode';
-import NextAuth, { User } from 'next-auth';
+import NextAuth, { User, type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
-export default NextAuth({
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -81,4 +81,6 @@ export default NextAuth({
   session: {
     strategy: 'jwt',
   },
-});
+};
+
+export default NextAuth(authOptions);

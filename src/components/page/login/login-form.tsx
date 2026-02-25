@@ -2,6 +2,7 @@ import DefaultModal from '@/components/shared/ui/default-modal';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/router';
@@ -46,15 +47,15 @@ const LoginForm = () => {
   return (
     <>
       {router?.query.error && router?.query.error !== 'CredentialsSignin' ? (
-        <div className='mb-3 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-700 text-sm'>
+        <div className='mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700'>
           로그인 중 오류가 발생했습니다. {router?.query.error}
         </div>
       ) : null}
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleFinish)}>
-          <div className='mb-3'>
+        <form onSubmit={form.handleSubmit(handleFinish)} className='space-y-4'>
+          <div>
             {router?.query.error === 'CredentialsSignin' ? (
-              <div className='p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm'>
+              <div className='rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700'>
                 로그인을 실패했습니다. 아이디 또는 비밀번호를 다시 확인해주세요.
               </div>
             ) : (
@@ -65,9 +66,14 @@ const LoginForm = () => {
             control={form.control}
             name='email'
             render={({ field }) => (
-              <FormItem className='mb-4'>
+              <FormItem>
+                <Label className='text-sm font-medium text-zinc-700'>이메일</Label>
                 <FormControl>
-                  <Input placeholder='이메일' className='h-12 text-base' {...field} />
+                  <Input
+                    placeholder='admin@example.com'
+                    className='h-11 border-zinc-200 bg-zinc-50 text-base focus-visible:ring-zinc-900'
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -77,22 +83,33 @@ const LoginForm = () => {
             control={form.control}
             name='password'
             render={({ field }) => (
-              <FormItem className='mb-4'>
+              <FormItem>
+                <Label className='text-sm font-medium text-zinc-700'>비밀번호</Label>
                 <FormControl>
-                  <Input placeholder='비밀번호' type='password' className='h-12 text-base' {...field} />
+                  <Input
+                    placeholder='비밀번호'
+                    type='password'
+                    className='h-11 border-zinc-200 bg-zinc-50 text-base focus-visible:ring-zinc-900'
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <Button type='submit' size='lg' className='w-full' disabled={isLoading}>
-            로그인
+          <Button
+            type='submit'
+            size='lg'
+            className='h-11 w-full bg-zinc-900 text-white hover:bg-zinc-800'
+            disabled={isLoading}
+          >
+            {isLoading ? '로그인 중...' : '로그인'}
           </Button>
 
           <button
             type='button'
-            className='mt-2 inline-block text-sm text-muted-foreground transition-colors hover:text-foreground'
+            className='inline-block text-sm text-zinc-500 transition-colors hover:text-zinc-900'
             onClick={() => setShowPasswordModal(true)}
           >
             비밀번호 찾기
@@ -100,8 +117,15 @@ const LoginForm = () => {
         </form>
       </Form>
 
-      <DefaultModal title='비밀번호 찾기' open={showPasswordModal} handleHide={() => setShowPasswordModal(false)}>
-        임시 로그인 정보는 admin / admin 입니다.
+      <DefaultModal
+        title='비밀번호 찾기'
+        open={showPasswordModal}
+        handleHide={() => setShowPasswordModal(false)}
+        className='max-w-md'
+      >
+        <div className='text-sm text-zinc-700'>
+          임시 로그인 정보는 <code className='rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-800'>admin / admin</code> 입니다.
+        </div>
       </DefaultModal>
     </>
   );
