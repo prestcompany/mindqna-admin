@@ -71,7 +71,7 @@ export const createColumns = ({
     accessorKey: 'content',
     header: '내용 키',
     cell: ({ row }) => {
-      const text = row.original.content;
+      const text = row.original.content ?? '';
       return (
         <TooltipProvider>
           <Tooltip>

@@ -21,7 +21,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import CustomFormModal from './CustomFormModal';
 import LottieCDNPlayer from './LottieCDNPlayer';
-import { PetCustomTypeOptions, petTypeOptions } from './constant';
+import { PetCustomTypeOptions, petTypeOptions } from './constants';
 
 function CustomList() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -61,67 +61,7 @@ function CustomList() {
     {
       accessorKey: 'id',
       header: '번호',
-    },
-    {
-      accessorKey: 'name',
-      header: '이름',
-    },
-    {
-      accessorKey: 'order',
-      header: '순서',
-    },
-    {
-      accessorKey: 'fileKey',
-      header: '키 값',
-      cell: ({ row }) => {
-        return <p className='font-bold'>{row.original.fileKey}</p>;
-      },
-    },
-    {
-      accessorKey: 'type',
-      header: '타입',
-      cell: ({ row }) => {
-        const label = PetCustomTypeOptions.find((item) => item.value === row.original.type)?.label;
-        return <Badge variant='info'>{label}</Badge>;
-      },
-    },
-    {
-      accessorKey: 'petType',
-      header: '펫 타입',
-      cell: ({ row }) => {
-        const label = petTypeOptions.find((item) => item.value === row.original.petType)?.label;
-        return <Badge variant='info'>{label}</Badge>;
-      },
-    },
-    {
-      accessorKey: 'petLevel',
-      header: '펫 레벨',
-      cell: ({ row }) => {
-        return <Badge variant='secondary'>{row.original.petLevel}</Badge>;
-      },
-    },
-    {
-      accessorKey: 'isPaid',
-      header: '스타/하트',
-      cell: ({ row }) => {
-        const value = row.original.isPaid;
-        return <Badge variant={value ? 'warning' : 'destructive'}>{value ? '스타' : '하트'}</Badge>;
-      },
-    },
-    {
-      accessorKey: 'price',
-      header: '가격',
-      cell: ({ row }) => {
-        return <Badge variant='success'>{row.original.price}</Badge>;
-      },
-    },
-    {
-      accessorKey: 'isActive',
-      header: '상태',
-      cell: ({ row }) => {
-        const value = row.original.isActive;
-        return <Badge variant={value ? 'success' : 'destructive'}>{value ? '활성' : '비활성'}</Badge>;
-      },
+      size: 72,
     },
     {
       accessorKey: 'img',
@@ -140,15 +80,97 @@ function CustomList() {
       },
     },
     {
+      accessorKey: 'name',
+      header: '이름',
+      size: 180,
+      meta: {
+        truncateMaxWidth: 160,
+      },
+    },
+    {
+      accessorKey: 'order',
+      header: '순서',
+      size: 72,
+    },
+    {
+      accessorKey: 'fileKey',
+      header: '키 값',
+      size: 260,
+      meta: {
+        truncateMaxWidth: 240,
+      },
+    },
+    {
+      accessorKey: 'type',
+      header: '타입',
+      size: 96,
+      cell: ({ row }) => {
+        const label = PetCustomTypeOptions.find((item) => item.value === row.original.type)?.label;
+        return <Badge variant='info'>{label}</Badge>;
+      },
+    },
+    {
+      accessorKey: 'petType',
+      header: '펫 타입',
+      size: 96,
+      cell: ({ row }) => {
+        const label = petTypeOptions.find((item) => item.value === row.original.petType)?.label;
+        return <Badge variant='info'>{label}</Badge>;
+      },
+    },
+    {
+      accessorKey: 'petLevel',
+      header: '펫 레벨',
+      size: 88,
+      cell: ({ row }) => {
+        return <Badge variant='secondary'>{row.original.petLevel}</Badge>;
+      },
+    },
+    {
+      accessorKey: 'isPaid',
+      header: '스타/하트',
+      size: 96,
+      cell: ({ row }) => {
+        const value = row.original.isPaid;
+        return <Badge variant={value ? 'warning' : 'destructive'}>{value ? '스타' : '하트'}</Badge>;
+      },
+    },
+    {
+      accessorKey: 'price',
+      header: '가격',
+      size: 96,
+      cell: ({ row }) => {
+        return <Badge variant='success'>{row.original.price}</Badge>;
+      },
+    },
+    {
+      accessorKey: 'isActive',
+      header: '상태',
+      size: 92,
+      cell: ({ row }) => {
+        const value = row.original.isActive;
+        return <Badge variant={value ? 'success' : 'destructive'}>{value ? '활성' : '비활성'}</Badge>;
+      },
+    },
+    {
       accessorKey: 'fileUrl',
       header: '로티 파일',
+      size: 170,
+      meta: {
+        useTruncateTooltip: false,
+      },
       cell: ({ row }) => {
-        return <LottieCDNPlayer fileUrl={row.original.fileUrl} width={150} height={150} />;
+        return (
+          <div className='flex h-[120px] w-[120px] items-center justify-center'>
+            <LottieCDNPlayer fileUrl={row.original.fileUrl} width={120} height={120} />
+          </div>
+        );
       },
     },
     {
       id: 'actions',
       header: '관리',
+      size: 84,
       cell: ({ row }) => (
         <TableRowActions
           items={[
@@ -194,6 +216,7 @@ function CustomList() {
       <DataTable
         columns={columns}
         data={templates ?? []}
+        countLabel={templates?.length ?? 0}
         loading={isLoading}
         pagination={{
           total: totalPage * 10,

@@ -14,6 +14,32 @@ function GameRewardList() {
   const { items, totalPage, isLoading } = useGameRewards({ page: currentPage, ...filter });
   const { items: games } = useGames({ page: 1 });
 
+  const getRewardRankLabel = (condition: GameRewardCondition) => {
+    const legacyCondition = condition as GameRewardCondition & { rank?: number };
+    if (typeof legacyCondition.rank === 'number') {
+      return `${legacyCondition.rank}위`;
+    }
+
+    if (condition.rangeRank?.rankStart && condition.rangeRank?.rankEnd) {
+      return `${condition.rangeRank.rankStart}~${condition.rangeRank.rankEnd}위`;
+    }
+
+    const firstIndividualRank = Object.values(condition.individualRanks || {})[0]?.rank;
+    if (typeof firstIndividualRank === 'number') {
+      return `${firstIndividualRank}위`;
+    }
+
+    return '-';
+  };
+
+  const getRewardScoreLabel = (condition: GameRewardCondition) => {
+    const legacyCondition = condition as GameRewardCondition & { score?: number };
+    if (typeof legacyCondition.score === 'number') {
+      return `${legacyCondition.score.toLocaleString()}점`;
+    }
+    return '-';
+  };
+
   const currentYear = new Date().getFullYear();
   const yearOptions = [{ value: currentYear, label: `${currentYear}년` }];
 
@@ -33,7 +59,7 @@ function GameRewardList() {
       header: 'No.',
       size: 80,
       cell: ({ row }) => {
-        return <span>{(row.index + 1) * currentPage}</span>;
+        return <span>{(currentPage - 1) * 10 + row.index + 1}</span>;
       },
     },
     {
@@ -82,7 +108,7 @@ function GameRewardList() {
       size: 50,
       cell: ({ row }) => {
         const condition = row.original.condition as GameRewardCondition;
-        return <Badge variant='secondary'>{condition.rank}위</Badge>;
+        return <Badge variant='secondary'>{getRewardRankLabel(condition)}</Badge>;
       },
     },
     {
@@ -91,7 +117,7 @@ function GameRewardList() {
       size: 120,
       cell: ({ row }) => {
         const condition = row.original.condition as GameRewardCondition;
-        return <Badge variant='secondary'>{condition.score.toLocaleString()}점</Badge>;
+        return <Badge variant='secondary'>{getRewardScoreLabel(condition)}</Badge>;
       },
     },
     {
@@ -107,7 +133,7 @@ function GameRewardList() {
       header: '보상 확인',
       size: 120,
       cell: ({ row }) => {
-        const isRead = row.original.isRead;
+        const isRead = Boolean(row.original.isRead);
         return <Badge variant={isRead ? 'success' : 'destructive'}>{isRead ? '확인' : '미확인'}</Badge>;
       },
     },

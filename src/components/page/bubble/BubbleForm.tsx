@@ -183,18 +183,22 @@ function BubbleForm({ init, reload, close }: Props) {
           </FormSection>
 
           <FormSection title='노출 조건'>
-            <FormGroup title='타입*' description='복수 선택 시 선택 타입별로 생성됩니다.'>
+            <FormGroup
+              title='타입*'
+              description='복수 선택 시 선택 타입별로 생성됩니다.'
+              className='lg:grid-cols-[8.5rem_minmax(0,1fr)]'
+            >
               <FormField
                 control={form.control}
                 name='types'
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
+                      <div className='grid grid-cols-1 gap-2 sm:grid-cols-2'>
                         {typeOptions.map((option) => (
                           <label
                             key={option.value}
-                            className='flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm transition-colors hover:bg-muted/70'
+                            className='flex h-10 w-full cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 text-sm transition-colors hover:bg-muted/70'
                           >
                             <Checkbox
                               checked={field.value?.includes(option.value)}
@@ -218,18 +222,22 @@ function BubbleForm({ init, reload, close }: Props) {
               />
             </FormGroup>
 
-            <FormGroup title='레벨*' description='0은 전체 레벨 대상으로 처리됩니다.'>
+            <FormGroup
+              title='레벨*'
+              description='0은 전체 레벨 대상으로 처리됩니다.'
+              className='lg:grid-cols-[8.5rem_minmax(0,1fr)]'
+            >
               <FormField
                 control={form.control}
                 name='levels'
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <div className='grid grid-cols-3 gap-2 sm:grid-cols-6'>
+                      <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
                         {levelOptions.map((option) => (
                           <label
                             key={option.value}
-                            className='flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm transition-colors hover:bg-muted/70'
+                            className='flex h-10 w-full cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 text-sm transition-colors hover:bg-muted/70'
                           >
                             <Checkbox
                               checked={field.value?.includes(option.value)}

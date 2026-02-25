@@ -94,7 +94,8 @@ function GameRankingList() {
       header: '점수',
       size: 150,
       cell: ({ row }) => {
-        return <Badge variant='success'>{row.original.bestScore.toLocaleString()} P</Badge>;
+        const score = (row.original as GameRanking & { bestScore?: number }).bestScore ?? row.original.score;
+        return <Badge variant='success'>{score.toLocaleString()} P</Badge>;
       },
     },
     {
