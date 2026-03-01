@@ -14,9 +14,11 @@ dayjs.extend(localeData);
 
 function Dashboard() {
   const [loading, setLoading] = useState<boolean>(true);
-  const [startedAt, setStartedAt] = useState<dayjs.Dayjs>(dayjs().subtract(7, 'day'));
-  const [endedAt, setEndedAt] = useState<dayjs.Dayjs>(dayjs());
+  const [startedAt, setStartedAt] = useState<dayjs.Dayjs | null>(dayjs().subtract(7, 'day'));
+  const [endedAt, setEndedAt] = useState<dayjs.Dayjs | null>(dayjs());
   const [activeTab, setActiveTab] = useState<string>('overview');
+  const safeStartedAt = startedAt ?? dayjs().subtract(7, 'day');
+  const safeEndedAt = endedAt ?? dayjs();
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -47,11 +49,11 @@ function Dashboard() {
         </TabsList>
 
         <TabsContent value='overview' className='space-y-4'>
-          <OverviewTab startedAt={startedAt} endedAt={endedAt} setLoading={setLoading} />
+          <OverviewTab startedAt={safeStartedAt} endedAt={safeEndedAt} setLoading={setLoading} />
         </TabsContent>
 
         <TabsContent value='analytics' className='space-y-4'>
-          <SpaceTab startedAt={startedAt} endedAt={endedAt} setLoading={setLoading} />
+          <SpaceTab startedAt={safeStartedAt} endedAt={safeEndedAt} setLoading={setLoading} />
         </TabsContent>
 
         <TabsContent value='cards' className='space-y-4'>

@@ -41,28 +41,6 @@ module.exports = {
   	},
   	extend: {
   		colors: {
-  			'antd-form': '#d9d9d9',
-  			brand: '#63489a',
-  			turquoise: '#1abc9c',
-  			greensea: '#16a085',
-  			emerald: '#2ecc71',
-  			nephritis: '#27ae60',
-  			peterriver: '#3498db',
-  			belizehole: '#2980b9',
-  			amethyst: '#9b59b6',
-  			wisteria: '#8e44ad',
-  			wetasphalt: '#34495e',
-  			midnightblue: '#2c3e50',
-  			sunflower: '#f1c40f',
-  			orange: '#f39c12',
-  			carrot: '#e67e22',
-  			pumpkin: '#d35400',
-  			alizarin: '#e74c3c',
-  			pomegranate: '#c0392b',
-  			clouds: '#ecf0f1',
-  			silver: '#bdc3c7',
-  			concrete: '#95a5a6',
-  			asbestos: '#7f8c8d',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
@@ -93,6 +71,18 @@ module.exports = {
   				DEFAULT: 'hsl(var(--destructive))',
   				foreground: 'hsl(var(--destructive-foreground))'
   			},
+  			success: {
+  				DEFAULT: 'hsl(var(--success))',
+  				foreground: 'hsl(var(--success-foreground))'
+  			},
+  			warning: {
+  				DEFAULT: 'hsl(var(--warning))',
+  				foreground: 'hsl(var(--warning-foreground))'
+  			},
+  			info: {
+  				DEFAULT: 'hsl(var(--info))',
+  				foreground: 'hsl(var(--info-foreground))'
+  			},
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
@@ -113,6 +103,6 @@ module.exports = {
   },
   plugins: [require("tailwindcss-animate")],
   corePlugins: {
-    preflight: false,
+    preflight: true,
   },
 };

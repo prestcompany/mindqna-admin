@@ -1,210 +1,225 @@
 import { PurchaseMeta } from '@/client/types';
+import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DatePickerWithRange } from '@/components/ui/DatePickerWithRange';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import DataTable from '@/components/shared/ui/data-table';
 import usePurchases from '@/hooks/usePurchase';
-import { Button, Form, Input, Modal, Table, TableProps, Tag, Tooltip, message } from 'antd';
+import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { Copy, Eye } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 function PurchaseMetaList() {
-  const [modal, holder] = Modal.useModal();
-  const [form] = Form.useForm();
-  const [api, contextHolder] = message.useMessage();
-
   const [currentPage, setCurrentPage] = useState(1);
   const [searchFilters, setSearchFilters] = useState<{
     username?: string;
     startDate?: string;
     endDate?: string;
   }>({});
+  const [usernameKeyword, setUsernameKeyword] = useState('');
 
-  // 날짜 범위 상태 (초기값 없음)
   const [startedAt, setStartedAt] = useState<dayjs.Dayjs | null>(null);
   const [endedAt, setEndedAt] = useState<dayjs.Dayjs | null>(null);
 
-  const { items, isLoading, refetch, totalPage } = usePurchases({
+  const [detailDialog, setDetailDialog] = useState<{ title: string; content: string } | null>(null);
+
+  const { items, isLoading, totalPage } = usePurchases({
     page: currentPage,
     ...searchFilters,
   });
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
-    api.success(`${label} 복사됨`);
+    toast.success(`${label} 복사됨`);
   };
 
   const showDetail = (content: string, title: string) => {
-    modal.info({
-      title,
-      content: (
-        <div className='overflow-auto max-h-96'>
-          <pre className='p-3 text-xs whitespace-pre-wrap bg-gray-50 rounded'>{content}</pre>
-        </div>
-      ),
-      width: 600,
-    });
+    setDetailDialog({ title, content });
   };
 
-  const columns: TableProps<PurchaseMeta>['columns'] = [
+  const columns: ColumnDef<PurchaseMeta>[] = [
     {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
-      fixed: 'left',
-      render: (value) => <span className='text-sm font-medium text-gray-600'>{value}</span>,
+      accessorKey: 'id',
+      header: '번호',
+      size: 80,
+      cell: ({ row }) => <span className='text-sm font-medium text-gray-600'>{row.original.id}</span>,
     },
     {
-      title: '플랫폼',
-      dataIndex: 'platform',
-      key: 'platform',
-      width: 90,
-      render: (value: string) => {
+      accessorKey: 'platform',
+      header: '플랫폼',
+      size: 90,
+      cell: ({ row }) => {
+        const value = row.original.platform;
         const platformConfig = {
-          EVENT: { color: 'red', text: 'EVENT' },
-          IOS: { color: 'blue', text: 'iOS' },
-          AOS: { color: 'green', text: 'Android' },
+          EVENT: { variant: 'destructive' as const, text: 'EVENT' },
+          IOS: { variant: 'info' as const, text: 'iOS' },
+          AOS: { variant: 'success' as const, text: 'Android' },
         };
         const config = platformConfig[value as keyof typeof platformConfig];
-        return config ? <Tag color={config.color}>{config.text}</Tag> : <Tag>{value}</Tag>;
+        return config ? <Badge variant={config.variant}>{config.text}</Badge> : <Badge variant='secondary'>{value}</Badge>;
       },
     },
     {
-      title: '유저 ID',
-      dataIndex: 'userId',
-      key: 'userId',
-      width: 150,
-      render: (value: string) => {
+      accessorKey: 'userId',
+      header: '유저 ID',
+      size: 150,
+      cell: ({ row }) => {
+        const value = row.original.userId;
         if (!value) return <span className='text-xs text-gray-400'>없음</span>;
 
         return (
           <div className='flex gap-1 items-center'>
-            <Tooltip title={value}>
-              <span className='truncate text-sm font-mono max-w-[100px]'>{value}</span>
-            </Tooltip>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className='truncate text-sm font-mono max-w-[100px]'>{value}</span>
+                </TooltipTrigger>
+                <TooltipContent>{value}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <Button
-              type='text'
-              size='middle'
-              icon={<Copy />}
+              variant='ghost'
+              size='sm'
               onClick={() => copyToClipboard(value, '유저 ID')}
               className='opacity-80 hover:opacity-100'
-            />
+            >
+              <Copy className='w-4 h-4' />
+            </Button>
           </div>
         );
       },
     },
     {
-      title: '유저 이름',
-      dataIndex: 'username',
-      key: 'username',
-      width: 100,
-      render: (value: string) => <span className='text-sm font-medium text-gray-600'>{value}</span>,
+      accessorKey: 'username',
+      header: '유저 이름',
+      size: 100,
+      cell: ({ row }) => <span className='text-sm font-medium text-gray-600'>{row.original.username}</span>,
     },
     {
-      title: '상품 ID',
-      dataIndex: 'productId',
-      key: 'productId',
-      width: 150,
-      render: (value: string) => {
+      accessorKey: 'productId',
+      header: '상품 ID',
+      size: 150,
+      cell: ({ row }) => {
+        const value = row.original.productId;
         if (!value) return <span className='text-xs text-gray-400'>없음</span>;
 
         return (
           <div className='flex gap-1 items-center'>
-            <Tooltip title={value}>
-              <span className='truncate text-sm font-mono max-w-[100px]'>{value}</span>
-            </Tooltip>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className='truncate text-sm font-mono max-w-[100px]'>{value}</span>
+                </TooltipTrigger>
+                <TooltipContent>{value}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <Button
-              type='text'
-              size='middle'
-              icon={<Copy className='w-4 h-4' />}
+              variant='ghost'
+              size='sm'
               onClick={() => copyToClipboard(value, '상품 ID')}
               className='opacity-80 hover:opacity-100'
-            />
+            >
+              <Copy className='w-4 h-4' />
+            </Button>
           </div>
         );
       },
     },
     {
-      title: '결제 ID',
-      dataIndex: 'transactionId',
-      key: 'transactionId',
-      width: 180,
-      render: (value: string) => {
+      accessorKey: 'transactionId',
+      header: '결제 ID',
+      size: 180,
+      cell: ({ row }) => {
+        const value = row.original.transactionId;
         if (!value) return <span className='text-xs text-gray-400'>없음</span>;
 
         return (
           <div className='flex gap-1 items-center'>
-            <Tooltip title={value}>
-              <span className='truncate text-sm font-mono max-w-[120px]'>{value}</span>
-            </Tooltip>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className='truncate text-sm font-mono max-w-[120px]'>{value}</span>
+                </TooltipTrigger>
+                <TooltipContent>{value}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <div className='flex gap-1'>
               <Button
-                type='text'
-                size='middle'
-                icon={<Copy className='w-4 h-4' />}
+                variant='ghost'
+                size='sm'
                 onClick={() => copyToClipboard(value, '결제 ID')}
                 className='opacity-80 hover:opacity-100'
-              />
+              >
+                <Copy className='w-4 h-4' />
+              </Button>
               <Button
-                type='text'
-                size='middle'
-                icon={<Eye className='w-4 h-4' />}
+                variant='ghost'
+                size='sm'
                 onClick={() => showDetail(value, '결제 ID 상세')}
                 className='opacity-80 hover:opacity-100'
-              />
+              >
+                <Eye className='w-4 h-4' />
+              </Button>
             </div>
           </div>
         );
       },
     },
     {
-      title: '상태',
-      dataIndex: 'status',
-      key: 'status',
-      width: 100,
-      render: (_, ticket) => {
+      id: 'status',
+      header: '상태',
+      size: 100,
+      cell: ({ row }) => {
+        const ticket = row.original;
         const isExpired = ticket.isExpired;
         const isPurchase = !isExpired && (ticket.isSuccess || dayjs(ticket.createdAt).isBefore('2024-06-01'));
 
         if (!isExpired && !isPurchase) {
           return (
-            <Tag color='red' className='font-medium'>
+            <Badge variant='destructive' className='font-medium'>
               실패
-            </Tag>
+            </Badge>
           );
         }
         if (isPurchase) {
           return (
-            <Tag color='green' className='font-medium'>
+            <Badge variant='success' className='font-medium'>
               구매
-            </Tag>
+            </Badge>
           );
         }
         if (isExpired) {
           return (
-            <Tag color='default' className='font-medium'>
+            <Badge variant='muted' className='font-medium'>
               만료
-            </Tag>
+            </Badge>
           );
         }
       },
     },
     {
-      title: '환경',
-      dataIndex: 'isProduction',
-      key: 'isProduction',
-      width: 100,
-      render: (value: boolean) => (
-        <Tag color={value ? 'purple' : 'orange'} className='font-medium'>
-          {value ? 'PROD' : 'TEST'}
-        </Tag>
+      accessorKey: 'isProduction',
+      header: '환경',
+      size: 100,
+      cell: ({ row }) => (
+        <Badge variant={row.original.isProduction ? 'default' : 'warning'} className='font-medium'>
+          {row.original.isProduction ? 'PROD' : 'TEST'}
+        </Badge>
       ),
     },
     {
-      title: '구매 시간',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      width: 150,
-      render: (value, record) => {
+      accessorKey: 'createdAt',
+      header: '구매 시간',
+      size: 150,
+      cell: ({ row }) => {
+        const value = row.original.createdAt;
+        const record = row.original;
         const day = dayjs(value);
         const diffFromNow = dayjs().diff(day, 'day');
         const isRecent = diffFromNow <= 7;
@@ -224,18 +239,17 @@ function PurchaseMetaList() {
       },
     },
     {
-      title: '만료 시간',
-      dataIndex: 'expiredAt',
-      key: 'expiredAt',
-      width: 150,
-      render: (value, record) => {
+      id: 'expiredAt',
+      header: '만료 시간',
+      size: 150,
+      cell: ({ row }) => {
+        const record = row.original;
         const isExpired = record.isExpired;
 
         if (!isExpired) {
           return <span className='text-xs text-gray-400'>진행중</span>;
         }
 
-        // 만료된 경우 구매 시간 기준으로 예상 만료 시간 계산 (예: 30일 후)
         const createdDay = dayjs(record.createdAt);
         const estimatedExpiry = createdDay.add(30, 'day');
         const diffFromNow = dayjs().diff(estimatedExpiry, 'day');
@@ -252,24 +266,30 @@ function PurchaseMetaList() {
       },
     },
     {
-      title: '로그',
-      dataIndex: 'log',
-      key: 'log',
-      width: 100,
-      render: (value: string) => {
+      accessorKey: 'log',
+      header: '로그',
+      size: 100,
+      cell: ({ row }) => {
+        const value = row.original.log;
         if (!value) return <span className='text-xs text-gray-400'>없음</span>;
 
         return (
           <div className='flex gap-1 items-center'>
-            <Tooltip title='로그 보기'>
-              <Button
-                type='text'
-                size='middle'
-                icon={<Eye className='w-4 h-4' />}
-                onClick={() => showDetail(value, '로그 상세')}
-                className='opacity-80 hover:opacity-100'
-              />
-            </Tooltip>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    onClick={() => showDetail(value, '로그 상세')}
+                    className='opacity-80 hover:opacity-100'
+                  >
+                    <Eye className='w-4 h-4' />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>로그 보기</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         );
       },
@@ -277,92 +297,85 @@ function PurchaseMetaList() {
   ];
 
   const handleSearch = () => {
-    const values = form.getFieldsValue();
-
-    // 유저 ID가 있으면 유저 ID로만 검색
-    if (values.username && values.username.trim()) {
-      setSearchFilters({
-        username: values.username.trim(),
-        startDate: undefined,
-        endDate: undefined,
-      });
-    }
-    // 날짜 범위가 모두 선택되었으면 날짜 범위로 검색
-    else if (startedAt && endedAt) {
-      setSearchFilters({
-        username: undefined,
-        startDate: startedAt.format('YYYY-MM-DD'),
-        endDate: endedAt.format('YYYY-MM-DD'),
-      });
-    }
-    // 아무것도 선택되지 않았으면 전체 검색
-    else {
-      setSearchFilters({
-        username: undefined,
-        startDate: undefined,
-        endDate: undefined,
-      });
-    }
+    const trimmedUsername = usernameKeyword.trim();
+    setSearchFilters({
+      username: trimmedUsername || undefined,
+      startDate: startedAt ? startedAt.format('YYYY-MM-DD') : undefined,
+      endDate: endedAt ? endedAt.format('YYYY-MM-DD') : undefined,
+    });
     setCurrentPage(1);
   };
 
   const handleReset = () => {
-    form.resetFields();
+    setUsernameKeyword('');
     setSearchFilters({});
     setStartedAt(null);
     setEndedAt(null);
     setCurrentPage(1);
   };
 
+  const hasActiveFilters = Boolean(searchFilters.username || searchFilters.startDate || searchFilters.endDate);
+
   return (
     <>
-      {holder}
-      <div className='flex gap-2 items-center py-4'>
-        <span className='text-lg font-bold'>필터</span>
-        {Object.keys(searchFilters).length > 0 && (
-          <span className='px-2 py-1 text-sm text-blue-600 bg-blue-50 rounded'>필터 적용됨</span>
-        )}
-      </div>
+      <DefaultTableBtn className='justify-between'>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSearch();
+          }}
+          className='flex flex-1 flex-wrap items-end gap-3'
+        >
+          <div className='space-y-2'>
+            <Label className='text-xs text-muted-foreground'>유저 ID</Label>
+            <Input
+              value={usernameKeyword}
+              onChange={(e) => setUsernameKeyword(e.target.value)}
+              placeholder='유저 ID 입력'
+              className='w-[220px]'
+            />
+          </div>
 
-      <Form form={form} layout='inline' className='p-4 mb-4 bg-gray-50 rounded' onFinish={handleSearch}>
-        <Form.Item name='username' label='유저 ID'>
-          <Input placeholder='유저 ID 입력' style={{ width: 200 }} />
-        </Form.Item>
+          <div className='space-y-2'>
+            <Label className='text-xs text-muted-foreground'>날짜 범위</Label>
+            <DatePickerWithRange
+              startedAt={startedAt}
+              endedAt={endedAt}
+              setStartedAt={setStartedAt}
+              setEndedAt={setEndedAt}
+            />
+          </div>
 
-        <Form.Item label='날짜 범위'>
-          <DatePickerWithRange
-            startedAt={startedAt}
-            endedAt={endedAt}
-            setStartedAt={setStartedAt}
-            setEndedAt={setEndedAt}
-          />
-        </Form.Item>
-
-        <Form.Item>
-          <Button type='primary' htmlType='submit'>
-            검색
+          <Button type='submit'>검색</Button>
+          <Button variant='outline' type='button' onClick={handleReset}>
+            초기화
           </Button>
-        </Form.Item>
 
-        <Form.Item>
-          <Button onClick={handleReset}>초기화</Button>
-        </Form.Item>
-      </Form>
-      <Table
-        dataSource={items}
+          {hasActiveFilters && <Badge variant='secondary'>필터 적용됨</Badge>}
+        </form>
+      </DefaultTableBtn>
+
+      <DataTable
         columns={columns}
+        data={items || []}
         loading={isLoading}
         pagination={{
           total: totalPage * 10,
-          current: currentPage,
+          page: currentPage,
           onChange: (page) => setCurrentPage(page),
-          showSizeChanger: false,
-          showTotal: (total, range) => `${range[0]}-${range[1]} / 총 ${total}개`,
         }}
-        scroll={{ x: 1400 }}
-        rowClassName='hover:bg-gray-50 transition-colors'
-        size='middle'
       />
+
+      <Dialog open={!!detailDialog} onOpenChange={(open) => !open && setDetailDialog(null)}>
+        <DialogContent className='max-w-2xl'>
+          <DialogHeader>
+            <DialogTitle>{detailDialog?.title}</DialogTitle>
+          </DialogHeader>
+          <div className='overflow-auto max-h-96'>
+            <pre className='p-3 text-xs whitespace-pre-wrap bg-gray-50 rounded'>{detailDialog?.content}</pre>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

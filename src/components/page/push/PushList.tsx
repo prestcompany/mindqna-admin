@@ -1,110 +1,92 @@
 import { AdminPush } from '@/client/push';
+import DataTable from '@/components/shared/ui/data-table';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import usePushes from '@/hooks/usePushes';
-import { Button, Drawer, Modal, Select, Table, TableProps, Tag } from 'antd';
+import { ColumnDef } from '@tanstack/react-table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 function PushList() {
   const router = useRouter();
-  const [modal, holder] = Modal.useModal();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<{ locale?: string[] }>({});
   const { items, totalPage, isLoading, refetch } = usePushes({ page: currentPage, locale: filter.locale });
 
-  const [isOpenCreate, setOpenCreate] = useState(false);
-  const [isOpenEdit, setOpenEdit] = useState(false);
-
-  const columns: TableProps<AdminPush>['columns'] = [
+  const columns: ColumnDef<AdminPush>[] = [
     {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
-    },
-
-    {
-      title: '언어',
-      dataIndex: 'locale',
-      key: 'locale',
+      accessorKey: 'id',
+      header: '번호',
     },
     {
-      title: '제목',
-      dataIndex: 'title',
-      key: 'title',
+      accessorKey: 'locale',
+      header: '언어',
     },
     {
-      title: '메시지',
-      dataIndex: 'message',
-      key: 'message',
+      accessorKey: 'title',
+      header: '제목',
     },
     {
-      title: '상태',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      render: (value) => {
-        if (value) return <Tag color='green'>활성</Tag>;
-        if (!value) return <Tag color='red'>비활성</Tag>;
+      accessorKey: 'message',
+      header: '메시지',
+    },
+    {
+      accessorKey: 'isActive',
+      header: '상태',
+      cell: ({ row }) => {
+        const value = row.original.isActive;
+        if (value) return <Badge variant='success'>활성</Badge>;
+        if (!value) return <Badge variant='destructive'>비활성</Badge>;
       },
-    },
-    {
-      title: '',
-      dataIndex: '',
-      key: 'x',
-      render: (value) => (
-        <div className='flex gap-4'>
-          {/* <Button onClick={() => handleEdit(value)}>상태변경</Button> */}
-          {/* <Button onClick={() => handleRemove(value)}>삭제</Button> */}
-        </div>
-      ),
     },
   ];
   return (
     <>
-      {holder}
       <DefaultTableBtn className='justify-between'>
         <div>
           <div className='flex items-center gap-2 py-6 '>
             <Select
-              placeholder='언어'
-              style={{ width: 120 }}
-              options={[
-                { label: 'ko', value: 'ko' },
-                { label: 'en', value: 'en' },
-                { label: 'ja', value: 'ja' },
-                { label: 'zh', value: 'zh' },
-                { label: 'zhTw', value: 'zhTw' },
-                { label: 'es', value: 'es' },
-                { label: 'id', value: 'id' },
-              ]}
-              value={(filter.locale ?? [])?.[0]}
-              onChange={(v: string) => {
-                setFilter((prev) => ({ ...prev, locale: [v] }));
+              value={(filter.locale ?? [])?.[0] ?? ''}
+              onValueChange={(v: string) => {
+                setFilter((prev) => ({ ...prev, locale: v ? [v] : undefined }));
               }}
-              allowClear
-            />
+            >
+              <SelectTrigger className='w-[120px]'>
+                <SelectValue placeholder='언어' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='ko'>ko</SelectItem>
+                <SelectItem value='en'>en</SelectItem>
+                <SelectItem value='ja'>ja</SelectItem>
+                <SelectItem value='zh'>zh</SelectItem>
+                <SelectItem value='zhTw'>zhTw</SelectItem>
+                <SelectItem value='es'>es</SelectItem>
+                <SelectItem value='id'>id</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <div className='flex-item-list'>
-          <Button type='primary' onClick={() => router.push('/marketing/push/new')}>
+          <Button onClick={() => router.push('/marketing/push/new')}>
             푸시 등록
           </Button>
         </div>
       </DefaultTableBtn>
 
-      <Table
-        dataSource={items}
+      <DataTable
         columns={columns}
+        data={items}
+        loading={isLoading}
         pagination={{
           total: totalPage * 10,
-          current: currentPage,
+          page: currentPage,
+          pageSize: 10,
           onChange: (page) => setCurrentPage(page),
-          showSizeChanger: false,
         }}
-        loading={isLoading}
       />
-      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}></Drawer>
-      <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={600}></Drawer>
     </>
   );
 }

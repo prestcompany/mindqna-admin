@@ -1,26 +1,32 @@
 import { motion } from 'framer-motion';
-import { ChevronRight, Menu as MenuIcon } from 'lucide-react';
 import { NextComponentType, NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
+import Header from './header';
 import MainMenu from './main-menu';
 import MenuBtn from './menu-btn';
 import PageHeader from './page-header';
-import Profile from './profile';
+import { resolveRouteHeader } from './route-labels';
 import Sidebar from './sidebar';
 
 export interface IPageHeader {
   title: string;
+  description?: string;
+  actions?: React.ReactNode;
 }
 
 export type IDefaultLayoutPage<P = {}> = NextPage<P> & {
   getLayout(page: NextComponentType, props: unknown): React.ReactNode;
-  pageHeader?: IPageHeader;
+  pageHeader?: unknown;
 };
 
 interface IDefaultLayoutProps {
   Page: IDefaultLayoutPage;
 }
+
+const isPageHeaderValue = (value: unknown): value is IPageHeader => {
+  return typeof value === 'object' && value !== null && typeof (value as IPageHeader).title === 'string';
+};
 
 const DefaultLayout = ({ Page, ...props }: IDefaultLayoutProps) => {
   const [isShowSidebar, setIsShowSidebar] = useState(true);
@@ -48,18 +54,26 @@ const DefaultLayout = ({ Page, ...props }: IDefaultLayoutProps) => {
     setActive(false);
   }, [router.asPath, setActive]);
 
+  const resolvedPageHeader = isPageHeaderValue(Page.pageHeader)
+    ? Page.pageHeader
+    : resolveRouteHeader(router.pathname);
+
   return (
-    <div>
+    <div className='min-h-screen bg-background'>
       <Sidebar isShowSidebar={isShowSidebar} hideSidebar={hideSidebar} />
 
       {/* mobile navigation */}
-      <div className='z-40 flex items-center justify-between px-5 border-b h-14 sm:hidden'>
-        <div className='flex items-center'>
-          <div className='flex items-center justify-center w-8 h-8 text-white rounded-lg bg-turquoise'>P</div>
-          <div className='ml-3 text-lg text-black'>PREST Admin</div>
-        </div>
-        <div>
-          <MenuBtn isActive={isShowPopupMenu} setActive={setActive} />
+      <div className='border-b border-border/70 bg-background/95 backdrop-blur sm:hidden'>
+        <div className='z-40 flex h-14 items-center justify-between px-4'>
+          <div className='flex items-center gap-2.5'>
+            <div className='flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-sm'>
+              M
+            </div>
+            <span className='text-sm font-semibold text-foreground'>mindBridge</span>
+          </div>
+          <div>
+            <MenuBtn isActive={isShowPopupMenu} setActive={setActive} />
+          </div>
         </div>
       </div>
       <motion.div
@@ -70,41 +84,22 @@ const DefaultLayout = ({ Page, ...props }: IDefaultLayoutProps) => {
           closed: { opacity: 0, y: '-10px', transitionEnd: { display: 'none' } },
         }}
         transition={{ duration: 0.15 }}
-        className='fixed bottom-0 left-0 right-0 z-30 w-full p-5 overflow-auto bg-white'
-        style={{ top: '3.5rem' }}
+        className='fixed inset-x-0 z-30 border-b border-border/70 bg-background/95 p-4 shadow-lg backdrop-blur sm:hidden'
+        style={{ top: '3.5rem', maxHeight: 'calc(100vh - 3.5rem)' }}
       >
-        <Profile />
         <MainMenu />
       </motion.div>
 
-      <div className={`sm:h-full sm:overflow-auto ${isShowSidebar ? 'sm:ml-72' : ''}`}>
-        {Page.pageHeader ? (
-          <PageHeader value={Page.pageHeader} />
-        ) : !isShowSidebar ? (
-          <div className='pt-5 pl-7'>
-            <button className='inline-flex items-center justify-center h-12 px-3 transition-all duration-300 rounded hover:bg-gray-200' onClick={showSidebar}>
-              <MenuIcon className='w-5 h-5' />
-              <span className='px-2'>메뉴 열기</span>
-              <ChevronRight className='w-3 h-3' />
-            </button>
+      <div className={`min-h-screen transition-[margin] duration-200 ${isShowSidebar ? 'sm:ml-72' : ''}`}>
+        <div className='hidden sm:block'>
+          <Header isShowSidebar={isShowSidebar} showSidebar={showSidebar} />
+        </div>
+        {resolvedPageHeader && <PageHeader value={resolvedPageHeader} />}
+        <section className='px-4 pb-8 pt-5 sm:px-8'>
+          <div className='mx-auto w-full max-w-[1600px]'>
+            <Page {...props} />
           </div>
-        ) : (
-          <></>
-        )}
-        <section className='px-5 pb-5 sm:px-10'>
-          <Page {...props} />
         </section>
-        {!isShowSidebar ? (
-          <div className='fixed bottom-5 left-5'>
-            <button
-              className='flex items-center justify-center w-12 h-12 bg-white border rounded opacity-50 enable-transition hover:opacity-100'
-              onClick={showSidebar}
-            >
-              <MenuIcon className='w-5 h-5' />
-              <ChevronRight className='w-3 h-3' />
-            </button>
-          </div>
-        ) : null}
       </div>
     </div>
   );

@@ -1,19 +1,37 @@
 import { removeInteriorTemplate } from '@/client/interior';
 import { ImgItem, InteriorTemplate } from '@/client/types';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
+import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
+import DataTable from '@/components/shared/ui/data-table';
+import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Sheet } from '@/components/ui/sheet';
 import useInteriors from '@/hooks/useInteriors';
-import { Button, Drawer, Image, Modal, Table, Tag, message } from 'antd';
-import { TableProps } from 'antd/lib';
+import { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import InteriorForm from './InteriorForm';
 
 function InteriorList() {
-  const [modal, holder] = Modal.useModal();
-
   const [currentPage, setCurrentPage] = useState(1);
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
   const [focused, setFocused] = useState<InteriorTemplate | undefined>(undefined);
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState<InteriorTemplate | undefined>(undefined);
 
   const { templates, totalPage, isLoading, refetch } = useInteriors({ page: currentPage });
 
@@ -23,128 +41,164 @@ function InteriorList() {
   };
 
   const handleRemove = (value: InteriorTemplate) => {
-    modal.confirm({
-      title: `삭제 ${value.name}`,
-      onOk: async () => {
-        try {
-          await removeInteriorTemplate(value.id);
-          await refetch();
-        } catch (err) {
-          message.error(`${err}`);
-        }
-      },
-    });
+    setConfirmTarget(value);
+    setConfirmOpen(true);
   };
 
-  const columns: TableProps<InteriorTemplate>['columns'] = [
+  const handleConfirmRemove = async () => {
+    if (!confirmTarget) return;
+    try {
+      await removeInteriorTemplate(confirmTarget.id);
+      await refetch();
+    } catch (err) {
+      toast.error(`${err}`);
+    }
+    setConfirmOpen(false);
+    setConfirmTarget(undefined);
+  };
+
+  const columns: ColumnDef<InteriorTemplate>[] = [
     {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
+      accessorKey: 'id',
+      header: '번호',
     },
     {
-      title: '이미지',
-      dataIndex: 'img',
-      key: 'img',
-      render: (value: ImgItem) => {
-        return <Image width={'100%'} height={100} src={value?.uri ?? ''} alt='img' style={{ objectFit: 'contain' }} />;
+      accessorKey: 'img',
+      header: '이미지',
+      size: 156,
+      cell: ({ row }) => {
+        const value = row.original.img as ImgItem;
+        const rawWidth = row.original.width || 100;
+        const rawHeight = row.original.height || 100;
+        const maxPreview = 112;
+        const scale = Math.min(maxPreview / rawWidth, maxPreview / rawHeight);
+        const previewWidth = Math.max(Math.round(rawWidth * scale), 24);
+        const previewHeight = Math.max(Math.round(rawHeight * scale), 24);
+
+        return (
+          <ClickableImagePreview
+            src={value?.uri}
+            alt={`${row.original.name} 인테리어 이미지`}
+            triggerClassName='h-[120px] w-[120px]'
+            imageClassName='object-contain'
+            imageStyle={{
+              width: previewWidth,
+              height: previewHeight,
+            }}
+          />
+        );
       },
     },
     {
-      title: '이름',
-      dataIndex: 'name',
-      key: 'name',
+      accessorKey: 'name',
+      header: '이름',
     },
     {
-      title: '타입',
-      dataIndex: 'type',
-      key: 'type',
+      accessorKey: 'type',
+      header: '타입',
     },
     {
-      title: '방 타입',
-      dataIndex: 'room',
-      key: 'room',
+      accessorKey: 'room',
+      header: '방 타입',
     },
     {
-      title: '카테고리',
-      dataIndex: 'category',
-      key: 'category',
+      accessorKey: 'category',
+      header: '카테고리',
     },
     {
-      title: '가격',
-      dataIndex: 'price',
-      key: 'price',
+      accessorKey: 'price',
+      header: '가격',
     },
     {
-      title: '스타/하트',
-      dataIndex: 'isPaid',
-      key: 'isPaid',
-      render: (value: boolean) => {
-        return <Tag color={value ? 'gold' : 'red'}>{value ? '스타' : '하트'}</Tag>;
+      accessorKey: 'isPaid',
+      header: '스타/하트',
+      cell: ({ row }) => {
+        const value = row.original.isPaid;
+        return <Badge variant={value ? 'warning' : 'destructive'}>{value ? '스타' : '하트'}</Badge>;
       },
     },
     {
-      title: '상태',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      render: (value: boolean) => {
-        return <Tag color={value ? 'green' : 'red'}>{value ? '활성' : '비활성'}</Tag>;
+      accessorKey: 'isActive',
+      header: '상태',
+      cell: ({ row }) => {
+        const value = row.original.isActive;
+        return <Badge variant={value ? 'success' : 'destructive'}>{value ? '활성' : '비활성'}</Badge>;
       },
     },
     {
-      title: 'width',
-      dataIndex: 'width',
-      key: 'width',
+      accessorKey: 'width',
+      header: 'width',
     },
     {
-      title: 'height',
-      dataIndex: 'height',
-      key: 'height',
+      accessorKey: 'height',
+      header: 'height',
     },
     {
-      title: 'Action',
-      dataIndex: '',
-      key: 'x',
-      render: (value) => (
-        <div className='flex gap-4'>
-          <Button onClick={() => handleEdit(value)}>수정</Button>
-          <Button onClick={() => handleRemove(value)}>삭제</Button>
-        </div>
+      id: 'actions',
+      header: '관리',
+      cell: ({ row }) => (
+        <TableRowActions
+          items={[
+            {
+              label: '수정',
+              onClick: () => handleEdit(row.original),
+            },
+            {
+              label: '삭제',
+              onClick: () => handleRemove(row.original),
+              destructive: true,
+            },
+          ]}
+        />
       ),
     },
   ];
 
   return (
     <>
-      {holder}
-      <Button
-        onClick={() => {
-          setFocused(undefined);
-          setOpenCreate(true);
-        }}
-        type='primary'
-        size='large'
-      >
-        추가
-      </Button>
-      <Table
-        rowKey={(record) => record.id}
-        dataSource={templates}
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>삭제 {confirmTarget?.name}</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmRemove}>확인</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <DefaultTableBtn className='justify-end'>
+        <Button
+          onClick={() => {
+            setFocused(undefined);
+            setOpenCreate(true);
+          }}
+          size='lg'
+        >
+          추가
+        </Button>
+      </DefaultTableBtn>
+      <DataTable
         columns={columns}
+        data={templates ?? []}
+        loading={isLoading}
         pagination={{
           total: totalPage * 10,
-          current: currentPage,
+          page: currentPage,
+          pageSize: 10,
           onChange: (page) => setCurrentPage(page),
-          showSizeChanger: false,
         }}
-        loading={isLoading}
       />
-      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={720}>
-        <InteriorForm reload={refetch} close={() => setOpenCreate(false)} />
-      </Drawer>
-      <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={720}>
-        <InteriorForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
-      </Drawer>
+      <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
+        <AdminSideSheetContent title='인테리어 추가' size='lg'>
+          <InteriorForm reload={refetch} close={() => setOpenCreate(false)} />
+        </AdminSideSheetContent>
+      </Sheet>
+      <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
+        <AdminSideSheetContent title='인테리어 수정' size='lg'>
+          <InteriorForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
+        </AdminSideSheetContent>
+      </Sheet>
     </>
   );
 }

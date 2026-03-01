@@ -1,14 +1,28 @@
 import { removeRule } from '@/client/rule';
 import { AppRule } from '@/client/types';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
+import DataTable from '@/components/shared/ui/data-table';
+import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Sheet } from '@/components/ui/sheet';
 import useRules from '@/hooks/useRules';
-import { Button, Drawer, Modal, Table, TableProps, message } from 'antd';
-import { Tag } from 'antd/lib';
+import { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import ExpForm from './ExpForm';
 
 function ExpList() {
-  const [modal, holder] = Modal.useModal();
-
   const [currentPage, setCurrentPage] = useState(1);
   const { items, isLoading, refetch, totalPage } = useRules(currentPage);
 
@@ -16,91 +30,118 @@ function ExpList() {
   const [isOpenEdit, setOpenEdit] = useState(false);
   const [focused, setFocused] = useState<AppRule | undefined>(undefined);
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState<AppRule | undefined>(undefined);
+
   const handleEdit = (value: AppRule) => {
     setFocused(value);
     setOpenEdit(true);
   };
 
   const handleRemove = (value: AppRule) => {
-    modal.confirm({
-      title: `삭제 (${value.key} - ${value.value})`,
-      onOk: async () => {
-        try {
-          await removeRule(value.id);
-          await refetch();
-        } catch (err) {
-          message.error(`${err}`);
-        }
-      },
-    });
+    setConfirmTarget(value);
+    setConfirmOpen(true);
   };
 
-  const columns: TableProps<AppRule>['columns'] = [
-    {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
-    },
+  const handleConfirmRemove = async () => {
+    if (!confirmTarget) return;
+    try {
+      await removeRule(confirmTarget.id);
+      await refetch();
+    } catch (err) {
+      toast.error(`${err}`);
+    }
+    setConfirmOpen(false);
+    setConfirmTarget(undefined);
+  };
 
+  const columns: ColumnDef<AppRule>[] = [
     {
-      title: 'key',
-      dataIndex: 'key',
-      key: 'key',
+      accessorKey: 'id',
+      header: '번호',
     },
     {
-      title: '다음 레벨업 필요 경험치',
-      dataIndex: 'value',
-      key: 'value',
+      accessorKey: 'key',
+      header: 'key',
     },
     {
-      title: '활성화',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      render: (value) => <Tag color={value ? 'green' : 'default'}>{value ? '활성화' : '비활성화'}</Tag>,
+      accessorKey: 'value',
+      header: '다음 레벨업 필요 경험치',
     },
-
     {
-      title: 'Action',
-      dataIndex: '',
-      key: 'x',
-      render: (value) => (
-        <div className='flex gap-4'>
-          <Button onClick={() => handleEdit(value)}>수정</Button>
-          <Button onClick={() => handleRemove(value)}>삭제</Button>
-        </div>
+      accessorKey: 'isActive',
+      header: '활성화',
+      cell: ({ row }) => {
+        const value = row.original.isActive;
+        return <Badge variant={value ? 'success' : 'muted'}>{value ? '활성화' : '비활성화'}</Badge>;
+      },
+    },
+    {
+      id: 'actions',
+      header: '관리',
+      cell: ({ row }) => (
+        <TableRowActions
+          items={[
+            {
+              label: '수정',
+              onClick: () => handleEdit(row.original),
+            },
+            {
+              label: '삭제',
+              onClick: () => handleRemove(row.original),
+              destructive: true,
+            },
+          ]}
+        />
       ),
     },
   ];
+
   return (
     <>
-      {holder}
-      <Button
-        onClick={() => {
-          setFocused(undefined);
-          setOpenCreate(true);
-        }}
-        type='primary'
-        size='large'
-      >
-        추가
-      </Button>
-      <Table
-        dataSource={items}
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>삭제 ({confirmTarget?.key} - {confirmTarget?.value})</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmRemove}>확인</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <DefaultTableBtn className='justify-end'>
+        <Button
+          onClick={() => {
+            setFocused(undefined);
+            setOpenCreate(true);
+          }}
+          size='lg'
+        >
+          추가
+        </Button>
+      </DefaultTableBtn>
+      <DataTable
         columns={columns}
+        data={items ?? []}
+        loading={isLoading}
         pagination={{
           total: totalPage * 10,
-          current: currentPage,
+          page: currentPage,
+          pageSize: 10,
           onChange: (page) => setCurrentPage(page),
-          showSizeChanger: false,
         }}
-        loading={isLoading}
       />
-      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}>
-        <ExpForm reload={refetch} close={() => setOpenCreate(false)} />
-      </Drawer>
-      <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={600}>
-        <ExpForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
-      </Drawer>
+      <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
+        <AdminSideSheetContent title='경험치 추가' size='md'>
+          <ExpForm reload={refetch} close={() => setOpenCreate(false)} />
+        </AdminSideSheetContent>
+      </Sheet>
+      <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
+        <AdminSideSheetContent title='경험치 수정' size='md'>
+          <ExpForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
+        </AdminSideSheetContent>
+      </Sheet>
     </>
   );
 }

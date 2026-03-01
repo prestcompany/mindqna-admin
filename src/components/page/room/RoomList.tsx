@@ -1,12 +1,27 @@
 import { RoomCategory, RoomTemplate, removeRoom } from '@/client/room';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
+import DataTable from '@/components/shared/ui/data-table';
+import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Sheet } from '@/components/ui/sheet';
 import useRooms from '@/hooks/useRooms';
-import { Button, Drawer, Modal, Table, TableProps, Tag, message } from 'antd';
+import { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import RoomForm, { categoryOptions } from './RoomForm';
 
 function RoomList() {
-  const [modal, holder] = Modal.useModal();
-
   const [currentPage, setCurrentPage] = useState(1);
   const { items, isLoading, refetch, totalPage } = useRooms(currentPage);
 
@@ -14,112 +29,136 @@ function RoomList() {
   const [isOpenEdit, setOpenEdit] = useState(false);
   const [focused, setFocused] = useState<RoomTemplate | undefined>(undefined);
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState<RoomTemplate | undefined>(undefined);
+
   const handleEdit = (value: RoomTemplate) => {
     setFocused(value);
     setOpenEdit(true);
   };
 
   const handleRemove = (value: RoomTemplate) => {
-    modal.confirm({
-      title: `삭제 (${value.type})`,
-      onOk: async () => {
-        try {
-          await removeRoom(value.id);
-          await refetch();
-        } catch (err) {
-          message.error(`${err}`);
-        }
-      },
-    });
+    setConfirmTarget(value);
+    setConfirmOpen(true);
   };
 
-  const columns: TableProps<RoomTemplate>['columns'] = [
+  const handleConfirmRemove = async () => {
+    if (!confirmTarget) return;
+    try {
+      await removeRoom(confirmTarget.id);
+      await refetch();
+    } catch (err) {
+      toast.error(`${err}`);
+    }
+    setConfirmOpen(false);
+    setConfirmTarget(undefined);
+  };
+
+  const columns: ColumnDef<RoomTemplate>[] = [
     {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
+      accessorKey: 'id',
+      header: '번호',
     },
     {
-      title: '이름',
-      dataIndex: 'type',
-      key: 'type',
+      accessorKey: 'type',
+      header: '이름',
     },
     {
-      title: '카테고리',
-      dataIndex: 'category',
-      key: 'category',
-      render: (value: RoomCategory) => {
+      accessorKey: 'category',
+      header: '카테고리',
+      cell: ({ row }) => {
+        const value = row.original.category as RoomCategory;
         const v = categoryOptions.find((item) => item.value === value)?.label ?? value;
-        return <Tag>{v}</Tag>;
-      },
-    },
-
-    {
-      title: '가격',
-      dataIndex: 'price',
-      key: 'price',
-    },
-
-    {
-      title: '스타/히트',
-      dataIndex: 'isPaid',
-      key: 'isPaid',
-      render: (value: boolean) => {
-        return <Tag color={value ? 'gold' : 'red'}>{value ? '스타' : '하트'}</Tag>;
+        return <Badge variant='secondary'>{v}</Badge>;
       },
     },
     {
-      title: '활성화',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      render: (value: boolean) => {
-        return <Tag color={value ? 'green' : 'default'}>{value ? '활성화' : '비활성화'}</Tag>;
+      accessorKey: 'price',
+      header: '가격',
+    },
+    {
+      accessorKey: 'isPaid',
+      header: '스타/히트',
+      cell: ({ row }) => {
+        const value = row.original.isPaid;
+        return <Badge variant={value ? 'warning' : 'destructive'}>{value ? '스타' : '하트'}</Badge>;
       },
     },
-
     {
-      title: 'Action',
-      dataIndex: '',
-      key: 'x',
-      render: (value) => (
-        <div className='flex gap-4'>
-          <Button onClick={() => handleEdit(value)}>수정</Button>
-          <Button onClick={() => handleRemove(value)}>삭제</Button>
-        </div>
+      accessorKey: 'isActive',
+      header: '활성화',
+      cell: ({ row }) => {
+        const value = row.original.isActive;
+        return <Badge variant={value ? 'success' : 'muted'}>{value ? '활성화' : '비활성화'}</Badge>;
+      },
+    },
+    {
+      id: 'actions',
+      header: '관리',
+      cell: ({ row }) => (
+        <TableRowActions
+          items={[
+            {
+              label: '수정',
+              onClick: () => handleEdit(row.original),
+            },
+            {
+              label: '삭제',
+              onClick: () => handleRemove(row.original),
+              destructive: true,
+            },
+          ]}
+        />
       ),
     },
   ];
+
   return (
     <>
-      {holder}
-      <Button
-        onClick={() => {
-          setFocused(undefined);
-          setOpenCreate(true);
-        }}
-        type='primary'
-        size='large'
-      >
-        추가
-      </Button>
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>삭제 ({confirmTarget?.type})</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmRemove}>확인</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <DefaultTableBtn className='justify-end'>
+        <Button
+          onClick={() => {
+            setFocused(undefined);
+            setOpenCreate(true);
+          }}
+          size='lg'
+        >
+          추가
+        </Button>
+      </DefaultTableBtn>
 
-      <Table
-        dataSource={items}
+      <DataTable
         columns={columns}
+        data={items ?? []}
+        loading={isLoading}
         pagination={{
           total: totalPage * 10,
-          current: currentPage,
+          page: currentPage,
+          pageSize: 10,
           onChange: (page) => setCurrentPage(page),
-          showSizeChanger: false,
         }}
-        loading={isLoading}
       />
-      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}>
-        <RoomForm reload={refetch} close={() => setOpenCreate(false)} />
-      </Drawer>
-      <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={600}>
-        <RoomForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
-      </Drawer>
+      <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
+        <AdminSideSheetContent title='방 추가' size='md'>
+          <RoomForm reload={refetch} close={() => setOpenCreate(false)} />
+        </AdminSideSheetContent>
+      </Sheet>
+      <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
+        <AdminSideSheetContent title='방 수정' size='md'>
+          <RoomForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
+        </AdminSideSheetContent>
+      </Sheet>
     </>
   );
 }

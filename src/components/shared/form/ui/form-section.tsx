@@ -1,26 +1,29 @@
-import React, { PropsWithChildren } from "react";
+import { cn } from '@/lib/utils';
+import React, { PropsWithChildren } from 'react';
 
 interface IFormSectionProps {
   title?: string;
   description?: string;
+  className?: string;
 }
 
 const FormSection = ({
   title,
   description,
+  className,
   children,
 }: PropsWithChildren<IFormSectionProps>) => {
   return (
-    <div className="w-full border border-gray-200 shadow-sm rounded-lg pt-5 pl-3 pr-3 pb-4 mb-5">
-      {title ? <h3 className="text-xl pl-4 pr-4">{title}</h3> : null}
-      {description ? (
-        <div className="mt-1 pb-5 pl-4 pr-4 mb-6 text-gray-400 border-b border-gray-200">
-          {description}
+    <section className={cn('mb-5 w-full overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm', className)}>
+      {(title || description) && (
+        <div className='border-b border-border/70 px-5 py-4'>
+          {title ? <h3 className='text-base font-semibold tracking-tight text-foreground'>{title}</h3> : null}
+          {description ? <p className='mt-1 text-sm text-muted-foreground'>{description}</p> : null}
         </div>
-      ) : null}
+      )}
 
-      <div className="pl-4 pr-4">{children}</div>
-    </div>
+      <div className='px-5 py-4'>{children}</div>
+    </section>
   );
 };
 

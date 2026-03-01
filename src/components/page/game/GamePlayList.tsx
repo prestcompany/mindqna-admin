@@ -1,115 +1,95 @@
 import { Game, GamePlay } from '@/client/game';
 import { Profile, Space } from '@/client/types';
-import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import { Badge } from '@/components/ui/badge';
+import DataTable from '@/components/shared/ui/data-table';
 import { useGamePlays } from '@/hooks/useGame';
-import { Drawer, Modal, Table, TableProps, Tag } from 'antd';
+import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
-import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 function GamePlayList() {
-  const router = useRouter();
-  const [modal, holder] = Modal.useModal();
-
   const [currentPage, setCurrentPage] = useState(1);
-  const [filter, setFilter] = useState<{ locale?: string[] }>({});
-  const { items, totalPage, isLoading, refetch } = useGamePlays({ page: currentPage });
+  const { items, totalPage, isLoading } = useGamePlays({ page: currentPage });
 
-  const [isOpenCreate, setOpenCreate] = useState(false);
-  const [isOpenEdit, setOpenEdit] = useState(false);
-
-  const columns: TableProps<GamePlay>['columns'] = [
+  const columns: ColumnDef<GamePlay>[] = [
     {
-      title: 'No.',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
+      accessorKey: 'id',
+      header: 'No.',
+      size: 80,
     },
     {
-      title: '게임명',
-      dataIndex: 'game',
-      key: 'game.name',
-      width: 250,
-      render: (game: Game) => {
-        return <Tag color={game.primaryKeyColor}>{game.name}</Tag>;
+      accessorKey: 'game',
+      header: '게임명',
+      size: 250,
+      cell: ({ row }) => {
+        const game = row.original.game as Game;
+        return <Badge style={{ backgroundColor: game.primaryKeyColor, color: '#fff' }}>{game.name}</Badge>;
       },
     },
     {
-      title: '닉네임',
-      dataIndex: 'profile',
-      key: 'profile.nickname',
-      width: 200,
-      render: (profile: Profile) => {
+      accessorKey: 'profile',
+      header: '닉네임',
+      size: 200,
+      cell: ({ row }) => {
+        const profile = row.original.profile as Profile;
         return (
           <div style={{ display: 'flex', flexDirection: 'row', gap: '4px' }}>
-            <Tag color='black'>{profile.nickname}</Tag>
+            <Badge variant='default'>{profile.nickname}</Badge>
           </div>
         );
       },
     },
     {
-      title: '획득 점수',
-      dataIndex: 'score',
-      key: 'score',
-      width: 200,
-      render: (score, gamePlay) => {
-        if (!gamePlay.endedAt) return <Tag color='gold'>-</Tag>;
-        return <Tag color='green'>{score} P</Tag>;
+      accessorKey: 'score',
+      header: '획득 점수',
+      size: 200,
+      cell: ({ row }) => {
+        if (!row.original.endedAt) return <Badge variant='warning'>-</Badge>;
+        return <Badge variant='success'>{row.original.score} P</Badge>;
       },
     },
     {
-      title: '시작시간',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      width: 200,
-      render: (createdAt) => {
-        const day = dayjs(createdAt);
-
-        return <Tag>{day.format('YYYY-MM-DD HH:mm')}</Tag>;
+      accessorKey: 'createdAt',
+      header: '시작시간',
+      size: 200,
+      cell: ({ row }) => {
+        const day = dayjs(row.original.createdAt);
+        return <Badge variant='secondary'>{day.format('YYYY-MM-DD HH:mm')}</Badge>;
       },
     },
     {
-      title: '종료시간',
-      dataIndex: 'endedAt',
-      key: 'endedAt',
-      width: 200,
-      render: (endedAt) => {
-        if (!endedAt) return <Tag color='gold'>-</Tag>;
+      accessorKey: 'endedAt',
+      header: '종료시간',
+      size: 200,
+      cell: ({ row }) => {
+        const endedAt = row.original.endedAt;
+        if (!endedAt) return <Badge variant='warning'>-</Badge>;
         const day = dayjs(endedAt);
-
-        return <Tag>{day.format('YYYY-MM-DD HH:mm')}</Tag>;
+        return <Badge variant='secondary'>{day.format('YYYY-MM-DD HH:mm')}</Badge>;
       },
     },
     {
-      title: '공간 ID',
-      dataIndex: 'space',
-      key: 'space.id',
-      render: (space: Space) => {
-        return <Tag>{space.id}</Tag>;
+      accessorKey: 'space',
+      header: '공간 ID',
+      cell: ({ row }) => {
+        const space = row.original.space as Space;
+        return <Badge variant='secondary'>{space.id}</Badge>;
       },
     },
   ];
 
   return (
     <>
-      {holder}
-      <DefaultTableBtn className='justify-between'>
-        <div className='flex-item-list'></div>
-      </DefaultTableBtn>
-
-      <Table
-        dataSource={items}
+      <DataTable
         columns={columns}
+        data={items || []}
+        loading={isLoading}
         pagination={{
           total: totalPage * 10,
-          current: currentPage,
+          page: currentPage,
           onChange: (page) => setCurrentPage(page),
-          showSizeChanger: false,
         }}
-        loading={isLoading}
       />
-      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}></Drawer>
-      <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={600}></Drawer>
     </>
   );
 }

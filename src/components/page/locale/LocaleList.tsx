@@ -1,14 +1,29 @@
 import { removeLocale } from '@/client/locale';
 import { LocaleWord } from '@/client/types';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
+import DataTable from '@/components/shared/ui/data-table';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Sheet } from '@/components/ui/sheet';
 import useLocales from '@/hooks/useLocales';
-import { Button, Drawer, Input, Modal, Select, Table, TableProps, message } from 'antd';
+import { ColumnDef } from '@tanstack/react-table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import LocaleForm from './LocaleForm';
 
 function LocaleList() {
-  const [modal, holder] = Modal.useModal();
-
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<{ locale?: string[] }>({});
   const [key, setKey] = useState('');
@@ -20,6 +35,9 @@ function LocaleList() {
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
   const [focused, setFocused] = useState<LocaleWord | undefined>(undefined);
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState<LocaleWord | undefined>(undefined);
 
   const handleEdit = (value: LocaleWord) => {
     setFocused(value);
@@ -33,77 +51,93 @@ function LocaleList() {
   };
 
   const handleRemove = (value: LocaleWord) => {
-    modal.confirm({
-      title: `삭제 (${value.key} - ${value.value})`,
-      onOk: async () => {
-        try {
-          await removeLocale(value.id);
-          await refetch();
-        } catch (err) {
-          message.error(`${err}`);
-        }
-      },
-    });
+    setConfirmTarget(value);
+    setConfirmOpen(true);
   };
 
-  const columns: TableProps<LocaleWord>['columns'] = [
-    {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
-    },
+  const handleConfirmRemove = async () => {
+    if (!confirmTarget) return;
+    try {
+      await removeLocale(confirmTarget.id);
+      await refetch();
+    } catch (err) {
+      toast.error(`${err}`);
+    }
+    setConfirmOpen(false);
+    setConfirmTarget(undefined);
+  };
 
+  const columns: ColumnDef<LocaleWord>[] = [
     {
-      title: '다국어 키',
-      dataIndex: 'key',
-      key: 'key',
+      accessorKey: 'id',
+      header: '번호',
     },
     {
-      title: '텍스트',
-      dataIndex: 'value',
-      key: 'value',
+      accessorKey: 'key',
+      header: '다국어 키',
     },
     {
-      title: '언어',
-      dataIndex: 'locale',
-      key: 'locale',
+      accessorKey: 'value',
+      header: '텍스트',
     },
-
     {
-      title: '액션',
-      dataIndex: '',
-      key: 'x',
-      render: (value) => (
-        <div className='flex gap-4'>
-          <Button onClick={() => handleEdit(value)}>수정</Button>
-          <Button onClick={() => handleRemove(value)}>삭제</Button>
-        </div>
+      accessorKey: 'locale',
+      header: '언어',
+    },
+    {
+      id: 'actions',
+      header: '관리',
+      cell: ({ row }) => (
+        <TableRowActions
+          items={[
+            {
+              label: '수정',
+              onClick: () => handleEdit(row.original),
+            },
+            {
+              label: '삭제',
+              onClick: () => handleRemove(row.original),
+              destructive: true,
+            },
+          ]}
+        />
       ),
     },
   ];
   return (
     <>
-      {holder}
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>삭제 ({confirmTarget?.key} - {confirmTarget?.value})</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmRemove}>확인</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <DefaultTableBtn className='justify-between'>
         <div className='flex items-center gap-2 py-6 '>
           <Select
-            placeholder='언어'
-            style={{ width: 120 }}
-            options={[
-              { label: 'ko', value: 'ko' },
-              { label: 'en', value: 'en' },
-              { label: 'ja', value: 'ja' },
-              { label: 'zh', value: 'zh' },
-              { label: 'zhTw', value: 'zhTw' },
-              { label: 'es', value: 'es' },
-              { label: 'id', value: 'id' },
-            ]}
-            value={(filter.locale ?? [])?.[0]}
-            onChange={(v: string) => {
-              setFilter((prev) => ({ ...prev, locale: [v] }));
+            value={(filter.locale ?? [])?.[0] ?? ''}
+            onValueChange={(v: string) => {
+              setFilter((prev) => ({ ...prev, locale: v ? [v] : undefined }));
             }}
-            allowClear
-          />
+          >
+            <SelectTrigger className='w-[120px]'>
+              <SelectValue placeholder='언어' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='ko'>ko</SelectItem>
+              <SelectItem value='en'>en</SelectItem>
+              <SelectItem value='ja'>ja</SelectItem>
+              <SelectItem value='zh'>zh</SelectItem>
+              <SelectItem value='zhTw'>zhTw</SelectItem>
+              <SelectItem value='es'>es</SelectItem>
+              <SelectItem value='id'>id</SelectItem>
+            </SelectContent>
+          </Select>
           <Input
             placeholder='키 값'
             value={key}
@@ -118,39 +152,41 @@ function LocaleList() {
               setValue(e.target.value);
             }}
           />
-          <Button onClick={handleSearch}>검색</Button>
+          <Button variant='outline' onClick={handleSearch}>검색</Button>
         </div>
         <Button
           onClick={() => {
             setFocused(undefined);
             setOpenCreate(true);
           }}
-          type='primary'
-          size='large'
+          size='lg'
         >
           추가
         </Button>
       </DefaultTableBtn>
 
-      <Table
-        dataSource={locales}
+      <DataTable
         columns={columns}
-        rowKey={(row) => row.id}
+        data={locales}
+        loading={isLoading}
         pagination={{
           total: totalPage * 10,
-          current: currentPage,
+          page: currentPage,
+          pageSize: 10,
           onChange: (page) => setCurrentPage(page),
-          showSizeChanger: false,
         }}
-        loading={isLoading}
       />
-      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}>
-        <LocaleForm reload={refetch} close={() => setOpenCreate(false)} />
-      </Drawer>
+      <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
+        <AdminSideSheetContent title='다국어 추가' size='md'>
+          <LocaleForm reload={refetch} close={() => setOpenCreate(false)} />
+        </AdminSideSheetContent>
+      </Sheet>
 
-      <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={600}>
-        <LocaleForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
-      </Drawer>
+      <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
+        <AdminSideSheetContent title='다국어 수정' size='md'>
+          <LocaleForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
+        </AdminSideSheetContent>
+      </Sheet>
     </>
   );
 }

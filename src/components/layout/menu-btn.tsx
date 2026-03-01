@@ -8,7 +8,13 @@ interface IMenuBtnProps {
 
 const MenuBtn = ({ isActive, setActive }: IMenuBtnProps) => {
   return (
-    <button className="p-3 -mr-2" onClick={() => setActive(!isActive)}>
+    <button
+      type='button'
+      className='p-3 -mr-2'
+      onClick={() => setActive(!isActive)}
+      aria-label={isActive ? '모바일 메뉴 닫기' : '모바일 메뉴 열기'}
+      aria-expanded={isActive}
+    >
       <div className={style["menu-wrapper"]}>
         <div className={`${style["menu-bar"]} ${style["menu-top"]} ${isActive ? "active" : ""}`} />
         <div className={`${style["menu-bar"]} ${style["menu-middle"]} ${isActive ? "active" : ""}`} />

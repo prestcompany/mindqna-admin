@@ -1,13 +1,26 @@
 import { removeAsset } from '@/client/assets';
+import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
 import useAssets from '@/hooks/useAssets';
-import { Image, Input, Modal, message } from 'antd';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Input } from '@/components/ui/input';
 import { ImageIcon, Loader, Search, TrashIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
+import { toast } from 'sonner';
 
 function AssetsList() {
-  const [modal, contextHolder] = Modal.useModal();
   const [searchQuery, setSearchQuery] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmId, setConfirmId] = useState<number | null>(null);
 
   const { imgs, fetchMore, isLoading, hasNextPage } = useAssets();
   const [sentryRef] = useInfiniteScroll({
@@ -16,40 +29,53 @@ function AssetsList() {
     onLoadMore: fetchMore,
   });
 
-  // 검색 필터링
   const filteredImgs = useMemo(() => {
     if (!searchQuery) return imgs;
     return imgs.filter((img) => img.id.toString().includes(searchQuery) || img.uri.includes(searchQuery.toLowerCase()));
   }, [imgs, searchQuery]);
 
-  const handleClickRemove = async (id: number) => {
-    await modal.confirm({
-      title: '정말로 삭제하시겠습니까?',
-      content: (
-        <Image
-          width={200}
-          height={200}
-          src={imgs.find((img) => img.id === id)?.uri ?? ''}
-          alt='removed'
-          style={{ objectFit: 'cover' }}
-        />
-      ),
-      onOk: async () => {
-        try {
-          await removeAsset(id);
-          window.location.reload();
-        } catch (err) {
-          message.error(`${err}`);
-        }
-      },
-    });
+  const handleClickRemove = (id: number) => {
+    setConfirmId(id);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmRemove = async () => {
+    if (confirmId === null) return;
+    try {
+      await removeAsset(confirmId);
+      window.location.reload();
+    } catch (err) {
+      toast.error(`${err}`);
+    }
+    setConfirmOpen(false);
+    setConfirmId(null);
   };
 
   return (
     <>
-      {contextHolder}
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>정말로 삭제하시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmId && (
+                <img
+                  width={200}
+                  height={200}
+                  src={imgs.find((img) => img.id === confirmId)?.uri ?? ''}
+                  alt='removed'
+                  className='object-cover'
+                />
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmRemove}>확인</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      {/* 검색 영역 */}
       <div className='p-6 bg-gray-50 border-b border-gray-200'>
         <div className='flex justify-between items-center mb-4'>
           <div className='flex gap-3 items-center'>
@@ -62,18 +88,17 @@ function AssetsList() {
             </div>
           </div>
         </div>
-        <Input
-          placeholder='이미지 ID나 파일명으로 검색...'
-          prefix={<Search size={16} className='text-gray-400' />}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          size='large'
-          allowClear
-          className='max-w-md'
-        />
+        <div className='relative max-w-md'>
+          <Search size={16} className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400' />
+          <Input
+            placeholder='이미지 ID나 파일명으로 검색...'
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className='pl-10 h-10'
+          />
+        </div>
       </div>
 
-      {/* 이미지 그리드 */}
       {filteredImgs.length === 0 && !isLoading ? (
         <div className='flex flex-col justify-center items-center py-16 text-gray-500'>
           <ImageIcon size={48} className='mb-4 text-gray-300' />
@@ -93,17 +118,15 @@ function AssetsList() {
                 className='overflow-hidden relative bg-white rounded-lg shadow-md transition-all duration-200 group hover:shadow-lg'
               >
                 <div className='relative aspect-square'>
-                  <Image
-                    width='100%'
-                    height='100%'
+                  <ClickableImagePreview
                     src={item.uri}
-                    alt='asset'
-                    style={{ objectFit: 'cover' }}
-                    className='rounded-t-lg'
+                    alt={`${displayName} 이미지`}
+                    triggerClassName='h-full w-full rounded-none rounded-t-lg border-0 bg-transparent p-0 hover:bg-transparent focus-visible:ring-offset-0'
+                    imageClassName='h-full w-full rounded-t-lg object-cover'
                   />
                   <button
                     onClick={() => handleClickRemove(item.id)}
-                    className='absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg'
+                    className='absolute top-2 right-2 z-10 rounded-full bg-red-500 p-1.5 text-white opacity-0 shadow-lg transition-opacity duration-200 hover:bg-red-600 group-hover:opacity-100'
                   >
                     <TrashIcon size={14} />
                   </button>
@@ -120,7 +143,6 @@ function AssetsList() {
         </div>
       )}
 
-      {/* 무한 스크롤 로딩 */}
       {(hasNextPage || isLoading) && (
         <div ref={sentryRef} className='flex justify-center items-center p-8'>
           <Loader />

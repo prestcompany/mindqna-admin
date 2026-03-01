@@ -1,19 +1,16 @@
 import { Game, GameType } from '@/client/game';
-import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
+import { Badge } from '@/components/ui/badge';
+import DataTable from '@/components/shared/ui/data-table';
 import { useGames } from '@/hooks/useGame';
-import { Button, Modal, Table, TableProps, Tag } from 'antd';
-import { useRouter } from 'next/router';
+import { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
 import GameFormModal from './GameFormModal';
 
 function GameList() {
-  const router = useRouter();
-  const [modal, holder] = Modal.useModal();
   const [currentPage, setCurrentPage] = useState(1);
-  const [filter, setFilter] = useState<{ locale?: string[] }>({});
   const { items, totalPage, isLoading, refetch } = useGames({ page: currentPage });
 
-  const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
 
   const [selectedGame, setSelectedGame] = useState<Game | undefined>(undefined);
@@ -28,102 +25,88 @@ function GameList() {
     ETC: '기타',
   };
 
-  const columns: TableProps<Game>['columns'] = [
+  const columns: ColumnDef<Game>[] = [
     {
-      title: 'No.',
-      dataIndex: 'id',
-      key: 'id',
-    },
-
-    {
-      title: '게임명',
-      dataIndex: 'name',
-      key: 'name',
+      accessorKey: 'id',
+      header: 'No.',
     },
     {
-      title: '게임 타입',
-      dataIndex: 'type',
-      key: 'type',
-      render: (type: GameType) => {
-        return <Tag color='black'>{gameTypeMap[type] || type}</Tag>;
-      },
+      accessorKey: 'name',
+      header: '게임명',
     },
-
     {
-      title: '라이프',
-      dataIndex: 'playLimitLife',
-      key: 'playLimitLife',
-      render: (value) => {
-        return <Tag color='pink-inverse'>{value} 개</Tag>;
+      accessorKey: 'type',
+      header: '게임 타입',
+      cell: ({ row }) => {
+        const type = row.original.type;
+        return <Badge variant='default'>{gameTypeMap[type] || type}</Badge>;
       },
     },
     {
-      title: '제한시간',
-      dataIndex: 'timeLimitSecond',
-      key: 'timeLimitSecond',
-      render: (value) => {
-        return <Tag>{value} 초</Tag>;
+      accessorKey: 'playLimitLife',
+      header: '라이프',
+      cell: ({ row }) => {
+        return <Badge variant='secondary'>{row.original.playLimitLife} 개</Badge>;
       },
     },
     {
-      title: '일일 플레이 제한',
-      dataIndex: 'dailyPlayLimit',
-      key: 'dailyPlayLimit',
-      render: (value) => {
-        return <Tag color='blue'>{value} 회</Tag>;
+      accessorKey: 'timeLimitSecond',
+      header: '제한시간',
+      cell: ({ row }) => {
+        return <Badge variant='secondary'>{row.original.timeLimitSecond} 초</Badge>;
       },
     },
     {
-      title: '상태',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      render: (value) => {
-        if (value) return <Tag color='green'>활성</Tag>;
-        if (!value) return <Tag color='red'>비활성</Tag>;
+      accessorKey: 'dailyPlayLimit',
+      header: '일일 플레이 제한',
+      cell: ({ row }) => {
+        return <Badge variant='info'>{row.original.dailyPlayLimit} 회</Badge>;
       },
     },
     {
-      title: '',
-      dataIndex: '',
-      key: 'x',
-      render: (value, record) => (
-        <div className='flex gap-4'>
-          <Button
-            onClick={() => {
-              setOpenEdit(true);
-              setSelectedGame(record);
-            }}
-          >
-            수정
-          </Button>
-        </div>
+      accessorKey: 'isActive',
+      header: '상태',
+      cell: ({ row }) => {
+        const value = row.original.isActive;
+        if (value) return <Badge variant='success'>활성</Badge>;
+        if (!value) return <Badge variant='destructive'>비활성</Badge>;
+      },
+    },
+    {
+      id: 'actions',
+      header: '관리',
+      cell: ({ row }) => (
+        <TableRowActions
+          items={[
+            {
+              label: '수정',
+              onClick: () => {
+                setOpenEdit(true);
+                setSelectedGame(row.original);
+              },
+            },
+          ]}
+        />
       ),
     },
   ];
 
   const handleCloseEdit = () => {
     setOpenEdit(false);
-    setSelectedGame(undefined); // 선택된 게임 데이터 초기화
+    setSelectedGame(undefined);
   };
   return (
     <>
-      {holder}
-      <DefaultTableBtn className='justify-between'>
-        <div className='flex-item-list'></div>
-      </DefaultTableBtn>
-
-      <Table
-        dataSource={items}
+      <DataTable
         columns={columns}
+        data={items || []}
+        loading={isLoading}
         pagination={{
           total: totalPage * 10,
-          current: currentPage,
+          page: currentPage,
           onChange: (page) => setCurrentPage(page),
-          showSizeChanger: false,
         }}
-        loading={isLoading}
       />
-      <GameFormModal isOpen={isOpenCreate} close={() => setOpenCreate(false)} refetch={refetch} />
       <GameFormModal isOpen={isOpenEdit} close={handleCloseEdit} game={selectedGame} refetch={refetch} />
     </>
   );

@@ -1,13 +1,29 @@
 import { removeSnack } from '@/client/snack';
 import { ImgItem, Snack } from '@/client/types';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
+import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
+import DataTable from '@/components/shared/ui/data-table';
+import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Sheet } from '@/components/ui/sheet';
 import useSnacks from '@/hooks/useSnack';
-import { Button, Drawer, Image, Modal, Table, TableProps, Tag, message } from 'antd';
+import { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import SnackForm from './SnackForm';
 
 function SnackList() {
-  const [modal, holder] = Modal.useModal();
-
   const [currentPage, setCurrentPage] = useState(1);
   const { items, totalPage, isLoading, refetch } = useSnacks(currentPage);
 
@@ -15,135 +31,163 @@ function SnackList() {
   const [isOpenEdit, setOpenEdit] = useState(false);
   const [focused, setFocused] = useState<Snack | undefined>(undefined);
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState<Snack | undefined>(undefined);
+
   const handleEdit = (value: Snack) => {
     setFocused(value);
     setOpenEdit(true);
   };
 
   const handleRemove = (value: Snack) => {
-    modal.confirm({
-      title: `삭제 (${value.name})`,
-      onOk: async () => {
-        try {
-          await removeSnack(value.id);
-          await refetch();
-        } catch (err) {
-          message.error(`${err}`);
-        }
-      },
-    });
+    setConfirmTarget(value);
+    setConfirmOpen(true);
   };
 
-  const columns: TableProps<Snack>['columns'] = [
+  const handleConfirmRemove = async () => {
+    if (!confirmTarget) return;
+    try {
+      await removeSnack(confirmTarget.id);
+      await refetch();
+    } catch (err) {
+      toast.error(`${err}`);
+    }
+    setConfirmOpen(false);
+    setConfirmTarget(undefined);
+  };
+
+  const columns: ColumnDef<Snack>[] = [
     {
-      title: '이미지',
-      dataIndex: 'Img',
-      key: 'Img',
-      render: (value: ImgItem) => {
-        return <Image width={'100%'} height={60} src={value?.uri ?? ''} alt='img' style={{ objectFit: 'contain' }} />;
+      accessorKey: 'id',
+      header: '번호',
+      size: 84,
+    },
+    {
+      accessorKey: 'Img',
+      header: '이미지',
+      size: 156,
+      cell: ({ row }) => {
+        const value = row.original.Img as ImgItem;
+        return (
+          <ClickableImagePreview
+            src={value?.uri}
+            alt={`${row.original.name} 간식 이미지`}
+            triggerClassName='h-[120px] w-[120px]'
+            imageClassName='h-full w-full object-contain'
+          />
+        );
       },
     },
     {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
-    },
-
-    {
-      title: '이름',
-      dataIndex: 'name',
-      key: 'name',
+      accessorKey: 'name',
+      header: '이름',
     },
     {
-      title: '설명',
-      dataIndex: 'desc',
-      key: 'desc',
+      accessorKey: 'desc',
+      header: '설명',
     },
     {
-      title: '종류',
-      dataIndex: 'kind',
-      key: 'kind',
+      accessorKey: 'kind',
+      header: '종류',
     },
     {
-      title: '진화하는 펫',
-      dataIndex: 'type',
-      key: 'type',
+      accessorKey: 'type',
+      header: '진화하는 펫',
     },
     {
-      title: '경험치',
-      dataIndex: 'exp',
-      key: 'exp',
-    },
-
-    {
-      title: '순서',
-      dataIndex: 'order',
-      key: 'order',
+      accessorKey: 'exp',
+      header: '경험치',
     },
     {
-      title: '가격',
-      dataIndex: 'price',
-      key: 'price',
+      accessorKey: 'order',
+      header: '순서',
     },
     {
-      title: '스타/하트',
-      dataIndex: 'isPaid',
-      key: 'isPaid',
-      render: (value: boolean) => {
-        return <Tag color={value ? 'gold' : 'red'}>{value ? '스타' : '하트'}</Tag>;
+      accessorKey: 'price',
+      header: '가격',
+    },
+    {
+      accessorKey: 'isPaid',
+      header: '스타/하트',
+      cell: ({ row }) => {
+        const value = row.original.isPaid;
+        return <Badge variant={value ? 'warning' : 'destructive'}>{value ? '스타' : '하트'}</Badge>;
       },
     },
     {
-      title: '활성화',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      render: (value: boolean) => {
-        return <Tag color={value ? 'green' : 'default'}>{value ? '활성화' : '비활성화'}</Tag>;
+      accessorKey: 'isActive',
+      header: '활성화',
+      cell: ({ row }) => {
+        const value = row.original.isActive;
+        return <Badge variant={value ? 'success' : 'muted'}>{value ? '활성화' : '비활성화'}</Badge>;
       },
     },
-
     {
-      title: 'Action',
-      dataIndex: '',
-      key: 'x',
-      render: (value) => (
-        <div className='flex gap-4'>
-          <Button onClick={() => handleEdit(value)}>수정</Button>
-          <Button onClick={() => handleRemove(value)}>삭제</Button>
-        </div>
+      id: 'actions',
+      header: '관리',
+      cell: ({ row }) => (
+        <TableRowActions
+          items={[
+            {
+              label: '수정',
+              onClick: () => handleEdit(row.original),
+            },
+            {
+              label: '삭제',
+              onClick: () => handleRemove(row.original),
+              destructive: true,
+            },
+          ]}
+        />
       ),
     },
   ];
+
   return (
     <>
-      {holder}
-      <Button
-        onClick={() => {
-          setFocused(undefined);
-          setOpenCreate(true);
-        }}
-        type='primary'
-        size='large'
-      >
-        추가
-      </Button>
-      <Table
-        dataSource={items}
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>삭제 ({confirmTarget?.name})</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmRemove}>확인</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <DefaultTableBtn className='justify-end'>
+        <Button
+          onClick={() => {
+            setFocused(undefined);
+            setOpenCreate(true);
+          }}
+          size='lg'
+        >
+          추가
+        </Button>
+      </DefaultTableBtn>
+      <DataTable
         columns={columns}
+        data={items ?? []}
+        loading={isLoading}
         pagination={{
           total: totalPage * 10,
-          current: currentPage,
+          page: currentPage,
+          pageSize: 10,
           onChange: (page) => setCurrentPage(page),
-          showSizeChanger: false,
         }}
-        loading={isLoading}
       />
-      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={720}>
-        <SnackForm close={() => setOpenCreate(false)} reload={refetch} />
-      </Drawer>
-      <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={720}>
-        <SnackForm initialSnack={focused} close={() => setOpenEdit(false)} reload={refetch} />
-      </Drawer>
+      <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
+        <AdminSideSheetContent title='간식 추가' size='lg'>
+          <SnackForm close={() => setOpenCreate(false)} reload={refetch} />
+        </AdminSideSheetContent>
+      </Sheet>
+      <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
+        <AdminSideSheetContent title='간식 수정' size='lg'>
+          <SnackForm initialSnack={focused} close={() => setOpenEdit(false)} reload={refetch} />
+        </AdminSideSheetContent>
+      </Sheet>
     </>
   );
 }

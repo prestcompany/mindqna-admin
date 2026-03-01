@@ -1,11 +1,31 @@
 import { publishCardTemplates, removeCardTemplate, unpublishedCardTemplates } from '@/client/card';
 import { CardTemplate, CardTemplateType, GetCardTemplatesResult, SpaceType } from '@/client/types';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
+import DataTable from '@/components/shared/ui/data-table';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { SelectContent, SelectItem, SelectTrigger, SelectValue, Select as ShadSelect } from '@/components/ui/select';
+import { Sheet } from '@/components/ui/sheet';
 import useCardTemplates from '@/hooks/useCardTemplates';
 import { useQueryClient } from '@tanstack/react-query';
-import { Button, Drawer, Modal, Select, Table, TableProps, Tag, message } from 'antd';
+import { ColumnDef } from '@tanstack/react-table';
 import { produce } from 'immer';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import CardForm from './CardForm';
 import { CardUploadModal } from './CardUploadModal';
 
@@ -19,9 +39,10 @@ function CardList() {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const [messageApi, contextHolder] = message.useMessage();
   const [filter, setFilter] = useState<{ type?: CardTemplateType[]; spaceType?: SpaceType[]; locale?: string[] }>({});
-  const [modal, holder] = Modal.useModal();
+
+  const [confirmDelete, setConfirmDelete] = useState<CardTemplate | undefined>(undefined);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   const { templates, totalPage, isLoading, refetch } = useCardTemplates({ page: currentPage, ...filter });
 
@@ -31,14 +52,14 @@ function CardList() {
   };
 
   const handleRemove = (value: CardTemplate) => {
-    modal.confirm({
-      title: `삭제 팝업`,
-      content: `순서 ${value.order} 을 정말 삭제하시겠습니까?`,
-      onOk: async () => {
-        await removeCardTemplate(value.id);
-        await refetch();
-      },
-    });
+    setConfirmDelete(value);
+  };
+
+  const handleConfirmRemove = async () => {
+    if (!confirmDelete) return;
+    await removeCardTemplate(confirmDelete.id);
+    await refetch();
+    setConfirmDelete(undefined);
   };
 
   const handlePressPublish = async () => {
@@ -55,10 +76,10 @@ function CardList() {
           });
         });
       });
-      messageApi.success({ content: '성공' });
+      toast.success('성공');
     } catch (err) {
       console.error(err);
-      messageApi.error({ content: `실패 : ${err}` });
+      toast.error(`실패 : ${err}`);
     }
     setLoading(false);
   };
@@ -67,7 +88,7 @@ function CardList() {
     try {
       setLoading(true);
       await unpublishedCardTemplates(selectedRowKeys as number[]);
-      messageApi.success({ content: '성공' });
+      toast.success('성공');
       queryClient.setQueryData<GetCardTemplatesResult>(['cardTemplates'], (prev) => {
         if (!prev) return;
         return produce(prev, (draft) => {
@@ -80,139 +101,159 @@ function CardList() {
       });
     } catch (err) {
       console.error(err);
-      messageApi.error({ content: `실패 : ${err}` });
+      toast.error(`실패 : ${err}`);
     }
     setLoading(false);
   };
 
   const handleBulkUpload = () => {
-    modal.info({
-      width: 500,
-      title: '카드 템플릿 업로드',
-      content: <CardUploadModal />,
-      okButtonProps: { style: { display: 'none' } },
-      closable: true,
-    });
+    setIsUploadOpen(true);
   };
 
-  const onSelectChange = (newSelectedRowKeys: React.Key[]) => setSelectedRowKeys(newSelectedRowKeys);
-
-  const columns: TableProps<CardTemplate>['columns'] = [
+  const columns: ColumnDef<CardTemplate>[] = [
     {
-      title: '번호',
-      dataIndex: 'id',
-      key: 'id',
-    },
-
-    {
-      title: '이름',
-      dataIndex: 'name',
-      key: 'name',
-      width: 700,
-    },
-    {
-      title: '순서',
-      dataIndex: 'order',
-      key: 'order',
-    },
-    {
-      title: '언어',
-      dataIndex: 'locale',
-      key: 'locale',
-    },
-    {
-      title: '질문타입',
-      dataIndex: 'type',
-      key: 'type',
-    },
-    {
-      title: '공간타입',
-      dataIndex: 'spaceType',
-      key: 'spaceType',
+      id: 'select',
+      size: 40,
+      header: () => (
+        <Checkbox
+          checked={templates?.length > 0 && selectedRowKeys.length === templates?.length}
+          onCheckedChange={(checked) => {
+            if (checked) {
+              setSelectedRowKeys(templates?.map((t) => t.id) || []);
+            } else {
+              setSelectedRowKeys([]);
+            }
+          }}
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={selectedRowKeys.includes(row.original.id)}
+          onCheckedChange={(checked) => {
+            if (checked) {
+              setSelectedRowKeys((prev) => [...prev, row.original.id]);
+            } else {
+              setSelectedRowKeys((prev) => prev.filter((k) => k !== row.original.id));
+            }
+          }}
+        />
+      ),
     },
     {
-      title: '상태',
-      dataIndex: 'isPublished',
-      key: 'isPublished',
-      render: (value) => {
-        return <Tag color={value ? 'success' : 'default'}>{value ? '활성' : '비활성'}</Tag>;
+      accessorKey: 'id',
+      header: '번호',
+    },
+    {
+      accessorKey: 'name',
+      header: '이름',
+      size: 700,
+    },
+    {
+      accessorKey: 'order',
+      header: '순서',
+    },
+    {
+      accessorKey: 'locale',
+      header: '언어',
+    },
+    {
+      accessorKey: 'type',
+      header: '질문타입',
+    },
+    {
+      accessorKey: 'spaceType',
+      header: '공간타입',
+    },
+    {
+      accessorKey: 'isPublished',
+      header: '상태',
+      cell: ({ row }) => {
+        const value = row.original.isPublished;
+        return <Badge variant={value ? 'success' : 'muted'}>{value ? '활성' : '비활성'}</Badge>;
       },
     },
     {
-      title: 'Action',
-      dataIndex: '',
-      key: 'x',
-      render: (value) => (
-        <div className='flex gap-4'>
-          <Button onClick={() => handleEdit(value)}>수정</Button>
-          <Button onClick={() => handleRemove(value)}>삭제</Button>
-        </div>
+      id: 'actions',
+      header: '관리',
+      cell: ({ row }) => (
+        <TableRowActions
+          items={[
+            {
+              label: '수정',
+              onClick: () => handleEdit(row.original),
+            },
+            {
+              label: '삭제',
+              onClick: () => handleRemove(row.original),
+              destructive: true,
+            },
+          ]}
+        />
       ),
     },
   ];
 
-  const rowSelection = {
-    selectedRowKeys,
-    onChange: onSelectChange,
-    selections: [Table.SELECTION_ALL],
-  };
   const hasSelected = selectedRowKeys.length > 0;
 
   return (
     <div>
-      {contextHolder}
-      {holder}
       <DefaultTableBtn className='justify-between'>
-        <div className='flex items-center gap-2 py-4'>
-          <Select
-            placeholder='언어'
-            style={{ width: 120 }}
-            options={[
-              { label: 'ko', value: 'ko' },
-              { label: 'en', value: 'en' },
-              { label: 'ja', value: 'ja' },
-              { label: 'zh', value: 'zh' },
-              { label: 'zhTw', value: 'zhTw' },
-              { label: 'es', value: 'es' },
-              { label: 'id', value: 'id' },
-            ]}
-            value={(filter.locale ?? [])?.[0]}
-            onChange={(v: string) => {
-              setFilter((prev) => ({ ...prev, locale: [v] }));
+        <div className='flex gap-2 items-center py-4'>
+          <ShadSelect
+            value={(filter.locale ?? [])?.[0] ?? '__all__'}
+            onValueChange={(v: string) => {
+              setFilter((prev) => ({ ...prev, locale: v === '__all__' ? undefined : [v] }));
             }}
-            allowClear
-          />
-          <Select
-            placeholder='질문타입'
-            style={{ width: 120 }}
-            options={[
-              { label: 'basic', value: 'basic' },
-              { label: 'bonus', value: 'bonus' },
-            ]}
-            value={(filter.type ?? [])?.[0]}
-            onChange={(v: CardTemplateType) => {
-              setFilter((prev) => ({ ...prev, type: [v] }));
+          >
+            <SelectTrigger className='w-[120px]'>
+              <SelectValue placeholder='언어' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='__all__'>전체</SelectItem>
+              <SelectItem value='ko'>ko</SelectItem>
+              <SelectItem value='en'>en</SelectItem>
+              <SelectItem value='ja'>ja</SelectItem>
+              <SelectItem value='zh'>zh</SelectItem>
+              <SelectItem value='zhTw'>zhTw</SelectItem>
+              <SelectItem value='es'>es</SelectItem>
+              <SelectItem value='id'>id</SelectItem>
+            </SelectContent>
+          </ShadSelect>
+          <ShadSelect
+            value={(filter.type ?? [])?.[0] ?? '__all__'}
+            onValueChange={(v: string) => {
+              setFilter((prev) => ({ ...prev, type: v === '__all__' ? undefined : [v as CardTemplateType] }));
             }}
-            allowClear
-          />
-          <Select
-            placeholder='공간타입'
-            style={{ width: 120 }}
-            options={[
-              { label: '혼자', value: 'alone' },
-              { label: '커플', value: 'couple' },
-              { label: '가족', value: 'family' },
-              { label: '친구', value: 'friends' },
-            ]}
-            value={(filter.spaceType ?? [])?.[0]}
-            onChange={(v: SpaceType) => {
-              setFilter((prev) => ({ ...prev, spaceType: [v] }));
+          >
+            <SelectTrigger className='w-[120px]'>
+              <SelectValue placeholder='질문타입' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='__all__'>전체</SelectItem>
+              <SelectItem value='basic'>basic</SelectItem>
+              <SelectItem value='bonus'>bonus</SelectItem>
+            </SelectContent>
+          </ShadSelect>
+          <ShadSelect
+            value={(filter.spaceType ?? [])?.[0] ?? '__all__'}
+            onValueChange={(v: string) => {
+              setFilter((prev) => ({ ...prev, spaceType: v === '__all__' ? undefined : [v as SpaceType] }));
             }}
-            allowClear
-          />
+          >
+            <SelectTrigger className='w-[120px]'>
+              <SelectValue placeholder='공간타입' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='__all__'>전체</SelectItem>
+              <SelectItem value='alone'>혼자</SelectItem>
+              <SelectItem value='couple'>커플</SelectItem>
+              <SelectItem value='family'>가족</SelectItem>
+              <SelectItem value='friends'>친구</SelectItem>
+            </SelectContent>
+          </ShadSelect>
         </div>
-        <div className='flex items-center gap-4'>
-          <Button type='default' size='large' onClick={handleBulkUpload}>
+        <div className='flex gap-4 items-center'>
+          <Button variant='outline' size='lg' onClick={handleBulkUpload}>
             카드 템플릿 엑셀 업로드
           </Button>
           <Button
@@ -220,42 +261,65 @@ function CardList() {
               setFocused(undefined);
               setOpenCreate(true);
             }}
-            type='primary'
-            size='large'
+            size='lg'
           >
             카드 템플릿 추가
           </Button>
         </div>
       </DefaultTableBtn>
 
-      <Table
-        rowSelection={rowSelection}
-        rowKey={'id'}
+      <DataTable
         columns={columns}
-        dataSource={templates}
+        data={templates || []}
         pagination={{
           total: totalPage * 10,
-          current: currentPage,
+          page: currentPage,
+          pageSize: 10,
           onChange: (page) => setCurrentPage(page),
-          showSizeChanger: false,
         }}
         loading={loading || isLoading}
       />
       <div className='flex gap-3'>
-        <Button onClick={handlePressPublish} disabled={!hasSelected} type='primary' loading={loading}>
+        <Button onClick={handlePressPublish} disabled={!hasSelected || loading}>
           활성화
         </Button>
-        <Button onClick={handlePressUnpublished} disabled={!hasSelected} loading={loading}>
+        <Button variant='outline' onClick={handlePressUnpublished} disabled={!hasSelected || loading}>
           비활성화
         </Button>
       </div>
-      <Drawer open={isOpenCreate} onClose={() => setOpenCreate(false)} width={600}>
-        <CardForm reload={refetch} close={() => setOpenCreate(false)} />
-      </Drawer>
+      <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
+        <AdminSideSheetContent title='카드 템플릿 추가' size='md'>
+          <CardForm reload={refetch} close={() => setOpenCreate(false)} />
+        </AdminSideSheetContent>
+      </Sheet>
 
-      <Drawer open={isOpenEdit} onClose={() => setOpenEdit(false)} width={600}>
-        <CardForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
-      </Drawer>
+      <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
+        <AdminSideSheetContent title='카드 템플릿 수정' size='md'>
+          <CardForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
+        </AdminSideSheetContent>
+      </Sheet>
+
+      <AlertDialog open={!!confirmDelete} onOpenChange={(open) => !open && setConfirmDelete(undefined)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>삭제 팝업</AlertDialogTitle>
+            <AlertDialogDescription>순서 {confirmDelete?.order} 을 정말 삭제하시겠습니까?</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmRemove}>확인</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
+        <DialogContent className='max-w-lg'>
+          <DialogHeader>
+            <DialogTitle>카드 템플릿 업로드</DialogTitle>
+          </DialogHeader>
+          <CardUploadModal />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

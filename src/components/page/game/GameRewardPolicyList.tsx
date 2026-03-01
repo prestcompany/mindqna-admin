@@ -1,84 +1,77 @@
-import { Game, GameRewardCondition, GameRewardPolicy } from '@/client/game';
-import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import { Game, GameRewardPolicy } from '@/client/game';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
+import { Badge } from '@/components/ui/badge';
+import DataTable from '@/components/shared/ui/data-table';
 import { useGameRewardPolicies } from '@/hooks/useGame';
-import { Modal, Table, TableProps, Tag } from 'antd';
-import { Button } from 'antd/lib';
-import { useRouter } from 'next/router';
+import { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
 import GameRewardPolicyModal from './GameRewardPolicyModal';
 
 function GameRewardPolicyList() {
-  const router = useRouter();
-  const [modal, holder] = Modal.useModal();
-
   const [currentPage, setCurrentPage] = useState(1);
-  const [filter, setFilter] = useState<{ locale?: string[] }>({});
   const { items, totalPage, isLoading, refetch } = useGameRewardPolicies({ page: currentPage });
 
   const [selectedGameRewardPolicy, setSelectedGameRewardPolicy] = useState<GameRewardPolicy | undefined>(undefined);
   const [isOpenEdit, setOpenEdit] = useState(false);
 
-  const columns: TableProps<GameRewardPolicy>['columns'] = [
+  const columns: ColumnDef<GameRewardPolicy>[] = [
     {
-      title: 'No.',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
+      accessorKey: 'id',
+      header: 'No.',
+      size: 80,
     },
     {
-      title: '게임명',
-      dataIndex: 'game',
-      key: 'game.name',
-      width: 250,
-      render: (game: Game) => {
-        return <Tag color={game?.primaryKeyColor}>{game ? game.name : '전체 랭킹'}</Tag>;
+      accessorKey: 'game',
+      header: '게임명',
+      size: 250,
+      cell: ({ row }) => {
+        const game = row.original.game as Game;
+        return <Badge style={game ? { backgroundColor: game.primaryKeyColor, color: '#fff' } : undefined}>{game ? game.name : '전체 랭킹'}</Badge>;
       },
     },
     {
-      title: '정책',
-      dataIndex: 'condition',
-      key: 'condition',
-      width: 100,
-      render: (condition: GameRewardCondition, record: GameRewardPolicy) => {
+      id: 'actions',
+      header: '관리',
+      size: 90,
+      cell: ({ row }) => {
         return (
-          <Button
-            onClick={() => {
-              setSelectedGameRewardPolicy(record);
-              setOpenEdit(true);
-            }}
-          >
-            정책 수정
-          </Button>
+          <TableRowActions
+            items={[
+              {
+                label: '정책 수정',
+                onClick: () => {
+                  setSelectedGameRewardPolicy(row.original);
+                  setOpenEdit(true);
+                },
+              },
+            ]}
+          />
         );
       },
     },
     {
-      title: '상태',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      width: 80,
-      render: (isActive: boolean) => {
-        return <Tag color={isActive ? 'green' : 'red'}>{isActive ? '활성' : '비활성'}</Tag>;
+      accessorKey: 'isActive',
+      header: '상태',
+      size: 80,
+      cell: ({ row }) => {
+        const isActive = row.original.isActive;
+        return <Badge variant={isActive ? 'success' : 'destructive'}>{isActive ? '활성' : '비활성'}</Badge>;
       },
     },
   ];
 
   return (
     <>
-      {holder}
-      <DefaultTableBtn className='justify-between'></DefaultTableBtn>
-
-      <Table
-        dataSource={items}
+      <DataTable
         columns={columns}
-        rowKey={(record) => record.id}
+        data={items || []}
+        loading={isLoading}
+        rowKey={(record) => record.id.toString()}
         pagination={{
           total: totalPage * 10,
-          current: currentPage,
+          page: currentPage,
           onChange: (page) => setCurrentPage(page),
-          showSizeChanger: false,
         }}
-        loading={isLoading}
       />
       <GameRewardPolicyModal
         isOpen={isOpenEdit}

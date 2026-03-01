@@ -29,24 +29,26 @@ export function DatePickerWithRange({
 }: DatePickerWithRangeProps) {
   // 기존 date 상태는 실제 반영된 날짜, pendingDate는 사용자가 선택 중인 날짜
   const [date, setDate] = React.useState<DateRange | undefined>(
-    startedAt && endedAt ? {
-      from: startedAt.toDate(),
-      to: endedAt.toDate(),
-    } : undefined
+    startedAt && endedAt
+      ? {
+          from: startedAt.toDate(),
+          to: endedAt.toDate(),
+        }
+      : undefined,
   );
   const [pendingDate, setPendingDate] = React.useState<DateRange | undefined>(
-    startedAt && endedAt ? {
-      from: startedAt.toDate(),
-      to: endedAt.toDate(),
-    } : undefined
+    startedAt && endedAt
+      ? {
+          from: startedAt.toDate(),
+          to: endedAt.toDate(),
+        }
+      : undefined,
   );
   // Popover open 상태 관리
   const [open, setOpen] = React.useState(false);
 
   // 달력 표시 월 상태 관리
-  const [currentMonth, setCurrentMonth] = React.useState<Date>(
-    (startedAt && startedAt.toDate()) || new Date()
-  );
+  const [currentMonth, setCurrentMonth] = React.useState<Date>((startedAt && startedAt.toDate()) || new Date());
 
   // 년도 배열 생성 (현재 년도부터 5년 전까지)
   const years = React.useMemo(() => {
@@ -122,7 +124,7 @@ export function DatePickerWithRange({
             variant={'outline'}
             className={cn('w-auto justify-start text-left font-normal', !date && 'text-muted-foreground')}
           >
-            <CalendarIcon className='w-4 h-4 mr-2' />
+            <CalendarIcon className='mr-2 w-4 h-4' />
             {date?.from ? (
               date.to ? (
                 <>
@@ -136,7 +138,7 @@ export function DatePickerWithRange({
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className='w-auto p-0' align='start'>
+        <PopoverContent className='p-0 w-auto' align='start'>
           <div className='flex items-center p-3 space-x-2 border-b'>
             <Select onValueChange={handleYearChange} value={currentMonth.getFullYear().toString()}>
               <SelectTrigger className='w-[100px]'>
