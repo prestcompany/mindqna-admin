@@ -19,6 +19,18 @@ export async function getUserByEmail(email: string) {
   return res.data;
 }
 
+export interface SearchUserParams {
+  id?: string;
+  username?: string;
+  email?: string;
+}
+
+export async function searchUser(params: SearchUserParams) {
+  const res = await client.get<User>('/user/search', { params });
+
+  return res.data;
+}
+
 export async function removeUser(id: string) {
   const res = await client.delete(`/user/${id}`);
 

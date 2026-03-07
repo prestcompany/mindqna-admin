@@ -1,5 +1,5 @@
 import { removeInteriorTemplate } from '@/client/interior';
-import { ImgItem, InteriorTemplate } from '@/client/types';
+import { ImgItem, InteriorTemplate, InteriorTemplateType } from '@/client/types';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
 import DataTable from '@/components/shared/ui/data-table';
@@ -16,15 +16,28 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet } from '@/components/ui/sheet';
+import useDebouncedValue from '@/hooks/useDebouncedValue';
 import useInteriors from '@/hooks/useInteriors';
+import useTotalRooms from '@/hooks/useTotalRooms';
 import { ColumnDef } from '@tanstack/react-table';
-import { useState } from 'react';
+import { Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import InteriorForm from './InteriorForm';
 
 function InteriorList() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [filter, setFilter] = useState<{
+    room?: string;
+    type?: InteriorTemplateType[];
+  }>({});
+  const [searchInput, setSearchInput] = useState('');
+  const debouncedSearch = useDebouncedValue(searchInput, 500);
+  const trimmedSearch = debouncedSearch.trim();
+  const effectiveSearch = trimmedSearch.length >= 2 ? trimmedSearch : undefined;
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
@@ -32,8 +45,18 @@ function InteriorList() {
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<InteriorTemplate | undefined>(undefined);
+  const { items: roomItems } = useTotalRooms();
 
-  const { templates, totalPage, isLoading, refetch } = useInteriors({ page: currentPage });
+  const { templates, totalPage, isLoading, refetch } = useInteriors({
+    page: currentPage,
+    room: filter.room,
+    type: filter.type,
+    search: effectiveSearch,
+  });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter.room, filter.type, effectiveSearch]);
 
   const handleEdit = (value: InteriorTemplate) => {
     setFocused(value);
@@ -61,6 +84,7 @@ function InteriorList() {
     {
       accessorKey: 'id',
       header: '번호',
+      size: 72,
     },
     {
       accessorKey: 'img',
@@ -92,26 +116,32 @@ function InteriorList() {
     {
       accessorKey: 'name',
       header: '이름',
+      size: 180,
     },
     {
       accessorKey: 'type',
       header: '타입',
+      size: 110,
     },
     {
       accessorKey: 'room',
       header: '방 타입',
+      size: 140,
     },
     {
       accessorKey: 'category',
       header: '카테고리',
+      size: 150,
     },
     {
       accessorKey: 'price',
       header: '가격',
+      size: 90,
     },
     {
       accessorKey: 'isPaid',
       header: '스타/하트',
+      size: 100,
       cell: ({ row }) => {
         const value = row.original.isPaid;
         return <Badge variant={value ? 'warning' : 'destructive'}>{value ? '스타' : '하트'}</Badge>;
@@ -120,6 +150,7 @@ function InteriorList() {
     {
       accessorKey: 'isActive',
       header: '상태',
+      size: 90,
       cell: ({ row }) => {
         const value = row.original.isActive;
         return <Badge variant={value ? 'success' : 'destructive'}>{value ? '활성' : '비활성'}</Badge>;
@@ -128,14 +159,17 @@ function InteriorList() {
     {
       accessorKey: 'width',
       header: 'width',
+      size: 72,
     },
     {
       accessorKey: 'height',
       header: 'height',
+      size: 72,
     },
     {
       id: 'actions',
       header: '관리',
+      size: 92,
       cell: ({ row }) => (
         <TableRowActions
           items={[
@@ -167,7 +201,55 @@ function InteriorList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <DefaultTableBtn className='justify-end'>
+      <DefaultTableBtn className='justify-between'>
+        <div className='flex flex-wrap items-center gap-2 py-4'>
+          <div className='relative min-w-[240px]'>
+            <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+            <Input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder='이름/카테고리 검색 (2자 이상)'
+              className='pl-9'
+            />
+          </div>
+          <Select
+            value={filter.room ?? '__all__'}
+            onValueChange={(value) => setFilter((prev) => ({ ...prev, room: value === '__all__' ? undefined : value }))}
+          >
+            <SelectTrigger className='w-[160px]'>
+              <SelectValue placeholder='방 타입' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='__all__'>전체 방</SelectItem>
+              {roomItems.map((item) => (
+                <SelectItem key={item.type} value={item.type}>
+                  {item.type}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={(filter.type ?? [])?.[0] ?? '__all__'}
+            onValueChange={(value) =>
+              setFilter((prev) => ({
+                ...prev,
+                type: value === '__all__' ? undefined : [value as InteriorTemplateType],
+              }))
+            }
+          >
+            <SelectTrigger className='w-[150px]'>
+              <SelectValue placeholder='타입' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='__all__'>전체 타입</SelectItem>
+              <SelectItem value='item'>아이템</SelectItem>
+              <SelectItem value='wall'>벽지</SelectItem>
+              <SelectItem value='floor'>바닥</SelectItem>
+              <SelectItem value='todayFrame'>오늘 프레임</SelectItem>
+              <SelectItem value='event'>이벤트</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <Button
           onClick={() => {
             setFocused(undefined);

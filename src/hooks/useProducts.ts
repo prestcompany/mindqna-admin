@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 type Props = {
   page: number;
+  search?: string;
 };
 
 function useProducts(by: Props) {

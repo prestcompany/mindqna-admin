@@ -1,8 +1,13 @@
-import client from "./@base";
-import { QueryResultWithPagination } from "./types";
+import client from './@base';
+import { QueryResultWithPagination } from './types';
 
-export async function getCoupons(page: number) {
-  const res = await client.get<QueryResultWithPagination<Coupon>>("/coupon", { params: { page } });
+export async function getCoupons(page: number, search?: string) {
+  const res = await client.get<QueryResultWithPagination<Coupon>>('/coupon', {
+    params: {
+      page,
+      search: search?.trim() || undefined,
+    },
+  });
 
   return res.data;
 }
