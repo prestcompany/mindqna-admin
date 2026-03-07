@@ -93,14 +93,14 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
     ),
   },
   {
-    accessorFn: (row) => row.pet?.level,
-    id: 'level',
-    header: '펫 LV',
+    accessorFn: (row) => row.pet?.exp,
+    id: 'petExp',
+    header: '펫 EXP',
     size: 130,
     cell: ({ row }) => (
       <div className='flex gap-1 whitespace-nowrap'>
-        <Badge variant='info'>Lv.{row.original.pet.level}</Badge>
-        <Badge variant='info'>{row.original.pet.exp.toFixed(1)}</Badge>
+        <Badge variant='info'>EXP {row.original.pet.exp.toFixed(1)}</Badge>
+        <Badge variant='secondary'>Lv.{row.original.pet.level}</Badge>
       </div>
     ),
   },
@@ -202,7 +202,7 @@ export const defaultColumnConfig: ColumnConfig[] = [
   { key: 'cardOrder', visible: true, width: 80 },
   { key: 'replies', visible: true, width: 80 },
   { key: 'coins', visible: true, width: 146 },
-  { key: 'level', visible: true, width: 130 },
+  { key: 'petExp', visible: true, width: 130 },
   { key: 'items', visible: false, width: 140 },
   { key: 'createdAt', visible: true, width: 182 },
   { key: 'dueRemovedAt', visible: false, width: 190 },

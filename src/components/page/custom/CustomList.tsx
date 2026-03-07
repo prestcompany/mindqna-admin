@@ -15,9 +15,12 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import useDebouncedValue from '@/hooks/useDebouncedValue';
 import useCustoms from '@/hooks/useCustoms';
 import { ColumnDef } from '@tanstack/react-table';
-import { useState } from 'react';
+import { Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import CustomFormModal from './CustomFormModal';
 import LottieCDNPlayer from './LottieCDNPlayer';
@@ -25,6 +28,10 @@ import { PetCustomTypeOptions, petTypeOptions } from './constants';
 
 function CustomList() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchInput, setSearchInput] = useState('');
+  const debouncedSearch = useDebouncedValue(searchInput, 500);
+  const trimmedSearch = debouncedSearch.trim();
+  const effectiveSearch = trimmedSearch.length >= 2 ? trimmedSearch : undefined;
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
@@ -33,7 +40,11 @@ function CustomList() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<PetCustomTemplate | undefined>(undefined);
 
-  const { templates, totalPage, isLoading, refetch } = useCustoms({ page: currentPage });
+  const { templates, totalPage, isLoading, refetch } = useCustoms({ page: currentPage, search: effectiveSearch });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [effectiveSearch]);
 
   const handleEdit = (value: PetCustomTemplate) => {
     setFocused(value);
@@ -202,7 +213,16 @@ function CustomList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <DefaultTableBtn className='justify-end'>
+      <DefaultTableBtn className='justify-between'>
+        <div className='relative min-w-[260px] py-4'>
+          <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+          <Input
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder='이름 / 파일 키 검색 (2자 이상)'
+            className='pl-9'
+          />
+        </div>
         <Button
           onClick={() => {
             setFocused(undefined);

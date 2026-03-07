@@ -5,7 +5,9 @@ import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import TableRowActions from '@/components/shared/ui/table-row-actions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Sheet } from '@/components/ui/sheet';
+import useDebouncedValue from '@/hooks/useDebouncedValue';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,18 +21,27 @@ import {
 import useCoupons from '@/hooks/useCoupons';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
-import { useState } from 'react';
+import { Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import CouponForm from './CouponForm';
 
 function CouponList() {
   const [currentPage, setCurrentPage] = useState(1);
-  const { items, isLoading, refetch, totalPage } = useCoupons(currentPage);
+  const [searchInput, setSearchInput] = useState('');
+  const debouncedSearch = useDebouncedValue(searchInput, 500);
+  const trimmedSearch = debouncedSearch.trim();
+  const effectiveSearch = trimmedSearch.length >= 2 ? trimmedSearch : undefined;
+  const { items, isLoading, refetch, totalPage } = useCoupons(currentPage, effectiveSearch);
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
   const [focused, setFocused] = useState<Coupon | undefined>(undefined);
   const [confirmDelete, setConfirmDelete] = useState<Coupon | undefined>(undefined);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [effectiveSearch]);
 
   const handleEdit = (value: Coupon) => {
     setFocused(value);
@@ -56,18 +67,22 @@ function CouponList() {
     {
       accessorKey: 'id',
       header: '번호',
+      size: 72,
     },
     {
       accessorKey: 'name',
       header: '이름',
+      size: 180,
     },
     {
       accessorKey: 'code',
       header: 'code',
+      size: 180,
     },
     {
       accessorKey: 'heart',
       header: '히트',
+      size: 90,
       cell: ({ row }) => {
         return <Badge variant='destructive'>{row.original.heart}</Badge>;
       },
@@ -75,6 +90,7 @@ function CouponList() {
     {
       accessorKey: 'star',
       header: '스타',
+      size: 90,
       cell: ({ row }) => {
         return <Badge variant='warning'>{row.original.star}</Badge>;
       },
@@ -82,6 +98,7 @@ function CouponList() {
     {
       accessorKey: 'ticketCount',
       header: '티켓 수',
+      size: 96,
       cell: ({ row }) => {
         return <Badge variant='default'>{row.original.ticketCount}</Badge>;
       },
@@ -89,6 +106,7 @@ function CouponList() {
     {
       accessorKey: 'ticketDueDayNum',
       header: '티켓 혜택 일',
+      size: 120,
       cell: ({ row }) => {
         return <Badge variant='default'>{row.original.ticketDueDayNum}</Badge>;
       },
@@ -96,6 +114,7 @@ function CouponList() {
     {
       accessorKey: 'dueAt',
       header: '만료일',
+      size: 140,
       cell: ({ row }) => {
         const value = row.original.dueAt;
         const day = dayjs(value);
@@ -105,6 +124,7 @@ function CouponList() {
     {
       accessorKey: 'username',
       header: '사용',
+      size: 160,
       cell: ({ row }) => {
         return <div> {row.original.username || '미사용'}</div>;
       },
@@ -112,6 +132,7 @@ function CouponList() {
     {
       id: 'actions',
       header: '관리',
+      size: 92,
       cell: ({ row }) => (
         <TableRowActions
           items={[
@@ -131,7 +152,16 @@ function CouponList() {
   ];
   return (
     <>
-      <DefaultTableBtn className='justify-end'>
+      <DefaultTableBtn className='justify-between'>
+        <div className='relative min-w-[260px] py-4'>
+          <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+          <Input
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder='쿠폰명 / 코드 / 사용자 검색 (2자 이상)'
+            className='pl-9'
+          />
+        </div>
         <Button
           onClick={() => {
             setFocused(undefined);

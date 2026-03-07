@@ -7,7 +7,7 @@ export async function getPurchases(by: { page: number; username?: string; startD
   return res.data;
 }
 
-export async function getProducts(by: { page: number }) {
+export async function getProducts(by: { page: number; search?: string }) {
   const res = await client.get<QueryResultWithPagination<IAPProduct>>('/products', { params: by });
 
   return res.data;

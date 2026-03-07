@@ -1,3 +1,4 @@
+import type { SpaceOrderBy } from '@/client/space';
 import { SpaceType } from '@/client/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,9 +9,12 @@ interface SpaceFilterBarProps {
   filter: {
     type?: SpaceType[];
     locale?: string[];
-    orderBy?: string;
+    orderBy?: SpaceOrderBy;
   };
-  onFilterChange: (key: string, value: any) => void;
+  onFilterChange: (
+    key: 'type' | 'locale' | 'orderBy',
+    value: SpaceType[] | string[] | SpaceOrderBy | undefined,
+  ) => void;
   onOpenSearch: () => void;
   onOpenBulkCoin: () => void;
   loading?: boolean;
@@ -32,7 +36,7 @@ function SpaceFilterBar({ filter, onFilterChange, onOpenSearch, onOpenBulkCoin, 
 
           <Select
             value={(filter.locale ?? [])?.[0] || '__all__'}
-            onValueChange={(v) => onFilterChange('locale', v === '__all__' ? undefined : [v])}
+            onValueChange={(value) => onFilterChange('locale', value === '__all__' ? undefined : [value])}
           >
             <SelectTrigger className='w-[120px]'>
               <SelectValue placeholder='언어' />
@@ -51,7 +55,7 @@ function SpaceFilterBar({ filter, onFilterChange, onOpenSearch, onOpenBulkCoin, 
 
           <Select
             value={(filter.type ?? [])?.[0] || '__all__'}
-            onValueChange={(v) => onFilterChange('type', v === '__all__' ? undefined : [v])}
+            onValueChange={(value) => onFilterChange('type', value === '__all__' ? undefined : [value as SpaceType])}
           >
             <SelectTrigger className='w-[120px]'>
               <SelectValue placeholder='공간 타입' />
@@ -67,15 +71,24 @@ function SpaceFilterBar({ filter, onFilterChange, onOpenSearch, onOpenBulkCoin, 
 
           <span className='font-medium text-gray-700'>정렬:</span>
 
-          <Select value={filter.orderBy || '__all__'} onValueChange={(v) => onFilterChange('orderBy', v === '__all__' ? undefined : v)}>
+          <Select
+            value={filter.orderBy || '__all__'}
+            onValueChange={(value) =>
+              onFilterChange('orderBy', value === '__all__' ? undefined : (value as SpaceOrderBy))
+            }
+          >
             <SelectTrigger className='w-[130px]'>
               <SelectValue placeholder='정렬 기준' />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value='__all__'>전체</SelectItem>
+              <SelectItem value='heart'>하트 많은 순</SelectItem>
+              <SelectItem value='star'>스타 많은 순</SelectItem>
+              <SelectItem value='exp'>경험치 높은 순</SelectItem>
+              <SelectItem value='roomCount'>방 많은 순</SelectItem>
+              <SelectItem value='interiorCount'>인테리어 많은 순</SelectItem>
               <SelectItem value='card'>카드 많은 순</SelectItem>
               <SelectItem value='replies'>답변 많은 순</SelectItem>
-              <SelectItem value='level'>레벨 높은 순</SelectItem>
               <SelectItem value='members'>멤버 많은 순</SelectItem>
             </SelectContent>
           </Select>

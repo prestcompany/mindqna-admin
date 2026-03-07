@@ -6,14 +6,15 @@ type Props = {
   page: number;
   locale?: string[];
   location?: BannerLocationType[];
+  search?: string;
 };
 
 function useBanners(by: Props) {
-  const { page, locale, location } = by;
+  const { page, locale, location, search } = by;
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['banners', page, locale, location],
-    queryFn: () => getBanners(page, locale, location),
+    queryKey: ['banners', page, locale, location, search],
+    queryFn: () => getBanners({ page, locale, location, search }),
   });
 
   const items = data?.items ?? [];

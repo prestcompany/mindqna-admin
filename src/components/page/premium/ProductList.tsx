@@ -1,18 +1,30 @@
 import { IAPProduct } from '@/client/premium';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import DataTable from '@/components/shared/ui/data-table';
+import useDebouncedValue from '@/hooks/useDebouncedValue';
 import useProducts from '@/hooks/useProducts';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
-import { useState } from 'react';
+import { Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 function ProductList() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchInput, setSearchInput] = useState('');
+  const debouncedSearch = useDebouncedValue(searchInput, 500);
+  const trimmedSearch = debouncedSearch.trim();
+  const effectiveSearch = trimmedSearch.length >= 2 ? trimmedSearch : undefined;
 
   const { items, isLoading, totalPage } = useProducts({
     page: currentPage,
+    search: effectiveSearch,
   });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [effectiveSearch]);
 
   const columns: ColumnDef<IAPProduct>[] = [
     {
@@ -108,8 +120,19 @@ function ProductList() {
   ];
   return (
     <>
-      <DefaultTableBtn className='justify-start'>
-        <span className='text-sm font-medium text-muted-foreground'>상품 결제 내역</span>
+      <DefaultTableBtn className='justify-between'>
+        <div className='flex flex-wrap items-center gap-2 py-4'>
+          <span className='text-sm font-medium text-muted-foreground'>상품 결제 내역</span>
+          <div className='relative min-w-[280px]'>
+            <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+            <Input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder='username / productId / transactionId 검색 (2자 이상)'
+              className='pl-9'
+            />
+          </div>
+        </div>
       </DefaultTableBtn>
       <DataTable
         columns={columns}

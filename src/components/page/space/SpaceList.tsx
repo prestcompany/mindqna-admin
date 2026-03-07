@@ -50,7 +50,7 @@ function SpaceList() {
     page: currentPage,
     type: filter.type,
     locale: filter.locale,
-    orderBy: filter.orderBy as any,
+    orderBy: filter.orderBy,
   });
 
   // AlertDialog states

@@ -1,11 +1,37 @@
 import client from './@base';
 import { QueryResultWithPagination, Space, SpaceType } from './types';
 
+export type SpaceOrderBy =
+  | 'card'
+  | 'replies'
+  | 'members'
+  | 'heart'
+  | 'star'
+  | 'exp'
+  | 'roomCount'
+  | 'interiorCount';
+
+export type SearchSpacesParams = {
+  page: number;
+  spaceId?: string;
+  name?: string;
+  username?: string;
+  nickname?: string;
+  type?: SpaceType;
+  locale?: string;
+  startDate?: string;
+  endDate?: string;
+};
+
+export type SearchSpacesResult = QueryResultWithPagination<Space> & {
+  totalCount: number;
+};
+
 export async function getSpaces(
   page: number,
   type?: SpaceType[],
   locale?: string[],
-  orderBy?: 'card' | 'replies' | 'level' | 'members',
+  orderBy?: SpaceOrderBy,
 ) {
   const res = await client.get<QueryResultWithPagination<Space>>('/space', { params: { page, type, locale, orderBy } });
 
@@ -30,8 +56,8 @@ export async function removeProfile(id: string) {
   return res.data;
 }
 
-export async function searchSpaces(by: { spaceId: string; username: string }) {
-  const res = await client.get<Space[]>(`/space/search`, { params: by });
+export async function searchSpaces(by: SearchSpacesParams) {
+  const res = await client.get<SearchSpacesResult>(`/space/search`, { params: by });
 
   return res.data;
 }

@@ -1,8 +1,17 @@
 import client from './@base';
 import { BannerLocationType, Locale, QueryResultWithPagination } from './types';
 
-export async function getBanners(page: number, locale?: string[], location?: BannerLocationType[]) {
-  const res = await client.get<QueryResultWithPagination<Banner>>('/banner', { params: { page, locale, location } });
+export type GetBannersParams = {
+  page: number;
+  locale?: string[];
+  location?: BannerLocationType[];
+  search?: string;
+};
+
+export async function getBanners({ page, locale, location, search }: GetBannersParams) {
+  const res = await client.get<QueryResultWithPagination<Banner>>('/banner', {
+    params: { page, locale, location, search: search?.trim() || undefined },
+  });
 
   return res.data;
 }

@@ -15,11 +15,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { LOCALE_OPTIONS } from '@/components/shared/form/constants/locale-options';
 import { Sheet } from '@/components/ui/sheet';
 import useLocales from '@/hooks/useLocales';
 import { ColumnDef } from '@tanstack/react-table';
+import { Search, RotateCcw } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import LocaleForm from './LocaleForm';
 
@@ -47,8 +49,21 @@ function LocaleList() {
   const handleSearch = () => {
     setSearchKey(key);
     setSearchValue(value);
-    refetch();
+    setCurrentPage(1);
   };
+
+  const handleResetFilters = () => {
+    setFilter({});
+    setKey('');
+    setValue('');
+    setSearchKey('');
+    setSearchValue('');
+    setCurrentPage(1);
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter.locale]);
 
   const handleRemove = (value: LocaleWord) => {
     setConfirmTarget(value);
@@ -118,41 +133,57 @@ function LocaleList() {
         </AlertDialogContent>
       </AlertDialog>
       <DefaultTableBtn className='justify-between'>
-        <div className='flex items-center gap-2 py-6 '>
+        <div className='flex flex-wrap items-center gap-2 py-4'>
           <Select
-            value={(filter.locale ?? [])?.[0] ?? ''}
+            value={(filter.locale ?? [])?.[0] ?? '__all__'}
             onValueChange={(v: string) => {
-              setFilter((prev) => ({ ...prev, locale: v ? [v] : undefined }));
+              setFilter((prev) => ({ ...prev, locale: v === '__all__' ? undefined : [v] }));
             }}
           >
             <SelectTrigger className='w-[120px]'>
               <SelectValue placeholder='언어' />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='ko'>ko</SelectItem>
-              <SelectItem value='en'>en</SelectItem>
-              <SelectItem value='ja'>ja</SelectItem>
-              <SelectItem value='zh'>zh</SelectItem>
-              <SelectItem value='zhTw'>zhTw</SelectItem>
-              <SelectItem value='es'>es</SelectItem>
-              <SelectItem value='id'>id</SelectItem>
+              <SelectItem value='__all__'>전체 언어</SelectItem>
+              {LOCALE_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          <Input
-            placeholder='키 값'
-            value={key}
-            onChange={(e) => {
-              setKey(e.target.value);
-            }}
-          />
-          <Input
-            placeholder='텍스트'
-            value={value}
-            onChange={(e) => {
-              setValue(e.target.value);
-            }}
-          />
-          <Button variant='outline' onClick={handleSearch}>검색</Button>
+          <div className='relative min-w-[220px]'>
+            <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+            <Input
+              placeholder='다국어 키 검색'
+              value={key}
+              onChange={(e) => {
+                setKey(e.target.value);
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              className='pl-9'
+            />
+          </div>
+          <div className='relative min-w-[240px]'>
+            <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+            <Input
+              placeholder='텍스트 검색'
+              value={value}
+              onChange={(e) => {
+                setValue(e.target.value);
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              className='pl-9'
+            />
+          </div>
+          <Button variant='outline' onClick={handleResetFilters}>
+            <RotateCcw className='h-4 w-4' />
+            초기화
+          </Button>
+          <Button variant='outline' onClick={handleSearch}>
+            <Search className='h-4 w-4' />
+            검색
+          </Button>
         </div>
         <Button
           onClick={() => {

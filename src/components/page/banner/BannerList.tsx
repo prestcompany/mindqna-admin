@@ -16,18 +16,26 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { LOCALE_OPTIONS } from '@/components/shared/form/constants/locale-options';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet } from '@/components/ui/sheet';
+import useDebouncedValue from '@/hooks/useDebouncedValue';
 import useBanners from '@/hooks/useBanners';
 import { ColumnDef } from '@tanstack/react-table';
-import { useState } from 'react';
+import { Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import BannerForm, { locationOptions } from './BannerForm';
 
 function BannerList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<{ location?: BannerLocationType[]; locale?: string[] }>({});
-  const { items, isLoading, refetch, totalPage } = useBanners({ page: currentPage, ...filter });
+  const [searchInput, setSearchInput] = useState('');
+  const debouncedSearch = useDebouncedValue(searchInput, 500);
+  const trimmedSearch = debouncedSearch.trim();
+  const effectiveSearch = trimmedSearch.length >= 2 ? trimmedSearch : undefined;
+  const { items, isLoading, refetch, totalPage } = useBanners({ page: currentPage, ...filter, search: effectiveSearch });
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
@@ -57,6 +65,10 @@ function BannerList() {
     setConfirmOpen(false);
     setConfirmTarget(undefined);
   };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter.locale, filter.location, effectiveSearch]);
 
   const columns: ColumnDef<Banner>[] = [
     {
@@ -165,36 +177,45 @@ function BannerList() {
         </AlertDialogContent>
       </AlertDialog>
       <DefaultTableBtn className='justify-between'>
-        <div className='flex gap-2 items-center py-4'>
+        <div className='flex flex-wrap items-center gap-2 py-4'>
+          <div className='relative min-w-[260px]'>
+            <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+            <Input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder='배너명 / 링크 / 문구 검색 (2자 이상)'
+              className='pl-9'
+            />
+          </div>
           <Select
-            value={(filter.locale ?? [])?.[0] ?? ''}
+            value={(filter.locale ?? [])?.[0] ?? '__all__'}
             onValueChange={(v: string) => {
-              setFilter((prev) => ({ ...prev, locale: v ? [v] : undefined }));
+              setFilter((prev) => ({ ...prev, locale: v === '__all__' ? undefined : [v] }));
             }}
           >
             <SelectTrigger className='w-[120px]'>
               <SelectValue placeholder='언어' />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='ko'>ko</SelectItem>
-              <SelectItem value='en'>en</SelectItem>
-              <SelectItem value='ja'>ja</SelectItem>
-              <SelectItem value='zh'>zh</SelectItem>
-              <SelectItem value='zhTw'>zhTw</SelectItem>
-              <SelectItem value='es'>es</SelectItem>
-              <SelectItem value='id'>id</SelectItem>
+              <SelectItem value='__all__'>전체 언어</SelectItem>
+              {LOCALE_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Select
-            value={(filter.location ?? [])?.[0] ?? ''}
+            value={(filter.location ?? [])?.[0] ?? '__all__'}
             onValueChange={(v: string) => {
-              setFilter((prev) => ({ ...prev, location: v ? [v as BannerLocationType] : undefined }));
+              setFilter((prev) => ({ ...prev, location: v === '__all__' ? undefined : [v as BannerLocationType] }));
             }}
           >
             <SelectTrigger className='w-[180px]'>
-              <SelectValue placeholder='타입' />
+              <SelectValue placeholder='위치' />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value='__all__'>전체 위치</SelectItem>
               {locationOptions.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>
                   {opt.label}

@@ -1,8 +1,9 @@
 import { User } from '@/client/types';
-import { getUser, getUserByEmail, removeUser } from '@/client/user';
+import { SearchUserParams, removeUser, searchUser } from '@/client/user';
 import FormGroup from '@/components/shared/form/ui/form-group';
 import FormSection from '@/components/shared/form/ui/form-section';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,34 +14,65 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 import { Sheet } from '@/components/ui/sheet';
 import { useQuery } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
 import dayjs from 'dayjs';
-import { Copy, Loader2, Search, Ticket } from 'lucide-react';
+import { Loader2, Search, Ticket } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import TicketForm from './TicketForm';
 
 function UserSearch() {
-  const [id, setId] = useState('');
+  const [userId, setUserId] = useState('');
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [isOpenTicket, setOpenTicket] = useState(false);
   const [focused, setFocused] = useState<string>('');
-  const [email, setEmail] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<User | null>(null);
 
-  const { data, refetch, isLoading, isFetched } = useQuery({
-    queryKey: ['user', id, email],
+  const getFilledFields = () =>
+    [
+      { key: 'id' as const, label: 'ID', value: userId.trim() },
+      { key: 'username' as const, label: 'Username', value: username.trim() },
+      { key: 'email' as const, label: 'Email', value: email.trim() },
+    ].filter((field) => field.value.length > 0);
+
+  const getSearchParams = (): SearchUserParams | null => {
+    const filledFields = getFilledFields();
+
+    if (filledFields.length !== 1) {
+      return null;
+    }
+
+    const [field] = filledFields;
+
+    return { [field.key]: field.value } as SearchUserParams;
+  };
+
+  const getSearchSummary = () => {
+    const [field] = getFilledFields();
+
+    return field ? `${field.label}: ${field.value}` : '';
+  };
+
+  const { data, refetch, isLoading, isFetched, error } = useQuery({
+    queryKey: ['user-search', userId, username, email],
     queryFn: () => {
-      if (id) {
-        return getUser(id);
-      } else if (email) {
-        return getUserByEmail(email);
+      const params = getSearchParams();
+
+      if (!params) {
+        throw new Error('검색 조건이 올바르지 않습니다.');
       }
+
+      return searchUser(params);
     },
     enabled: false,
   });
@@ -48,6 +80,18 @@ function UserSearch() {
   const copyId = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${text} 복사됨`);
+  };
+
+  const getErrorMessage = () => {
+    if (!error) {
+      return getSearchSummary();
+    }
+
+    if (isAxiosError<{ message?: string }>(error)) {
+      return error.response?.data?.message ?? error.message;
+    }
+
+    return error instanceof Error ? error.message : getSearchSummary();
   };
 
   const handleRemoveClick = (user: User) => {
@@ -70,15 +114,24 @@ function UserSearch() {
   };
 
   const handleSearch = () => {
-    if (!id.trim() && !email.trim()) {
-      toast.warning('유저코드 또는 이메일을 입력해주세요.');
+    const filledFields = getFilledFields();
+
+    if (filledFields.length === 0) {
+      toast.warning('ID, Username, Email 중 하나를 입력해주세요.');
       return;
     }
+
+    if (filledFields.length > 1) {
+      toast.warning('한 번에 한 필드만 검색해주세요.');
+      return;
+    }
+
     refetch();
   };
 
   const handleResetSearch = () => {
-    setId('');
+    setUserId('');
+    setUsername('');
     setEmail('');
   };
 
@@ -86,6 +139,7 @@ function UserSearch() {
     const { id, username, locale, socialAccount, createdAt, _count, reserveUnregisterAt, spaceMaxCount } = user;
     const created = dayjs(createdAt);
     const diffFromNow = dayjs().diff(created, 'day');
+    const reserveDate = reserveUnregisterAt ? dayjs(reserveUnregisterAt) : null;
 
     const providerMap: Record<string, { variant: 'destructive' | 'warning' | 'muted' | 'success'; text: string }> = {
       GOOGLE: { variant: 'destructive', text: 'Google' },
@@ -102,16 +156,49 @@ function UserSearch() {
     const isCompleted = _count.profiles > 0;
 
     return (
-      <Card className='bg-card shadow-sm'>
-        <CardHeader className='pb-3'>
-          <div className='flex justify-between items-center'>
-            <div className='flex gap-2 items-center'>
-              <CardTitle className='text-base'>{username}</CardTitle>
-              <Badge variant={isCompleted ? 'success' : 'warning'}>{isCompleted ? '완료' : '진행중'}</Badge>
+      <Card className='overflow-hidden border-border/70 bg-white shadow-sm'>
+        <CardHeader className='gap-3 border-b border-border/70 bg-muted/[0.08] px-4 py-4'>
+          <div className='flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between'>
+            <div className='flex min-w-0 items-start gap-3'>
+              <Avatar className='h-11 w-11 border border-border/70 bg-background'>
+                <AvatarFallback className='text-sm font-semibold uppercase'>
+                  {username.slice(0, 2)}
+                </AvatarFallback>
+              </Avatar>
+              <div className='min-w-0 space-y-1.5'>
+                <div className='flex flex-wrap items-center gap-2'>
+                  <CardTitle className='text-lg font-semibold tracking-tight text-foreground'>{username}</CardTitle>
+                  <Badge variant={isCompleted ? 'success' : 'warning'} className='rounded-full px-2.5 py-0.5'>
+                    {isCompleted ? '완료' : '진행중'}
+                  </Badge>
+                  <Badge variant={providerConfig.variant} className='rounded-full px-2.5 py-0.5'>
+                    {providerConfig.text}
+                  </Badge>
+                  <Badge variant='muted' className='rounded-full px-2.5 py-0.5 uppercase'>
+                    {locale?.toUpperCase()}
+                  </Badge>
+                </div>
+                <div className='flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
+                  <Button
+                    type='button'
+                    variant='link'
+                    size='sm'
+                    className='h-auto p-0 font-mono text-[11px] text-muted-foreground'
+                    onClick={() => copyId(id)}
+                  >
+                    {id}
+                  </Button>
+                  <span className='hidden sm:inline'>•</span>
+                  <span className='truncate'>{socialAccount.email || '이메일 없음'}</span>
+                </div>
+              </div>
             </div>
-            <div className='flex items-center gap-2'>
+
+            <div className='flex items-center gap-1.5 self-start'>
               <Button
                 size='sm'
+                variant='ghost'
+                className='h-8 rounded-full px-2.5 text-muted-foreground hover:text-foreground'
                 onClick={() => {
                   setOpenTicket(true);
                   setFocused(username);
@@ -120,48 +207,58 @@ function UserSearch() {
                 <Ticket className='w-4 h-4' />
                 티켓 지급
               </Button>
-              <Button size='sm' variant='destructive' onClick={() => handleRemoveClick(user)}>
-                삭제
-              </Button>
+              <TableRowActions
+                items={[
+                  {
+                    label: 'ID 복사',
+                    onClick: () => copyId(id),
+                  },
+                  {
+                    label: '사용자 삭제',
+                    onClick: () => handleRemoveClick(user),
+                    destructive: true,
+                  },
+                ]}
+              />
             </div>
           </div>
         </CardHeader>
-        <CardContent className='space-y-3'>
-          <div className='flex flex-wrap gap-2'>
-            <Button variant='outline' size='sm' onClick={() => copyId(id)}>
-              ID: {id.slice(0, 8)}...
-              <Copy className='w-3 h-3' />
-            </Button>
-            <Badge variant={providerConfig.variant}>{providerConfig.text}</Badge>
-            <Badge variant='secondary'>{locale?.toUpperCase()}</Badge>
-          </div>
-
-          <div className='flex gap-2 items-center'>
-            <span className='text-sm text-muted-foreground'>이메일:</span>
-            <span>{socialAccount.email}</span>
-          </div>
-
-          <div className='flex flex-wrap gap-2'>
-            <Badge variant='info'>공간 {_count.profiles}개</Badge>
-            <Badge variant={spaceMaxCount > 5 ? 'warning' : spaceMaxCount > 2 ? 'success' : 'muted'}>
-              최대 {spaceMaxCount}개
-            </Badge>
-            <Badge variant={diffFromNow < 7 ? 'success' : diffFromNow < 30 ? 'warning' : 'muted'}>
-              D+{diffFromNow}
-            </Badge>
-          </div>
-
-          <div className='flex gap-2 items-center text-sm text-muted-foreground'>
-            <span>가입일:</span>
-            <span>{created.format('YYYY-MM-DD HH:mm')}</span>
-          </div>
-
-          {reserveUnregisterAt && (
-            <div className='flex gap-2 items-center'>
-              <Badge variant='destructive'>탈퇴 예정</Badge>
-              <span className='text-sm text-red-600'>{reserveUnregisterAt}</span>
+        <CardContent className='space-y-3 px-4 py-4'>
+          <div className='flex flex-wrap items-center gap-3 rounded-xl border border-border/70 bg-muted/[0.08] px-3 py-3'>
+            <div className='min-w-[96px]'>
+              <p className='text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>공간</p>
+              <p className='mt-1 text-lg font-semibold text-foreground'>{_count.profiles}개</p>
             </div>
-          )}
+            <Separator orientation='vertical' className='hidden h-8 md:block' />
+            <div className='flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground'>
+              <span>최대 {spaceMaxCount}개</span>
+              <span>가입 D+{diffFromNow}</span>
+              <span>{isCompleted ? '공간 생성 완료' : '온보딩 진행 중'}</span>
+            </div>
+          </div>
+
+          <div className='rounded-xl border border-border/70 bg-white px-3 py-3'>
+            <div className='flex flex-wrap items-center gap-x-4 gap-y-2 text-sm'>
+              <span className='text-muted-foreground'>
+                이메일 <span className='ml-1 break-all text-foreground'>{socialAccount.email || '미등록'}</span>
+              </span>
+              <span className='text-muted-foreground'>
+                가입일 <span className='ml-1 text-foreground'>{created.format('YYYY.MM.DD HH:mm')}</span>
+              </span>
+            </div>
+
+            {reserveDate && (
+              <>
+                <Separator className='my-3' />
+                <div className='flex flex-wrap items-center gap-2 text-sm'>
+                  <Badge variant='destructive' className='rounded-full px-2.5 py-0.5'>
+                    탈퇴 예정
+                  </Badge>
+                  <span className='text-destructive'>{reserveDate.format('YYYY.MM.DD HH:mm')}</span>
+                </div>
+              </>
+            )}
+          </div>
         </CardContent>
       </Card>
     );
@@ -169,20 +266,30 @@ function UserSearch() {
 
   return (
     <div className='space-y-4'>
-      <FormSection title='사용자 검색' description='유저코드 또는 이메일로 계정을 조회합니다.'>
-        <FormGroup title='유저코드'>
+      <FormSection title='사용자 검색' description='userId / username / email로 계정을 정확하게 조회합니다.'>
+        <FormGroup title='ID'>
           <Input
-            placeholder='유저코드를 입력하세요...'
-            value={id}
-            onChange={(e) => setId(e.target.value)}
+            placeholder='정확한 ID를 입력하세요...'
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             className='h-10'
           />
         </FormGroup>
 
-        <FormGroup title='이메일'>
+        <FormGroup title='Username'>
           <Input
-            placeholder='이메일을 입력하세요...'
+            placeholder='정확한 Username을 입력하세요...'
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            className='h-10'
+          />
+        </FormGroup>
+
+        <FormGroup title='Email'>
+          <Input
+            placeholder='정확한 Email을 입력하세요...'
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -207,8 +314,8 @@ function UserSearch() {
         <Card className='py-8 text-center bg-card'>
           <CardContent>
             <div className='text-muted-foreground'>
-              <p>검색 결과가 없습니다</p>
-              <p className='mt-1 text-sm'>{id.trim() ? `유저코드: ${id}` : `이메일: ${email}`}</p>
+              <p>{error ? '검색을 완료하지 못했습니다' : '검색 결과가 없습니다'}</p>
+              <p className='mt-1 text-sm'>{getErrorMessage()}</p>
             </div>
           </CardContent>
         </Card>

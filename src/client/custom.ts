@@ -1,6 +1,11 @@
 import client from './@base';
 import { CreatePetCustomTemplateParams, GetPetCustomTemplatesResult } from './types';
 
+export type GetPetCustomTemplatesParams = {
+  page: number;
+  search?: string;
+};
+
 export async function createCustomTemplate(params: CreatePetCustomTemplateParams) {
   const { ...body } = params;
 
@@ -9,8 +14,13 @@ export async function createCustomTemplate(params: CreatePetCustomTemplateParams
   return res.data;
 }
 
-export async function getCustomTemplates(page: number) {
-  const res = await client.get<GetPetCustomTemplatesResult>('/pet/customs', { params: { page } });
+export async function getCustomTemplates({ page, search }: GetPetCustomTemplatesParams) {
+  const res = await client.get<GetPetCustomTemplatesResult>('/pet/customs', {
+    params: {
+      page,
+      search: search?.trim() || undefined,
+    },
+  });
 
   return res.data;
 }
