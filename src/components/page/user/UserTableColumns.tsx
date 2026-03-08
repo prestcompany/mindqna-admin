@@ -31,25 +31,27 @@ export const createUserTableColumns = (actions: UserTableActionsProps): ColumnDe
   },
   {
     accessorKey: 'username',
-    header: '유저',
+    header: '유저코드',
     size: 180,
-    cell: ({ row }) => {
-      const nickname = row.original.representativeNickname?.trim();
-      return (
-        <div className='space-y-1'>
-          <Button
-            variant='outline'
-            size='sm'
-            onClick={() => actions.copyId(row.original.username)}
-            className='max-w-[168px] justify-start gap-1 overflow-hidden'
-          >
-            <span className='truncate'>{row.original.username}</span>
-            <Copy className='w-4 h-4' />
-          </Button>
-          <div className='truncate text-xs text-muted-foreground'>{nickname || '닉네임 없음'}</div>
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <Button
+        variant='outline'
+        size='sm'
+        onClick={() => actions.copyId(row.original.username)}
+        className='max-w-[168px] justify-start gap-1 overflow-hidden'
+      >
+        <span className='truncate'>{row.original.username}</span>
+        <Copy className='w-4 h-4' />
+      </Button>
+    ),
+  },
+  {
+    accessorKey: 'representativeNickname',
+    header: '닉네임',
+    size: 140,
+    cell: ({ row }) => (
+      <span className='block truncate text-sm'>{row.original.representativeNickname?.trim() || '-'}</span>
+    ),
   },
   {
     id: 'joinStatus',
@@ -230,6 +232,7 @@ export interface ColumnConfig {
 
 export const defaultColumnConfig: ColumnConfig[] = [
   { key: 'username', visible: true, width: 180 },
+  { key: 'representativeNickname', visible: true, width: 140 },
   { key: 'joinStatus', visible: true, width: 96 },
   { key: 'email', visible: true, width: 260 },
   { key: 'provider', visible: true, width: 100 },
