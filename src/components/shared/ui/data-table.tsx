@@ -7,6 +7,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import {
   ColumnDef,
   Cell,
@@ -45,6 +46,7 @@ interface DataTableProps<TData, TValue> {
 type DataTableColumnMeta = {
   useTruncateTooltip?: boolean;
   truncateMaxWidth?: number | string;
+  sticky?: 'left' | 'right';
 };
 
 const getColumnId = <TData, TValue>(column: ColumnDef<TData, TValue>) => {
@@ -100,6 +102,45 @@ function DataTable<TData, TValue>({
   });
 
   const currentPage = pagination?.page ?? 1;
+  const getStickyColumnPosition = (columnDef: ColumnDef<TData, TValue>) => {
+    const meta = columnDef.meta as DataTableColumnMeta | undefined;
+    const columnId = getColumnId(columnDef);
+
+    if (meta?.sticky) {
+      return meta.sticky;
+    }
+
+    if (columnId === 'actions') {
+      return 'right';
+    }
+
+    return undefined;
+  };
+
+  const getStickyColumnClassName = (columnDef: ColumnDef<TData, TValue>, variant: 'head' | 'cell') => {
+    const stickyPosition = getStickyColumnPosition(columnDef);
+
+    if (stickyPosition === 'right') {
+      return cn(
+        'sticky right-0 border-l border-border/70 bg-background',
+        variant === 'head'
+          ? 'z-30 shadow-[-10px_0_18px_-18px_rgba(15,23,42,0.35)]'
+          : 'z-20 group-hover:bg-muted/50 group-data-[state=selected]:bg-muted shadow-[-10px_0_18px_-18px_rgba(15,23,42,0.18)]',
+      );
+    }
+
+    if (stickyPosition === 'left') {
+      return cn(
+        'sticky left-0 border-r border-border/70 bg-background',
+        variant === 'head'
+          ? 'z-30 shadow-[10px_0_18px_-18px_rgba(15,23,42,0.35)]'
+          : 'z-20 group-hover:bg-muted/50 group-data-[state=selected]:bg-muted shadow-[10px_0_18px_-18px_rgba(15,23,42,0.18)]',
+      );
+    }
+
+    return undefined;
+  };
+
   const getColumnStyle = (size: unknown): React.CSSProperties | undefined => {
     if (typeof size !== 'number') {
       return undefined;
@@ -173,7 +214,10 @@ function DataTable<TData, TValue>({
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className='overflow-hidden text-ellipsis whitespace-nowrap'
+                      className={cn(
+                        'overflow-hidden text-ellipsis whitespace-nowrap',
+                        getStickyColumnClassName(header.column.columnDef, 'head'),
+                      )}
                       style={getColumnStyle(header.column.columnDef.size)}
                     >
                       {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
@@ -197,12 +241,15 @@ function DataTable<TData, TValue>({
                       <TableRow
                         data-state={row.getIsSelected() && 'selected'}
                         onClick={rowProps?.onClick}
-                        className={rowProps?.className || (rowProps?.onClick ? 'cursor-pointer' : '')}
+                        className={cn('group', rowProps?.className || (rowProps?.onClick ? 'cursor-pointer' : ''))}
                       >
                         {row.getVisibleCells().map((cell) => (
                           <TableCell
                             key={cell.id}
-                            className='max-w-0 overflow-hidden'
+                            className={cn(
+                              'max-w-0 overflow-hidden',
+                              getStickyColumnClassName(cell.column.columnDef, 'cell'),
+                            )}
                             style={getColumnStyle(cell.column.columnDef.size)}
                           >
                             {renderCellContent(cell)}

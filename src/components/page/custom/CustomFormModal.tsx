@@ -16,6 +16,7 @@ import LocaleInputGroup from './components/LocaleInputGroup';
 import { PetCustomTypeOptions, petTypeOptions, premiumOptions } from './constants';
 import { useAnimationFile } from './hooks/useAnimationFile';
 import { useCustomForm } from './hooks/useCustomForm';
+import { getCustomAnimationFileError } from './services/animation-file-guard';
 import { saveCustomTemplate } from './services/customService';
 import { CustomFormProps, LocaleTexts } from './types';
 import FormGroup from '@/components/shared/form/ui/form-group';
@@ -97,7 +98,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ isOpen, init, reload, clos
     }
   }, [init, form]);
 
-  const { fileState, loadExistingAnimation, handleFileUpload, resetToExisting, removeFile, resetFile } =
+  const { fileState, loadExistingAnimation, handleFileUpload, startReplace, resetToExisting, removeFile, resetFile } =
     useAnimationFile();
 
   useEffect(() => {
@@ -135,8 +136,14 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ isOpen, init, reload, clos
   };
 
   const handleSave = async (values: CustomFormValues) => {
-    if (!focusedId && !hasFile) {
-      form.setError('file', { message: '로티 파일을 업로드해주세요.' });
+    const fileError = getCustomAnimationFileError({
+      isEditMode: !!focusedId,
+      isReplacePending: fileState.isReplacePending,
+      hasUploadedFile: !!fileState.uploadFile,
+    });
+
+    if (fileError) {
+      form.setError('file', { message: fileError });
       return;
     }
 
@@ -515,6 +522,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ isOpen, init, reload, clos
                           fileState={fileState}
                           isEditMode={!!focusedId}
                           onFileUpload={handleFileUploadWithKey}
+                          onReplaceStart={startReplace}
                           onResetToExisting={resetToExisting}
                           onRemoveFile={handleRemoveFile}
                         />

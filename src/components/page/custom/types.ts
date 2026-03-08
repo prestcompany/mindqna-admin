@@ -28,6 +28,7 @@ export interface AnimationFileState {
   animationData?: any;
   existingFileUrl: string;
   isLoading: boolean;
+  isReplacePending: boolean;
 }
 
 export interface CustomFormProps {

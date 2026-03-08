@@ -12,6 +12,7 @@ interface AnimationFileUploaderProps {
   fileState: AnimationFileState;
   isEditMode: boolean;
   onFileUpload: (files: File[]) => void;
+  onReplaceStart: () => void;
   onResetToExisting: () => void;
   onRemoveFile?: () => void;
 }
@@ -20,12 +21,14 @@ const AnimationFileUploader: React.FC<AnimationFileUploaderProps> = ({
   fileState,
   isEditMode,
   onFileUpload,
+  onReplaceStart,
   onResetToExisting,
   onRemoveFile,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileReplace = () => {
+    onReplaceStart();
     fileInputRef.current?.click();
   };
 
@@ -54,8 +57,8 @@ const AnimationFileUploader: React.FC<AnimationFileUploaderProps> = ({
   const getButtonConfig = () => {
     if (isEditMode) {
       return {
-        replaceText: '파일 교체',
-        cancelText: fileState.uploadFile ? '취소' : '기존 파일로',
+        replaceText: fileState.uploadFile ? '다른 파일 선택' : '파일 교체',
+        cancelText: fileState.uploadFile || fileState.isReplacePending ? '교체 취소' : '기존 파일로',
         showCancel: true,
       };
     } else {
@@ -83,6 +86,10 @@ const AnimationFileUploader: React.FC<AnimationFileUploaderProps> = ({
         <Lottie loop animationData={fileState.animationData} play style={{ width: 150, height: 150 }} />
       ) : fileState.existingFileUrl ? (
         <LottieCDNPlayer fileUrl={fileState.existingFileUrl} width={150} height={150} />
+      ) : null}
+
+      {isEditMode && fileState.isReplacePending && !fileState.uploadFile ? (
+        <p className='text-sm text-warning-foreground'>교체할 로티 파일을 선택하거나 교체 취소를 눌러주세요.</p>
       ) : null}
 
       <div className='flex gap-2'>

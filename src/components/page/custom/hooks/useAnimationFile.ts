@@ -6,6 +6,7 @@ export const useAnimationFile = () => {
   const [fileState, setFileState] = useState<AnimationFileState>({
     existingFileUrl: '',
     isLoading: false,
+    isReplacePending: false,
   });
 
   const loadExistingAnimation = useCallback(async (fileUrl: string) => {
@@ -14,6 +15,7 @@ export const useAnimationFile = () => {
       existingFileUrl: fileUrl,
       animationData: undefined,
       uploadFile: undefined,
+      isReplacePending: false,
     }));
   }, []);
 
@@ -51,6 +53,7 @@ export const useAnimationFile = () => {
             isLoading: false,
             uploadFile: selectedFile,
             animationData: json,
+            isReplacePending: false,
           });
           console.log('파일 상태 업데이트 완료');
         }
@@ -68,11 +71,19 @@ export const useAnimationFile = () => {
     reader.readAsText(selectedFile);
   }, []);
 
+  const startReplace = useCallback(() => {
+    setFileState((prev) => ({
+      ...prev,
+      isReplacePending: true,
+    }));
+  }, []);
+
   const resetToExisting = useCallback(() => {
     setFileState((prev) => ({
       ...prev,
       uploadFile: undefined,
       animationData: undefined,
+      isReplacePending: false,
     }));
   }, []);
 
@@ -80,6 +91,7 @@ export const useAnimationFile = () => {
     setFileState({
       existingFileUrl: '',
       isLoading: false,
+      isReplacePending: false,
     });
   }, []);
 
@@ -87,6 +99,7 @@ export const useAnimationFile = () => {
     setFileState({
       existingFileUrl: '',
       isLoading: false,
+      isReplacePending: false,
     });
   }, []);
 
@@ -94,6 +107,7 @@ export const useAnimationFile = () => {
     fileState,
     loadExistingAnimation,
     handleFileUpload,
+    startReplace,
     resetToExisting,
     removeFile,
     resetFile,

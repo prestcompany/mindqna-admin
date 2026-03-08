@@ -3,6 +3,7 @@ import { createCustomTemplate, updateCustomTemplate } from '@/client/custom';
 import { createLocale } from '@/client/locale';
 import { Locale } from '@/client/types';
 import { AnimationFileState, CustomFormData, LocaleTexts } from '../types';
+import { getCustomAnimationFileError } from './animation-file-guard';
 
 export interface SaveCustomParams {
   formData: CustomFormData;
@@ -21,9 +22,14 @@ export const saveCustomTemplate = async ({
     throw new Error('썸네일 이미지가 필요합니다.');
   }
 
-  // 새 항목 생성시에는 파일 필수
-  if (!focusedId && !fileState.uploadFile) {
-    throw new Error('로티 파일이 필요합니다.');
+  const fileError = getCustomAnimationFileError({
+    isEditMode: !!focusedId,
+    isReplacePending: fileState.isReplacePending,
+    hasUploadedFile: !!fileState.uploadFile,
+  });
+
+  if (fileError) {
+    throw new Error(fileError);
   }
 
   let fileUrl = fileState.existingFileUrl;
