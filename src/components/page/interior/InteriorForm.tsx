@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import useTotalRooms from '@/hooks/useTotalRooms';
+import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -504,8 +505,11 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                           size='sm'
                           onClick={handlePress}
                           key={option.label}
-                          className='px-1 text-[10px]'
-                          style={{ backgroundColor: isSelected ? 'hsl(var(--primary) / 0.2)' : option.value.y >= 5 ? 'hsl(var(--muted))' : undefined }}
+                          className={cn(
+                            'px-1 text-[10px]',
+                            isSelected && 'border-sky-500 bg-sky-500 text-white hover:border-sky-600 hover:bg-sky-600 hover:text-white',
+                            !isSelected && option.value.y >= 5 && 'bg-slate-100 hover:bg-slate-200',
+                          )}
                         >
                           {option.label}
                         </Button>
