@@ -350,6 +350,9 @@ export type User = {
   reserveUnregisterAt: string | null;
   createdAt: string;
   updateAt: string;
+  representativeNickname?: string | null;
+  latestAccessAt?: string | null;
+  ticketSummary?: UserTicketSummary;
 
   socialAccount: SocialAccount;
   _count: {
@@ -376,6 +379,12 @@ export type User = {
   // }[];
 };
 
+export type UserTicketSummary = {
+  owned: number;
+  used: number;
+  expired: number;
+};
+
 export type QueryResultWithPagination<T> = {
   items: T[];
   pageInfo: TotalPageInfo;
@@ -396,15 +405,36 @@ export type Space = {
   coinPaid: number;
   pet: Pet;
   cardOrder: number;
-  cardGenDate: string;
+  cardGenDate: string | null;
   dueRemovedAt: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  latestCardIssuedAt?: string | null;
+  hasPremiumMember?: boolean;
+  hasGoldClubMember?: boolean;
   spaceInfo: SpaceInfo;
   profiles: Profile[];
   rooms: Room[];
   InteriorItem: InteriorItem[];
+};
+
+export type SpaceCoinHistoryMeta = {
+  id: number;
+  spaceId: string;
+  profileId?: string | null;
+  isPaid: boolean;
+  amount: number;
+  isUse: boolean;
+  description?: string | null;
+  createdAt: string;
+  profile?: Partial<Pick<Profile, 'id' | 'nickname'>> & {
+    user?: Partial<Pick<User, 'id' | 'username'>>;
+  };
+};
+
+export type SpaceDetail = Space & {
+  recentCoinMetas: SpaceCoinHistoryMeta[];
 };
 
 export type InteriorItem = {

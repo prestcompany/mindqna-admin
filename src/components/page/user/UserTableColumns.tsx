@@ -31,19 +31,25 @@ export const createUserTableColumns = (actions: UserTableActionsProps): ColumnDe
   },
   {
     accessorKey: 'username',
-    header: '유저코드',
+    header: '유저',
     size: 180,
-    cell: ({ row }) => (
-      <Button
-        variant='outline'
-        size='sm'
-        onClick={() => actions.copyId(row.original.username)}
-        className='max-w-[168px] justify-start gap-1 overflow-hidden'
-      >
-        <span className='truncate'>{row.original.username}</span>
-        <Copy className='w-4 h-4' />
-      </Button>
-    ),
+    cell: ({ row }) => {
+      const nickname = row.original.representativeNickname?.trim();
+      return (
+        <div className='space-y-1'>
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={() => actions.copyId(row.original.username)}
+            className='max-w-[168px] justify-start gap-1 overflow-hidden'
+          >
+            <span className='truncate'>{row.original.username}</span>
+            <Copy className='w-4 h-4' />
+          </Button>
+          <div className='truncate text-xs text-muted-foreground'>{nickname || '닉네임 없음'}</div>
+        </div>
+      );
+    },
   },
   {
     id: 'joinStatus',
@@ -131,6 +137,46 @@ export const createUserTableColumns = (actions: UserTableActionsProps): ColumnDe
     },
   },
   {
+    accessorKey: 'latestAccessAt',
+    header: '마지막 접속',
+    size: 182,
+    cell: ({ row }) => {
+      const value = row.original.latestAccessAt;
+      if (!value) {
+        return <span className='text-sm text-muted-foreground'>기록 없음</span>;
+      }
+
+      const day = dayjs(value);
+      const diffMinutes = Math.max(dayjs().diff(day, 'minute'), 0);
+      const diffHours = Math.max(dayjs().diff(day, 'hour'), 0);
+      const diffDays = Math.max(dayjs().diff(day, 'day'), 0);
+      const label =
+        diffMinutes < 60 ? `${diffMinutes}분 전` : diffHours < 24 ? `${diffHours}시간 전` : `${diffDays}일 전`;
+      return (
+        <div className='space-y-1 whitespace-nowrap'>
+          <div className='font-medium'>{label}</div>
+          <div className='text-xs text-muted-foreground'>{day.format('YY.MM.DD HH:mm:ss')}</div>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: 'ticketSummary',
+    header: '티켓',
+    size: 170,
+    cell: ({ row }) => {
+      const summary = row.original.ticketSummary ?? { owned: 0, used: 0, expired: 0 };
+      return (
+        <div className='space-y-1 whitespace-nowrap'>
+          <div className='font-medium'>보유 {summary.owned}</div>
+          <div className='text-xs text-muted-foreground'>
+            사용 {summary.used} · 만료 {summary.expired}
+          </div>
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: 'reserveUnregisterAt',
     header: '탈퇴예정일',
     size: 200,
@@ -190,6 +236,8 @@ export const defaultColumnConfig: ColumnConfig[] = [
   { key: 'locale', visible: true, width: 72 },
   { key: 'spaceInfo', visible: true, width: 150 },
   { key: 'createdAt', visible: true, width: 182 },
+  { key: 'latestAccessAt', visible: true, width: 182 },
+  { key: 'ticketSummary', visible: true, width: 170 },
   { key: 'reserveUnregisterAt', visible: false, width: 200 },
   { key: 'actions', visible: true, width: 90 },
 ];

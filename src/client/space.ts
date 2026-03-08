@@ -1,5 +1,5 @@
 import client from './@base';
-import { QueryResultWithPagination, Space, SpaceType } from './types';
+import { QueryResultWithPagination, Space, SpaceDetail, SpaceType } from './types';
 
 export type SpaceOrderBy =
   | 'card'
@@ -39,7 +39,7 @@ export async function getSpaces(
 }
 
 export async function getSpace(id: string) {
-  const res = await client.get(`/space/${id}`);
+  const res = await client.get<SpaceDetail>(`/space/${id}`);
 
   return res.data;
 }

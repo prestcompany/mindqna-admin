@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import CoinForm from './CoinForm';
 import SpaceSearch from './SpaceSearch';
 import { createSpaceTableColumns } from './SpaceTableColumns';
+import SpaceDetailSheet from './components/SpaceDetailSheet';
 import SpaceFilterBar from './components/SpaceFilterBar';
 import SpaceProfileModal from './components/SpaceProfileModal';
 import { useSpaceFilters } from './hooks/useSpaceFilters';
@@ -31,6 +32,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 function SpaceList() {
   const [isFetching, setFetching] = useState(false);
+  const [detailTarget, setDetailTarget] = useState<Space | null>(null);
 
   const { filter, currentPage, setCurrentPage, updateFilter } = useSpaceFilters();
   const {
@@ -178,6 +180,10 @@ function SpaceList() {
             onChange: (page) => setCurrentPage(page),
           }}
           loading={isLoading}
+          onRow={(space) => ({
+            onClick: () => setDetailTarget(space),
+            className: 'cursor-pointer',
+          })}
         />
       </div>
 
@@ -216,6 +222,8 @@ function SpaceList() {
         onRemoveProfile={handleRemoveProfile}
         copyId={copyId}
       />
+
+      <SpaceDetailSheet open={!!detailTarget} space={detailTarget} onClose={() => setDetailTarget(null)} copyId={copyId} />
 
       {/* 공간 삭제 확인 */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>

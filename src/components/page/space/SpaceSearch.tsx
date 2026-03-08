@@ -223,13 +223,13 @@ function SpaceSearch() {
       ),
     },
     {
-      accessorFn: (row) => row.spaceInfo?.createdAt,
+      accessorKey: 'createdAt',
       id: 'createdAt',
       header: '생성일',
       size: 100,
       cell: ({ row }) => {
-        const day = dayjs(row.original.spaceInfo?.createdAt);
-        const diffFromNow = dayjs().diff(day, 'day');
+        const day = dayjs(row.original.createdAt);
+        const diffFromNow = Math.max(dayjs().diff(day, 'day'), 0);
         return (
           <div>
             <Badge variant='secondary'>D+{diffFromNow}</Badge>
@@ -265,13 +265,13 @@ function SpaceSearch() {
 
   const renderCardItem = (space: Space) => {
     const { coin, coinPaid, dueRemovedAt, cardOrder } = space;
-    const { type, name, locale, petName, ownerId, createdAt } = space.spaceInfo;
+    const { type, name, locale, petName, ownerId } = space.spaceInfo;
     const level = space.pet?.level ?? 0;
     const exp = space.pet?.exp ?? 0;
     const ownerProfile = space.profiles.find((profile) => profile.userId === ownerId);
 
-    const created = dayjs(createdAt);
-    const diffFromNow = dayjs().diff(created, 'day');
+    const created = dayjs(space.createdAt);
+    const diffFromNow = Math.max(dayjs().diff(created, 'day'), 0);
     const formattedExp = Number.isInteger(exp) ? exp.toLocaleString() : exp.toFixed(1);
 
     return (
