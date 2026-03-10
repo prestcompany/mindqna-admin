@@ -316,7 +316,7 @@ function SpaceList() {
       </AlertDialog>
 
       <Dialog open={isBulkCoinOpen} onOpenChange={(open) => !open && handleCloseBulkCoin()}>
-        <DialogContent className='max-w-[560px] border-border/70 bg-background/98 p-0'>
+        <DialogContent className='max-w-[560px] border-border bg-background p-0 shadow-2xl'>
           <DialogHeader className='border-b border-border/70 px-6 py-5'>
             <DialogTitle>단체 코인 지급/회수</DialogTitle>
             <DialogDescription>
@@ -384,7 +384,7 @@ function SpaceList() {
             </div>
 
             {bulkResult?.status === 'partial' ? (
-              <div className='rounded-xl border border-amber-200 bg-amber-50/80 p-4'>
+              <div className='rounded-xl border border-amber-200 bg-amber-50 p-4'>
                 <div className='flex items-start justify-between gap-3'>
                   <div className='space-y-1'>
                     <p className='text-sm font-semibold text-amber-900'>부분 실패</p>
@@ -405,7 +405,7 @@ function SpaceList() {
                   </Button>
                 </div>
 
-                <div className='mt-3 max-h-40 overflow-y-auto rounded-lg border border-amber-200 bg-background/80'>
+                <div className='mt-3 max-h-40 overflow-y-auto rounded-lg border border-amber-200 bg-white'>
                   <div className='divide-y divide-border/60'>
                     {bulkResult.failedSpaces.map((item) => (
                       <div key={item.spaceId} className='flex items-center justify-between gap-3 px-3 py-2 text-sm'>
@@ -419,7 +419,7 @@ function SpaceList() {
             ) : null}
 
             {bulkResult?.status === 'error' ? (
-              <div className='rounded-xl border border-destructive/20 bg-destructive/5 p-4'>
+              <div className='rounded-xl border border-destructive/20 bg-red-50 p-4'>
                 <p className='text-sm font-semibold text-destructive'>처리 실패</p>
                 <p className='mt-1 break-words text-sm text-destructive/80'>{bulkResult.message}</p>
               </div>
