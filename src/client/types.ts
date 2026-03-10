@@ -326,6 +326,16 @@ export type GiveCoinBulkParams = {
   message: string;
 };
 
+export type GiveCoinBulkFailureReason = 'not_found' | 'insufficient_balance';
+
+export type GiveCoinBulkFailure = {
+  spaceId: string;
+  success: false;
+  reason: GiveCoinBulkFailureReason;
+};
+
+export type GiveCoinBulkResult = GiveCoinBulkFailure[] | { success: boolean };
+
 export type PurchaseMeta = {
   id: number;
   userId: string;
