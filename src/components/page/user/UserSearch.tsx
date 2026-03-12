@@ -29,6 +29,24 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import TicketForm from './TicketForm';
 
+function formatRelativeAccess(value?: string | null) {
+  if (!value) {
+    return { label: '기록 없음', description: '' };
+  }
+
+  const day = dayjs(value);
+  const diffMinutes = Math.max(dayjs().diff(day, 'minute'), 0);
+  const diffHours = Math.max(dayjs().diff(day, 'hour'), 0);
+  const diffDays = Math.max(dayjs().diff(day, 'day'), 0);
+  const label =
+    diffMinutes < 60 ? `${diffMinutes}분 전` : diffHours < 24 ? `${diffHours}시간 전` : `${diffDays}일 전`;
+
+  return {
+    label,
+    description: day.format('YYYY.MM.DD HH:mm:ss'),
+  };
+}
+
 function UserSearch() {
   const [userId, setUserId] = useState('');
   const [username, setUsername] = useState('');
@@ -136,10 +154,24 @@ function UserSearch() {
   };
 
   const renderUserCard = (user: User) => {
-    const { id, username, locale, socialAccount, createdAt, _count, reserveUnregisterAt, spaceMaxCount } = user;
+    const {
+      id,
+      username,
+      locale,
+      socialAccount,
+      createdAt,
+      _count,
+      reserveUnregisterAt,
+      spaceMaxCount,
+      representativeNickname,
+      latestAccessAt,
+      ticketSummary,
+    } = user;
     const created = dayjs(createdAt);
     const diffFromNow = dayjs().diff(created, 'day');
     const reserveDate = reserveUnregisterAt ? dayjs(reserveUnregisterAt) : null;
+    const accessMeta = formatRelativeAccess(latestAccessAt);
+    const summary = ticketSummary ?? { owned: 0, used: 0, expired: 0 };
 
     const providerMap: Record<string, { variant: 'destructive' | 'warning' | 'muted' | 'success'; text: string }> = {
       GOOGLE: { variant: 'destructive', text: 'Google' },
@@ -234,6 +266,27 @@ function UserSearch() {
               <span>최대 {spaceMaxCount}개</span>
               <span>가입 D+{diffFromNow}</span>
               <span>{isCompleted ? '공간 생성 완료' : '온보딩 진행 중'}</span>
+              </div>
+            </div>
+
+          <div className='grid gap-3 md:grid-cols-3'>
+            <div className='rounded-xl border border-border/70 bg-white px-3 py-3'>
+              <p className='text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>대표 닉네임</p>
+              <p className='mt-2 truncate text-sm font-semibold text-foreground'>{representativeNickname?.trim() || '-'}</p>
+            </div>
+
+            <div className='rounded-xl border border-border/70 bg-white px-3 py-3'>
+              <p className='text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>마지막 접속</p>
+              <p className='mt-2 text-sm font-semibold text-foreground'>{accessMeta.label}</p>
+              {accessMeta.description ? (
+                <p className='mt-1 text-xs text-muted-foreground'>{accessMeta.description}</p>
+              ) : null}
+            </div>
+
+            <div className='rounded-xl border border-border/70 bg-white px-3 py-3'>
+              <p className='text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>티켓</p>
+              <p className='mt-2 text-sm font-semibold text-foreground'>보유 {summary.owned}</p>
+              <p className='mt-1 text-xs text-muted-foreground'>사용 {summary.used} · 만료 {summary.expired}</p>
             </div>
           </div>
 

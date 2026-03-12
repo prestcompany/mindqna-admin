@@ -85,10 +85,18 @@ function SpaceDetailSheet({ open, space, onClose, copyId }: SpaceDetailSheetProp
                       <Copy className='h-4 w-4' />
                     </Button>
                   </div>
-                  <div className='grid grid-cols-1 gap-3 text-sm sm:grid-cols-2'>
+                  <div className='grid grid-cols-1 gap-3 text-sm sm:grid-cols-2 xl:grid-cols-3'>
+                    <div className='min-w-0 rounded-lg border px-3 py-2'>
+                      <div className='text-xs text-muted-foreground'>공간 이름</div>
+                      <div className='mt-1 break-words font-medium'>{detail.spaceInfo?.name ?? '-'}</div>
+                    </div>
                     <div className='min-w-0 rounded-lg border px-3 py-2'>
                       <div className='text-xs text-muted-foreground'>생성일</div>
                       <div className='mt-1 break-words font-medium'>{formatDate(detail.createdAt)}</div>
+                    </div>
+                    <div className='min-w-0 rounded-lg border px-3 py-2'>
+                      <div className='text-xs text-muted-foreground'>카드 수</div>
+                      <div className='mt-1 break-words font-medium'>{detail.cardOrder ?? 0}</div>
                     </div>
                     <div className='min-w-0 rounded-lg border px-3 py-2'>
                       <div className='text-xs text-muted-foreground'>마지막 카드 발급</div>
