@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Sheet } from '@/components/ui/sheet';
+import { formatDate, formatDueRemovedAt, formatSpaceAge, getSpaceTypeConfig } from '../utils/space-display';
 import { useQuery } from '@tanstack/react-query';
-import dayjs from 'dayjs';
 import { Copy, Loader2 } from 'lucide-react';
 
 interface SpaceDetailSheetProps {
@@ -15,11 +15,6 @@ interface SpaceDetailSheetProps {
   space: Space | null;
   onClose: () => void;
   copyId: (id: string) => void;
-}
-
-function formatDate(value?: string | null, format = 'YY.MM.DD HH:mm:ss') {
-  if (!value) return '-';
-  return dayjs(value).format(format);
 }
 
 function buildCoinMetaLabel(meta: SpaceCoinHistoryMeta) {
@@ -42,12 +37,15 @@ function SpaceDetailSheet({ open, space, onClose, copyId }: SpaceDetailSheetProp
 
   const hasPremiumMember = detail.hasPremiumMember ?? detail.profiles?.some((profile) => profile.isPremium);
   const hasGoldClubMember = detail.hasGoldClubMember ?? detail.profiles?.some((profile) => profile.isGoldClub);
+  const createdMeta = formatSpaceAge(detail.createdAt);
+  const dueRemovedMeta = formatDueRemovedAt(detail.dueRemovedAt, detail.createdAt, hasPremiumMember);
+  const typeConfig = getSpaceTypeConfig(detail.spaceInfo?.type);
 
   return (
     <Sheet open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <AdminSideSheetContent
         title={detail.spaceInfo?.name ?? '공간 상세'}
-        description='공간 코드, 생성일, 멤버 상태, 최근 재화 이용 내역을 확인합니다.'
+        description='리스트에서 보이던 핵심 정보와 최근 재화 이용 내역을 함께 확인합니다.'
         size='xl'
       >
         {isLoading && !data ? (
@@ -58,7 +56,7 @@ function SpaceDetailSheet({ open, space, onClose, copyId }: SpaceDetailSheetProp
           <div className='space-y-6'>
             <div className='flex flex-wrap items-center gap-2'>
               <Badge variant='secondary'>{detail.spaceInfo?.locale?.toUpperCase() ?? '-'}</Badge>
-              <Badge variant='info'>{detail.spaceInfo?.type ?? '-'}</Badge>
+              <Badge variant={typeConfig.variant}>{typeConfig.text}</Badge>
               {detail.isActive ? <Badge variant='success'>ACTIVE</Badge> : <Badge variant='muted'>INACTIVE</Badge>}
               {hasPremiumMember ? <Badge variant='success'>PREMIUM 포함</Badge> : null}
               {hasGoldClubMember ? <Badge variant='warning'>GOLD CLUB 포함</Badge> : null}
@@ -72,7 +70,7 @@ function SpaceDetailSheet({ open, space, onClose, copyId }: SpaceDetailSheetProp
                 <CardContent className='space-y-3'>
                   <div className='flex flex-col gap-3 rounded-lg border bg-muted/20 px-3 py-3 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='min-w-0 flex-1'>
-                      <div className='text-xs text-muted-foreground'>공간 코드</div>
+                      <div className='text-xs text-muted-foreground'>공간 ID</div>
                       <div className='break-all font-mono text-sm'>{detail.id}</div>
                     </div>
                     <Button
@@ -91,24 +89,63 @@ function SpaceDetailSheet({ open, space, onClose, copyId }: SpaceDetailSheetProp
                       <div className='mt-1 break-words font-medium'>{detail.spaceInfo?.name ?? '-'}</div>
                     </div>
                     <div className='min-w-0 rounded-lg border px-3 py-2'>
+                      <div className='text-xs text-muted-foreground'>타입</div>
+                      <div className='mt-1 flex flex-wrap gap-2'>
+                        <Badge variant={typeConfig.variant}>{typeConfig.text}</Badge>
+                      </div>
+                    </div>
+                    <div className='min-w-0 rounded-lg border px-3 py-2'>
+                      <div className='text-xs text-muted-foreground'>언어</div>
+                      <div className='mt-1 flex flex-wrap gap-2'>
+                        <Badge variant='secondary'>{detail.spaceInfo?.locale?.toUpperCase() ?? '-'}</Badge>
+                      </div>
+                    </div>
+                    <div className='min-w-0 rounded-lg border px-3 py-2'>
+                      <div className='text-xs text-muted-foreground'>멤버</div>
+                      <div className='mt-1 flex flex-wrap gap-2'>
+                        <Badge variant='info'>{detail.spaceInfo?.members ?? detail.profiles?.length ?? 0}</Badge>
+                      </div>
+                    </div>
+                    <div className='min-w-0 rounded-lg border px-3 py-2'>
+                      <div className='text-xs text-muted-foreground'>멤버 상태</div>
+                      <div className='mt-1 flex flex-wrap gap-2'>
+                        {hasPremiumMember ? <Badge variant='success'>PREMIUM</Badge> : null}
+                        {hasGoldClubMember ? <Badge variant='warning'>GOLD CLUB</Badge> : null}
+                        {!hasPremiumMember && !hasGoldClubMember ? (
+                          <span className='text-sm text-muted-foreground'>-</span>
+                        ) : null}
+                      </div>
+                    </div>
+                    <div className='min-w-0 rounded-lg border px-3 py-2'>
                       <div className='text-xs text-muted-foreground'>생성일</div>
-                      <div className='mt-1 break-words font-medium'>{formatDate(detail.createdAt)}</div>
+                      <div className='mt-1 flex flex-wrap gap-2'>
+                        <Badge variant={createdMeta.variant}>{createdMeta.diffLabel}</Badge>
+                        <span className='text-sm font-medium text-foreground'>{createdMeta.dateText}</span>
+                      </div>
                     </div>
                     <div className='min-w-0 rounded-lg border px-3 py-2'>
-                      <div className='text-xs text-muted-foreground'>카드 수</div>
-                      <div className='mt-1 break-words font-medium'>{detail.cardOrder ?? 0}</div>
+                      <div className='text-xs text-muted-foreground'>카드 / 최근 발급</div>
+                      <div className='mt-1 flex flex-wrap gap-2'>
+                        <Badge variant='default'>카드 {detail.cardOrder ?? 0}</Badge>
+                        <span className='text-sm font-medium text-foreground'>
+                          {detail.latestCardIssuedAt ? formatDate(detail.latestCardIssuedAt, 'YY.MM.DD HH:mm') : '발급 기록 없음'}
+                        </span>
+                      </div>
                     </div>
                     <div className='min-w-0 rounded-lg border px-3 py-2'>
-                      <div className='text-xs text-muted-foreground'>마지막 카드 발급</div>
-                      <div className='mt-1 break-words font-medium'>{formatDate(detail.latestCardIssuedAt)}</div>
+                      <div className='text-xs text-muted-foreground'>삭제예정일</div>
+                      {dueRemovedMeta ? (
+                        <div className='mt-1 flex flex-wrap gap-2'>
+                          <Badge variant={dueRemovedMeta.variant}>{dueRemovedMeta.gapLabel}</Badge>
+                          <span className='text-sm font-medium text-foreground'>{dueRemovedMeta.dateText}</span>
+                        </div>
+                      ) : (
+                        <div className='mt-1 text-sm text-muted-foreground'>예정 없음</div>
+                      )}
                     </div>
-                    <div className='min-w-0 rounded-lg border px-3 py-2'>
+                    <div className='min-w-0 rounded-lg border px-3 py-2 sm:col-span-2 xl:col-span-3'>
                       <div className='text-xs text-muted-foreground'>다음 카드 생성 기준</div>
                       <div className='mt-1 break-all font-medium'>{detail.cardGenDate ?? '-'}</div>
-                    </div>
-                    <div className='min-w-0 rounded-lg border px-3 py-2'>
-                      <div className='text-xs text-muted-foreground'>삭제 예정일</div>
-                      <div className='mt-1 break-words font-medium'>{formatDate(detail.dueRemovedAt)}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -118,7 +155,7 @@ function SpaceDetailSheet({ open, space, onClose, copyId }: SpaceDetailSheetProp
                 <CardHeader className='pb-3'>
                   <CardTitle className='text-sm'>운영 지표</CardTitle>
                 </CardHeader>
-                <CardContent className='grid grid-cols-1 gap-3 text-sm sm:grid-cols-2'>
+                <CardContent className='grid grid-cols-1 gap-3 text-sm sm:grid-cols-2 xl:grid-cols-3'>
                   <div className='min-w-0 rounded-lg border px-3 py-2'>
                     <div className='text-xs text-muted-foreground'>하트 / 스타</div>
                     <div className='mt-1 flex flex-wrap gap-2'>
@@ -127,24 +164,29 @@ function SpaceDetailSheet({ open, space, onClose, copyId }: SpaceDetailSheetProp
                     </div>
                   </div>
                   <div className='min-w-0 rounded-lg border px-3 py-2'>
-                    <div className='text-xs text-muted-foreground'>펫</div>
+                    <div className='text-xs text-muted-foreground'>펫 EXP</div>
                     <div className='mt-1 flex flex-wrap gap-2'>
                       <Badge variant='info'>EXP {detail.pet?.exp?.toFixed(1) ?? '0.0'}</Badge>
                       <Badge variant='secondary'>Lv.{detail.pet?.level ?? 0}</Badge>
                     </div>
                   </div>
                   <div className='min-w-0 rounded-lg border px-3 py-2'>
-                    <div className='text-xs text-muted-foreground'>멤버 / 방</div>
+                    <div className='text-xs text-muted-foreground'>답변</div>
                     <div className='mt-1 flex flex-wrap gap-2'>
-                      <Badge variant='default'>멤버 {detail.spaceInfo?.members ?? detail.profiles?.length ?? 0}</Badge>
-                      <Badge variant='secondary'>방 {detail.rooms?.length ?? 0}</Badge>
+                      <Badge variant='info'>{detail.spaceInfo?.replies ?? 0}</Badge>
                     </div>
                   </div>
                   <div className='min-w-0 rounded-lg border px-3 py-2'>
-                    <div className='text-xs text-muted-foreground'>답변 / 인테리어</div>
+                    <div className='text-xs text-muted-foreground'>상태</div>
                     <div className='mt-1 flex flex-wrap gap-2'>
-                      <Badge variant='info'>답변 {detail.spaceInfo?.replies ?? 0}</Badge>
-                      <Badge variant='secondary'>인테리어 {detail.InteriorItem?.length ?? 0}</Badge>
+                      {detail.isActive ? <Badge variant='success'>ACTIVE</Badge> : <Badge variant='muted'>INACTIVE</Badge>}
+                    </div>
+                  </div>
+                  <div className='min-w-0 rounded-lg border px-3 py-2 xl:col-span-2'>
+                    <div className='text-xs text-muted-foreground'>방 / 인테리어</div>
+                    <div className='mt-1 flex flex-wrap gap-2'>
+                      <Badge variant='default'>방 {detail.rooms?.length ?? 0}</Badge>
+                      <Badge variant='warning'>인테리어 {detail.InteriorItem?.length ?? 0}</Badge>
                     </div>
                   </div>
                 </CardContent>

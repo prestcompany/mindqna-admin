@@ -15,7 +15,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,13 +24,13 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Sheet } from '@/components/ui/sheet';
-import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { useState } from 'react';
-import { CalendarClock, ChevronLeft, ChevronRight, Heart, Search, Sparkles, Star, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Copy, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatDate, formatDueRemovedAt, formatSpaceAge, getSpaceTypeConfig } from './utils/space-display';
 import CoinForm from './CoinForm';
 
 function SpaceSearch() {
@@ -264,15 +263,13 @@ function SpaceSearch() {
   ];
 
   const renderCardItem = (space: Space) => {
-    const { coin, coinPaid, dueRemovedAt, cardOrder } = space;
-    const { type, name, locale, petName, ownerId } = space.spaceInfo;
-    const level = space.pet?.level ?? 0;
-    const exp = space.pet?.exp ?? 0;
-    const ownerProfile = space.profiles.find((profile) => profile.userId === ownerId);
-
-    const created = dayjs(space.createdAt);
-    const diffFromNow = Math.max(dayjs().diff(created, 'day'), 0);
-    const formattedExp = Number.isInteger(exp) ? exp.toLocaleString() : exp.toFixed(1);
+    const { coin, coinPaid } = space;
+    const { name, locale, ownerId } = space.spaceInfo;
+    const hasPremiumMember = space.hasPremiumMember ?? space.profiles.some((profile) => profile.isPremium);
+    const hasGoldClubMember = space.hasGoldClubMember ?? space.profiles.some((profile) => profile.isGoldClub);
+    const typeConfig = getSpaceTypeConfig(space.spaceInfo?.type);
+    const createdMeta = formatSpaceAge(space.createdAt);
+    const dueRemovedMeta = formatDueRemovedAt(space.dueRemovedAt, space.createdAt, hasPremiumMember);
 
     return (
       <Card key={space.id} className='overflow-hidden border-border/70 bg-white shadow-sm transition-shadow hover:shadow-md'>
@@ -280,44 +277,14 @@ function SpaceSearch() {
           <div className='flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between'>
             <div className='space-y-2'>
               <div className='flex flex-wrap items-center gap-2'>
-                <Badge variant='secondary' className='rounded-full px-2.5 py-0.5'>
-                  {type}
-                </Badge>
-                <Badge variant='muted' className='rounded-full px-2.5 py-0.5 uppercase'>
-                  {locale}
-                </Badge>
-                <Badge variant='outline' className='rounded-full px-2.5 py-0.5'>
-                  D+{diffFromNow}
-                </Badge>
-                {dueRemovedAt && (
-                  <Badge variant='destructive' className='rounded-full px-2.5 py-0.5'>
-                    삭제 예정 {dayjs(dueRemovedAt).format('MM.DD HH:mm')}
-                  </Badge>
-                )}
+                <Badge variant='secondary'>{locale?.toUpperCase() ?? '-'}</Badge>
+                <Badge variant={typeConfig.variant}>{typeConfig.text}</Badge>
+                {space.isActive ? <Badge variant='success'>ACTIVE</Badge> : <Badge variant='muted'>INACTIVE</Badge>}
+                {hasPremiumMember ? <Badge variant='success'>PREMIUM 포함</Badge> : null}
+                {hasGoldClubMember ? <Badge variant='warning'>GOLD CLUB 포함</Badge> : null}
               </div>
 
-              <div className='space-y-1'>
-                <CardTitle className='text-lg font-semibold tracking-tight text-foreground'>{name}</CardTitle>
-                <div className='flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
-                  <Button
-                    type='button'
-                    variant='link'
-                    size='sm'
-                    className='h-auto p-0 font-mono text-[11px] text-muted-foreground'
-                    onClick={() => copyId(space.id)}
-                  >
-                    {space.id}
-                  </Button>
-                  <span className='hidden sm:inline'>•</span>
-                  <span>{created.format('YYYY.MM.DD HH:mm')}</span>
-                  {ownerProfile && (
-                    <>
-                      <span className='hidden sm:inline'>•</span>
-                      <span>오너 {ownerProfile.nickname}</span>
-                    </>
-                  )}
-                </div>
-              </div>
+              <CardTitle className='text-lg font-semibold tracking-tight text-foreground'>{name ?? '공간 상세'}</CardTitle>
             </div>
 
             <div className='flex items-center gap-2 self-start'>
@@ -331,6 +298,9 @@ function SpaceSearch() {
                 }}
               >
                 코인 관리
+              </Button>
+              <Button type='button' size='icon' variant='outline' className='h-8 w-8' onClick={() => copyId(space.id)}>
+                <Copy className='h-4 w-4' />
               </Button>
               <TableRowActions
                 items={[
@@ -348,144 +318,173 @@ function SpaceSearch() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className='px-4 py-4'>
-          <div className='grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]'>
-            <div className='space-y-3'>
-              <div className='grid gap-3 sm:grid-cols-2 xl:grid-cols-4'>
-                <div className='rounded-xl border border-border/70 bg-muted/15 px-3 py-3'>
-                  <div className='flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>
-                    <Heart className='h-3.5 w-3.5' />
-                    하트 / 스타
+        <CardContent className='space-y-4 px-4 py-4'>
+          <div className='grid grid-cols-1 gap-3 xl:grid-cols-2'>
+            <div className='rounded-xl border border-border/70 bg-white p-4'>
+              <div className='mb-3 text-sm font-semibold text-foreground'>공간 기본 정보</div>
+              <div className='space-y-3'>
+                <div className='flex flex-col gap-3 rounded-lg border bg-muted/20 px-3 py-3 sm:flex-row sm:items-center sm:justify-between'>
+                  <div className='min-w-0 flex-1'>
+                    <div className='text-xs text-muted-foreground'>공간 ID</div>
+                    <div className='break-all font-mono text-sm'>{space.id}</div>
                   </div>
-                  <div className='mt-2 flex items-center gap-2 text-lg font-semibold text-foreground'>
-                    <span>{coin.toLocaleString()}</span>
-                    <span className='text-muted-foreground'>/</span>
-                    <span>{coinPaid.toLocaleString()}</span>
+                  <Button type='button' variant='outline' size='icon' onClick={() => copyId(space.id)} className='h-8 w-8 shrink-0'>
+                    <Copy className='h-4 w-4' />
+                  </Button>
+                </div>
+                <div className='grid grid-cols-1 gap-3 text-sm sm:grid-cols-2 xl:grid-cols-3'>
+                  <div className='min-w-0 rounded-lg border px-3 py-2'>
+                    <div className='text-xs text-muted-foreground'>공간 이름</div>
+                    <div className='mt-1 break-words font-medium'>{space.spaceInfo?.name ?? '-'}</div>
                   </div>
-                </div>
-
-                <div className='rounded-xl border border-border/70 bg-muted/15 px-3 py-3'>
-                  <div className='flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>
-                    <Sparkles className='h-3.5 w-3.5' />
-                    질문 카드
+                  <div className='min-w-0 rounded-lg border px-3 py-2'>
+                    <div className='text-xs text-muted-foreground'>타입</div>
+                    <div className='mt-1 flex flex-wrap gap-2'>
+                      <Badge variant={typeConfig.variant}>{typeConfig.text}</Badge>
+                    </div>
                   </div>
-                  <div className='mt-2 text-lg font-semibold text-foreground'>{cardOrder}</div>
-                </div>
-
-                <div className='rounded-xl border border-border/70 bg-muted/15 px-3 py-3'>
-                  <div className='flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>
-                    <Users className='h-3.5 w-3.5' />
-                    멤버
+                  <div className='min-w-0 rounded-lg border px-3 py-2'>
+                    <div className='text-xs text-muted-foreground'>언어</div>
+                    <div className='mt-1 flex flex-wrap gap-2'>
+                      <Badge variant='secondary'>{space.spaceInfo?.locale?.toUpperCase() ?? '-'}</Badge>
+                    </div>
                   </div>
-                  <div className='mt-2 text-lg font-semibold text-foreground'>{space.profiles.length}</div>
-                </div>
-
-                <div className='rounded-xl border border-border/70 bg-muted/15 px-3 py-3'>
-                  <div className='flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>
-                    <Sparkles className='h-3.5 w-3.5' />
-                    펫
+                  <div className='min-w-0 rounded-lg border px-3 py-2'>
+                    <div className='text-xs text-muted-foreground'>멤버</div>
+                    <div className='mt-1 flex flex-wrap gap-2'>
+                      <Badge variant='info'>{space.spaceInfo?.members ?? space.profiles?.length ?? 0}</Badge>
+                    </div>
                   </div>
-                  <div className='mt-2 text-lg font-semibold text-foreground'>{formattedExp}</div>
-                  <p className='text-xs text-muted-foreground'>EXP / Lv.{level}</p>
-                </div>
-              </div>
-
-              <div className='grid gap-3 rounded-xl border border-border/70 bg-muted/[0.08] p-3 md:grid-cols-2 xl:grid-cols-4'>
-                <div className='space-y-1'>
-                  <p className='text-xs font-medium text-muted-foreground'>펫 이름</p>
-                  <p className='text-sm text-foreground'>{petName}</p>
-                </div>
-                <div className='space-y-1'>
-                  <p className='text-xs font-medium text-muted-foreground'>오너</p>
-                  <p className='text-sm text-foreground'>{ownerProfile?.nickname ?? '미확인'}</p>
-                </div>
-                <div className='space-y-1'>
-                  <div className='flex items-center gap-1.5 text-xs font-medium text-muted-foreground'>
-                    <CalendarClock className='h-3.5 w-3.5' />
-                    생성 시점
+                  <div className='min-w-0 rounded-lg border px-3 py-2'>
+                    <div className='text-xs text-muted-foreground'>멤버 상태</div>
+                    <div className='mt-1 flex flex-wrap gap-2'>
+                      {hasPremiumMember ? <Badge variant='success'>PREMIUM</Badge> : null}
+                      {hasGoldClubMember ? <Badge variant='warning'>GOLD CLUB</Badge> : null}
+                      {!hasPremiumMember && !hasGoldClubMember ? <span className='text-sm text-muted-foreground'>-</span> : null}
+                    </div>
                   </div>
-                  <p className='text-sm text-foreground'>{created.format('YYYY.MM.DD HH:mm')}</p>
-                </div>
-                <div className='space-y-1'>
-                  <p className='text-xs font-medium text-muted-foreground'>삭제 상태</p>
-                  <p className='text-sm text-foreground'>
-                    {dueRemovedAt ? dayjs(dueRemovedAt).format('YYYY.MM.DD HH:mm') : '삭제 예약 없음'}
-                  </p>
+                  <div className='min-w-0 rounded-lg border px-3 py-2'>
+                    <div className='text-xs text-muted-foreground'>생성일</div>
+                    <div className='mt-1 flex flex-wrap gap-2'>
+                      <Badge variant={createdMeta.variant}>{createdMeta.diffLabel}</Badge>
+                      <span className='text-sm font-medium text-foreground'>{createdMeta.dateText}</span>
+                    </div>
+                  </div>
+                  <div className='min-w-0 rounded-lg border px-3 py-2'>
+                    <div className='text-xs text-muted-foreground'>카드 / 최근 발급</div>
+                    <div className='mt-1 flex flex-wrap gap-2'>
+                      <Badge variant='default'>카드 {space.cardOrder ?? 0}</Badge>
+                      <span className='text-sm font-medium text-foreground'>
+                        {space.latestCardIssuedAt ? formatDate(space.latestCardIssuedAt, 'YY.MM.DD HH:mm') : '발급 기록 없음'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className='min-w-0 rounded-lg border px-3 py-2'>
+                    <div className='text-xs text-muted-foreground'>삭제예정일</div>
+                    {dueRemovedMeta ? (
+                      <div className='mt-1 flex flex-wrap gap-2'>
+                        <Badge variant={dueRemovedMeta.variant}>{dueRemovedMeta.gapLabel}</Badge>
+                        <span className='text-sm font-medium text-foreground'>{dueRemovedMeta.dateText}</span>
+                      </div>
+                    ) : (
+                      <div className='mt-1 text-sm text-muted-foreground'>예정 없음</div>
+                    )}
+                  </div>
+                  <div className='min-w-0 rounded-lg border px-3 py-2 sm:col-span-2 xl:col-span-3'>
+                    <div className='text-xs text-muted-foreground'>다음 카드 생성 기준</div>
+                    <div className='mt-1 break-all font-medium'>{space.cardGenDate ?? '-'}</div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className='rounded-xl border border-border/70 bg-muted/[0.08] p-3'>
-              <div className='flex items-center justify-between gap-3'>
-                <p className='text-sm font-medium text-foreground'>멤버</p>
-                <Badge variant='outline' className='rounded-full px-2.5 py-0.5'>
-                  {space.profiles.length}명
-                </Badge>
+            <div className='rounded-xl border border-border/70 bg-white p-4'>
+              <div className='mb-3 text-sm font-semibold text-foreground'>운영 지표</div>
+              <div className='grid grid-cols-1 gap-3 text-sm sm:grid-cols-2 xl:grid-cols-3'>
+                <div className='min-w-0 rounded-lg border px-3 py-2'>
+                  <div className='text-xs text-muted-foreground'>하트 / 스타</div>
+                  <div className='mt-1 flex flex-wrap gap-2'>
+                    <Badge variant='destructive'>하트 {coin}</Badge>
+                    <Badge variant='warning'>스타 {coinPaid}</Badge>
+                  </div>
+                </div>
+                <div className='min-w-0 rounded-lg border px-3 py-2'>
+                  <div className='text-xs text-muted-foreground'>펫 EXP</div>
+                  <div className='mt-1 flex flex-wrap gap-2'>
+                    <Badge variant='info'>EXP {space.pet?.exp?.toFixed(1) ?? '0.0'}</Badge>
+                    <Badge variant='secondary'>Lv.{space.pet?.level ?? 0}</Badge>
+                  </div>
+                </div>
+                <div className='min-w-0 rounded-lg border px-3 py-2'>
+                  <div className='text-xs text-muted-foreground'>답변</div>
+                  <div className='mt-1 flex flex-wrap gap-2'>
+                    <Badge variant='info'>{space.spaceInfo?.replies ?? 0}</Badge>
+                  </div>
+                </div>
+                <div className='min-w-0 rounded-lg border px-3 py-2'>
+                  <div className='text-xs text-muted-foreground'>상태</div>
+                  <div className='mt-1 flex flex-wrap gap-2'>
+                    {space.isActive ? <Badge variant='success'>ACTIVE</Badge> : <Badge variant='muted'>INACTIVE</Badge>}
+                  </div>
+                </div>
+                <div className='min-w-0 rounded-lg border px-3 py-2 xl:col-span-2'>
+                  <div className='text-xs text-muted-foreground'>방 / 인테리어</div>
+                  <div className='mt-1 flex flex-wrap gap-2'>
+                    <Badge variant='default'>방 {space.rooms?.length ?? 0}</Badge>
+                    <Badge variant='warning'>인테리어 {space.InteriorItem?.length ?? 0}</Badge>
+                  </div>
+                </div>
               </div>
+            </div>
+          </div>
 
-              <Separator className='my-3' />
-
-              <div className='grid max-h-[260px] grid-cols-1 gap-2 overflow-y-auto pr-1'>
-                {space.profiles.map((profile) => {
-                  const { isPremium, isGoldClub, userId } = profile;
-                  const isOwner = userId === ownerId;
+          <div className='rounded-xl border border-border/70 bg-white p-4'>
+            <div className='mb-3 flex items-center justify-between gap-3'>
+              <div className='text-sm font-semibold text-foreground'>멤버</div>
+              <Badge variant='outline'>{space.profiles.length}명</Badge>
+            </div>
+            <div className='space-y-2'>
+              {space.profiles.length ? (
+                space.profiles.map((profile, index) => {
+                  const isOwner = profile.userId === ownerId;
 
                   return (
-                    <div
-                      key={profile.id}
-                      className={cn(
-                        'flex items-center gap-3 rounded-xl border border-border/70 bg-white px-3 py-2.5',
-                        isOwner && 'border-primary/20 bg-primary/[0.04]',
-                      )}
-                    >
-                      <Avatar className='h-9 w-9 border border-border/70 bg-background'>
-                        <AvatarImage src={profile.img?.uri} alt={profile.nickname} className='object-cover' />
-                        <AvatarFallback>{profile.nickname.slice(0, 1)}</AvatarFallback>
-                      </Avatar>
-                      <div className='min-w-0 flex-1'>
-                        <div className='flex flex-wrap items-center gap-2'>
-                          <span className='truncate text-sm font-medium text-foreground'>{profile.nickname}</span>
-                          {isOwner && (
-                            <Badge variant='default' className='rounded-full px-2 py-0.5'>
-                              OWNER
-                            </Badge>
-                          )}
-                          {isPremium && (
-                            <Badge variant='success' className='rounded-full px-2 py-0.5'>
-                              PREMIUM
-                            </Badge>
-                          )}
-                          {isGoldClub && (
-                            <Badge variant='warning' className='rounded-full px-2 py-0.5'>
-                              STAR
-                            </Badge>
-                          )}
+                    <div key={profile.id}>
+                      <div className='flex flex-col gap-3 rounded-lg border px-3 py-3 sm:flex-row sm:items-start sm:justify-between'>
+                        <div className='min-w-0 flex-1 space-y-1'>
+                          <div className='flex flex-wrap items-center gap-2'>
+                            <span className='truncate font-medium'>{profile.nickname}</span>
+                            {isOwner ? <Badge variant='default'>OWNER</Badge> : null}
+                            {profile.isPremium ? <Badge variant='success'>PREMIUM</Badge> : null}
+                            {profile.isGoldClub ? <Badge variant='warning'>GOLD CLUB</Badge> : null}
+                          </div>
+                          <div className='break-all text-sm text-muted-foreground'>{profile.user?.username ?? '-'}</div>
                         </div>
-                        <div className='mt-0.5 flex items-center gap-3'>
-                          <span className='truncate text-xs text-muted-foreground'>{profile.user.username}</span>
-                        </div>
+                        <TableRowActions
+                          items={[
+                            {
+                              label: 'username 복사',
+                              onClick: () => copyId(profile.user?.username ?? profile.id),
+                            },
+                            {
+                              label: '프로필 삭제',
+                              onClick: () =>
+                                setDeleteProfileTarget({
+                                  profileId: profile.id,
+                                  nickname: profile.nickname,
+                                }),
+                              destructive: true,
+                            },
+                          ]}
+                        />
                       </div>
-                      <TableRowActions
-                        items={[
-                          {
-                            label: 'username 복사',
-                            onClick: () => copyId(profile.user.username),
-                          },
-                          {
-                            label: '프로필 삭제',
-                            onClick: () =>
-                              setDeleteProfileTarget({
-                                profileId: profile.id,
-                                nickname: profile.nickname,
-                              }),
-                            destructive: true,
-                          },
-                        ]}
-                      />
+                      {index < space.profiles.length - 1 ? <Separator className='my-2' /> : null}
                     </div>
                   );
-                })}
-              </div>
+                })
+              ) : (
+                <div className='text-sm text-muted-foreground'>멤버 정보가 없습니다.</div>
+              )}
             </div>
           </div>
         </CardContent>
