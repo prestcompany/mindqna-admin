@@ -271,11 +271,6 @@ function UserSearch() {
           </div>
         </CardHeader>
         <CardContent className='space-y-4 px-4 py-4'>
-          <div className='rounded-xl border border-border/70 bg-muted/[0.08] px-3 py-3'>
-            <p className='text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>리스트 기준 정보</p>
-            <p className='mt-1 text-sm text-muted-foreground'>유저 리스트에서 보이는 핵심 정보를 동일 기준으로 정리했습니다.</p>
-          </div>
-
           <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-3'>
             <div className='rounded-xl border border-border/70 bg-white px-3 py-3'>
               <p className='text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>유저 ID</p>
