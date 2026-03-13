@@ -19,7 +19,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
 import { Sheet } from '@/components/ui/sheet';
 import { useQuery } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
@@ -44,6 +43,22 @@ function formatRelativeAccess(value?: string | null) {
   return {
     label,
     description: day.format('YYYY.MM.DD HH:mm:ss'),
+  };
+}
+
+function formatReserveUnregister(createdAt: string, value?: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const day = dayjs(value);
+  const diff = day.add(-48, 'hour').diff(createdAt, 'minute');
+  const gap = diff > 60 ? `${Math.floor(diff / 60)}시간 ${diff % 60}분` : `${diff}분`;
+
+  return {
+    label: `${gap}만에 삭제`,
+    dateText: day.format('YYYY.MM.DD HH:mm:ss'),
+    isUrgent: diff < 60,
   };
 }
 
@@ -169,9 +184,9 @@ function UserSearch() {
     } = user;
     const created = dayjs(createdAt);
     const diffFromNow = dayjs().diff(created, 'day');
-    const reserveDate = reserveUnregisterAt ? dayjs(reserveUnregisterAt) : null;
     const accessMeta = formatRelativeAccess(latestAccessAt);
     const summary = ticketSummary ?? { owned: 0, used: 0, expired: 0 };
+    const reserveMeta = formatReserveUnregister(createdAt, reserveUnregisterAt);
 
     const providerMap: Record<string, { variant: 'destructive' | 'warning' | 'muted' | 'success'; text: string }> = {
       GOOGLE: { variant: 'destructive', text: 'Google' },
@@ -255,32 +270,87 @@ function UserSearch() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className='space-y-3 px-4 py-4'>
-          <div className='flex flex-wrap items-center gap-3 rounded-xl border border-border/70 bg-muted/[0.08] px-3 py-3'>
-            <div className='min-w-[96px]'>
-              <p className='text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>공간</p>
-              <p className='mt-1 text-lg font-semibold text-foreground'>{_count.profiles}개</p>
+        <CardContent className='space-y-4 px-4 py-4'>
+          <div className='rounded-xl border border-border/70 bg-muted/[0.08] px-3 py-3'>
+            <p className='text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>리스트 기준 정보</p>
+            <p className='mt-1 text-sm text-muted-foreground'>유저 리스트에서 보이는 핵심 정보를 동일 기준으로 정리했습니다.</p>
+          </div>
+
+          <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-3'>
+            <div className='rounded-xl border border-border/70 bg-white px-3 py-3'>
+              <p className='text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>유저 ID</p>
+              <Button
+                type='button'
+                variant='link'
+                size='sm'
+                className='mt-2 h-auto p-0 text-left font-mono text-xs text-foreground'
+                onClick={() => copyId(id)}
+              >
+                {id}
+              </Button>
             </div>
-            <Separator orientation='vertical' className='hidden h-8 md:block' />
-            <div className='flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground'>
-              <span>최대 {spaceMaxCount}개</span>
-              <span>가입 D+{diffFromNow}</span>
-              <span>{isCompleted ? '공간 생성 완료' : '온보딩 진행 중'}</span>
+
+            <div className='rounded-xl border border-border/70 bg-white px-3 py-3'>
+              <p className='text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>유저코드</p>
+              <Button
+                type='button'
+                variant='link'
+                size='sm'
+                className='mt-2 h-auto p-0 text-left text-sm font-semibold text-foreground'
+                onClick={() => copyId(username)}
+              >
+                {username}
+              </Button>
+            </div>
+
+            <div className='rounded-xl border border-border/70 bg-white px-3 py-3'>
+              <p className='text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>닉네임</p>
+              <p className='mt-2 truncate text-sm font-semibold text-foreground'>{representativeNickname?.trim() || '-'}</p>
+            </div>
+
+            <div className='rounded-xl border border-border/70 bg-white px-3 py-3'>
+              <p className='text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>가입상태</p>
+              <div className='mt-2 flex flex-wrap items-center gap-2'>
+                <Badge variant={isCompleted ? 'success' : 'warning'}>{isCompleted ? '완료' : '진행중'}</Badge>
+                <span className='text-xs text-muted-foreground'>{isCompleted ? '공간 생성 완료' : '온보딩 진행 중'}</span>
               </div>
             </div>
 
-          <div className='grid gap-3 md:grid-cols-3'>
             <div className='rounded-xl border border-border/70 bg-white px-3 py-3'>
-              <p className='text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>대표 닉네임</p>
-              <p className='mt-2 truncate text-sm font-semibold text-foreground'>{representativeNickname?.trim() || '-'}</p>
+              <p className='text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>로그인 / 언어</p>
+              <div className='mt-2 flex flex-wrap items-center gap-2'>
+                <Badge variant={providerConfig.variant}>{providerConfig.text}</Badge>
+                <Badge variant='secondary'>{locale?.toUpperCase() || '-'}</Badge>
+              </div>
+            </div>
+
+            <div className='rounded-xl border border-border/70 bg-white px-3 py-3'>
+              <p className='text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>이메일</p>
+              <p className='mt-2 break-all text-sm font-medium text-foreground'>{socialAccount.email || '미등록'}</p>
+            </div>
+
+            <div className='rounded-xl border border-border/70 bg-white px-3 py-3'>
+              <p className='text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>공간 / 최대</p>
+              <div className='mt-2 flex flex-wrap items-center gap-2'>
+                <Badge variant='info'>공간 {_count.profiles || 0}</Badge>
+                <Badge variant={spaceMaxCount > 5 ? 'warning' : spaceMaxCount > 2 ? 'success' : 'muted'}>
+                  최대 {spaceMaxCount}
+                </Badge>
+              </div>
+            </div>
+
+            <div className='rounded-xl border border-border/70 bg-white px-3 py-3'>
+              <p className='text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>가입일</p>
+              <div className='mt-2 flex flex-wrap items-center gap-2'>
+                <Badge variant={diffFromNow < 7 ? 'success' : diffFromNow < 30 ? 'warning' : 'muted'}>D+{diffFromNow}</Badge>
+                <span className='text-sm font-medium text-foreground'>{created.format('YYYY.MM.DD HH:mm:ss')}</span>
+              </div>
             </div>
 
             <div className='rounded-xl border border-border/70 bg-white px-3 py-3'>
               <p className='text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>마지막 접속</p>
               <p className='mt-2 text-sm font-semibold text-foreground'>{accessMeta.label}</p>
-              {accessMeta.description ? (
-                <p className='mt-1 text-xs text-muted-foreground'>{accessMeta.description}</p>
-              ) : null}
+              {accessMeta.description ? <p className='mt-1 text-xs text-muted-foreground'>{accessMeta.description}</p> : null}
             </div>
 
             <div className='rounded-xl border border-border/70 bg-white px-3 py-3'>
@@ -288,29 +358,18 @@ function UserSearch() {
               <p className='mt-2 text-sm font-semibold text-foreground'>보유 {summary.owned}</p>
               <p className='mt-1 text-xs text-muted-foreground'>사용 {summary.used} · 만료 {summary.expired}</p>
             </div>
-          </div>
 
-          <div className='rounded-xl border border-border/70 bg-white px-3 py-3'>
-            <div className='flex flex-wrap items-center gap-x-4 gap-y-2 text-sm'>
-              <span className='text-muted-foreground'>
-                이메일 <span className='ml-1 break-all text-foreground'>{socialAccount.email || '미등록'}</span>
-              </span>
-              <span className='text-muted-foreground'>
-                가입일 <span className='ml-1 text-foreground'>{created.format('YYYY.MM.DD HH:mm')}</span>
-              </span>
-            </div>
-
-            {reserveDate && (
-              <>
-                <Separator className='my-3' />
-                <div className='flex flex-wrap items-center gap-2 text-sm'>
-                  <Badge variant='destructive' className='rounded-full px-2.5 py-0.5'>
-                    탈퇴 예정
-                  </Badge>
-                  <span className='text-destructive'>{reserveDate.format('YYYY.MM.DD HH:mm')}</span>
+            <div className='rounded-xl border border-border/70 bg-white px-3 py-3 md:col-span-2 xl:col-span-3'>
+              <p className='text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>탈퇴예정일</p>
+              {reserveMeta ? (
+                <div className='mt-2 flex flex-wrap items-center gap-2'>
+                  <Badge variant={reserveMeta.isUrgent ? 'destructive' : 'warning'}>{reserveMeta.label}</Badge>
+                  <span className='text-sm font-medium text-foreground'>{reserveMeta.dateText}</span>
                 </div>
-              </>
-            )}
+              ) : (
+                <p className='mt-2 text-sm text-muted-foreground'>예정 없음</p>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
