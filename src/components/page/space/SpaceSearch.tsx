@@ -1,5 +1,5 @@
-import { removeProfile, removeSpace, searchSpaces, type SearchSpacesParams } from '@/client/space';
-import { Space, SpaceType } from '@/client/types';
+import { getSpace, removeProfile, removeSpace, searchSpaces, type SearchSpacesParams } from '@/client/space';
+import { Space, SpaceDetail, SpaceType } from '@/client/types';
 import FormGroup from '@/components/shared/form/ui/form-group';
 import FormSection from '@/components/shared/form/ui/form-section';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
@@ -22,16 +22,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { Sheet } from '@/components/ui/sheet';
-import { useQuery } from '@tanstack/react-query';
+import { useQueries, useQuery } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Copy, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Search } from 'lucide-react';
 import { toast } from 'sonner';
-import { formatDate, formatDueRemovedAt, formatSpaceAge, getSpaceTypeConfig } from './utils/space-display';
 import CoinForm from './CoinForm';
+import SpaceDetailContent from './components/SpaceDetailContent';
 import SpaceDetailSheet from './components/SpaceDetailSheet';
 
 function SpaceSearch() {
@@ -97,6 +96,14 @@ function SpaceSearch() {
   const items = data?.items ?? [];
   const currentPage = submittedSearchParams?.page ?? 1;
   const totalCount = data?.totalCount ?? 0;
+  const detailQueries = useQueries({
+    queries: items.map((space) => ({
+      queryKey: ['space-search-detail', space.id],
+      queryFn: () => getSpace(space.id),
+      enabled: !!submittedSearchParams && viewMode === 'card',
+      staleTime: 30_000,
+    })),
+  });
 
   const copyId = (id: string) => {
     navigator.clipboard.writeText(id);
@@ -111,6 +118,7 @@ function SpaceSearch() {
       return;
     }
 
+    setViewMode('card');
     setSubmittedSearchParams(params);
   };
 
@@ -277,255 +285,47 @@ function SpaceSearch() {
     },
   ];
 
-  const renderCardItem = (space: Space) => {
-    const { coin, coinPaid } = space;
-    const { name, locale, ownerId } = space.spaceInfo;
-    const hasPremiumMember = space.hasPremiumMember ?? space.profiles.some((profile) => profile.isPremium);
-    const hasGoldClubMember = space.hasGoldClubMember ?? space.profiles.some((profile) => profile.isGoldClub);
-    const typeConfig = getSpaceTypeConfig(space.spaceInfo?.type);
-    const createdMeta = formatSpaceAge(space.createdAt);
-    const dueRemovedMeta = formatDueRemovedAt(space.dueRemovedAt, space.createdAt, hasPremiumMember);
+  const renderCardItem = (space: Space, index: number) => {
+    const detailQuery = detailQueries[index];
+    const detail = detailQuery?.data;
+    const isDetailLoading = detailQuery?.isLoading && !detail;
+    const isDetailError = detailQuery?.isError;
 
     return (
-      <Card
-        key={space.id}
-        className='cursor-pointer overflow-hidden border-border/70 bg-white shadow-sm transition-shadow hover:shadow-md'
-        onClick={() => setDetailTarget(space)}
-      >
-        <CardHeader className='gap-3 border-b border-border/70 bg-white px-4 py-3'>
-          <div className='flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between'>
-            <div className='space-y-2'>
-              <div className='flex flex-wrap items-center gap-2'>
-                <Badge variant='secondary'>{locale?.toUpperCase() ?? '-'}</Badge>
-                <Badge variant={typeConfig.variant}>{typeConfig.text}</Badge>
-                {space.isActive ? <Badge variant='success'>ACTIVE</Badge> : <Badge variant='muted'>INACTIVE</Badge>}
-                {hasPremiumMember ? <Badge variant='success'>PREMIUM 포함</Badge> : null}
-                {hasGoldClubMember ? <Badge variant='warning'>GOLD CLUB 포함</Badge> : null}
-              </div>
-
-              <CardTitle className='text-lg font-semibold tracking-tight text-foreground'>{name ?? '공간 상세'}</CardTitle>
-            </div>
-
-            <div className='flex items-center gap-2 self-start'>
-              <Button
-                size='sm'
-                variant='outline'
-                className='h-8 rounded-full px-3'
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setOpenCoin(true);
-                  setFocused(space);
-                }}
-              >
-                코인 관리
-              </Button>
-              <Button
-                type='button'
-                size='icon'
-                variant='outline'
-                className='h-8 w-8'
-                onClick={(event) => {
-                  event.stopPropagation();
-                  copyId(space.id);
-                }}
-              >
-                <Copy className='h-4 w-4' />
-              </Button>
-              <div onClick={(event) => event.stopPropagation()}>
-                <TableRowActions
-                  items={[
-                    {
-                      label: '상세 보기',
-                      onClick: () => setDetailTarget(space),
-                    },
-                    {
-                      label: 'ID 복사',
-                      onClick: () => copyId(space.id),
-                    },
-                    {
-                      label: '삭제',
-                      onClick: () => handleRemoveSpace(space),
-                      destructive: true,
-                    },
-                  ]}
-                />
-              </div>
-            </div>
+      <div key={space.id} className='rounded-2xl border border-border/70 bg-card p-4 shadow-sm'>
+        {isDetailLoading ? (
+          <div className='flex min-h-[320px] items-center justify-center'>
+            <Loader2 className='h-5 w-5 animate-spin text-muted-foreground' />
           </div>
-        </CardHeader>
-        <CardContent className='space-y-4 px-4 py-4'>
-          <div className='grid grid-cols-1 gap-3 xl:grid-cols-2'>
-            <div className='rounded-xl border border-border/70 bg-white p-4'>
-              <div className='mb-3 text-sm font-semibold text-foreground'>공간 기본 정보</div>
-              <div className='space-y-3'>
-                <div className='flex flex-col gap-3 rounded-lg border bg-muted/20 px-3 py-3 sm:flex-row sm:items-center sm:justify-between'>
-                  <div className='min-w-0 flex-1'>
-                    <div className='text-xs text-muted-foreground'>공간 ID</div>
-                    <div className='break-all font-mono text-sm'>{space.id}</div>
-                  </div>
-                  <Button type='button' variant='outline' size='icon' onClick={() => copyId(space.id)} className='h-8 w-8 shrink-0'>
-                    <Copy className='h-4 w-4' />
-                  </Button>
-                </div>
-                <div className='grid grid-cols-1 gap-3 text-sm sm:grid-cols-2 xl:grid-cols-3'>
-                  <div className='min-w-0 rounded-lg border px-3 py-2'>
-                    <div className='text-xs text-muted-foreground'>공간 이름</div>
-                    <div className='mt-1 break-words font-medium'>{space.spaceInfo?.name ?? '-'}</div>
-                  </div>
-                  <div className='min-w-0 rounded-lg border px-3 py-2'>
-                    <div className='text-xs text-muted-foreground'>타입</div>
-                    <div className='mt-1 flex flex-wrap gap-2'>
-                      <Badge variant={typeConfig.variant}>{typeConfig.text}</Badge>
-                    </div>
-                  </div>
-                  <div className='min-w-0 rounded-lg border px-3 py-2'>
-                    <div className='text-xs text-muted-foreground'>언어</div>
-                    <div className='mt-1 flex flex-wrap gap-2'>
-                      <Badge variant='secondary'>{space.spaceInfo?.locale?.toUpperCase() ?? '-'}</Badge>
-                    </div>
-                  </div>
-                  <div className='min-w-0 rounded-lg border px-3 py-2'>
-                    <div className='text-xs text-muted-foreground'>멤버</div>
-                    <div className='mt-1 flex flex-wrap gap-2'>
-                      <Badge variant='info'>{space.spaceInfo?.members ?? space.profiles?.length ?? 0}</Badge>
-                    </div>
-                  </div>
-                  <div className='min-w-0 rounded-lg border px-3 py-2'>
-                    <div className='text-xs text-muted-foreground'>멤버 상태</div>
-                    <div className='mt-1 flex flex-wrap gap-2'>
-                      {hasPremiumMember ? <Badge variant='success'>PREMIUM</Badge> : null}
-                      {hasGoldClubMember ? <Badge variant='warning'>GOLD CLUB</Badge> : null}
-                      {!hasPremiumMember && !hasGoldClubMember ? <span className='text-sm text-muted-foreground'>-</span> : null}
-                    </div>
-                  </div>
-                  <div className='min-w-0 rounded-lg border px-3 py-2'>
-                    <div className='text-xs text-muted-foreground'>생성일</div>
-                    <div className='mt-1 flex flex-wrap gap-2'>
-                      <Badge variant={createdMeta.variant}>{createdMeta.diffLabel}</Badge>
-                      <span className='text-sm font-medium text-foreground'>{createdMeta.dateText}</span>
-                    </div>
-                  </div>
-                  <div className='min-w-0 rounded-lg border px-3 py-2'>
-                    <div className='text-xs text-muted-foreground'>카드 / 최근 발급</div>
-                    <div className='mt-1 flex flex-wrap gap-2'>
-                      <Badge variant='default'>카드 {space.cardOrder ?? 0}</Badge>
-                      <span className='text-sm font-medium text-foreground'>
-                        {space.latestCardIssuedAt ? formatDate(space.latestCardIssuedAt, 'YY.MM.DD HH:mm') : '발급 기록 없음'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className='min-w-0 rounded-lg border px-3 py-2'>
-                    <div className='text-xs text-muted-foreground'>삭제예정일</div>
-                    {dueRemovedMeta ? (
-                      <div className='mt-1 flex flex-wrap gap-2'>
-                        <Badge variant={dueRemovedMeta.variant}>{dueRemovedMeta.gapLabel}</Badge>
-                        <span className='text-sm font-medium text-foreground'>{dueRemovedMeta.dateText}</span>
-                      </div>
-                    ) : (
-                      <div className='mt-1 text-sm text-muted-foreground'>예정 없음</div>
-                    )}
-                  </div>
-                  <div className='min-w-0 rounded-lg border px-3 py-2 sm:col-span-2 xl:col-span-3'>
-                    <div className='text-xs text-muted-foreground'>다음 카드 생성 기준</div>
-                    <div className='mt-1 break-all font-medium'>{space.cardGenDate ?? '-'}</div>
-                  </div>
-                </div>
+        ) : isDetailError || !detail ? (
+          <Card className='shadow-none'>
+            <CardHeader>
+              <CardTitle className='text-base'>상세 정보를 불러오지 못했습니다.</CardTitle>
+            </CardHeader>
+            <CardContent className='flex items-center justify-between gap-3'>
+              <div className='text-sm text-muted-foreground'>공간 `{space.id}` 의 상세 조회에 실패했습니다.</div>
+              <div className='flex items-center gap-2'>
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='sm'
+                  onClick={() => {
+                    setOpenCoin(true);
+                    setFocused(space);
+                  }}
+                >
+                  코인 관리
+                </Button>
+                <Button type='button' variant='outline' size='sm' onClick={() => setDetailTarget(space)}>
+                  별도 상세 열기
+                </Button>
               </div>
-            </div>
-
-            <div className='rounded-xl border border-border/70 bg-white p-4'>
-              <div className='mb-3 text-sm font-semibold text-foreground'>운영 지표</div>
-              <div className='grid grid-cols-1 gap-3 text-sm sm:grid-cols-2 xl:grid-cols-3'>
-                <div className='min-w-0 rounded-lg border px-3 py-2'>
-                  <div className='text-xs text-muted-foreground'>하트 / 스타</div>
-                  <div className='mt-1 flex flex-wrap gap-2'>
-                    <Badge variant='destructive'>하트 {coin}</Badge>
-                    <Badge variant='warning'>스타 {coinPaid}</Badge>
-                  </div>
-                </div>
-                <div className='min-w-0 rounded-lg border px-3 py-2'>
-                  <div className='text-xs text-muted-foreground'>펫 EXP</div>
-                  <div className='mt-1 flex flex-wrap gap-2'>
-                    <Badge variant='info'>EXP {space.pet?.exp?.toFixed(1) ?? '0.0'}</Badge>
-                    <Badge variant='secondary'>Lv.{space.pet?.level ?? 0}</Badge>
-                  </div>
-                </div>
-                <div className='min-w-0 rounded-lg border px-3 py-2'>
-                  <div className='text-xs text-muted-foreground'>답변</div>
-                  <div className='mt-1 flex flex-wrap gap-2'>
-                    <Badge variant='info'>{space.spaceInfo?.replies ?? 0}</Badge>
-                  </div>
-                </div>
-                <div className='min-w-0 rounded-lg border px-3 py-2'>
-                  <div className='text-xs text-muted-foreground'>상태</div>
-                  <div className='mt-1 flex flex-wrap gap-2'>
-                    {space.isActive ? <Badge variant='success'>ACTIVE</Badge> : <Badge variant='muted'>INACTIVE</Badge>}
-                  </div>
-                </div>
-                <div className='min-w-0 rounded-lg border px-3 py-2 xl:col-span-2'>
-                  <div className='text-xs text-muted-foreground'>방 / 인테리어</div>
-                  <div className='mt-1 flex flex-wrap gap-2'>
-                    <Badge variant='default'>방 {space.rooms?.length ?? 0}</Badge>
-                    <Badge variant='warning'>인테리어 {space.InteriorItem?.length ?? 0}</Badge>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className='rounded-xl border border-border/70 bg-white p-4'>
-            <div className='mb-3 flex items-center justify-between gap-3'>
-              <div className='text-sm font-semibold text-foreground'>멤버</div>
-              <Badge variant='outline'>{space.profiles.length}명</Badge>
-            </div>
-            <div className='space-y-2'>
-              {space.profiles.length ? (
-                space.profiles.map((profile, index) => {
-                  const isOwner = profile.userId === ownerId;
-
-                  return (
-                    <div key={profile.id}>
-                      <div className='flex flex-col gap-3 rounded-lg border px-3 py-3 sm:flex-row sm:items-start sm:justify-between'>
-                        <div className='min-w-0 flex-1 space-y-1'>
-                          <div className='flex flex-wrap items-center gap-2'>
-                            <span className='truncate font-medium'>{profile.nickname}</span>
-                            {isOwner ? <Badge variant='default'>OWNER</Badge> : null}
-                            {profile.isPremium ? <Badge variant='success'>PREMIUM</Badge> : null}
-                            {profile.isGoldClub ? <Badge variant='warning'>GOLD CLUB</Badge> : null}
-                          </div>
-                          <div className='break-all text-sm text-muted-foreground'>{profile.user?.username ?? '-'}</div>
-                        </div>
-                        <div onClick={(event) => event.stopPropagation()}>
-                          <TableRowActions
-                            items={[
-                              {
-                                label: 'username 복사',
-                                onClick: () => copyId(profile.user?.username ?? profile.id),
-                              },
-                              {
-                                label: '프로필 삭제',
-                                onClick: () =>
-                                  setDeleteProfileTarget({
-                                    profileId: profile.id,
-                                    nickname: profile.nickname,
-                                  }),
-                                destructive: true,
-                              },
-                            ]}
-                          />
-                        </div>
-                      </div>
-                      {index < space.profiles.length - 1 ? <Separator className='my-2' /> : null}
-                    </div>
-                  );
-                })
-              ) : (
-                <div className='text-sm text-muted-foreground'>멤버 정보가 없습니다.</div>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        ) : (
+          <SpaceDetailContent detail={detail as SpaceDetail} copyId={copyId} />
+        )}
+      </div>
     );
   };
 
@@ -711,7 +511,7 @@ function SpaceSearch() {
               />
             ) : (
               <div className='space-y-4'>
-                {items.map((space) => renderCardItem(space))}
+                {items.map((space, index) => renderCardItem(space, index))}
                 {totalCount > 0 && (
                   <div className='flex items-center justify-between px-1'>
                     <div className='text-sm text-muted-foreground'>
