@@ -32,6 +32,7 @@ import { ChevronLeft, ChevronRight, Copy, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDate, formatDueRemovedAt, formatSpaceAge, getSpaceTypeConfig } from './utils/space-display';
 import CoinForm from './CoinForm';
+import SpaceDetailSheet from './components/SpaceDetailSheet';
 
 function SpaceSearch() {
   const [searchParams, setSearchParams] = useState({
@@ -51,6 +52,7 @@ function SpaceSearch() {
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
   const [isOpenCoin, setOpenCoin] = useState(false);
   const [focused, setFocused] = useState<Space | undefined>(undefined);
+  const [detailTarget, setDetailTarget] = useState<Space | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<Space | null>(null);
   const [deleteProfileTarget, setDeleteProfileTarget] = useState<{
@@ -167,7 +169,14 @@ function SpaceSearch() {
       header: 'ID',
       size: 120,
       cell: ({ row }) => (
-        <Button size='sm' variant='outline' onClick={() => copyId(row.original.id)}>
+        <Button
+          size='sm'
+          variant='outline'
+          onClick={(event) => {
+            event.stopPropagation();
+            copyId(row.original.id);
+          }}
+        >
           <span className='max-w-[120px] truncate'>{row.original.id}</span>
         </Button>
       ),
@@ -242,22 +251,28 @@ function SpaceSearch() {
       header: '작업',
       size: 120,
       cell: ({ row }) => (
-        <TableRowActions
-          items={[
-            {
-              label: '코인 관리',
-              onClick: () => {
-                setOpenCoin(true);
-                setFocused(row.original);
+        <div onClick={(event) => event.stopPropagation()}>
+          <TableRowActions
+            items={[
+              {
+                label: '상세 보기',
+                onClick: () => setDetailTarget(row.original),
               },
-            },
-            {
-              label: '삭제',
-              onClick: () => handleRemoveSpace(row.original),
-              destructive: true,
-            },
-          ]}
-        />
+              {
+                label: '코인 관리',
+                onClick: () => {
+                  setOpenCoin(true);
+                  setFocused(row.original);
+                },
+              },
+              {
+                label: '삭제',
+                onClick: () => handleRemoveSpace(row.original),
+                destructive: true,
+              },
+            ]}
+          />
+        </div>
       ),
     },
   ];
@@ -272,7 +287,11 @@ function SpaceSearch() {
     const dueRemovedMeta = formatDueRemovedAt(space.dueRemovedAt, space.createdAt, hasPremiumMember);
 
     return (
-      <Card key={space.id} className='overflow-hidden border-border/70 bg-white shadow-sm transition-shadow hover:shadow-md'>
+      <Card
+        key={space.id}
+        className='cursor-pointer overflow-hidden border-border/70 bg-white shadow-sm transition-shadow hover:shadow-md'
+        onClick={() => setDetailTarget(space)}
+      >
         <CardHeader className='gap-3 border-b border-border/70 bg-white px-4 py-3'>
           <div className='flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between'>
             <div className='space-y-2'>
@@ -292,29 +311,45 @@ function SpaceSearch() {
                 size='sm'
                 variant='outline'
                 className='h-8 rounded-full px-3'
-                onClick={() => {
+                onClick={(event) => {
+                  event.stopPropagation();
                   setOpenCoin(true);
                   setFocused(space);
                 }}
               >
                 코인 관리
               </Button>
-              <Button type='button' size='icon' variant='outline' className='h-8 w-8' onClick={() => copyId(space.id)}>
+              <Button
+                type='button'
+                size='icon'
+                variant='outline'
+                className='h-8 w-8'
+                onClick={(event) => {
+                  event.stopPropagation();
+                  copyId(space.id);
+                }}
+              >
                 <Copy className='h-4 w-4' />
               </Button>
-              <TableRowActions
-                items={[
-                  {
-                    label: 'ID 복사',
-                    onClick: () => copyId(space.id),
-                  },
-                  {
-                    label: '삭제',
-                    onClick: () => handleRemoveSpace(space),
-                    destructive: true,
-                  },
-                ]}
-              />
+              <div onClick={(event) => event.stopPropagation()}>
+                <TableRowActions
+                  items={[
+                    {
+                      label: '상세 보기',
+                      onClick: () => setDetailTarget(space),
+                    },
+                    {
+                      label: 'ID 복사',
+                      onClick: () => copyId(space.id),
+                    },
+                    {
+                      label: '삭제',
+                      onClick: () => handleRemoveSpace(space),
+                      destructive: true,
+                    },
+                  ]}
+                />
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -460,23 +495,25 @@ function SpaceSearch() {
                           </div>
                           <div className='break-all text-sm text-muted-foreground'>{profile.user?.username ?? '-'}</div>
                         </div>
-                        <TableRowActions
-                          items={[
-                            {
-                              label: 'username 복사',
-                              onClick: () => copyId(profile.user?.username ?? profile.id),
-                            },
-                            {
-                              label: '프로필 삭제',
-                              onClick: () =>
-                                setDeleteProfileTarget({
-                                  profileId: profile.id,
-                                  nickname: profile.nickname,
-                                }),
-                              destructive: true,
-                            },
-                          ]}
-                        />
+                        <div onClick={(event) => event.stopPropagation()}>
+                          <TableRowActions
+                            items={[
+                              {
+                                label: 'username 복사',
+                                onClick: () => copyId(profile.user?.username ?? profile.id),
+                              },
+                              {
+                                label: '프로필 삭제',
+                                onClick: () =>
+                                  setDeleteProfileTarget({
+                                    profileId: profile.id,
+                                    nickname: profile.nickname,
+                                  }),
+                                destructive: true,
+                              },
+                            ]}
+                          />
+                        </div>
                       </div>
                       {index < space.profiles.length - 1 ? <Separator className='my-2' /> : null}
                     </div>
@@ -667,6 +704,10 @@ function SpaceSearch() {
                   pageSize: 10,
                   onChange: (page) => handleChangePage(page),
                 }}
+                onRow={(space) => ({
+                  onClick: () => setDetailTarget(space),
+                  className: 'cursor-pointer',
+                })}
               />
             ) : (
               <div className='space-y-4'>
@@ -748,6 +789,8 @@ function SpaceSearch() {
           />
         </AdminSideSheetContent>
       </Sheet>
+
+      <SpaceDetailSheet open={!!detailTarget} space={detailTarget} onClose={() => setDetailTarget(null)} copyId={copyId} />
 
       {/* 공간 삭제 확인 */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
