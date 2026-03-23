@@ -1,4 +1,4 @@
-import { User } from '@/client/types';
+import { UserSummary } from '@/client/types';
 import TableRowActions from '@/components/shared/ui/table-row-actions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -7,29 +7,52 @@ import dayjs from 'dayjs';
 import { Copy } from 'lucide-react';
 
 export interface UserTableActionsProps {
-  onOpenTicket: (user: User) => void;
-  onRemove: (user: User) => void;
+  onOpenTicket: (user: UserSummary) => void;
+  onRemove: (user: UserSummary) => void;
   copyId: (id: string) => void;
 }
 
-export const createUserTableColumns = (actions: UserTableActionsProps): ColumnDef<User>[] => [
+interface CopyInlineCellProps {
+  text: string;
+  copyValue: string;
+  maxWidthClassName: string;
+  monospace?: boolean;
+  copyId: (id: string) => void;
+}
+
+function CopyInlineCell({ text, copyValue, maxWidthClassName, monospace = false, copyId }: CopyInlineCellProps) {
+  return (
+    <div className='flex min-w-0 items-center gap-1'>
+      <span className={`${maxWidthClassName} truncate ${monospace ? 'font-mono text-[12px]' : 'font-medium'}`}>{text}</span>
+      <Button
+        type='button'
+        variant='ghost'
+        size='icon'
+        className='h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground'
+        onClick={(event) => {
+          event.stopPropagation();
+          copyId(copyValue);
+        }}
+      >
+        <Copy className='h-4 w-4' />
+      </Button>
+    </div>
+  );
+}
+
+export const createUserTableColumns = (actions: UserTableActionsProps): ColumnDef<UserSummary>[] => [
   {
     accessorKey: 'id',
     header: '유저 ID',
     size: 140,
     cell: ({ row }) => (
-      <Button
-        variant='outline'
-        size='sm'
-        onClick={(event) => {
-          event.stopPropagation();
-          actions.copyId(row.original.id);
-        }}
-        className='max-w-[128px] justify-start gap-1 overflow-hidden'
-      >
-        <span className='truncate'>{row.original.id.slice(0, 8)}...</span>
-        <Copy className='w-4 h-4' />
-      </Button>
+      <CopyInlineCell
+        text={`${row.original.id.slice(0, 8)}...`}
+        copyValue={row.original.id}
+        maxWidthClassName='max-w-[92px]'
+        monospace
+        copyId={actions.copyId}
+      />
     ),
   },
   {
@@ -37,18 +60,12 @@ export const createUserTableColumns = (actions: UserTableActionsProps): ColumnDe
     header: '유저코드',
     size: 180,
     cell: ({ row }) => (
-      <Button
-        variant='outline'
-        size='sm'
-        onClick={(event) => {
-          event.stopPropagation();
-          actions.copyId(row.original.username);
-        }}
-        className='max-w-[168px] justify-start gap-1 overflow-hidden'
-      >
-        <span className='truncate'>{row.original.username}</span>
-        <Copy className='w-4 h-4' />
-      </Button>
+      <CopyInlineCell
+        text={row.original.username}
+        copyValue={row.original.username}
+        maxWidthClassName='max-w-[140px]'
+        copyId={actions.copyId}
+      />
     ),
   },
   {
@@ -193,9 +210,9 @@ export const defaultColumnConfig: ColumnConfig[] = [
 ];
 
 export const filterColumns = (
-  columns: ColumnDef<User>[],
+  columns: ColumnDef<UserSummary>[],
   config: ColumnConfig[],
-): ColumnDef<User>[] => {
+): ColumnDef<UserSummary>[] => {
   const visibleKeys = new Set(config.filter((c) => c.visible).map((c) => c.key));
   return columns.filter((col) => {
     const key = col.id || ('accessorKey' in col ? (col.accessorKey as string) : undefined);

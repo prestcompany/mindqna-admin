@@ -1,4 +1,4 @@
-import { User } from '@/client/types';
+import { UserDetail, UserSummary } from '@/client/types';
 import { SearchUserParams, removeUser, searchUser } from '@/client/user';
 import FormGroup from '@/components/shared/form/ui/form-group';
 import FormSection from '@/components/shared/form/ui/form-section';
@@ -33,7 +33,7 @@ function UserSearch() {
   const [isOpenTicket, setOpenTicket] = useState(false);
   const [focused, setFocused] = useState<string>('');
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmTarget, setConfirmTarget] = useState<User | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<UserSummary | null>(null);
 
   const getFilledFields = () =>
     [
@@ -60,7 +60,7 @@ function UserSearch() {
     return field ? `${field.label}: ${field.value}` : '';
   };
 
-  const { data, refetch, isLoading, isFetched, error } = useQuery({
+  const { data, refetch, isLoading, isFetched, error } = useQuery<UserDetail>({
     queryKey: ['user-search', userId, username, email],
     queryFn: () => {
       const params = getSearchParams();
@@ -91,7 +91,7 @@ function UserSearch() {
     return error instanceof Error ? error.message : getSearchSummary();
   };
 
-  const handleRemoveClick = (user: User) => {
+  const handleRemoveClick = (user: UserSummary) => {
     setConfirmTarget(user);
     setConfirmOpen(true);
   };

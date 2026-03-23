@@ -1,4 +1,4 @@
-import { User } from '@/client/types';
+import { UserSummary } from '@/client/types';
 import { useState } from 'react';
 
 export interface UseUserModalsReturn {
@@ -11,7 +11,7 @@ export interface UseUserModalsReturn {
   // 액션
   openSearch: () => void;
   closeSearch: () => void;
-  openTicket: (user: User) => void;
+  openTicket: (user: Pick<UserSummary, 'username'>) => void;
   closeTicket: () => void;
   openMigration: () => void;
   closeMigration: () => void;
@@ -26,7 +26,7 @@ export function useUserModals(): UseUserModalsReturn {
   const openSearch = () => setOpenSearch(true);
   const closeSearch = () => setOpenSearch(false);
 
-  const openTicket = (user: User) => {
+  const openTicket = (user: Pick<UserSummary, 'username'>) => {
     setFocusedUsername(user.username);
     setOpenTicket(true);
   };

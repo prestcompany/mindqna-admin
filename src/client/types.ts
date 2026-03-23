@@ -352,7 +352,7 @@ export type PurchaseMeta = {
   createdAt: string;
 };
 
-export type User = {
+export type UserSummary = {
   id: string;
   username: string;
   code: number;
@@ -362,10 +362,7 @@ export type User = {
   createdAt: string;
   updateAt: string;
   representativeNickname?: string | null;
-  latestAccessAt?: string | null;
-  ticketSummary?: UserTicketSummary;
-
-  socialAccount: SocialAccount;
+  socialAccount: SocialAccountSummary;
   _count: {
     profiles: number;
   };
@@ -390,6 +387,14 @@ export type User = {
   // }[];
 };
 
+export type UserDetail = Omit<UserSummary, 'socialAccount'> & {
+  latestAccessAt?: string | null;
+  ticketSummary?: UserTicketSummary;
+  socialAccount: SocialAccount;
+};
+
+export type User = UserDetail;
+
 export type UserTicketSummary = {
   owned: number;
   used: number;
@@ -409,6 +414,8 @@ export type SocialAccount = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type SocialAccountSummary = Pick<SocialAccount, 'email' | 'provider'>;
 
 export type Space = {
   id: string;

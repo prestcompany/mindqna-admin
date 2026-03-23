@@ -1,4 +1,4 @@
-import { User } from '@/client/types';
+import { UserDetail, UserSummary } from '@/client/types';
 import TableRowActions from '@/components/shared/ui/table-row-actions';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -8,10 +8,10 @@ import dayjs from 'dayjs';
 import { Ticket } from 'lucide-react';
 
 interface UserDetailContentProps {
-  user: User;
+  user: UserDetail;
   copyId: (value: string) => void;
-  onOpenTicket?: (user: User) => void;
-  onRemove?: (user: User) => void;
+  onOpenTicket?: (user: UserSummary) => void;
+  onRemove?: (user: UserSummary) => void;
 }
 
 function formatRelativeAccess(value?: string | null) {
