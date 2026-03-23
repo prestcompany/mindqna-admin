@@ -42,6 +42,7 @@ export type Banner = {
   id: number;
   location: string;
   name: string;
+  orderIndex?: number;
   title?: string;
   desc1?: string;
   desc2?: string;
@@ -65,6 +66,7 @@ export type CreateBannerParams = {
   img: string;
   link: string;
   locale: Locale;
+  orderIndex: number;
 };
 
 export type UpdateBannerParams = CreateBannerParams & {
