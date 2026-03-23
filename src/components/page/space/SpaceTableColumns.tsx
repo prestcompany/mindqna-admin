@@ -38,14 +38,7 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
     id: 'name',
     header: '공간 이름',
     size: 220,
-    cell: ({ row }) => (
-      <div className='space-y-1'>
-        <span className='block truncate font-medium'>{row.original.spaceInfo?.name ?? '-'}</span>
-        <span className='block truncate text-xs text-muted-foreground'>
-          {row.original.spaceInfo?.locale?.toUpperCase() ?? '-'}
-        </span>
-      </div>
-    ),
+    cell: ({ row }) => <span className='block truncate font-medium'>{row.original.spaceInfo?.name ?? '-'}</span>,
   },
   {
     accessorFn: (row) => row.spaceInfo?.type,
@@ -113,13 +106,6 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
         </div>
       );
     },
-  },
-  {
-    accessorFn: (row) => row.spaceInfo?.replies,
-    id: 'replies',
-    header: '답변',
-    size: 80,
-    cell: ({ row }) => <Badge variant='info'>{row.original.spaceInfo?.replies || 0}</Badge>,
   },
   {
     id: 'coins',
@@ -239,11 +225,10 @@ export const defaultColumnConfig: ColumnConfig[] = [
   { key: 'id', visible: true, width: 180 },
   { key: 'name', visible: true, width: 220 },
   { key: 'type', visible: true, width: 96 },
-  { key: 'locale', visible: false, width: 72 },
+  { key: 'locale', visible: true, width: 72 },
   { key: 'members', visible: true, width: 88 },
   { key: 'membership', visible: true, width: 150 },
   { key: 'cardStatus', visible: true, width: 172 },
-  { key: 'replies', visible: false, width: 80 },
   { key: 'coins', visible: true, width: 146 },
   { key: 'petExp', visible: false, width: 130 },
   { key: 'items', visible: false, width: 140 },

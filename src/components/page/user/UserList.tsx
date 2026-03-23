@@ -21,19 +21,20 @@ import UserSearch from './UserSearch';
 import { createUserTableColumns } from './UserTableColumns';
 import UserFilterBar from './components/UserFilterBar';
 import UserMigrationModal from './components/UserMigrationModal';
+import UserDetailSheet from './components/UserDetailSheet';
 import { useUserFilters } from './hooks/useUserFilters';
 import { useUserModals } from './hooks/useUserModals';
 
 function UserList() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<User | null>(null);
+  const [detailTarget, setDetailTarget] = useState<User | null>(null);
 
   const { filter, currentPage, setCurrentPage, updateFilter } = useUserFilters();
   const {
     isOpenSearch,
     isOpenTicket,
     isOpenMigration,
-    focusedUser,
     focusedUsername,
     openSearch,
     closeSearch,
@@ -54,8 +55,14 @@ function UserList() {
   };
 
   const handleRemoveClick = (user: User) => {
+    setDetailTarget(null);
     setConfirmTarget(user);
     setConfirmOpen(true);
+  };
+
+  const handleOpenTicket = (user: User) => {
+    setDetailTarget(null);
+    openTicket(user);
   };
 
   const handleRemoveConfirm = async () => {
@@ -78,7 +85,7 @@ function UserList() {
   };
 
   const tableColumns = createUserTableColumns({
-    onOpenTicket: openTicket,
+    onOpenTicket: handleOpenTicket,
     onRemove: handleRemoveClick,
     copyId,
   });
@@ -103,6 +110,10 @@ function UserList() {
           onChange: (page) => setCurrentPage(page),
         }}
         loading={isLoading}
+        onRow={(user) => ({
+          onClick: () => setDetailTarget(user),
+          className: 'cursor-pointer',
+        })}
       />
 
       <Sheet open={isOpenSearch} onOpenChange={(open) => !open && closeSearch()}>
@@ -116,6 +127,15 @@ function UserList() {
           <TicketForm reload={refetch} close={closeTicket} username={focusedUsername} />
         </AdminSideSheetContent>
       </Sheet>
+
+      <UserDetailSheet
+        open={!!detailTarget}
+        user={detailTarget}
+        onClose={() => setDetailTarget(null)}
+        copyId={copyId}
+        onOpenTicket={handleOpenTicket}
+        onRemove={handleRemoveClick}
+      />
 
       <UserMigrationModal open={isOpenMigration} onClose={closeMigration} onSuccess={handleMigrationSuccess} />
 
