@@ -241,8 +241,9 @@ export type BannerLocationType =
   | 'push_top'
   | 'wallet_charge_top'
   | 'wallet_charge'
-  | 'main_poup'
-  | 'square_library_top';
+  | 'main_popup'
+  | 'square_library_top'
+  | 'partner_charge';
 
 export type GetBubblesResult = {
   pageInfo: TotalPageInfo;
