@@ -109,6 +109,10 @@ function BannerList() {
       accessorKey: 'orderIndex',
       header: '순서',
       size: 72,
+      cell: ({ row }) => {
+        const value = row.original.orderIndex;
+        return <div className='text-center font-medium tabular-nums'>{value ?? '-'}</div>;
+      },
     },
     {
       accessorKey: 'location',

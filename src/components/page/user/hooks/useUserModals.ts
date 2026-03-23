@@ -6,7 +6,6 @@ export interface UseUserModalsReturn {
   isOpenSearch: boolean;
   isOpenTicket: boolean;
   isOpenMigration: boolean;
-  focusedUser: User | undefined;
   focusedUsername: string;
 
   // 액션
@@ -22,21 +21,18 @@ export function useUserModals(): UseUserModalsReturn {
   const [isOpenSearch, setOpenSearch] = useState(false);
   const [isOpenTicket, setOpenTicket] = useState(false);
   const [isOpenMigration, setOpenMigration] = useState(false);
-  const [focusedUser, setFocusedUser] = useState<User | undefined>(undefined);
   const [focusedUsername, setFocusedUsername] = useState('');
 
   const openSearch = () => setOpenSearch(true);
   const closeSearch = () => setOpenSearch(false);
 
   const openTicket = (user: User) => {
-    setFocusedUser(user);
     setFocusedUsername(user.username);
     setOpenTicket(true);
   };
 
   const closeTicket = () => {
     setOpenTicket(false);
-    setFocusedUser(undefined);
     setFocusedUsername('');
   };
 
@@ -47,7 +43,6 @@ export function useUserModals(): UseUserModalsReturn {
     isOpenSearch,
     isOpenTicket,
     isOpenMigration,
-    focusedUser,
     focusedUsername,
     openSearch,
     closeSearch,
