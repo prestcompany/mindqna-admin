@@ -43,6 +43,7 @@ const bannerSchema = z.object({
   name: z.string().min(1, '이름을 입력해주세요.'),
   location: z.string().min(1, '위치를 선택해주세요.'),
   link: z.string().min(1, '링크를 입력해주세요.'),
+  orderIndex: z.coerce.number().int().min(1, '1 이상의 숫자를 입력해주세요.'),
   isActive: z.boolean(),
 });
 
@@ -60,6 +61,7 @@ function BannerForm({ init, reload, close }: Props) {
       name: '',
       location: '',
       link: '',
+      orderIndex: 1,
       isActive: false,
     },
   });
@@ -72,6 +74,7 @@ function BannerForm({ init, reload, close }: Props) {
       name: init.name,
       location: init.location,
       link: init.link,
+      orderIndex: (init as any).orderIndex ?? 1,
       isActive: init.isActive,
     });
   }, [init]);
@@ -92,6 +95,7 @@ function BannerForm({ init, reload, close }: Props) {
           link: values.link,
           location: values.location,
           name: values.name,
+          orderIndex: values.orderIndex,
           isActive: values.isActive,
         });
       } else {
@@ -101,6 +105,7 @@ function BannerForm({ init, reload, close }: Props) {
           link: values.link,
           location: values.location,
           name: values.name,
+          orderIndex: values.orderIndex,
         });
       }
 
@@ -199,6 +204,21 @@ function BannerForm({ init, reload, close }: Props) {
                       </RadioGroup>
                     </FormControl>
                     <FormDescription>선택된 위치의 배너 슬롯에 노출됩니다.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormGroup>
+
+            <FormGroup title='노출 순서*' description='같은 위치/언어 그룹 안에서의 표시 순서입니다. 1 이상의 정수를 입력하세요.'>
+              <FormField
+                control={form.control}
+                name='orderIndex'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input type='number' min={1} step={1} {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

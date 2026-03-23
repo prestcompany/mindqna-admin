@@ -106,6 +106,11 @@ function BannerList() {
       size: 88,
     },
     {
+      accessorKey: 'orderIndex',
+      header: '순서',
+      size: 72,
+    },
+    {
       accessorKey: 'location',
       header: '위치',
       size: 120,
