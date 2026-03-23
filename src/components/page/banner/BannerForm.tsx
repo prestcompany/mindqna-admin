@@ -74,7 +74,7 @@ function BannerForm({ init, reload, close }: Props) {
       name: init.name,
       location: init.location,
       link: init.link,
-      orderIndex: (init as any).orderIndex ?? 1,
+      orderIndex: init.orderIndex ?? 1,
       isActive: init.isActive,
     });
   }, [init]);
@@ -210,7 +210,10 @@ function BannerForm({ init, reload, close }: Props) {
               />
             </FormGroup>
 
-            <FormGroup title='노출 순서*' description='같은 위치/언어 그룹 안에서의 표시 순서입니다. 1 이상의 정수를 입력하세요.'>
+            <FormGroup
+              title='노출 순서*'
+              description='같은 위치/언어 그룹 안에서 순서를 관리합니다. 비활성 배너도 순서를 유지합니다.'
+            >
               <FormField
                 control={form.control}
                 name='orderIndex'
