@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -65,6 +65,14 @@ function BannerForm({ init, reload, close }: Props) {
       isActive: false,
     },
   });
+
+  const changeOrderIndex = (nextValue: number) => {
+    form.setValue('orderIndex', Math.max(1, nextValue), {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+  };
 
   useEffect(() => {
     if (!init) return;
@@ -220,7 +228,35 @@ function BannerForm({ init, reload, close }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input type='number' min={1} step={1} {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                      <div className='flex items-center gap-3'>
+                        <div className='flex w-full max-w-[220px] items-center rounded-lg border border-border bg-background shadow-sm'>
+                          <Button
+                            type='button'
+                            variant='ghost'
+                            size='icon'
+                            className='h-11 w-11 rounded-r-none border-r'
+                            onClick={() => changeOrderIndex((field.value ?? 1) - 1)}
+                            disabled={(field.value ?? 1) <= 1}
+                            aria-label='노출 순서 감소'
+                          >
+                            <ChevronDown className='h-4 w-4' />
+                          </Button>
+                          <div className='flex min-w-0 flex-1 flex-col items-center justify-center px-3 py-2'>
+                            <span className='text-xs text-muted-foreground'>현재 순서</span>
+                            <span className='text-lg font-semibold tabular-nums'>{field.value ?? 1}</span>
+                          </div>
+                          <Button
+                            type='button'
+                            variant='ghost'
+                            size='icon'
+                            className='h-11 w-11 rounded-l-none border-l'
+                            onClick={() => changeOrderIndex((field.value ?? 1) + 1)}
+                            aria-label='노출 순서 증가'
+                          >
+                            <ChevronUp className='h-4 w-4' />
+                          </Button>
+                        </div>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
