@@ -313,6 +313,12 @@ export type GiveTicketParams = {
   dueDayNum?: number;
 };
 
+export type RevokeTicketParams = {
+  username: string;
+  amount: number;
+  message: string;
+};
+
 export type GiveCoinParams = {
   spaceId: string;
   amount: number;

@@ -130,7 +130,7 @@ function UserDetailContent({ user, copyId, onOpenTicket, onRemove }: UserDetailC
                   onClick={() => onOpenTicket(user)}
                 >
                   <Ticket className='w-4 h-4' />
-                  티켓 지급
+                  티켓 관리
                 </Button>
               ) : null}
               {onRemove ? (

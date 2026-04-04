@@ -208,7 +208,7 @@ function UserSearch() {
           }
         }}
       >
-        <AdminSideSheetContent title='티켓 지급' size='md'>
+        <AdminSideSheetContent title='티켓 관리' size='md'>
           <TicketForm
             reload={refetch}
             close={() => {
