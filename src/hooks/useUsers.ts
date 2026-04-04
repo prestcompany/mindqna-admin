@@ -1,4 +1,5 @@
 import { getUsers } from '@/client/user';
+import { UserSummary } from '@/client/types';
 import { useQuery } from '@tanstack/react-query';
 
 type Props = {
@@ -14,7 +15,7 @@ function useUsers(by: Props) {
     queryFn: () => getUsers(page, locale),
   });
 
-  const items = data?.items ?? [];
+  const items: UserSummary[] = data?.items ?? [];
 
   const totalPage = data?.pageInfo.totalPage ?? 1;
 

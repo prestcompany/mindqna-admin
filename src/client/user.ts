@@ -1,20 +1,20 @@
 import client from './@base';
-import { QueryResultWithPagination, User } from './types';
+import { QueryResultWithPagination, UserDetail, UserSummary } from './types';
 
 export async function getUsers(page: number, locale?: string[]) {
-  const res = await client.get<QueryResultWithPagination<User>>('/user', { params: { page, locale } });
+  const res = await client.get<QueryResultWithPagination<UserSummary>>('/user', { params: { page, locale } });
 
   return res.data;
 }
 
 export async function getUser(username: string) {
-  const res = await client.get<User>(`/user/${username}`);
+  const res = await client.get<UserDetail>(`/user/${username}`);
 
   return res.data;
 }
 
 export async function getUserByEmail(email: string) {
-  const res = await client.get<User>(`/user/email/${email}`);
+  const res = await client.get<UserDetail>(`/user/email/${email}`);
 
   return res.data;
 }
@@ -26,7 +26,7 @@ export interface SearchUserParams {
 }
 
 export async function searchUser(params: SearchUserParams) {
-  const res = await client.get<User>('/user/search', { params });
+  const res = await client.get<UserDetail>('/user/search', { params });
 
   return res.data;
 }

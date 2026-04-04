@@ -1,4 +1,4 @@
-import { User } from '@/client/types';
+import { UserSummary } from '@/client/types';
 import { removeUser } from '@/client/user';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import {
@@ -27,8 +27,8 @@ import { useUserModals } from './hooks/useUserModals';
 
 function UserList() {
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmTarget, setConfirmTarget] = useState<User | null>(null);
-  const [detailTarget, setDetailTarget] = useState<User | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<UserSummary | null>(null);
+  const [detailTarget, setDetailTarget] = useState<UserSummary | null>(null);
 
   const { filter, currentPage, setCurrentPage, updateFilter } = useUserFilters();
   const {
@@ -54,13 +54,13 @@ function UserList() {
     toast.success(`${id} 복사됨`);
   };
 
-  const handleRemoveClick = (user: User) => {
+  const handleRemoveClick = (user: UserSummary) => {
     setDetailTarget(null);
     setConfirmTarget(user);
     setConfirmOpen(true);
   };
 
-  const handleOpenTicket = (user: User) => {
+  const handleOpenTicket = (user: UserSummary) => {
     setDetailTarget(null);
     openTicket(user);
   };
@@ -123,7 +123,7 @@ function UserList() {
       </Sheet>
 
       <Sheet open={isOpenTicket} onOpenChange={(open) => !open && closeTicket()}>
-        <AdminSideSheetContent title='티켓 지급' size='md'>
+        <AdminSideSheetContent title='티켓 관리' size='md'>
           <TicketForm reload={refetch} close={closeTicket} username={focusedUsername} />
         </AdminSideSheetContent>
       </Sheet>

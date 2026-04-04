@@ -1,5 +1,13 @@
 import client from './@base';
-import { GiveCoinBulkParams, GiveCoinBulkResult, GiveCoinParams, GiveTicketParams, PurchaseMeta, QueryResultWithPagination } from './types';
+import {
+  GiveCoinBulkParams,
+  GiveCoinBulkResult,
+  GiveCoinParams,
+  GiveTicketParams,
+  PurchaseMeta,
+  QueryResultWithPagination,
+  RevokeTicketParams,
+} from './types';
 
 export async function getPurchases(by: { page: number; username?: string; startDate?: string; endDate?: string }) {
   const res = await client.get<QueryResultWithPagination<PurchaseMeta>>('/purchase', { params: by });
@@ -17,6 +25,14 @@ export async function giveTicket(params: GiveTicketParams) {
   const { ...body } = params;
 
   const res = await client.post('/ticket', body);
+
+  return res.data;
+}
+
+export async function revokeTicket(params: RevokeTicketParams) {
+  const { ...body } = params;
+
+  const res = await client.post('/ticket/revoke', body);
 
   return res.data;
 }

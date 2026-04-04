@@ -1,4 +1,4 @@
-import { giveTicket } from '@/client/premium';
+import { giveTicket, revokeTicket } from '@/client/premium';
 import FormGroup from '@/components/shared/form/ui/form-group';
 import FormSection from '@/components/shared/form/ui/form-section';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 
 const schema = z.object({
+  operation: z.enum(['give', 'take']),
   type: z.enum(['per', 'sub']),
   amount: z.coerce.number().min(1, '개수를 입력해주세요').max(100),
   dueDayNum: z.coerce.number().min(1, '유효 기간을 입력해주세요').max(365, '최대 365일까지 가능합니다.').optional(),
@@ -39,12 +40,18 @@ const typeOptions = [
   { label: '기간 티켓', value: 'sub' },
 ];
 
+const operationOptions = [
+  { label: '지급', value: 'give' },
+  { label: '회수', value: 'take' },
+];
+
 function TicketForm({ username, reload, close }: TicketFormProps) {
   const [loading, setLoading] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
+      operation: 'give',
       type: 'sub',
       amount: 1,
       dueDayNum: 7,
@@ -52,25 +59,38 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
     },
   });
 
+  const operation = form.watch('operation');
   const ticketType = form.watch('type');
 
   const handleSubmit = async (values: FormValues) => {
     try {
       setLoading(true);
 
-      await giveTicket({
-        username,
-        amount: values.amount,
-        message: values.message || `${values.type === 'per' ? '영구' : '기간'} 티켓 지급`,
-        dueDayNum: values.type === 'sub' ? values.dueDayNum : undefined,
-      });
+      if (values.operation === 'give') {
+        await giveTicket({
+          username,
+          amount: values.amount,
+          message: values.message || `${values.type === 'per' ? '영구' : '기간'} 티켓 지급`,
+          dueDayNum: values.type === 'sub' ? values.dueDayNum : undefined,
+        });
+      } else {
+        await revokeTicket({
+          username,
+          amount: values.amount,
+          message: values.message || `미적용 티켓 ${values.amount}개 회수`,
+        });
+      }
 
-      toast.success(`${values.amount}개 티켓이 지급되었습니다`);
+      toast.success(
+        values.operation === 'give'
+          ? `${values.amount}개 티켓이 지급되었습니다`
+          : `${values.amount}개 미적용 티켓이 회수되었습니다`,
+      );
       await reload();
       close();
       form.reset();
     } catch (err) {
-      toast.error(`지급 실패: ${err}`);
+      toast.error(`${values.operation === 'give' ? '지급' : '회수'} 실패: ${err}`);
     } finally {
       setLoading(false);
     }
@@ -85,7 +105,7 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
       )}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className='space-y-4 pb-2'>
-          <FormSection title='지급 대상' description='티켓을 지급할 사용자 정보입니다.'>
+          <FormSection title='대상 사용자' description='티켓을 관리할 사용자 정보입니다.'>
             <FormGroup title='Username'>
               <div className='rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm font-medium text-foreground'>
                 {username}
@@ -93,20 +113,20 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
             </FormGroup>
           </FormSection>
 
-          <FormSection title='티켓 설정' description='종류와 수량, 메시지를 설정합니다.'>
-            <FormGroup title='티켓 종류*'>
+          <FormSection title='티켓 관리' description='지급하거나, 아직 적용되지 않은 티켓만 회수할 수 있습니다.'>
+            <FormGroup title='작업 유형*'>
               <FormField
                 control={form.control}
-                name='type'
+                name='operation'
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <RadioGroup value={field.value} onValueChange={field.onChange} className='grid grid-cols-1 gap-2 sm:grid-cols-2'>
-                        {typeOptions.map((opt) => (
+                      <RadioGroup value={field.value} onValueChange={field.onChange} className='grid grid-cols-2 gap-2 sm:max-w-[280px]'>
+                        {operationOptions.map((opt) => (
                           <div key={opt.value}>
-                            <RadioGroupItem value={opt.value} id={`ticket-${opt.value}`} className='peer sr-only' />
+                            <RadioGroupItem value={opt.value} id={`ticket-op-${opt.value}`} className='peer sr-only' />
                             <Label
-                              htmlFor={`ticket-${opt.value}`}
+                              htmlFor={`ticket-op-${opt.value}`}
                               className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
                             >
                               {opt.label}
@@ -121,7 +141,40 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
               />
             </FormGroup>
 
-            <FormGroup title='지급 개수*'>
+            {operation === 'give' ? (
+              <FormGroup title='티켓 종류*'>
+                <FormField
+                  control={form.control}
+                  name='type'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <RadioGroup
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          className='grid grid-cols-1 gap-2 sm:grid-cols-2'
+                        >
+                          {typeOptions.map((opt) => (
+                            <div key={opt.value}>
+                              <RadioGroupItem value={opt.value} id={`ticket-type-${opt.value}`} className='peer sr-only' />
+                              <Label
+                                htmlFor={`ticket-type-${opt.value}`}
+                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                              >
+                                {opt.label}
+                              </Label>
+                            </div>
+                          ))}
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </FormGroup>
+            ) : null}
+
+            <FormGroup title={`${operation === 'give' ? '지급' : '회수'} 개수*`}>
               <FormField
                 control={form.control}
                 name='amount'
@@ -130,13 +183,16 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
                     <FormControl>
                       <Input type='number' min={1} max={100} placeholder='1 ~ 100' {...field} className='w-full sm:w-[220px]' />
                     </FormControl>
+                    {operation === 'take' ? (
+                      <FormDescription>아직 프로필에 적용되지 않은 티켓만 회수합니다.</FormDescription>
+                    ) : null}
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </FormGroup>
 
-            {ticketType === 'sub' && (
+            {operation === 'give' && ticketType === 'sub' && (
               <FormGroup title='유효 기간(일)*'>
                 <FormField
                   control={form.control}
@@ -161,7 +217,7 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input placeholder='지급 사유 또는 내부 메모 (선택사항)' {...field} />
+                      <Input placeholder={`${operation === 'give' ? '지급' : '회수'} 사유 또는 내부 메모 (선택사항)`} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -177,7 +233,7 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
               </Button>
               <Button type='submit' disabled={loading}>
                 {loading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-                티켓 지급
+                {operation === 'give' ? '티켓 지급' : '티켓 회수'}
               </Button>
             </div>
           </div>
