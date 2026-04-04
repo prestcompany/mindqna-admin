@@ -1,4 +1,5 @@
 import { giveTicket, revokeTicket } from '@/client/premium';
+import { getUser } from '@/client/user';
 import FormGroup from '@/components/shared/form/ui/form-group';
 import FormSection from '@/components/shared/form/ui/form-section';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -47,6 +49,11 @@ const operationOptions = [
 
 function TicketForm({ username, reload, close }: TicketFormProps) {
   const [loading, setLoading] = useState(false);
+  const { data: userDetail } = useQuery({
+    queryKey: ['ticket-form-user-detail', username],
+    queryFn: () => getUser(username),
+    enabled: !!username,
+  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -61,6 +68,7 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
 
   const operation = form.watch('operation');
   const ticketType = form.watch('type');
+  const summary = userDetail?.ticketSummary ?? { owned: 0, applied: 0, unapplied: 0, used: 0, expired: 0 };
 
   const handleSubmit = async (values: FormValues) => {
     try {
@@ -111,6 +119,24 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
                 {username}
               </div>
             </FormGroup>
+          </FormSection>
+
+          <FormSection title='현재 티켓 현황' description='회수는 아직 프로필에 적용되지 않은 티켓만 가능합니다.'>
+            <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
+              <div className='rounded-lg border border-border bg-muted/30 px-4 py-3'>
+                <div className='text-xs text-muted-foreground'>활성 보유</div>
+                <div className='mt-1 text-lg font-semibold text-foreground'>{summary.owned}</div>
+              </div>
+              <div className='rounded-lg border border-border bg-muted/30 px-4 py-3'>
+                <div className='text-xs text-muted-foreground'>미적용</div>
+                <div className='mt-1 text-lg font-semibold text-foreground'>{summary.unapplied}</div>
+              </div>
+              <div className='rounded-lg border border-border bg-muted/30 px-4 py-3'>
+                <div className='text-xs text-muted-foreground'>적용 중</div>
+                <div className='mt-1 text-lg font-semibold text-foreground'>{summary.applied}</div>
+              </div>
+            </div>
+            <p className='text-xs text-muted-foreground'>누적 이력: 사용 {summary.used} · 만료 {summary.expired}</p>
           </FormSection>
 
           <FormSection title='티켓 관리' description='지급하거나, 아직 적용되지 않은 티켓만 회수할 수 있습니다.'>

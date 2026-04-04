@@ -66,7 +66,7 @@ function UserDetailContent({ user, copyId, onOpenTicket, onRemove }: UserDetailC
   const created = dayjs(createdAt);
   const diffFromNow = dayjs().diff(created, 'day');
   const accessMeta = formatRelativeAccess(latestAccessAt);
-  const summary = ticketSummary ?? { owned: 0, used: 0, expired: 0 };
+  const summary = ticketSummary ?? { owned: 0, applied: 0, unapplied: 0, used: 0, expired: 0 };
   const reserveMeta = formatReserveUnregister(createdAt, reserveUnregisterAt);
 
   const providerMap: Record<string, { variant: 'destructive' | 'warning' | 'muted' | 'success'; text: string }> = {

@@ -403,6 +403,8 @@ export type User = UserDetail;
 
 export type UserTicketSummary = {
   owned: number;
+  applied: number;
+  unapplied: number;
   used: number;
   expired: number;
 };
