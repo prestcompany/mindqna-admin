@@ -360,8 +360,9 @@ function PurchaseMetaList() {
         data={items || []}
         loading={isLoading}
         pagination={{
-          total: totalPage * 10,
+          total: totalPage * 20,
           page: currentPage,
+          pageSize: 20,
           onChange: (page) => setCurrentPage(page),
         }}
       />
