@@ -1,5 +1,4 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import AnimatedMetricValue from './AnimatedMetricValue';
 
 interface DashboardCoreStatsProps {
   users?: number;
@@ -32,6 +31,14 @@ const statItems = [
   },
 ] as const;
 
+function formatValue(value?: number) {
+  if (typeof value !== 'number') {
+    return '-';
+  }
+
+  return value.toLocaleString('ko-KR');
+}
+
 function DashboardCoreStats({ users, profiles, removedProfiles, spaces, isLoading = false }: DashboardCoreStatsProps) {
   const values = {
     users,
@@ -61,10 +68,7 @@ function DashboardCoreStats({ users, profiles, removedProfiles, spaces, isLoadin
               {isLoading ? (
                 <div className='h-9 w-28 animate-pulse rounded-lg bg-slate-100' />
               ) : (
-                <AnimatedMetricValue
-                  value={values[item.key]}
-                  className='text-3xl font-semibold tracking-tight tabular-nums text-slate-950'
-                />
+                <div className='text-3xl font-semibold tracking-tight tabular-nums text-slate-950'>{formatValue(values[item.key])}</div>
               )}
             </CardContent>
           </Card>
