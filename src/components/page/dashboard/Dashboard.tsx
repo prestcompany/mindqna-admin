@@ -150,6 +150,8 @@ function Dashboard() {
         isLoading={isUserSummaryLoading}
       />
 
+      <div className='h-px w-full bg-slate-200' />
+
       <section className='space-y-4'>
         <div className='space-y-3'>
           <div className='flex flex-wrap items-start justify-between gap-3'>
@@ -163,7 +165,6 @@ function Dashboard() {
               기간 / 국가 설정 적용
             </div>
           </div>
-          <div className='h-px w-full bg-slate-200' />
         </div>
 
         {showGrowthFilters && (
