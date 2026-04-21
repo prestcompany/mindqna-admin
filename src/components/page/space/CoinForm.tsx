@@ -30,6 +30,15 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
+const defaultCoinFormValues: FormValues = {
+  operation: 'give',
+  isStar: 'false',
+  amount: 1,
+  meta: '',
+};
+
+let lastSubmittedCoinFormValues: FormValues = { ...defaultCoinFormValues };
+
 type CoinFormProps = {
   spaceId: string;
   currentCoins?: { hearts: number; stars: number };
@@ -52,12 +61,7 @@ function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      operation: 'give',
-      isStar: 'false',
-      amount: 1,
-      meta: '',
-    },
+    defaultValues: { ...lastSubmittedCoinFormValues },
   });
 
   const operation = form.watch('operation');
@@ -87,6 +91,13 @@ function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
         amount: finalAmount,
         message: values.meta || `${values.operation === 'give' ? '지급' : '회수'}: ${values.amount}개`,
       });
+
+      lastSubmittedCoinFormValues = {
+        operation: values.operation,
+        isStar: values.isStar,
+        amount: values.amount,
+        meta: values.meta ?? '',
+      };
 
       toast.success(`${starBool ? '스타' : '하트'} ${values.amount}개 ${values.operation === 'give' ? '지급' : '회수'} 완료`);
       await reload();
