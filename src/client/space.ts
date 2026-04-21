@@ -13,6 +13,7 @@ export type SpaceOrderBy =
 
 export type SearchSpacesParams = {
   page: number;
+  keyword?: string;
   spaceId?: string;
   name?: string;
   username?: string;
