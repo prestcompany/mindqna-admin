@@ -35,10 +35,7 @@ import SpaceDetailSheet from './components/SpaceDetailSheet';
 
 function SpaceSearch() {
   const [searchParams, setSearchParams] = useState({
-    spaceId: '',
-    name: '',
-    username: '',
-    nickname: '',
+    keyword: '',
     type: undefined as SpaceType | undefined,
     locale: undefined as string | undefined,
     dateRange: {
@@ -60,21 +57,15 @@ function SpaceSearch() {
   } | null>(null);
 
   const getSearchParams = (page: number): SearchSpacesParams | null => {
-    const spaceId = searchParams.spaceId.trim();
-    const name = searchParams.name.trim();
-    const username = searchParams.username.trim();
-    const nickname = searchParams.nickname.trim();
+    const keyword = searchParams.keyword.trim();
 
-    if (!spaceId && !name && !username && !nickname) {
+    if (!keyword) {
       return null;
     }
 
     return {
       page,
-      spaceId: spaceId || undefined,
-      name: name || undefined,
-      username: username || undefined,
-      nickname: nickname || undefined,
+      keyword,
       type: searchParams.type,
       locale: searchParams.locale,
       startDate: searchParams.dateRange.start?.format('YYYY-MM-DD'),
@@ -114,7 +105,7 @@ function SpaceSearch() {
     const params = getSearchParams(1);
 
     if (!params) {
-      toast.warning('공간 ID, 공간 이름, 사용자명, 닉네임 중 하나를 입력해주세요.');
+      toast.warning('검색어를 입력해주세요.');
       return;
     }
 
@@ -124,10 +115,7 @@ function SpaceSearch() {
 
   const handleResetFilters = () => {
     setSearchParams({
-      spaceId: '',
-      name: '',
-      username: '',
-      nickname: '',
+      keyword: '',
       type: undefined,
       locale: undefined,
       dateRange: {
@@ -332,39 +320,15 @@ function SpaceSearch() {
   return (
     <>
       <div className='space-y-4'>
-        <FormSection title='공간 검색 및 필터' description='공간 ID, 공간 이름, 사용자명, 닉네임으로 조회하고 조건을 추가로 필터링합니다.'>
-          <FormGroup title='공간 ID'>
+        <FormSection
+          title='공간 검색 및 필터'
+          description='공간 ID, 공간 이름, 사용자명, 프로필 닉네임을 하나의 검색어로 조회하고 조건을 추가로 필터링합니다.'
+        >
+          <FormGroup title='통합 검색'>
             <Input
-              placeholder='공간 ID'
-              value={searchParams.spaceId}
-              onChange={(e) => setSearchParams((prev) => ({ ...prev, spaceId: e.target.value }))}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            />
-          </FormGroup>
-
-          <FormGroup title='공간 이름'>
-            <Input
-              placeholder='공간 이름'
-              value={searchParams.name}
-              onChange={(e) => setSearchParams((prev) => ({ ...prev, name: e.target.value }))}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            />
-          </FormGroup>
-
-          <FormGroup title='사용자명'>
-            <Input
-              placeholder='사용자명'
-              value={searchParams.username}
-              onChange={(e) => setSearchParams((prev) => ({ ...prev, username: e.target.value }))}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            />
-          </FormGroup>
-
-          <FormGroup title='프로필 닉네임'>
-            <Input
-              placeholder='닉네임'
-              value={searchParams.nickname}
-              onChange={(e) => setSearchParams((prev) => ({ ...prev, nickname: e.target.value }))}
+              placeholder='공간 ID / 공간 이름 / 사용자명 / 프로필 닉네임'
+              value={searchParams.keyword}
+              onChange={(e) => setSearchParams((prev) => ({ ...prev, keyword: e.target.value }))}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             />
           </FormGroup>
