@@ -45,7 +45,7 @@ function SpaceSearch() {
   });
   const [submittedSearchParams, setSubmittedSearchParams] = useState<SearchSpacesParams | null>(null);
 
-  const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
+  const [viewMode, setViewMode] = useState<'card' | 'table'>('table');
   const [isOpenCoin, setOpenCoin] = useState(false);
   const [focused, setFocused] = useState<Space | undefined>(undefined);
   const [detailTarget, setDetailTarget] = useState<Space | null>(null);
@@ -101,6 +101,11 @@ function SpaceSearch() {
     toast.success(`${id} 복사`);
   };
 
+  const openCoinForSpace = (space: Space) => {
+    setFocused(space);
+    setOpenCoin(true);
+  };
+
   const handleSearch = () => {
     const params = getSearchParams(1);
 
@@ -109,7 +114,6 @@ function SpaceSearch() {
       return;
     }
 
-    setViewMode('card');
     setSubmittedSearchParams(params);
   };
 
@@ -245,22 +249,24 @@ function SpaceSearch() {
     {
       id: 'actions',
       header: '작업',
-      size: 120,
+      size: 168,
       cell: ({ row }) => (
-        <div onClick={(event) => event.stopPropagation()}>
+        <div onClick={(event) => event.stopPropagation()} className='flex items-center justify-end gap-1 whitespace-nowrap'>
+          <Button
+            type='button'
+            variant='outline'
+            size='sm'
+            className='h-8 shrink-0 px-3'
+            onClick={(event) => {
+              event.stopPropagation();
+              openCoinForSpace(row.original);
+            }}
+          >
+            코인 관리
+          </Button>
           <TableRowActions
+            triggerLabel='검색 결과 보조 작업 열기'
             items={[
-              {
-                label: '상세 보기',
-                onClick: () => setDetailTarget(row.original),
-              },
-              {
-                label: '코인 관리',
-                onClick: () => {
-                  setOpenCoin(true);
-                  setFocused(row.original);
-                },
-              },
               {
                 label: '삭제',
                 onClick: () => handleRemoveSpace(row.original),
@@ -298,8 +304,7 @@ function SpaceSearch() {
                   variant='outline'
                   size='sm'
                   onClick={() => {
-                    setOpenCoin(true);
-                    setFocused(space);
+                    openCoinForSpace(space);
                   }}
                 >
                   코인 관리

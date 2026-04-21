@@ -187,20 +187,29 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
   {
     id: 'actions',
     header: '관리',
-    size: 92,
+    size: 168,
     cell: ({ row }) => {
       const space = row.original;
       return (
-        <div onClick={(event) => event.stopPropagation()}>
+        <div onClick={(event) => event.stopPropagation()} className='flex items-center justify-end gap-1 whitespace-nowrap'>
+          <Button
+            type='button'
+            variant='outline'
+            size='sm'
+            className='h-8 shrink-0 px-3'
+            onClick={(event) => {
+              event.stopPropagation();
+              actions.onOpenCoin(space);
+            }}
+          >
+            코인 관리
+          </Button>
           <TableRowActions
+            triggerLabel='공간 보조 작업 열기'
             items={[
               {
                 label: '멤버 목록',
                 onClick: () => actions.onViewProfiles(space),
-              },
-              {
-                label: '코인 관리',
-                onClick: () => actions.onOpenCoin(space),
               },
               {
                 label: '삭제',
@@ -234,7 +243,7 @@ export const defaultColumnConfig: ColumnConfig[] = [
   { key: 'items', visible: false, width: 140 },
   { key: 'createdAt', visible: true, width: 182 },
   { key: 'dueRemovedAt', visible: false, width: 190 },
-  { key: 'actions', visible: true, width: 92 },
+  { key: 'actions', visible: true, width: 168 },
 ];
 
 export const filterColumns = (
