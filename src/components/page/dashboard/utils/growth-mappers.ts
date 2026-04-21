@@ -1,4 +1,10 @@
-import { DashboardGrowthResponse, DashboardGrowthMonth, GrowthValue, LocaleGrowthRow } from '@/client/dashboard';
+import {
+  DashboardGrowthBucket,
+  DashboardGrowthGranularity,
+  DashboardGrowthResponse,
+  GrowthValue,
+  LocaleGrowthRow,
+} from '@/client/dashboard';
 import { Locale } from '@/client/types';
 import {
   DASHBOARD_LOCALES,
@@ -45,16 +51,16 @@ function toPercent(value: number) {
   return `${value.toFixed(1)}%`;
 }
 
-function getRangeLabel(months: DashboardGrowthMonth[]) {
-  if (!months.length) {
+function getRangeLabel(buckets: DashboardGrowthBucket[]) {
+  if (!buckets.length) {
     return '최근 기간';
   }
 
-  if (months.length === 1) {
-    return months[0].label;
+  if (buckets.length === 1) {
+    return buckets[0].label;
   }
 
-  return `${months[0].label} - ${months[months.length - 1].label}`;
+  return `${buckets[0].label} - ${buckets[buckets.length - 1].label}`;
 }
 
 function createMetricCardValue(
@@ -77,33 +83,37 @@ function createMetricCardValue(
 }
 
 function createTrendSeries(
+  granularity: DashboardGrowthGranularity,
   metric: DashboardTrendSeries['metric'],
   title: string,
   description: string,
-  months: DashboardGrowthMonth[],
+  buckets: DashboardGrowthBucket[],
 ): DashboardTrendSeries {
-  const labels = months.map((month) => month.label);
-  const monthKeys = months.map((month) => month.month);
+  const labels = buckets.map((bucket) => bucket.label);
+  const periods = buckets.map((bucket) => bucket.key);
+  const deltaLabelPrefix = granularity === 'day' ? '일간' : '월간';
+  const cumulativeUserLabel = granularity === 'day' ? '종료일 기준 누적 가입자' : '월말 누적 가입자';
+  const cumulativeSpaceLabel = granularity === 'day' ? '종료일 기준 누적 공간' : '월말 누적 공간';
 
   if (metric === 'users') {
     return {
       title,
       description,
       labels,
-      months: monthKeys,
+      periods,
       metric,
       datasets: [
         {
-          label: '월간 순증 가입자',
+          label: `${deltaLabelPrefix} 순증 가입자`,
           type: 'bar',
-          values: months.map((month) => month.users.delta),
+          values: buckets.map((bucket) => bucket.users.delta),
           color: USER_DELTA_COLOR,
           yAxisID: 'y',
         },
         {
-          label: '월말 누적 가입자',
+          label: cumulativeUserLabel,
           type: 'line',
-          values: months.map((month) => month.users.cumulative),
+          values: buckets.map((bucket) => bucket.users.cumulative),
           color: USER_CUMULATIVE_COLOR,
           yAxisID: 'y1',
         },
@@ -116,20 +126,20 @@ function createTrendSeries(
       title,
       description,
       labels,
-      months: monthKeys,
+      periods,
       metric,
       datasets: [
         {
-          label: '월간 순증 공간',
+          label: `${deltaLabelPrefix} 순증 공간`,
           type: 'bar',
-          values: months.map((month) => month.spaces.delta),
+          values: buckets.map((bucket) => bucket.spaces.delta),
           color: SPACE_DELTA_COLOR,
           yAxisID: 'y',
         },
         {
-          label: '월말 누적 공간',
+          label: cumulativeSpaceLabel,
           type: 'line',
-          values: months.map((month) => month.spaces.cumulative),
+          values: buckets.map((bucket) => bucket.spaces.cumulative),
           color: SPACE_CUMULATIVE_COLOR,
           yAxisID: 'y1',
         },
@@ -141,34 +151,34 @@ function createTrendSeries(
     title,
     description,
     labels,
-    months: monthKeys,
+    periods,
     metric,
     datasets: [
       {
-        label: '가입자 월간 순증',
+        label: `가입자 ${deltaLabelPrefix} 순증`,
         type: 'bar',
-        values: months.map((month) => month.users.delta),
+        values: buckets.map((bucket) => bucket.users.delta),
         color: USER_DELTA_COLOR,
         yAxisID: 'y',
       },
       {
-        label: '공간 월간 순증',
+        label: `공간 ${deltaLabelPrefix} 순증`,
         type: 'bar',
-        values: months.map((month) => month.spaces.delta),
+        values: buckets.map((bucket) => bucket.spaces.delta),
         color: SPACE_DELTA_COLOR,
         yAxisID: 'y',
       },
       {
-        label: '가입자 월말 누적',
+        label: cumulativeUserLabel,
         type: 'line',
-        values: months.map((month) => month.users.cumulative),
+        values: buckets.map((bucket) => bucket.users.cumulative),
         color: USER_CUMULATIVE_COLOR,
         yAxisID: 'y1',
       },
       {
-        label: '공간 월말 누적',
+        label: cumulativeSpaceLabel,
         type: 'line',
-        values: months.map((month) => month.spaces.cumulative),
+        values: buckets.map((bucket) => bucket.spaces.cumulative),
         color: SPACE_CUMULATIVE_COLOR,
         yAxisID: 'y1',
       },
@@ -222,12 +232,36 @@ function buildInsights(localeRows: DashboardLocaleRow[]): DashboardInsightCard[]
   ];
 }
 
-function ensureRowOrder(rows: LocaleGrowthRow[], localesInMonths: LocaleGrowthRow[]) {
+function ensureRowOrder(rows: LocaleGrowthRow[], localesInBuckets: LocaleGrowthRow[]) {
   if (rows.length) {
     return rows;
   }
 
-  return localesInMonths;
+  return localesInBuckets;
+}
+
+function getGranularityLabel(granularity: DashboardGrowthGranularity) {
+  return granularity === 'day' ? '일' : '월';
+}
+
+function getCumulativeMetricLabel(granularity: DashboardGrowthGranularity, metric: 'users' | 'spaces') {
+  const suffix = metric === 'users' ? '가입자' : '공간';
+
+  return granularity === 'day' ? `종료일 기준 누적 ${suffix}` : `종료 월 누적 ${suffix}`;
+}
+
+function getDeltaMetricLabel(granularity: DashboardGrowthGranularity, metric: 'users' | 'spaces') {
+  const suffix = metric === 'users' ? '가입자' : '공간';
+
+  return granularity === 'day' ? `종료일 ${suffix} 순증` : `종료 월 ${suffix} 순증`;
+}
+
+function getCurrentPeriodAccentLabel(granularity: DashboardGrowthGranularity) {
+  return granularity === 'day' ? '선택 종료일' : '선택 종료 월';
+}
+
+function getCurrentBasisAccentLabel(granularity: DashboardGrowthGranularity) {
+  return granularity === 'day' ? '종료일 기준' : '종료 월 기준';
 }
 
 function getSelectedLocalesLabel(selectedLocales: Locale[]) {
@@ -246,14 +280,15 @@ export function buildDashboardGrowthViewModel(
   data?: DashboardGrowthResponse,
   selectedLocales: Locale[] = DASHBOARD_LOCALES,
 ): DashboardGrowthViewModel {
-  const months = data?.months ?? [];
+  const granularity = data?.granularity ?? 'month';
+  const buckets = data?.buckets ?? [];
   const summary = data?.summary ?? {
     users: { cumulative: 0, delta: 0 },
     spaces: { cumulative: 0, delta: 0 },
   };
-  const latestMonth = months[months.length - 1];
-  const previousMonth = months[months.length - 2];
-  const localeSeed = months[months.length - 1]?.locales ?? [];
+  const latestBucket = buckets[buckets.length - 1];
+  const previousBucket = buckets[buckets.length - 2];
+  const localeSeed = buckets[buckets.length - 1]?.locales ?? [];
   const localeTotals = ensureRowOrder(data?.localeTotals ?? [], localeSeed)
     .map((row, index) => toLocaleRow({ ...row, label: row.label || getLocaleLabel(row.locale) }, summary, index + 1))
     .sort((left, right) => {
@@ -274,40 +309,59 @@ export function buildDashboardGrowthViewModel(
 
   return {
     response: data,
-    isEmpty: months.length === 0,
-    rangeLabel: getRangeLabel(months),
-    lastUpdatedLabel: latestMonth?.label ?? '데이터 없음',
+    granularity,
+    isEmpty: buckets.length === 0,
+    rangeLabel: getRangeLabel(buckets),
+    lastUpdatedLabel: latestBucket?.label ?? '데이터 없음',
     selectedLocalesLabel: getSelectedLocalesLabel(selectedLocales),
     selectedLocaleCount: selectedLocales.length || DASHBOARD_LOCALES.length,
     kpis: {
-      users: createMetricCardValue('종료 월 누적 가입자', summary.users.cumulative, summary.users.delta, 'slate', {
+      users: createMetricCardValue(getCumulativeMetricLabel(granularity, 'users'), summary.users.cumulative, summary.users.delta, 'slate', {
         formatted: formatNumber(summary.users.cumulative),
-        deltaLabel: '선택 종료 월 순증',
-        deltaText: formatDelta(latestMonth?.users.delta ?? 0),
-        accentLabel: '종료 월 기준',
+        deltaLabel: `${getCurrentPeriodAccentLabel(granularity)} 순증`,
+        deltaText: formatDelta(latestBucket?.users.delta ?? 0),
+        accentLabel: getCurrentBasisAccentLabel(granularity),
       }),
-      usersDelta: createMetricCardValue('종료 월 가입자 순증', summary.users.delta, summary.users.delta, 'emerald', {
-        formatted: formatNumber(latestMonth?.users.delta ?? 0),
-        deltaLabel: '직전 월 대비',
-        deltaText: formatDelta((latestMonth?.users.delta ?? 0) - (previousMonth?.users.delta ?? 0)),
-        accentLabel: '선택 종료 월',
+      usersDelta: createMetricCardValue(getDeltaMetricLabel(granularity, 'users'), summary.users.delta, summary.users.delta, 'emerald', {
+        formatted: formatNumber(latestBucket?.users.delta ?? 0),
+        deltaLabel: `직전 ${getGranularityLabel(granularity)} 대비`,
+        deltaText: formatDelta((latestBucket?.users.delta ?? 0) - (previousBucket?.users.delta ?? 0)),
+        accentLabel: getCurrentPeriodAccentLabel(granularity),
       }),
-      spaces: createMetricCardValue('종료 월 누적 공간', summary.spaces.cumulative, summary.spaces.delta, 'sky', {
+      spaces: createMetricCardValue(getCumulativeMetricLabel(granularity, 'spaces'), summary.spaces.cumulative, summary.spaces.delta, 'sky', {
         formatted: formatNumber(summary.spaces.cumulative),
-        deltaLabel: '선택 종료 월 순증',
-        deltaText: formatDelta(latestMonth?.spaces.delta ?? 0),
-        accentLabel: '종료 월 기준',
+        deltaLabel: `${getCurrentPeriodAccentLabel(granularity)} 순증`,
+        deltaText: formatDelta(latestBucket?.spaces.delta ?? 0),
+        accentLabel: getCurrentBasisAccentLabel(granularity),
       }),
-      spacesDelta: createMetricCardValue('종료 월 공간 순증', summary.spaces.delta, summary.spaces.delta, 'amber', {
-        formatted: formatNumber(latestMonth?.spaces.delta ?? 0),
-        deltaLabel: '직전 월 대비',
-        deltaText: formatDelta((latestMonth?.spaces.delta ?? 0) - (previousMonth?.spaces.delta ?? 0)),
-        accentLabel: '선택 종료 월',
+      spacesDelta: createMetricCardValue(getDeltaMetricLabel(granularity, 'spaces'), summary.spaces.delta, summary.spaces.delta, 'amber', {
+        formatted: formatNumber(latestBucket?.spaces.delta ?? 0),
+        deltaLabel: `직전 ${getGranularityLabel(granularity)} 대비`,
+        deltaText: formatDelta((latestBucket?.spaces.delta ?? 0) - (previousBucket?.spaces.delta ?? 0)),
+        accentLabel: getCurrentPeriodAccentLabel(granularity),
       }),
     },
-    overviewTrend: createTrendSeries('overview', '성장 추이', '가입자와 공간의 월간 순증 및 월말 누적을 함께 봅니다.', months),
-    userTrend: createTrendSeries('users', '가입자 성장 추이', '월간 순증과 월말 누적을 동시에 추적합니다.', months),
-    spaceTrend: createTrendSeries('spaces', '공간 성장 추이', '운영 규모가 어떤 속도로 커졌는지 보여줍니다.', months),
+    overviewTrend: createTrendSeries(
+      granularity,
+      'overview',
+      '성장 추이',
+      granularity === 'day' ? '가입자와 공간의 일간 순증 및 종료일 기준 누적을 함께 봅니다.' : '가입자와 공간의 월간 순증 및 월말 누적을 함께 봅니다.',
+      buckets,
+    ),
+    userTrend: createTrendSeries(
+      granularity,
+      'users',
+      '가입자 성장 추이',
+      granularity === 'day' ? '일간 순증과 종료일 기준 누적을 동시에 추적합니다.' : '월간 순증과 월말 누적을 동시에 추적합니다.',
+      buckets,
+    ),
+    spaceTrend: createTrendSeries(
+      granularity,
+      'spaces',
+      '공간 성장 추이',
+      granularity === 'day' ? '일간 순증과 종료일 기준 누적을 동시에 추적합니다.' : '운영 규모가 어떤 속도로 커졌는지 보여줍니다.',
+      buckets,
+    ),
     localeLeaderboard: localeTotals,
     userLocaleRows,
     spaceLocaleRows,

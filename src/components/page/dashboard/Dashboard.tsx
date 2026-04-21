@@ -1,4 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DashboardGrowthGranularity } from '@/client/dashboard';
 import { Locale } from '@/client/types';
 import { useDashboardGrowthAnalytics, useUserSummaryAnalytics } from '@/hooks/useAnalytics';
 import dayjs from 'dayjs';
@@ -19,8 +20,34 @@ import UserTab from './tabs/UserTab';
 dayjs.extend(weekday);
 dayjs.extend(localeData);
 
-function getRangeFromPreset(preset: DashboardRangePreset) {
+function getDefaultPreset(granularity: DashboardGrowthGranularity): DashboardRangePreset {
+  return granularity === 'day' ? '30d' : '6m';
+}
+
+function getRangeFromPreset(granularity: DashboardGrowthGranularity, preset: DashboardRangePreset) {
   const now = dayjs();
+
+  if (granularity === 'day') {
+    switch (preset) {
+      case '7d':
+        return {
+          startedAt: now.subtract(6, 'day').startOf('day'),
+          endedAt: now.endOf('day'),
+        };
+      case '90d':
+        return {
+          startedAt: now.subtract(89, 'day').startOf('day'),
+          endedAt: now.endOf('day'),
+        };
+      case 'custom':
+      case '30d':
+      default:
+        return {
+          startedAt: now.subtract(29, 'day').startOf('day'),
+          endedAt: now.endOf('day'),
+        };
+    }
+  }
 
   switch (preset) {
     case '6m':
@@ -34,10 +61,6 @@ function getRangeFromPreset(preset: DashboardRangePreset) {
         endedAt: now.endOf('month'),
       };
     case 'custom':
-      return {
-        startedAt: now.subtract(11, 'month').startOf('month'),
-        endedAt: now.endOf('month'),
-      };
     case '12m':
     default:
       return {
@@ -48,8 +71,11 @@ function getRangeFromPreset(preset: DashboardRangePreset) {
 }
 
 function Dashboard() {
-  const initialRange = getRangeFromPreset('6m');
-  const [preset, setPreset] = useState<DashboardRangePreset>('6m');
+  const initialGranularity: DashboardGrowthGranularity = 'month';
+  const initialPreset = getDefaultPreset(initialGranularity);
+  const initialRange = getRangeFromPreset(initialGranularity, initialPreset);
+  const [granularity, setGranularity] = useState<DashboardGrowthGranularity>(initialGranularity);
+  const [preset, setPreset] = useState<DashboardRangePreset>(initialPreset);
   const [startedAt, setStartedAt] = useState<dayjs.Dayjs | null>(initialRange.startedAt);
   const [endedAt, setEndedAt] = useState<dayjs.Dayjs | null>(initialRange.endedAt);
   const [activeTab, setActiveTab] = useState<DashboardTabValue>('overview');
@@ -61,16 +87,18 @@ function Dashboard() {
       startedAt: safeStartedAt.format('YYYY-MM-DD'),
       endedAt: safeEndedAt.format('YYYY-MM-DD'),
       locale: selectedLocales.length === DASHBOARD_LOCALES.length ? undefined : selectedLocales,
+      granularity,
     }),
-    [safeEndedAt, safeStartedAt, selectedLocales],
+    [granularity, safeEndedAt, safeStartedAt, selectedLocales],
   );
   const deferredQuery = useDeferredValue(query);
   const { data, isLoading, isFetching } = useDashboardGrowthAnalytics(deferredQuery);
   const { data: userSummary, isLoading: isUserSummaryLoading } = useUserSummaryAnalytics();
   const dashboard = buildDashboardGrowthViewModel(data, selectedLocales);
   const showGrowthFilters = activeTab !== 'cards';
-  const isGrowthRefreshing = showGrowthFilters && isFetching && !!data;
-  const isGrowthInitialLoading = showGrowthFilters && isLoading && !data;
+  const isGranularitySwitching = showGrowthFilters && !!data && data.granularity !== granularity;
+  const isGrowthRefreshing = showGrowthFilters && isFetching && !!data && !isGranularitySwitching;
+  const isGrowthInitialLoading = showGrowthFilters && ((isLoading && !data) || isGranularitySwitching);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as DashboardTabValue);
@@ -80,10 +108,22 @@ function Dashboard() {
     startTransition(() => {
       setPreset(nextPreset);
       if (nextPreset !== 'custom') {
-        const range = getRangeFromPreset(nextPreset);
+        const range = getRangeFromPreset(granularity, nextPreset);
         setStartedAt(range.startedAt);
         setEndedAt(range.endedAt);
       }
+    });
+  };
+
+  const handleGranularityChange = (nextGranularity: DashboardGrowthGranularity) => {
+    startTransition(() => {
+      const nextPreset = getDefaultPreset(nextGranularity);
+      const range = getRangeFromPreset(nextGranularity, nextPreset);
+
+      setGranularity(nextGranularity);
+      setPreset(nextPreset);
+      setStartedAt(range.startedAt);
+      setEndedAt(range.endedAt);
     });
   };
 
@@ -95,11 +135,11 @@ function Dashboard() {
         return;
       }
 
-      const nextStartedAt = date.startOf('month');
+      const nextStartedAt = granularity === 'day' ? date.startOf('day') : date.startOf('month');
       setStartedAt(nextStartedAt);
 
-      if (endedAt && nextStartedAt.isAfter(endedAt, 'month')) {
-        setEndedAt(nextStartedAt.endOf('month'));
+      if (endedAt && nextStartedAt.isAfter(endedAt, granularity)) {
+        setEndedAt(granularity === 'day' ? nextStartedAt.endOf('day') : nextStartedAt.endOf('month'));
       }
     });
   };
@@ -112,11 +152,11 @@ function Dashboard() {
         return;
       }
 
-      const nextEndedAt = date.endOf('month');
+      const nextEndedAt = granularity === 'day' ? date.endOf('day') : date.endOf('month');
       setEndedAt(nextEndedAt);
 
-      if (startedAt && nextEndedAt.isBefore(startedAt, 'month')) {
-        setStartedAt(nextEndedAt.startOf('month'));
+      if (startedAt && nextEndedAt.isBefore(startedAt, granularity)) {
+        setStartedAt(granularity === 'day' ? nextEndedAt.startOf('day') : nextEndedAt.startOf('month'));
       }
     });
   };
@@ -169,6 +209,8 @@ function Dashboard() {
 
         {showGrowthFilters && (
           <DashboardFilterBar
+            granularity={granularity}
+            onGranularityChange={handleGranularityChange}
             preset={preset}
             onPresetChange={handlePresetChange}
             startedAt={startedAt}

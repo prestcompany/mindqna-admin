@@ -1,4 +1,5 @@
 import {
+  DashboardGrowthGranularity,
   getCardAnalytics,
   getDashboardGrowthAnalytics,
   getSpaceAnalytics,
@@ -53,12 +54,12 @@ function useSpaceAnalytics(by: Props) {
   return { data, isLoading, refetch };
 }
 
-function useDashboardGrowthAnalytics(by: Pick<Props, 'startedAt' | 'endedAt' | 'locale'>) {
-  const { startedAt, endedAt, locale } = by;
+function useDashboardGrowthAnalytics(by: Pick<Props, 'startedAt' | 'endedAt' | 'locale'> & { granularity?: DashboardGrowthGranularity }) {
+  const { startedAt, endedAt, locale, granularity } = by;
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ['analytics/dashboard-growth', by],
-    queryFn: () => getDashboardGrowthAnalytics({ startedAt, endedAt, locale }),
+    queryFn: () => getDashboardGrowthAnalytics({ startedAt, endedAt, locale, granularity }),
     placeholderData: (previousData) => previousData,
   });
 

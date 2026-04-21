@@ -10,6 +10,8 @@ interface SpaceTabProps {
 }
 
 function SpaceTab({ dashboard }: SpaceTabProps) {
+  const cumulativeBasisLabel = dashboard.granularity === 'day' ? '종료일 기준' : '월말';
+
   return (
     <div className='space-y-6'>
       <div className='grid gap-4 md:grid-cols-2'>
@@ -24,14 +26,14 @@ function SpaceTab({ dashboard }: SpaceTabProps) {
           rows={dashboard.spaceLocaleRows}
           metric='spaces'
           title='공간 로케일 분포'
-          description='현재 월말 누적 공간 규모를 가로 비교합니다.'
+          description={`현재 ${cumulativeBasisLabel} 누적 공간 규모를 가로 비교합니다.`}
         />
       </div>
 
       <Card className='border-slate-200/80 bg-white shadow-sm'>
         <CardHeader>
           <CardTitle className='text-base text-slate-950'>공간 로케일 비교</CardTitle>
-          <CardDescription>누적 공간과 선택 기간 순증을 평면 테이블로 비교합니다.</CardDescription>
+          <CardDescription>{`${cumulativeBasisLabel} 누적 공간과 선택 기간 순증을 평면 테이블로 비교합니다.`}</CardDescription>
         </CardHeader>
         <CardContent>
           <LocaleGrowthTable rows={dashboard.spaceLocaleRows} metric='spaces' />
