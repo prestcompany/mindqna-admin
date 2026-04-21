@@ -20,6 +20,10 @@ const LOCALE_LABELS: Record<Locale, string> = {
 };
 
 const numberFormatter = new Intl.NumberFormat('ko-KR');
+const USER_DELTA_COLOR = '#10b981';
+const SPACE_DELTA_COLOR = '#06b6d4';
+const USER_CUMULATIVE_COLOR = '#2563eb';
+const SPACE_CUMULATIVE_COLOR = '#e11d48';
 
 export function getLocaleLabel(locale: Locale): string {
   return LOCALE_LABELS[locale] ?? locale;
@@ -93,14 +97,14 @@ function createTrendSeries(
           label: '월간 순증 가입자',
           type: 'bar',
           values: months.map((month) => month.users.delta),
-          color: '#10b981',
+          color: USER_DELTA_COLOR,
           yAxisID: 'y',
         },
         {
           label: '월말 누적 가입자',
           type: 'line',
           values: months.map((month) => month.users.cumulative),
-          color: '#0f172a',
+          color: USER_CUMULATIVE_COLOR,
           yAxisID: 'y1',
         },
       ],
@@ -119,14 +123,14 @@ function createTrendSeries(
           label: '월간 순증 공간',
           type: 'bar',
           values: months.map((month) => month.spaces.delta),
-          color: '#0ea5e9',
+          color: SPACE_DELTA_COLOR,
           yAxisID: 'y',
         },
         {
           label: '월말 누적 공간',
           type: 'line',
           values: months.map((month) => month.spaces.cumulative),
-          color: '#0f172a',
+          color: SPACE_CUMULATIVE_COLOR,
           yAxisID: 'y1',
         },
       ],
@@ -144,28 +148,28 @@ function createTrendSeries(
         label: '가입자 월간 순증',
         type: 'bar',
         values: months.map((month) => month.users.delta),
-        color: '#10b981',
+        color: USER_DELTA_COLOR,
         yAxisID: 'y',
       },
       {
         label: '공간 월간 순증',
         type: 'bar',
         values: months.map((month) => month.spaces.delta),
-        color: '#f59e0b',
+        color: SPACE_DELTA_COLOR,
         yAxisID: 'y',
       },
       {
         label: '가입자 월말 누적',
         type: 'line',
         values: months.map((month) => month.users.cumulative),
-        color: '#0f172a',
+        color: USER_CUMULATIVE_COLOR,
         yAxisID: 'y1',
       },
       {
         label: '공간 월말 누적',
         type: 'line',
         values: months.map((month) => month.spaces.cumulative),
-        color: '#475569',
+        color: SPACE_CUMULATIVE_COLOR,
         yAxisID: 'y1',
       },
     ],

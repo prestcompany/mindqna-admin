@@ -19,7 +19,6 @@ interface DashboardFilterBarProps {
   selectedLocales: Locale[];
   onToggleLocale: (locale: Locale) => void;
   onSelectAllLocales: () => void;
-  isRefreshing?: boolean;
 }
 
 const presetOptions: { value: DashboardRangePreset; label: string }[] = [
@@ -55,7 +54,6 @@ function DashboardFilterBar({
   selectedLocales,
   onToggleLocale,
   onSelectAllLocales,
-  isRefreshing = false,
 }: DashboardFilterBarProps) {
   const allSelected = selectedLocales.length === locales.length;
   const monthOptions = buildMonthOptions();
@@ -74,12 +72,7 @@ function DashboardFilterBar({
               </div>
               <p className='text-xs leading-5 text-slate-500'>아래 성장 KPI, 차트, 로케일 비교에만 적용되는 기준 월 범위를 선택하세요.</p>
             </div>
-            <div className='flex flex-wrap items-center gap-2'>
-              <div className='rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600'>월 단위 집계</div>
-              {isRefreshing && (
-                <div className='rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700'>업데이트 중</div>
-              )}
-            </div>
+            <div className='rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600'>월 단위 집계</div>
           </div>
 
           <div className='mt-4 flex flex-col gap-3'>
