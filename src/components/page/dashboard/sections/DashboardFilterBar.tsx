@@ -1,6 +1,6 @@
-import { DatePickerWithRange } from '@/components/ui/DatePickerWithRange';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import dayjs from 'dayjs';
 import { Check, CalendarRange, Globe2 } from 'lucide-react';
@@ -25,8 +25,23 @@ const presetOptions: { value: DashboardRangePreset; label: string }[] = [
   { value: '6m', label: '최근 6개월' },
   { value: '12m', label: '최근 12개월' },
   { value: 'ytd', label: '올해' },
-  { value: 'custom', label: '직접 선택' },
+  { value: 'custom', label: '월 범위 선택' },
 ];
+
+const MONTH_OPTION_COUNT = 36;
+
+function buildMonthOptions() {
+  const currentMonth = dayjs().startOf('month');
+
+  return Array.from({ length: MONTH_OPTION_COUNT }, (_, index) => {
+    const month = currentMonth.subtract(index, 'month');
+
+    return {
+      value: month.format('YYYY-MM-01'),
+      label: month.format('YYYY.MM'),
+    };
+  });
+}
 
 function DashboardFilterBar({
   preset,
@@ -41,6 +56,9 @@ function DashboardFilterBar({
   onSelectAllLocales,
 }: DashboardFilterBarProps) {
   const allSelected = selectedLocales.length === locales.length;
+  const monthOptions = buildMonthOptions();
+  const startedMonthValue = (startedAt ?? dayjs().startOf('month')).startOf('month').format('YYYY-MM-01');
+  const endedMonthValue = (endedAt ?? dayjs().endOf('month')).startOf('month').format('YYYY-MM-01');
 
   return (
     <Card className='sticky top-0 z-10 border-slate-200/80 bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/85'>
@@ -52,10 +70,10 @@ function DashboardFilterBar({
                 <CalendarRange className='h-4 w-4 text-blue-600' />
                 기간
               </div>
-              <p className='text-xs leading-5 text-slate-500'>최근 성장 흐름을 비교할 범위를 선택하세요.</p>
+              <p className='text-xs leading-5 text-slate-500'>월별 성장 흐름을 비교할 기준 월 범위를 선택하세요.</p>
             </div>
             <div className='rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600'>
-              월말 누적 기준
+              월 단위 집계
             </div>
           </div>
 
@@ -84,13 +102,53 @@ function DashboardFilterBar({
               })}
             </div>
 
-            <DatePickerWithRange
-              startedAt={startedAt}
-              endedAt={endedAt}
-              setStartedAt={setStartedAt}
-              setEndedAt={setEndedAt}
-              className='w-full sm:w-auto'
-            />
+            <div className='grid gap-3 sm:grid-cols-2'>
+              <div className='space-y-1.5'>
+                <p className='text-xs font-medium text-slate-500'>시작 월</p>
+                <Select
+                  value={startedMonthValue}
+                  onValueChange={(value) => {
+                    setStartedAt(dayjs(value).startOf('month'));
+                  }}
+                >
+                  <SelectTrigger className='h-10 w-full border-slate-200 bg-white text-sm text-slate-700'>
+                    <SelectValue placeholder='시작 월 선택' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {monthOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className='space-y-1.5'>
+                <p className='text-xs font-medium text-slate-500'>종료 월</p>
+                <Select
+                  value={endedMonthValue}
+                  onValueChange={(value) => {
+                    setEndedAt(dayjs(value).endOf('month'));
+                  }}
+                >
+                  <SelectTrigger className='h-10 w-full border-slate-200 bg-white text-sm text-slate-700'>
+                    <SelectValue placeholder='종료 월 선택' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {monthOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <p className='text-xs leading-5 text-slate-500'>
+              대시보드 성장 지표는 월말 누적과 월간 순증 기준으로 집계되며, 선택한 월 전체를 기준으로 계산됩니다.
+            </p>
           </div>
         </section>
 
