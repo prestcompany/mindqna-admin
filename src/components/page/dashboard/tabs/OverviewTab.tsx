@@ -10,6 +10,8 @@ interface OverviewTabProps {
 }
 
 function OverviewTab({ dashboard }: OverviewTabProps) {
+  const cumulativeBasisLabel = dashboard.granularity === 'day' ? '종료일 기준' : '월말';
+
   return (
     <div className='space-y-6'>
       <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-4'>
@@ -25,7 +27,7 @@ function OverviewTab({ dashboard }: OverviewTabProps) {
           rows={dashboard.localeLeaderboard}
           metric='users'
           title='가입자 로케일 분포'
-          description='현재 월말 누적 가입자 규모를 가로 비교합니다.'
+          description={`현재 ${cumulativeBasisLabel} 누적 가입자 규모를 가로 비교합니다.`}
         />
       </div>
 

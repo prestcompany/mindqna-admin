@@ -39,6 +39,7 @@ export async function getDashboardGrowthAnalytics(by: {
   startedAt?: string;
   endedAt?: string;
   locale?: Locale[];
+  granularity?: DashboardGrowthGranularity;
 }) {
   const res = await client.get<DashboardGrowthResponse>('/analytics/dashboard-growth', {
     params: by,
@@ -79,6 +80,8 @@ export interface GrowthValue {
   delta: number;
 }
 
+export type DashboardGrowthGranularity = 'month' | 'day';
+
 export interface LocaleGrowthRow {
   locale: Locale;
   label: string;
@@ -86,8 +89,8 @@ export interface LocaleGrowthRow {
   spaces: GrowthValue;
 }
 
-export interface DashboardGrowthMonth {
-  month: string;
+export interface DashboardGrowthBucket {
+  key: string;
   label: string;
   users: GrowthValue;
   spaces: GrowthValue;
@@ -95,11 +98,12 @@ export interface DashboardGrowthMonth {
 }
 
 export interface DashboardGrowthResponse {
+  granularity: DashboardGrowthGranularity;
   summary: {
     users: GrowthValue;
     spaces: GrowthValue;
   };
-  months: DashboardGrowthMonth[];
+  buckets: DashboardGrowthBucket[];
   localeTotals: LocaleGrowthRow[];
 }
 

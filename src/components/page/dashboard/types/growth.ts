@@ -1,7 +1,7 @@
-import { DashboardGrowthResponse, GrowthValue } from '@/client/dashboard';
+import { DashboardGrowthGranularity, DashboardGrowthResponse, GrowthValue } from '@/client/dashboard';
 import { Locale } from '@/client/types';
 
-export type DashboardRangePreset = '6m' | '12m' | 'ytd' | 'custom';
+export type DashboardRangePreset = '6m' | '12m' | 'ytd' | '7d' | '30d' | '90d' | 'custom';
 export type DashboardTabValue = 'overview' | 'users' | 'spaces' | 'cards';
 
 export const DASHBOARD_LOCALES: Locale[] = ['ko', 'en', 'ja', 'zh', 'zhTw', 'es', 'id'];
@@ -10,6 +10,7 @@ export interface DashboardQueryState {
   startedAt?: string;
   endedAt?: string;
   locale: Locale[];
+  granularity: DashboardGrowthGranularity;
 }
 
 export interface DashboardMetricCardValue {
@@ -35,7 +36,7 @@ export interface DashboardTrendSeries {
   title: string;
   description: string;
   labels: string[];
-  months: string[];
+  periods: string[];
   metric: 'users' | 'spaces' | 'overview';
   datasets: DashboardTrendDataset[];
 }
@@ -59,6 +60,7 @@ export interface DashboardInsightCard {
 
 export interface DashboardGrowthViewModel {
   response?: DashboardGrowthResponse;
+  granularity: DashboardGrowthGranularity;
   isEmpty: boolean;
   rangeLabel: string;
   lastUpdatedLabel: string;
