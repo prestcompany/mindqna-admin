@@ -74,7 +74,7 @@ function DashboardFilterBar({
   const presetOptions = granularity === 'day' ? dayPresetOptions : monthPresetOptions;
 
   return (
-    <Card className='sticky top-0 z-10 border-slate-200/80 bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/85'>
+    <Card className='sticky top-0 z-30 border-slate-200/80 bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/85'>
       <CardContent className='space-y-4 p-4'>
         <section className='rounded-2xl border border-slate-200 bg-white p-4'>
           <div className='flex flex-wrap items-center gap-2'>
