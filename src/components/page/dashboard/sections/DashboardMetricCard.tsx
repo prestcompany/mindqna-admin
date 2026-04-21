@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { DashboardMetricCardValue } from '../types/growth';
+import AnimatedMetricValue from './AnimatedMetricValue';
 
 const toneClassName: Record<DashboardMetricCardValue['tone'], string> = {
   slate: 'border-slate-200 bg-slate-50/70 text-slate-700',
@@ -21,7 +22,7 @@ function DashboardMetricCard({ metric }: DashboardMetricCardProps) {
         <div className='flex items-start justify-between gap-3'>
           <div className='space-y-1'>
             <p className='text-sm font-medium text-slate-600'>{metric.label}</p>
-            <p className='text-2xl font-semibold tracking-tight text-slate-950'>{metric.formatted}</p>
+            <AnimatedMetricValue value={metric.value} className='text-2xl font-semibold tracking-tight tabular-nums text-slate-950' />
           </div>
           <Badge variant='outline' className={cn('rounded-full px-2 py-1 text-[11px] font-medium', toneClassName[metric.tone])}>
             {metric.accentLabel}

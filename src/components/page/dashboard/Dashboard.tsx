@@ -1,9 +1,11 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import { Locale } from '@/client/types';
 import { useDashboardGrowthAnalytics, useUserSummaryAnalytics } from '@/hooks/useAnalytics';
 import dayjs from 'dayjs';
 import localeData from 'dayjs/plugin/localeData';
 import weekday from 'dayjs/plugin/weekday';
+import { Loader2 } from 'lucide-react';
 import { startTransition, useDeferredValue, useMemo, useState } from 'react';
 import DashboardCoreStats from './sections/DashboardCoreStats';
 import { DASHBOARD_LOCALES, DashboardRangePreset, DashboardTabValue } from './types/growth';
@@ -150,6 +152,17 @@ function Dashboard() {
       />
 
       <section className='space-y-4'>
+        <div className='flex flex-col gap-3 sm:flex-row sm:items-center'>
+          <div className='space-y-1'>
+            <p className='text-sm font-medium text-slate-500'>세부 현황</p>
+            <p className='text-sm text-slate-600'>기간과 국가 설정을 기준으로 가입자와 공간 성장, 로케일별 분포를 비교하는 영역입니다.</p>
+          </div>
+          <Separator className='bg-slate-200 sm:flex-1' />
+          <div className='w-fit rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600'>
+            기간 / 국가 설정 적용
+          </div>
+        </div>
+
         {showGrowthFilters && (
           <DashboardFilterBar
             preset={preset}
@@ -162,7 +175,6 @@ function Dashboard() {
             selectedLocales={selectedLocales}
             onToggleLocale={handleToggleLocale}
             onSelectAllLocales={handleSelectAllLocales}
-            isRefreshing={isGrowthRefreshing}
           />
         )}
 
@@ -175,15 +187,57 @@ function Dashboard() {
           </TabsList>
 
           <TabsContent value='overview' className='space-y-4'>
-            {isGrowthInitialLoading ? <DashboardGrowthSkeleton tab='overview' /> : <OverviewTab dashboard={dashboard} />}
+            {isGrowthInitialLoading ? (
+              <DashboardGrowthSkeleton tab='overview' />
+            ) : (
+              <div className='relative'>
+                {isGrowthRefreshing && (
+                  <div className='absolute inset-0 z-10 flex items-center justify-center rounded-3xl bg-white/70 backdrop-blur-[1px]'>
+                    <div className='flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm'>
+                      <Loader2 className='h-4 w-4 animate-spin text-blue-600' />
+                      데이터를 업데이트하는 중입니다.
+                    </div>
+                  </div>
+                )}
+                <OverviewTab dashboard={dashboard} />
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value='users' className='space-y-4'>
-            {isGrowthInitialLoading ? <DashboardGrowthSkeleton tab='users' /> : <UserTab dashboard={dashboard} />}
+            {isGrowthInitialLoading ? (
+              <DashboardGrowthSkeleton tab='users' />
+            ) : (
+              <div className='relative'>
+                {isGrowthRefreshing && (
+                  <div className='absolute inset-0 z-10 flex items-center justify-center rounded-3xl bg-white/70 backdrop-blur-[1px]'>
+                    <div className='flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm'>
+                      <Loader2 className='h-4 w-4 animate-spin text-blue-600' />
+                      데이터를 업데이트하는 중입니다.
+                    </div>
+                  </div>
+                )}
+                <UserTab dashboard={dashboard} />
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value='spaces' className='space-y-4'>
-            {isGrowthInitialLoading ? <DashboardGrowthSkeleton tab='spaces' /> : <SpaceTab dashboard={dashboard} />}
+            {isGrowthInitialLoading ? (
+              <DashboardGrowthSkeleton tab='spaces' />
+            ) : (
+              <div className='relative'>
+                {isGrowthRefreshing && (
+                  <div className='absolute inset-0 z-10 flex items-center justify-center rounded-3xl bg-white/70 backdrop-blur-[1px]'>
+                    <div className='flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm'>
+                      <Loader2 className='h-4 w-4 animate-spin text-blue-600' />
+                      데이터를 업데이트하는 중입니다.
+                    </div>
+                  </div>
+                )}
+                <SpaceTab dashboard={dashboard} />
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value='cards' className='space-y-4'>
