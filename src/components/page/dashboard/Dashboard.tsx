@@ -85,6 +85,40 @@ function Dashboard() {
     });
   };
 
+  const handleStartedAtChange = (date: dayjs.Dayjs | null) => {
+    startTransition(() => {
+      setPreset('custom');
+      if (!date) {
+        setStartedAt(null);
+        return;
+      }
+
+      const nextStartedAt = date.startOf('month');
+      setStartedAt(nextStartedAt);
+
+      if (endedAt && nextStartedAt.isAfter(endedAt, 'month')) {
+        setEndedAt(nextStartedAt.endOf('month'));
+      }
+    });
+  };
+
+  const handleEndedAtChange = (date: dayjs.Dayjs | null) => {
+    startTransition(() => {
+      setPreset('custom');
+      if (!date) {
+        setEndedAt(null);
+        return;
+      }
+
+      const nextEndedAt = date.endOf('month');
+      setEndedAt(nextEndedAt);
+
+      if (startedAt && nextEndedAt.isBefore(startedAt, 'month')) {
+        setStartedAt(nextEndedAt.startOf('month'));
+      }
+    });
+  };
+
   const handleToggleLocale = (locale: Locale) => {
     setSelectedLocales((current) => {
       const exists = current.includes(locale);
@@ -130,14 +164,8 @@ function Dashboard() {
           onPresetChange={handlePresetChange}
           startedAt={startedAt}
           endedAt={endedAt}
-          setStartedAt={(date) => {
-            setPreset('custom');
-            setStartedAt(date);
-          }}
-          setEndedAt={(date) => {
-            setPreset('custom');
-            setEndedAt(date);
-          }}
+          setStartedAt={handleStartedAtChange}
+          setEndedAt={handleEndedAtChange}
           locales={DASHBOARD_LOCALES}
           selectedLocales={selectedLocales}
           onToggleLocale={handleToggleLocale}

@@ -2,11 +2,13 @@ import { DashboardTrendSeries } from '../types/growth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   BarElement,
+  BarController,
   CategoryScale,
   Chart as ChartJS,
   ChartData,
   ChartOptions,
   Legend,
+  LineController,
   LineElement,
   LinearScale,
   PointElement,
@@ -14,7 +16,17 @@ import {
 } from 'chart.js';
 import { Chart } from 'react-chartjs-2';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  BarController,
+  LineController,
+  Tooltip,
+  Legend,
+);
 
 interface GrowthComboChartProps {
   series: DashboardTrendSeries;
