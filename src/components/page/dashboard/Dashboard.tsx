@@ -1,4 +1,3 @@
-import Spinner from '@/components/shared/spinner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Locale } from '@/client/types';
 import { useDashboardGrowthAnalytics, useUserSummaryAnalytics } from '@/hooks/useAnalytics';
@@ -11,7 +10,7 @@ import { DASHBOARD_LOCALES, DashboardRangePreset, DashboardTabValue } from './ty
 import { buildDashboardGrowthViewModel } from './utils/growth-mappers';
 import CardTab from './tabs/CardTab';
 import DashboardFilterBar from './sections/DashboardFilterBar';
-import DashboardHero from './sections/DashboardHero';
+import DashboardGrowthSkeleton from './sections/DashboardGrowthSkeleton';
 import OverviewTab from './tabs/OverviewTab';
 import SpaceTab from './tabs/SpaceTab';
 import UserTab from './tabs/UserTab';
@@ -48,8 +47,8 @@ function getRangeFromPreset(preset: DashboardRangePreset) {
 }
 
 function Dashboard() {
-  const initialRange = getRangeFromPreset('12m');
-  const [preset, setPreset] = useState<DashboardRangePreset>('12m');
+  const initialRange = getRangeFromPreset('6m');
+  const [preset, setPreset] = useState<DashboardRangePreset>('6m');
   const [startedAt, setStartedAt] = useState<dayjs.Dayjs | null>(initialRange.startedAt);
   const [endedAt, setEndedAt] = useState<dayjs.Dayjs | null>(initialRange.endedAt);
   const [activeTab, setActiveTab] = useState<DashboardTabValue>('overview');
@@ -65,10 +64,12 @@ function Dashboard() {
     [safeEndedAt, safeStartedAt, selectedLocales],
   );
   const deferredQuery = useDeferredValue(query);
-  const { data, isLoading } = useDashboardGrowthAnalytics(deferredQuery);
+  const { data, isLoading, isFetching } = useDashboardGrowthAnalytics(deferredQuery);
   const { data: userSummary, isLoading: isUserSummaryLoading } = useUserSummaryAnalytics();
   const dashboard = buildDashboardGrowthViewModel(data, selectedLocales);
   const showGrowthFilters = activeTab !== 'cards';
+  const isGrowthRefreshing = showGrowthFilters && isFetching && !!data;
+  const isGrowthInitialLoading = showGrowthFilters && isLoading && !data;
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as DashboardTabValue);
@@ -138,70 +139,58 @@ function Dashboard() {
     });
   };
 
-  const pageLoading = activeTab !== 'cards' && isLoading;
-
   return (
-    <div className='relative flex min-h-screen w-full flex-col gap-6 bg-slate-50 pb-8'>
-      <DashboardHero
-        title='대시보드'
-        description='월말 누적과 월간 순증을 빠르게 스캔할 수 있도록 성장 지표를 다시 정렬했습니다.'
-        rangeLabel={dashboard.rangeLabel}
-        rangeSummary={dashboard.rangeSummary}
-        lastUpdatedLabel={dashboard.lastUpdatedLabel}
-        selectedLocalesLabel={dashboard.selectedLocalesLabel}
-      />
-
+    <div className='relative flex min-h-screen w-full flex-col gap-6 bg-white pb-8'>
       <DashboardCoreStats
         users={userSummary?.users}
         profiles={userSummary?.profiles}
         removedProfiles={userSummary?.removedProfiles}
+        spaces={userSummary?.spaces}
         isLoading={isUserSummaryLoading}
       />
 
-      {showGrowthFilters && (
-        <DashboardFilterBar
-          preset={preset}
-          onPresetChange={handlePresetChange}
-          startedAt={startedAt}
-          endedAt={endedAt}
-          setStartedAt={handleStartedAtChange}
-          setEndedAt={handleEndedAtChange}
-          locales={DASHBOARD_LOCALES}
-          selectedLocales={selectedLocales}
-          onToggleLocale={handleToggleLocale}
-          onSelectAllLocales={handleSelectAllLocales}
-        />
-      )}
+      <section className='space-y-4'>
+        {showGrowthFilters && (
+          <DashboardFilterBar
+            preset={preset}
+            onPresetChange={handlePresetChange}
+            startedAt={startedAt}
+            endedAt={endedAt}
+            setStartedAt={handleStartedAtChange}
+            setEndedAt={handleEndedAtChange}
+            locales={DASHBOARD_LOCALES}
+            selectedLocales={selectedLocales}
+            onToggleLocale={handleToggleLocale}
+            onSelectAllLocales={handleSelectAllLocales}
+            isRefreshing={isGrowthRefreshing}
+          />
+        )}
 
-      <Tabs value={activeTab} className='space-y-4' onValueChange={handleTabChange}>
-        <TabsList className='w-fit rounded-2xl border border-slate-200 bg-white p-1 shadow-sm'>
-          <TabsTrigger value='overview'>개요</TabsTrigger>
-          <TabsTrigger value='users'>가입자</TabsTrigger>
-          <TabsTrigger value='spaces'>공간</TabsTrigger>
-          <TabsTrigger value='cards'>질문</TabsTrigger>
-        </TabsList>
+        <Tabs value={activeTab} className='space-y-4' onValueChange={handleTabChange}>
+          <TabsList className='w-fit rounded-2xl border border-slate-200 bg-white p-1 shadow-sm'>
+            <TabsTrigger value='overview'>개요</TabsTrigger>
+            <TabsTrigger value='users'>가입자</TabsTrigger>
+            <TabsTrigger value='spaces'>공간</TabsTrigger>
+            <TabsTrigger value='cards'>질문</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value='overview' className='space-y-4'>
-          <OverviewTab dashboard={dashboard} />
-        </TabsContent>
+          <TabsContent value='overview' className='space-y-4'>
+            {isGrowthInitialLoading ? <DashboardGrowthSkeleton tab='overview' /> : <OverviewTab dashboard={dashboard} />}
+          </TabsContent>
 
-        <TabsContent value='users' className='space-y-4'>
-          <UserTab dashboard={dashboard} />
-        </TabsContent>
+          <TabsContent value='users' className='space-y-4'>
+            {isGrowthInitialLoading ? <DashboardGrowthSkeleton tab='users' /> : <UserTab dashboard={dashboard} />}
+          </TabsContent>
 
-        <TabsContent value='spaces' className='space-y-4'>
-          <SpaceTab dashboard={dashboard} />
-        </TabsContent>
+          <TabsContent value='spaces' className='space-y-4'>
+            {isGrowthInitialLoading ? <DashboardGrowthSkeleton tab='spaces' /> : <SpaceTab dashboard={dashboard} />}
+          </TabsContent>
 
-        <TabsContent value='cards' className='space-y-4'>
-          <div className='rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500 shadow-sm'>
-            질문 탭은 전체 질문 풀 기준 운영 현황을 보여주며, 기간/국가 필터는 가입자와 공간 성장 탭에서만 적용됩니다.
-          </div>
-          <CardTab />
-        </TabsContent>
-      </Tabs>
-
-      {pageLoading && <Spinner />}
+          <TabsContent value='cards' className='space-y-4'>
+            <CardTab />
+          </TabsContent>
+        </Tabs>
+      </section>
     </div>
   );
 }

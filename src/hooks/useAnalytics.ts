@@ -56,12 +56,13 @@ function useSpaceAnalytics(by: Props) {
 function useDashboardGrowthAnalytics(by: Pick<Props, 'startedAt' | 'endedAt' | 'locale'>) {
   const { startedAt, endedAt, locale } = by;
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ['analytics/dashboard-growth', by],
     queryFn: () => getDashboardGrowthAnalytics({ startedAt, endedAt, locale }),
+    placeholderData: (previousData) => previousData,
   });
 
-  return { data, isLoading, refetch };
+  return { data, isLoading, isFetching, refetch };
 }
 
 export { useCardAnalytics, useDashboardGrowthAnalytics, useSpaceAnalytics, useUserSummaryAnalytics, useUsersAnalytics };

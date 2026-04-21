@@ -71,6 +71,7 @@ export interface UserSummaryStatistics {
   users: number;
   profiles: number;
   removedProfiles: number;
+  spaces: number;
 }
 
 export interface GrowthValue {

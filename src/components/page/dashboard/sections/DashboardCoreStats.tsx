@@ -4,6 +4,7 @@ interface DashboardCoreStatsProps {
   users?: number;
   profiles?: number;
   removedProfiles?: number;
+  spaces?: number;
   isLoading?: boolean;
 }
 
@@ -23,6 +24,11 @@ const statItems = [
     title: '총 탈퇴 프로필',
     description: '비활성 또는 탈퇴 처리된 프로필 수',
   },
+  {
+    key: 'spaces',
+    title: '총 공간수',
+    description: '생성된 전체 공간 수',
+  },
 ] as const;
 
 function formatValue(value?: number) {
@@ -33,21 +39,25 @@ function formatValue(value?: number) {
   return value.toLocaleString('ko-KR');
 }
 
-function DashboardCoreStats({ users, profiles, removedProfiles, isLoading = false }: DashboardCoreStatsProps) {
+function DashboardCoreStats({ users, profiles, removedProfiles, spaces, isLoading = false }: DashboardCoreStatsProps) {
   const values = {
     users,
     profiles,
     removedProfiles,
+    spaces,
   };
 
   return (
     <section className='space-y-3'>
-      <div className='flex flex-col gap-1'>
-        <p className='text-sm font-medium text-slate-500'>전체 누적 현황</p>
-        <p className='text-sm text-slate-600'>기간 필터와 관계없이 운영 규모를 먼저 확인할 수 있도록 상단에 고정한 요약 영역입니다.</p>
+      <div className='flex flex-wrap items-start justify-between gap-3'>
+        <div className='flex flex-col gap-1'>
+          <p className='text-sm font-medium text-slate-500'>전체 누적 현황</p>
+          <p className='text-sm text-slate-600'>이 영역은 서비스 전체 스냅샷으로, 아래 기간과 국가 설정의 영향을 받지 않습니다.</p>
+        </div>
+        <div className='rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600'>기간 영향 없음</div>
       </div>
 
-      <div className='grid gap-4 md:grid-cols-3'>
+      <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-4'>
         {statItems.map((item) => (
           <Card key={item.key} className='border-slate-200/80 bg-white shadow-sm'>
             <CardHeader className='pb-3'>
