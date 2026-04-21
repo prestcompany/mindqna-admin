@@ -1,5 +1,4 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
 import { Locale } from '@/client/types';
 import { useDashboardGrowthAnalytics, useUserSummaryAnalytics } from '@/hooks/useAnalytics';
 import dayjs from 'dayjs';
@@ -152,15 +151,19 @@ function Dashboard() {
       />
 
       <section className='space-y-4'>
-        <div className='flex flex-col gap-3 sm:flex-row sm:items-center'>
-          <div className='space-y-1'>
-            <p className='text-sm font-medium text-slate-500'>세부 현황</p>
-            <p className='text-sm text-slate-600'>기간과 국가 설정을 기준으로 가입자와 공간 성장, 로케일별 분포를 비교하는 영역입니다.</p>
+        <div className='space-y-3'>
+          <div className='flex flex-wrap items-start justify-between gap-3'>
+            <div className='space-y-1.5'>
+              <p className='text-base font-semibold text-slate-900 sm:text-lg'>세부 현황</p>
+              <p className='text-sm leading-6 text-slate-600 sm:text-[15px]'>
+                기간과 국가 설정을 기준으로 가입자와 공간 성장, 로케일별 분포를 비교하는 영역입니다.
+              </p>
+            </div>
+            <div className='w-fit rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600'>
+              기간 / 국가 설정 적용
+            </div>
           </div>
-          <Separator className='bg-slate-200 sm:flex-1' />
-          <div className='w-fit rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600'>
-            기간 / 국가 설정 적용
-          </div>
+          <div className='h-px w-full bg-slate-200' />
         </div>
 
         {showGrowthFilters && (
