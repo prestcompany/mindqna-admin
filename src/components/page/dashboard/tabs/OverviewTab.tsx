@@ -26,8 +26,9 @@ function OverviewTab({ dashboard }: OverviewTabProps) {
         <LocaleShareChart
           rows={dashboard.localeLeaderboard}
           metric='users'
-          title='가입자 로케일 분포'
-          description={`현재 ${cumulativeBasisLabel} 누적 가입자 규모를 가로 비교합니다.`}
+          mode='delta'
+          title='가입자 기간 순증 분포'
+          description='선택 기간 동안 어디에서 가입자가 더 크게 늘었는지 비교합니다.'
         />
       </div>
 
@@ -41,20 +42,27 @@ function OverviewTab({ dashboard }: OverviewTabProps) {
             <LocaleGrowthTable rows={dashboard.localeLeaderboard} metric='overview' />
           </CardContent>
         </Card>
+        <LocaleShareChart
+          rows={dashboard.localeLeaderboard}
+          metric='users'
+          mode='cumulative'
+          title='가입자 누적 분포'
+          description={`현재 ${cumulativeBasisLabel} 누적 가입자 규모를 가로 비교합니다.`}
+        />
+      </div>
 
-        <div className='grid gap-4'>
-          {dashboard.overviewInsights.map((insight) => (
-            <Card key={insight.title} className='border-slate-200/80 bg-white shadow-sm'>
-              <CardHeader className='space-y-2'>
-                <CardTitle className='text-base text-slate-950'>{insight.title}</CardTitle>
-                <CardDescription>{insight.description}</CardDescription>
-              </CardHeader>
-              <CardContent className='pt-0'>
-                <p className='text-lg font-semibold tracking-tight text-slate-950'>{insight.value}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      <div className='grid gap-4 md:grid-cols-2'>
+        {dashboard.overviewInsights.map((insight) => (
+          <Card key={insight.title} className='border-slate-200/80 bg-white shadow-sm'>
+            <CardHeader className='space-y-2'>
+              <CardTitle className='text-base text-slate-950'>{insight.title}</CardTitle>
+              <CardDescription>{insight.description}</CardDescription>
+            </CardHeader>
+            <CardContent className='pt-0'>
+              <p className='text-lg font-semibold tracking-tight text-slate-950'>{insight.value}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   );

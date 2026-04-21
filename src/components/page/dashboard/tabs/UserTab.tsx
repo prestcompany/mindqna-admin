@@ -25,20 +25,31 @@ function UserTab({ dashboard }: UserTabProps) {
         <LocaleShareChart
           rows={dashboard.userLocaleRows}
           metric='users'
-          title='가입자 로케일 분포'
-          description={`현재 ${cumulativeBasisLabel} 누적 가입자 규모를 가로 비교합니다.`}
+          mode='delta'
+          title='가입자 기간 순증 분포'
+          description='선택 기간 동안 어느 로케일이 가입자 증가를 더 많이 만들었는지 비교합니다.'
         />
       </div>
 
-      <Card className='border-slate-200/80 bg-white shadow-sm'>
-        <CardHeader>
-          <CardTitle className='text-base text-slate-950'>가입자 로케일 비교</CardTitle>
-          <CardDescription>{`${cumulativeBasisLabel} 누적 가입자와 선택 기간 순증을 평면 테이블로 비교합니다.`}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <LocaleGrowthTable rows={dashboard.userLocaleRows} metric='users' />
-        </CardContent>
-      </Card>
+      <div className='grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.9fr)]'>
+        <Card className='border-slate-200/80 bg-white shadow-sm'>
+          <CardHeader>
+            <CardTitle className='text-base text-slate-950'>가입자 로케일 비교</CardTitle>
+            <CardDescription>{`${cumulativeBasisLabel} 누적 가입자와 선택 기간 순증을 평면 테이블로 비교합니다.`}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <LocaleGrowthTable rows={dashboard.userLocaleRows} metric='users' />
+          </CardContent>
+        </Card>
+
+        <LocaleShareChart
+          rows={dashboard.userLocaleRows}
+          metric='users'
+          mode='cumulative'
+          title='가입자 누적 분포'
+          description={`현재 ${cumulativeBasisLabel} 누적 가입자 규모를 가로 비교합니다.`}
+        />
+      </div>
 
       <Card className='border-slate-200/80 bg-white shadow-sm'>
         <CardHeader>
