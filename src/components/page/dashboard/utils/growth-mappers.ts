@@ -53,14 +53,6 @@ function getRangeLabel(months: DashboardGrowthMonth[]) {
   return `${months[0].label} - ${months[months.length - 1].label}`;
 }
 
-function getSummaryText(months: DashboardGrowthMonth[]) {
-  if (!months.length) {
-    return '집계 기간 데이터가 아직 없습니다.';
-  }
-
-  return `${months.length}개월 흐름을 월말 누적 기준으로 비교합니다.`;
-}
-
 function createMetricCardValue(
   label: string,
   value: number,
@@ -280,30 +272,33 @@ export function buildDashboardGrowthViewModel(
     response: data,
     isEmpty: months.length === 0,
     rangeLabel: getRangeLabel(months),
-    rangeSummary: getSummaryText(months),
     lastUpdatedLabel: latestMonth?.label ?? '데이터 없음',
     selectedLocalesLabel: getSelectedLocalesLabel(selectedLocales),
     selectedLocaleCount: selectedLocales.length || DASHBOARD_LOCALES.length,
     kpis: {
-      users: createMetricCardValue('누적 가입자', summary.users.cumulative, summary.users.delta, 'slate', {
-        deltaLabel: '이번 달 순증',
-        accentLabel: '월말 누적',
+      users: createMetricCardValue('종료 월 누적 가입자', summary.users.cumulative, summary.users.delta, 'slate', {
+        formatted: formatNumber(summary.users.cumulative),
+        deltaLabel: '선택 종료 월 순증',
+        deltaText: formatDelta(latestMonth?.users.delta ?? 0),
+        accentLabel: '종료 월 기준',
       }),
-      usersDelta: createMetricCardValue('가입자 순증', summary.users.delta, summary.users.delta, 'emerald', {
+      usersDelta: createMetricCardValue('종료 월 가입자 순증', summary.users.delta, summary.users.delta, 'emerald', {
         formatted: formatNumber(latestMonth?.users.delta ?? 0),
         deltaLabel: '직전 월 대비',
         deltaText: formatDelta((latestMonth?.users.delta ?? 0) - (previousMonth?.users.delta ?? 0)),
-        accentLabel: '이번 달',
+        accentLabel: '선택 종료 월',
       }),
-      spaces: createMetricCardValue('누적 공간', summary.spaces.cumulative, summary.spaces.delta, 'sky', {
-        deltaLabel: '이번 달 순증',
-        accentLabel: '월말 누적',
+      spaces: createMetricCardValue('종료 월 누적 공간', summary.spaces.cumulative, summary.spaces.delta, 'sky', {
+        formatted: formatNumber(summary.spaces.cumulative),
+        deltaLabel: '선택 종료 월 순증',
+        deltaText: formatDelta(latestMonth?.spaces.delta ?? 0),
+        accentLabel: '종료 월 기준',
       }),
-      spacesDelta: createMetricCardValue('공간 순증', summary.spaces.delta, summary.spaces.delta, 'amber', {
+      spacesDelta: createMetricCardValue('종료 월 공간 순증', summary.spaces.delta, summary.spaces.delta, 'amber', {
         formatted: formatNumber(latestMonth?.spaces.delta ?? 0),
         deltaLabel: '직전 월 대비',
         deltaText: formatDelta((latestMonth?.spaces.delta ?? 0) - (previousMonth?.spaces.delta ?? 0)),
-        accentLabel: '이번 달',
+        accentLabel: '선택 종료 월',
       }),
     },
     overviewTrend: createTrendSeries('overview', '성장 추이', '가입자와 공간의 월간 순증 및 월말 누적을 함께 봅니다.', months),

@@ -19,6 +19,7 @@ interface DashboardFilterBarProps {
   selectedLocales: Locale[];
   onToggleLocale: (locale: Locale) => void;
   onSelectAllLocales: () => void;
+  isRefreshing?: boolean;
 }
 
 const presetOptions: { value: DashboardRangePreset; label: string }[] = [
@@ -54,6 +55,7 @@ function DashboardFilterBar({
   selectedLocales,
   onToggleLocale,
   onSelectAllLocales,
+  isRefreshing = false,
 }: DashboardFilterBarProps) {
   const allSelected = selectedLocales.length === locales.length;
   const monthOptions = buildMonthOptions();
@@ -70,10 +72,13 @@ function DashboardFilterBar({
                 <CalendarRange className='h-4 w-4 text-blue-600' />
                 기간
               </div>
-              <p className='text-xs leading-5 text-slate-500'>월별 성장 흐름을 비교할 기준 월 범위를 선택하세요.</p>
+              <p className='text-xs leading-5 text-slate-500'>아래 성장 KPI, 차트, 로케일 비교에만 적용되는 기준 월 범위를 선택하세요.</p>
             </div>
-            <div className='rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600'>
-              월 단위 집계
+            <div className='flex flex-wrap items-center gap-2'>
+              <div className='rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600'>월 단위 집계</div>
+              {isRefreshing && (
+                <div className='rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700'>업데이트 중</div>
+              )}
             </div>
           </div>
 
@@ -147,7 +152,7 @@ function DashboardFilterBar({
             </div>
 
             <p className='text-xs leading-5 text-slate-500'>
-              대시보드 성장 지표는 월말 누적과 월간 순증 기준으로 집계되며, 선택한 월 전체를 기준으로 계산됩니다.
+              대시보드 성장 지표는 월말 누적과 월간 순증 기준으로 집계되며, 선택한 종료 월의 누적값과 해당 월 순증을 중심으로 계산됩니다.
             </p>
           </div>
         </section>

@@ -61,7 +61,6 @@ export interface DashboardGrowthViewModel {
   response?: DashboardGrowthResponse;
   isEmpty: boolean;
   rangeLabel: string;
-  rangeSummary: string;
   lastUpdatedLabel: string;
   selectedLocalesLabel: string;
   selectedLocaleCount: number;
