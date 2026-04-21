@@ -8,6 +8,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 interface LocaleShareChartProps {
   rows: DashboardLocaleRow[];
   metric: 'users' | 'spaces';
+  mode?: 'cumulative' | 'delta';
   title?: string;
   description?: string;
 }
@@ -17,10 +18,42 @@ const colors = ['#0f172a', '#0ea5e9', '#10b981', '#f59e0b', '#14b8a6', '#f97316'
 function LocaleShareChart({
   rows,
   metric,
+  mode = 'cumulative',
   title = '로케일 분포',
   description = '현재 누적 규모 기준의 로케일 분포와 순위를 비교합니다.',
 }: LocaleShareChartProps) {
-  if (!rows.length) {
+  const rankedRows = [...rows].sort((left, right) => {
+    const leftValue =
+      metric === 'users'
+        ? mode === 'delta'
+          ? left.users.delta
+          : left.users.cumulative
+        : mode === 'delta'
+          ? left.spaces.delta
+          : left.spaces.cumulative;
+    const rightValue =
+      metric === 'users'
+        ? mode === 'delta'
+          ? right.users.delta
+          : right.users.cumulative
+        : mode === 'delta'
+          ? right.spaces.delta
+          : right.spaces.cumulative;
+
+    return rightValue - leftValue;
+  });
+  const values = rankedRows.map((row) =>
+    metric === 'users'
+      ? mode === 'delta'
+        ? row.users.delta
+        : row.users.cumulative
+      : mode === 'delta'
+        ? row.spaces.delta
+        : row.spaces.cumulative,
+  );
+  const total = values.reduce((sum, value) => sum + value, 0);
+
+  if (!rankedRows.length || total <= 0) {
     return (
       <Card className='border-slate-200/80 bg-white shadow-sm'>
         <CardHeader className='space-y-2'>
@@ -36,14 +69,21 @@ function LocaleShareChart({
     );
   }
 
-  const metricLabel = metric === 'users' ? '누적 가입자' : '누적 공간';
+  const metricLabel =
+    metric === 'users'
+      ? mode === 'delta'
+        ? '선택 기간 순증 가입자'
+        : '누적 가입자'
+      : mode === 'delta'
+        ? '선택 기간 순증 공간'
+        : '누적 공간';
   const data: ChartData<'bar', number[], string> = {
-    labels: rows.map((row) => row.label),
+    labels: rankedRows.map((row) => row.label),
     datasets: [
       {
         label: metricLabel,
-        data: rows.map((row) => (metric === 'users' ? row.users.cumulative : row.spaces.cumulative)),
-        backgroundColor: rows.map((_, index) => colors[index % colors.length]),
+        data: values,
+        backgroundColor: rankedRows.map((_, index) => colors[index % colors.length]),
         borderRadius: 999,
         borderSkipped: false,
         maxBarThickness: 20,
@@ -62,8 +102,7 @@ function LocaleShareChart({
       tooltip: {
         callbacks: {
           label: (context) => {
-            const row = rows[context.dataIndex];
-            const share = metric === 'users' ? row.usersShare : row.spacesShare;
+            const share = total ? (Number(context.raw || 0) / total) * 100 : 0;
             return `${metricLabel}: ${Number(context.raw || 0).toLocaleString('ko-KR')} (${share.toFixed(1)}%)`;
           },
         },
@@ -103,9 +142,16 @@ function LocaleShareChart({
         </div>
 
         <div className='grid gap-2 sm:grid-cols-2'>
-          {rows.map((row, index) => {
-            const value = metric === 'users' ? row.users.cumulative : row.spaces.cumulative;
-            const share = metric === 'users' ? row.usersShare : row.spacesShare;
+          {rankedRows.map((row, index) => {
+            const value =
+              metric === 'users'
+                ? mode === 'delta'
+                  ? row.users.delta
+                  : row.users.cumulative
+                : mode === 'delta'
+                  ? row.spaces.delta
+                  : row.spaces.cumulative;
+            const share = total ? (value / total) * 100 : 0;
 
             return (
               <div key={row.locale} className='flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2'>
