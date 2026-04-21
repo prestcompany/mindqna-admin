@@ -73,7 +73,7 @@ function SpaceSearch() {
     };
   };
 
-  const { data, refetch, isLoading, isFetched } = useQuery({
+  const { data, refetch, isFetching, isFetched } = useQuery({
     queryKey: ['space-search', submittedSearchParams],
     queryFn: async () => {
       if (!submittedSearchParams) {
@@ -84,6 +84,9 @@ function SpaceSearch() {
     },
     enabled: !!submittedSearchParams,
   });
+  const hasSubmittedSearch = !!submittedSearchParams;
+  const isResultLoading = hasSubmittedSearch && isFetching;
+  const isInitialResultLoading = isResultLoading && !data;
   const items = data?.items ?? [];
   const currentPage = submittedSearchParams?.page ?? 1;
   const totalCount = data?.totalCount ?? 0;
@@ -99,6 +102,11 @@ function SpaceSearch() {
   const copyId = (id: string) => {
     navigator.clipboard.writeText(id);
     toast.success(`${id} 복사`);
+  };
+
+  const openCoinForSpace = (space: Space) => {
+    setFocused(space);
+    setOpenCoin(true);
   };
 
   const handleSearch = () => {
@@ -256,10 +264,7 @@ function SpaceSearch() {
               },
               {
                 label: '코인 관리',
-                onClick: () => {
-                  setOpenCoin(true);
-                  setFocused(row.original);
-                },
+                onClick: () => openCoinForSpace(row.original),
               },
               {
                 label: '삭제',
@@ -298,8 +303,7 @@ function SpaceSearch() {
                   variant='outline'
                   size='sm'
                   onClick={() => {
-                    setOpenCoin(true);
-                    setFocused(space);
+                    openCoinForSpace(space);
                   }}
                 >
                   코인 관리
@@ -311,7 +315,14 @@ function SpaceSearch() {
             </CardContent>
           </Card>
         ) : (
-          <SpaceDetailContent detail={detail as SpaceDetail} copyId={copyId} />
+          <div className='space-y-4'>
+            <div className='flex justify-end'>
+              <Button type='button' variant='outline' size='sm' onClick={() => openCoinForSpace(space)}>
+                코인 관리
+              </Button>
+            </div>
+            <SpaceDetailContent detail={detail as SpaceDetail} copyId={copyId} />
+          </div>
         )}
       </div>
     );
@@ -414,19 +425,22 @@ function SpaceSearch() {
           </FormGroup>
 
           <div className='flex justify-end gap-2 pt-2'>
-            <Button type='button' variant='outline' onClick={handleResetFilters} disabled={isLoading}>
+            <Button type='button' variant='outline' onClick={handleResetFilters} disabled={isResultLoading}>
               초기화
             </Button>
-            <Button type='button' onClick={handleSearch} disabled={isLoading}>
-              <Search className='w-4 h-4' />
-              검색
+            <Button type='button' onClick={handleSearch} disabled={isResultLoading}>
+              {isResultLoading ? <Loader2 className='h-4 w-4 animate-spin' /> : <Search className='w-4 h-4' />}
+              {isResultLoading ? '검색 중' : '검색'}
             </Button>
           </div>
         </FormSection>
 
-        {data && (
+        {hasSubmittedSearch && (
           <div className='flex justify-between items-center'>
-            <div>총 {totalCount.toLocaleString()}개 검색됨</div>
+            <div className='flex items-center gap-2'>
+              {isResultLoading ? <Loader2 className='h-4 w-4 animate-spin text-muted-foreground' /> : null}
+              <span>{data ? `총 ${totalCount.toLocaleString()}개 검색됨` : '검색 결과를 불러오는 중입니다.'}</span>
+            </div>
             <RadioGroup
               value={viewMode}
               onValueChange={(v) => setViewMode(v as 'card' | 'table')}
@@ -454,6 +468,18 @@ function SpaceSearch() {
           </div>
         )}
 
+        {isInitialResultLoading && (
+          <Card className='bg-card'>
+            <CardContent className='flex min-h-[220px] flex-col items-center justify-center gap-3 py-10 text-center'>
+              <Loader2 className='h-6 w-6 animate-spin text-muted-foreground' />
+              <div className='space-y-1'>
+                <p className='font-medium text-foreground'>검색 중입니다.</p>
+                <p className='text-sm text-muted-foreground'>공간 목록을 불러올 때까지 잠시만 기다려주세요.</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {data && (
           <>
             {viewMode === 'table' ? (
@@ -461,7 +487,7 @@ function SpaceSearch() {
                 columns={columns}
                 data={items}
                 countLabel={totalCount}
-                loading={isLoading}
+                loading={isResultLoading}
                 pagination={{
                   total: totalCount,
                   page: currentPage,
@@ -487,7 +513,7 @@ function SpaceSearch() {
                         variant='outline'
                         size='sm'
                         onClick={() => handleChangePage(currentPage - 1)}
-                        disabled={currentPage <= 1 || isLoading}
+                        disabled={currentPage <= 1 || isResultLoading}
                       >
                         <ChevronLeft className='w-4 h-4' />
                         이전
@@ -500,7 +526,7 @@ function SpaceSearch() {
                         variant='outline'
                         size='sm'
                         onClick={() => handleChangePage(currentPage + 1)}
-                        disabled={currentPage >= data.pageInfo.totalPage || isLoading}
+                        disabled={currentPage >= data.pageInfo.totalPage || isResultLoading}
                       >
                         다음
                         <ChevronRight className='w-4 h-4' />
@@ -513,7 +539,7 @@ function SpaceSearch() {
           </>
         )}
 
-        {isFetched && !isLoading && totalCount === 0 && (
+        {isFetched && !isResultLoading && totalCount === 0 && (
           <Card className='py-8 text-center bg-card'>
             <CardContent>
               <div className='text-muted-foreground'>
