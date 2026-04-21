@@ -1,89 +1,64 @@
-import 'chart.js/auto';
-import 'chartjs-plugin-datalabels';
-import dayjs from 'dayjs';
-
-import StatCard from '@/components/ui/StatCard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LayoutIcon } from '@/components/ui/icons';
-import { useSpaceAnalytics } from '@/hooks/useAnalytics';
-import useChartData from '@/hooks/useChartData';
-import { useEffect } from 'react';
-import SpaceChart from '../charts/SpaceChart';
-import SpaceTypeChart from '../charts/SpaceTypeChart';
-import { SpaceTable } from '../tables/SpaceTable';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import GrowthComboChart from '../charts/GrowthComboChart';
+import LocaleShareChart from '../charts/LocaleShareChart';
+import DashboardMetricCard from '../sections/DashboardMetricCard';
+import LocaleGrowthTable from '../tables/LocaleGrowthTable';
+import { DashboardGrowthViewModel } from '../types/growth';
 
 interface SpaceTabProps {
-  startedAt: dayjs.Dayjs;
-  endedAt: dayjs.Dayjs;
-  setLoading: (loading: boolean) => void;
+  dashboard: DashboardGrowthViewModel;
 }
 
-function SpaceTab({ startedAt, endedAt, setLoading }: SpaceTabProps) {
-  const { data, isLoading, refetch } = useSpaceAnalytics({
-    startedAt: startedAt.format('YYYY-MM-DD'),
-    endedAt: endedAt.format('YYYY-MM-DD'),
-  });
-
-  useEffect(() => {
-    setLoading(isLoading);
-  }, [isLoading, setLoading]);
-
-  // 차트 데이터 처리 로직을 커스텀 훅으로 분리
-  const chartData = useChartData({ spaces: data?.spaces });
-  const totalSpaceCount = data?.total.spaces ?? 0;
-  const totalDeletedSpaceCount = data?.total.removedSpaces ?? 0;
-
+function SpaceTab({ dashboard }: SpaceTabProps) {
   return (
-    <>
-      {/* 통계 카드 */}
-      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-2'>
-        <StatCard
-          title='총 공간 수'
-          value={totalSpaceCount.toLocaleString()}
-          icon={<LayoutIcon className='w-4 h-4 text-muted-foreground' />}
-        />
+    <div className='space-y-6'>
+      <div className='grid gap-4 md:grid-cols-2'>
+        <DashboardMetricCard metric={dashboard.kpis.spaces} />
+        <DashboardMetricCard metric={dashboard.kpis.spacesDelta} />
+      </div>
 
-        <StatCard
-          title='총 삭제 공간 수'
-          value={totalDeletedSpaceCount.toLocaleString()}
-          icon={<LayoutIcon className='w-4 h-4 text-muted-foreground' />}
+      <div className='grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.9fr)]'>
+        <GrowthComboChart series={dashboard.spaceTrend} />
+
+        <LocaleShareChart
+          rows={dashboard.spaceLocaleRows}
+          metric='spaces'
+          title='공간 로케일 분포'
+          description='현재 월말 누적 공간 규모를 가로 비교합니다.'
         />
       </div>
 
-      <div className='grid grid-cols-1 gap-4'>
-        <Card>
-          <CardHeader>
-            <CardTitle>공간 통계</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SpaceChart labels={chartData.spaceLabels || []} datasets={chartData.spaceDatasets || []} />
-          </CardContent>
-        </Card>
+      <Card className='border-slate-200/80 bg-white shadow-sm'>
+        <CardHeader>
+          <CardTitle className='text-base text-slate-950'>공간 로케일 비교</CardTitle>
+          <CardDescription>누적 공간과 선택 기간 순증을 평면 테이블로 비교합니다.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <LocaleGrowthTable rows={dashboard.spaceLocaleRows} metric='spaces' />
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>공간 타입 분석</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SpaceTypeChart spaceTypeCountMap={chartData.spaceTypeCountMap || {}} colors={chartData.colors} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>공간 타입 분석</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SpaceTable
-              labels={chartData.spaceLabels || []}
-              spaceCountMap={chartData.spaceCountMap || {}}
-              spaceDataMap={chartData.spaceDataMap || {}}
-              colors={chartData.colors}
-            />
-          </CardContent>
-        </Card>
-      </div>
-    </>
+      <Card className='border-slate-200/80 bg-white shadow-sm'>
+        <CardHeader>
+          <CardTitle className='text-base text-slate-950'>운영 포인트</CardTitle>
+          <CardDescription>공간 증가가 두드러진 로케일을 빠르게 비교할 수 있습니다.</CardDescription>
+        </CardHeader>
+        <CardContent className='grid gap-3 md:grid-cols-3'>
+          {dashboard.spaceLocaleRows.slice(0, 3).map((row) => (
+            <div key={row.locale} className='rounded-2xl border border-slate-200 bg-sky-50/50 p-4'>
+              <p className='text-sm font-medium text-slate-500'>{row.label}</p>
+              <p className='mt-2 text-xl font-semibold tracking-tight text-slate-950'>
+                {row.spaces.cumulative.toLocaleString('ko-KR')}
+              </p>
+              <p className='mt-1 text-sm text-sky-600'>
+                {row.spaces.delta >= 0 ? '+' : ''}
+                {row.spaces.delta.toLocaleString('ko-KR')}
+              </p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

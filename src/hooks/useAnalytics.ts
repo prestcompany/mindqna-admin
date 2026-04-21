@@ -1,12 +1,18 @@
-import { getCardAnalytics, getSpaceAnalytics, getUsersAnalytics } from '@/client/dashboard';
-import { SpaceType } from '@/client/types';
+import {
+  getCardAnalytics,
+  getDashboardGrowthAnalytics,
+  getSpaceAnalytics,
+  getUserSummaryAnalytics,
+  getUsersAnalytics,
+} from '@/client/dashboard';
+import { Locale, SpaceType } from '@/client/types';
 import { useQuery } from '@tanstack/react-query';
 
 type Props = {
   startedAt?: string;
   endedAt?: string;
   spaceType?: SpaceType[];
-  locale?: string[];
+  locale?: Locale[];
 };
 
 function useCardAnalytics() {
@@ -27,19 +33,35 @@ function useUsersAnalytics(by: Props) {
 
   return { data, isLoading, refetch };
 }
+
+function useUserSummaryAnalytics() {
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['analytics/user-summary'],
+    queryFn: () => getUserSummaryAnalytics(),
+  });
+
+  return { data, isLoading, refetch };
+}
 function useSpaceAnalytics(by: Props) {
   const { startedAt, endedAt, spaceType, locale } = by;
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['analytics/space', by],
-    queryFn: async () => {
-      const response = await getSpaceAnalytics({ startedAt, endedAt, spaceType, locale });
-      console.log('API Response in useSpaceAnalytics:', response);
-      return response;
-    },
+    queryFn: () => getSpaceAnalytics({ startedAt, endedAt, spaceType, locale }),
   });
 
   return { data, isLoading, refetch };
 }
 
-export { useCardAnalytics, useSpaceAnalytics, useUsersAnalytics };
+function useDashboardGrowthAnalytics(by: Pick<Props, 'startedAt' | 'endedAt' | 'locale'>) {
+  const { startedAt, endedAt, locale } = by;
+
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['analytics/dashboard-growth', by],
+    queryFn: () => getDashboardGrowthAnalytics({ startedAt, endedAt, locale }),
+  });
+
+  return { data, isLoading, refetch };
+}
+
+export { useCardAnalytics, useDashboardGrowthAnalytics, useSpaceAnalytics, useUserSummaryAnalytics, useUsersAnalytics };

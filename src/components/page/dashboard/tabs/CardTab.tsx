@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
-
 import { CardStatistics } from '@/client/dashboard';
 import { Locale, SpaceType } from '@/client/types';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCardAnalytics } from '@/hooks/useAnalytics';
 import { AlertCircle } from 'lucide-react';
+import { useMemo } from 'react';
 
 // 화면 표시용 데이터 구조
 interface DisplayCountryData {
@@ -39,36 +39,18 @@ const LOCALE_NAME_MAP: Record<string, string> = {
   id: '인도네시아어',
 };
 
-interface CardTabProps {
-  setLoading: (loading: boolean) => void;
-}
-
-function CardTab({ setLoading }: CardTabProps) {
+function CardTab() {
   const { data, isLoading } = useCardAnalytics();
-  const [cardStats, setCardStats] = useState<CardStatistics['cardStats']>([]);
-  const [displayData, setDisplayData] = useState<DisplayCountryData[]>([]);
 
-  useEffect(() => {
-    setLoading(isLoading);
-  }, [isLoading, setLoading]);
+  const displayData = useMemo(() => {
+    const cardStats = data?.cardStats ?? [];
 
-  useEffect(() => {
-    if (data && data.cardStats) {
-      setCardStats(data.cardStats);
-    } else {
-      setCardStats([]);
-    }
-  }, [data]);
-
-  // cardStats 데이터가 변경될 때 displayData로 변환
-  useEffect(() => {
-    if (!cardStats || cardStats.length === 0) {
-      setDisplayData([]);
-      return;
+    if (!cardStats.length) {
+      return [];
     }
 
     const groupedByLocale = cardStats.reduce(
-      (acc, stat) => {
+      (acc, stat: CardStatistics['cardStats'][number]) => {
         const localeKey: string = stat.locale; // stat.locale을 string으로 명시적 타입 지정
         if (!acc[localeKey]) {
           acc[localeKey] = {
@@ -104,8 +86,8 @@ function CardTab({ setLoading }: CardTabProps) {
       localeData.userTotalQuestions = userSum;
     });
 
-    setDisplayData(Object.values(groupedByLocale));
-  }, [cardStats]);
+    return Object.values(groupedByLocale);
+  }, [data?.cardStats]);
 
   // 일반 경고 (질문 수 14개 미만 / 사용자 발급 30개 미만)
   // 이 로직은 전체 질문 수와 전체 사용자 발급 수를 알아야 함.
@@ -130,90 +112,119 @@ function CardTab({ setLoading }: CardTabProps) {
     if (spaceType === 'couple') return 'bg-blue-500';
     if (spaceType === 'family') return 'bg-indigo-500';
     if (spaceType === 'friends') return 'bg-green-500';
-    if (spaceType === 'alone') return 'bg-purple-500';
+    if (spaceType === 'alone') return 'bg-amber-500';
     return 'bg-gray-500';
   };
 
   if (isLoading) {
-    return <div className='p-4 text-center'>로딩 중...</div>;
+    return <div className='rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500'>로딩 중...</div>;
   }
 
   return (
-    <>
-      <div className='mt-6'>
-        <Card>
-          <CardHeader>
-            <CardTitle>언어 및 카드 타입별 발급 현황</CardTitle>
-            <CardDescription>
-              언어별 카드 타입 진행 상황 (발급 수가 어드민 등록 최대치의 80% 이상 도달 시 추가 등록 필요)
-            </CardDescription>
+    <div className='space-y-6'>
+      <div className='grid gap-4 md:grid-cols-3'>
+        <Card className='border-slate-200/80 bg-white shadow-sm'>
+          <CardHeader className='pb-3'>
+            <CardTitle className='text-base text-slate-950'>활성 로케일</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className='space-y-8'>
-              {displayData.map((country) => (
-                <div key={country.code} className='pb-6 border-b last:border-0'>
-                  <div className='flex items-center justify-between mb-4'>
-                    <div className='flex items-center gap-2'>
-                      <span className='text-lg font-medium'>
-                        {country.name} ({country.code})
-                      </span>
-                      {/* 전체 질문/발급량에 대한 경고 */}
-                      {needsOverallWarning(country) && (
-                        <span className='bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded-full flex items-center'>
-                          <AlertCircle className='w-3 h-3 mr-1' />
-                          경고 (전체)
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 카드 타입별 프로그레스 바 */}
-                  <div className='space-y-4'>
-                    {(Object.keys(SPACE_TYPE_MAP) as SpaceType[]).map((spaceTypeKey) => {
-                      const typeStat = country.types[spaceTypeKey];
-                      if (!typeStat) return null; // 해당 타입 데이터가 없으면 렌더링 안함
-
-                      return (
-                        <div key={spaceTypeKey}>
-                          <div className='flex justify-between mb-1 text-sm'>
-                            <span className='font-medium'>{SPACE_TYPE_MAP[spaceTypeKey]}</span>
-                            <span>
-                              {typeStat.userCount}/{typeStat.adminTarget}
-                            </span>
-                          </div>
-                          <div className='w-full h-3 overflow-hidden bg-gray-200 rounded-full'>
-                            <div
-                              className={`h-full ${getProgressBarColor(typeStat.spaceType, typeStat.userCount, typeStat.adminTarget)}`}
-                              style={{
-                                width: `${typeStat.adminTarget > 0 ? (typeStat.userCount / typeStat.adminTarget) * 100 : 0}%`,
-                              }}
-                            ></div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* 추가 질문 등록 필요 경고 (타입별) */}
-                  {(Object.keys(country.types) as SpaceType[]).some((spaceTypeKey) => {
-                    const typeStat = country.types[spaceTypeKey];
-                    return typeStat && needsCardTypeWarning(typeStat.userCount, typeStat.adminTarget);
-                  }) && (
-                    <div className='px-3 py-2 mt-4 text-sm text-yellow-800 border border-yellow-200 rounded bg-yellow-50'>
-                      <AlertCircle className='inline w-4 h-4 mr-1' />
-                      하나 이상의 카드 타입에서 발급 수가 80% 이상에 도달했습니다. 추가 질문 등록이 필요할 수 있습니다.
-                    </div>
-                  )}
-                </div>
-              ))}
-              {displayData.length === 0 && !isLoading && (
-                <p className='text-center text-gray-500'>표시할 데이터가 없습니다.</p>
-              )}
-            </div>
+          <CardContent className='pt-0'>
+            <p className='text-2xl font-semibold tracking-tight text-slate-950'>{displayData.length.toLocaleString('ko-KR')}</p>
+            <p className='mt-1 text-sm text-slate-500'>현재 카드 발급 현황을 추적 중인 로케일 수</p>
+          </CardContent>
+        </Card>
+        <Card className='border-slate-200/80 bg-white shadow-sm'>
+          <CardHeader className='pb-3'>
+            <CardTitle className='text-base text-slate-950'>전체 관리자 목표</CardTitle>
+          </CardHeader>
+          <CardContent className='pt-0'>
+            <p className='text-2xl font-semibold tracking-tight text-slate-950'>
+              {displayData.reduce((sum, country) => sum + country.adminTotalQuestions, 0).toLocaleString('ko-KR')}
+            </p>
+            <p className='mt-1 text-sm text-slate-500'>로케일별 카드 목표치 합계</p>
+          </CardContent>
+        </Card>
+        <Card className='border-slate-200/80 bg-white shadow-sm'>
+          <CardHeader className='pb-3'>
+            <CardTitle className='text-base text-slate-950'>전체 사용자 발급</CardTitle>
+          </CardHeader>
+          <CardContent className='pt-0'>
+            <p className='text-2xl font-semibold tracking-tight text-slate-950'>
+              {displayData.reduce((sum, country) => sum + country.userTotalQuestions, 0).toLocaleString('ko-KR')}
+            </p>
+            <p className='mt-1 text-sm text-slate-500'>누적 사용자 카드 발급 수</p>
           </CardContent>
         </Card>
       </div>
-    </>
+
+      <Card className='border-slate-200/80 bg-white shadow-sm'>
+        <CardHeader>
+          <CardTitle className='text-base text-slate-950'>질문 운영 현황</CardTitle>
+          <CardDescription>언어별 카드 목표 대비 발급 현황을 같은 시각 체계로 정리했습니다.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className='space-y-8'>
+            {displayData.map((country) => (
+              <div key={country.code} className='border-b border-slate-200 pb-6 last:border-0'>
+                <div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
+                  <div className='flex items-center gap-2'>
+                    <span className='text-lg font-medium text-slate-950'>
+                      {country.name} ({country.code})
+                    </span>
+                    {needsOverallWarning(country) && (
+                      <Badge variant='warning' className='gap-1 rounded-full px-2 py-1'>
+                        <AlertCircle className='h-3 w-3' />
+                        주의 필요
+                      </Badge>
+                    )}
+                  </div>
+                  <div className='text-sm text-slate-500'>
+                    관리자 목표 {country.adminTotalQuestions.toLocaleString('ko-KR')} / 사용자 발급{' '}
+                    {country.userTotalQuestions.toLocaleString('ko-KR')}
+                  </div>
+                </div>
+
+                <div className='space-y-4'>
+                  {(Object.keys(SPACE_TYPE_MAP) as SpaceType[]).map((spaceTypeKey) => {
+                    const typeStat = country.types[spaceTypeKey];
+                    if (!typeStat) return null;
+
+                    return (
+                      <div key={spaceTypeKey}>
+                        <div className='mb-1 flex justify-between text-sm text-slate-600'>
+                          <span className='font-medium text-slate-900'>{SPACE_TYPE_MAP[spaceTypeKey]}</span>
+                          <span>
+                            {typeStat.userCount}/{typeStat.adminTarget}
+                          </span>
+                        </div>
+                        <div className='h-3 w-full overflow-hidden rounded-full bg-slate-100'>
+                          <div
+                            className={`h-full ${getProgressBarColor(typeStat.spaceType, typeStat.userCount, typeStat.adminTarget)}`}
+                            style={{
+                              width: `${typeStat.adminTarget > 0 ? Math.min((typeStat.userCount / typeStat.adminTarget) * 100, 100) : 0}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {(Object.keys(country.types) as SpaceType[]).some((spaceTypeKey) => {
+                  const typeStat = country.types[spaceTypeKey];
+                  return typeStat && needsCardTypeWarning(typeStat.userCount, typeStat.adminTarget);
+                }) && (
+                  <div className='mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900'>
+                    <AlertCircle className='mr-1 inline h-4 w-4' />
+                    일부 카드 타입이 목표치의 80% 이상 소진되었습니다. 추가 질문 등록을 검토해주세요.
+                  </div>
+                )}
+              </div>
+            ))}
+            {displayData.length === 0 && !isLoading && <p className='text-center text-slate-500'>표시할 데이터가 없습니다.</p>}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
