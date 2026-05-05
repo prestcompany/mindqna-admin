@@ -84,10 +84,10 @@ function LocaleShareChart({
   const metricLabel =
     metric === 'users'
       ? mode === 'delta'
-        ? '선택 기간 순증 가입자'
+        ? '선택 기간 증가 가입자'
         : '누적 가입자'
       : mode === 'delta'
-        ? '선택 기간 순증 공간'
+        ? '선택 기간 증가 공간'
         : '누적 공간';
   const data: ChartData<'bar', number[], string> = {
     labels: rankedRows.map((row) => row.label),
