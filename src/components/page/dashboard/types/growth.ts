@@ -31,6 +31,7 @@ export interface DashboardTrendDataset {
   values: number[];
   color: string;
   yAxisID: 'y' | 'y1';
+  stack?: string;
 }
 
 export interface DashboardTrendSeries {
@@ -40,6 +41,7 @@ export interface DashboardTrendSeries {
   periods: string[];
   metric: 'users' | 'spaces' | 'overview';
   datasets: DashboardTrendDataset[];
+  stackedBars?: boolean;
 }
 
 export interface DashboardLocaleDailyDataset {
@@ -66,6 +68,7 @@ export interface DashboardLocaleRow {
   usersShare: number;
   spacesShare: number;
   dailyAverageUsers: number;
+  dailyAverageSpaces: number;
   dominantMetric: 'users' | 'spaces';
   isTotal?: boolean;
 }

@@ -56,7 +56,7 @@ function LocaleGrowthTable({
     },
     {
       id: 'dailyAverageUsers',
-      header: view === 'period' ? '선택 기간 일평균' : '일 평균 가입자',
+      header: view === 'period' ? '가입자 일평균' : '일 평균 가입자',
       size: 160,
       cell: ({ row }) => formatAverage(row.original.dailyAverageUsers),
     },
@@ -71,6 +71,12 @@ function LocaleGrowthTable({
       header: view === 'period' ? '선택 기간 공간 증가' : '공간 증가',
       size: view === 'period' ? 180 : 140,
       cell: ({ row }) => formatDelta(row.original.spaces.delta),
+    },
+    {
+      id: 'dailyAverageSpaces',
+      header: view === 'period' ? '공간 일평균' : '일 평균 공간',
+      size: 150,
+      cell: ({ row }) => formatAverage(row.original.dailyAverageSpaces),
     },
     {
       id: 'spacesCumulative',
@@ -99,7 +105,10 @@ function LocaleGrowthTable({
       ? columns.filter((column) => !['usersCumulative', 'spacesCumulative', 'share'].includes(column.id ?? ''))
       : view === 'period' && metric === 'users'
         ? columns.filter(
-            (column) => !['usersCumulative', 'spacesDelta', 'spacesCumulative', 'share'].includes(column.id ?? ''),
+            (column) =>
+              !['usersCumulative', 'spacesDelta', 'dailyAverageSpaces', 'spacesCumulative', 'share'].includes(
+                column.id ?? '',
+              ),
           )
         : view === 'period' && metric === 'spaces'
           ? columns.filter(
@@ -109,7 +118,9 @@ function LocaleGrowthTable({
                 ),
             )
           : metric === 'users'
-            ? columns.filter((column) => !['spacesDelta', 'spacesCumulative'].includes(column.id ?? ''))
+            ? columns.filter(
+                (column) => !['spacesDelta', 'dailyAverageSpaces', 'spacesCumulative'].includes(column.id ?? ''),
+              )
             : metric === 'spaces'
               ? columns.filter(
                   (column) => !['usersDelta', 'dailyAverageUsers', 'usersCumulative'].includes(column.id ?? ''),
