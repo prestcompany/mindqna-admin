@@ -30,8 +30,8 @@ function OverviewTab({ dashboard }: OverviewTabProps) {
       <div className='grid gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,0.9fr)]'>
         <Card className='border-slate-200/80 bg-white shadow-sm'>
           <CardHeader>
-            <CardTitle className='text-base text-slate-950'>로케일 리더보드</CardTitle>
-            <CardDescription>선택 기간의 누적 규모와 순증을 한 번에 비교합니다.</CardDescription>
+            <CardTitle className='text-base text-slate-950'>선택 기간 로케일 성장</CardTitle>
+            <CardDescription>날짜 필터가 적용되는 가입자/공간 순증만 분리해서 비교합니다.</CardDescription>
           </CardHeader>
           <CardContent>
             <LocaleGrowthTable
@@ -39,6 +39,7 @@ function OverviewTab({ dashboard }: OverviewTabProps) {
               totalRow={dashboard.totalLocaleRow}
               includeTotalRow
               metric='overview'
+              view='period'
             />
           </CardContent>
         </Card>
@@ -47,7 +48,7 @@ function OverviewTab({ dashboard }: OverviewTabProps) {
           metric='users'
           mode='cumulative'
           variant='doughnut'
-          title='가입자 누적 분포'
+          title='종료일 기준 누적 가입자 분포'
           description={`현재 ${cumulativeBasisLabel} 누적 가입자 규모를 비중 중심으로 비교합니다.`}
         />
       </div>

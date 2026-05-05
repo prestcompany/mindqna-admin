@@ -233,17 +233,34 @@ function ensureRowOrder(rows: LocaleGrowthRow[], localesInBuckets: LocaleGrowthR
   return localesInBuckets;
 }
 
-function createTotalLocaleRow(summary: DashboardGrowthResponse['summary'], rangeDayCount: number): DashboardLocaleRow {
+function createTotalLocaleRow(
+  localeRows: DashboardLocaleRow[],
+  summary: DashboardGrowthResponse['summary'],
+  rangeDayCount: number,
+): DashboardLocaleRow {
+  const users = localeRows.length
+    ? {
+        cumulative: localeRows.reduce((sum, row) => sum + row.users.cumulative, 0),
+        delta: localeRows.reduce((sum, row) => sum + row.users.delta, 0),
+      }
+    : summary.users;
+  const spaces = localeRows.length
+    ? {
+        cumulative: localeRows.reduce((sum, row) => sum + row.spaces.cumulative, 0),
+        delta: localeRows.reduce((sum, row) => sum + row.spaces.delta, 0),
+      }
+    : summary.spaces;
+
   return {
     rank: 0,
     locale: 'total',
     label: '전체',
-    users: summary.users,
-    spaces: summary.spaces,
-    usersShare: summary.users.cumulative > 0 ? 100 : 0,
-    spacesShare: summary.spaces.cumulative > 0 ? 100 : 0,
-    dailyAverageUsers: summary.users.delta / rangeDayCount,
-    dominantMetric: summary.users.cumulative >= summary.spaces.cumulative ? 'users' : 'spaces',
+    users,
+    spaces,
+    usersShare: users.cumulative > 0 ? 100 : 0,
+    spacesShare: spaces.cumulative > 0 ? 100 : 0,
+    dailyAverageUsers: users.delta / rangeDayCount,
+    dominantMetric: users.cumulative >= spaces.cumulative ? 'users' : 'spaces',
     isTotal: true,
   };
 }
@@ -350,7 +367,6 @@ export function buildDashboardGrowthViewModel(
   const latestBucket = buckets[buckets.length - 1];
   const previousBucket = buckets[buckets.length - 2];
   const localeSeed = buckets[buckets.length - 1]?.locales ?? [];
-  const totalLocaleRow = createTotalLocaleRow(summary, safeRangeDayCount);
   const localeTotals = ensureRowOrder(data?.localeTotals ?? [], localeSeed)
     .map((row, index) =>
       toLocaleRow({ ...row, label: row.label || getLocaleLabel(row.locale) }, summary, index + 1, safeRangeDayCount),
@@ -370,6 +386,7 @@ export function buildDashboardGrowthViewModel(
   const spaceLocaleRows = [...localeTotals]
     .sort((left, right) => right.spaces.cumulative - left.spaces.cumulative)
     .map((row, index) => ({ ...row, rank: index + 1 }));
+  const totalLocaleRow = createTotalLocaleRow(localeTotals, summary, safeRangeDayCount);
 
   return {
     response: data,

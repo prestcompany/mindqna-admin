@@ -28,8 +28,8 @@ function UserTab({ dashboard }: UserTabProps) {
       <div className='grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.9fr)]'>
         <Card className='border-slate-200/80 bg-white shadow-sm'>
           <CardHeader>
-            <CardTitle className='text-base text-slate-950'>가입자 로케일 비교</CardTitle>
-            <CardDescription>{`${cumulativeBasisLabel} 누적 가입자와 선택 기간 순증을 평면 테이블로 비교합니다.`}</CardDescription>
+            <CardTitle className='text-base text-slate-950'>선택 기간 가입자 성장</CardTitle>
+            <CardDescription>날짜 필터가 적용되는 가입자 순증과 일평균만 분리해서 비교합니다.</CardDescription>
           </CardHeader>
           <CardContent>
             <LocaleGrowthTable
@@ -37,6 +37,7 @@ function UserTab({ dashboard }: UserTabProps) {
               totalRow={dashboard.totalLocaleRow}
               includeTotalRow
               metric='users'
+              view='period'
             />
           </CardContent>
         </Card>
@@ -46,29 +47,32 @@ function UserTab({ dashboard }: UserTabProps) {
           metric='users'
           mode='cumulative'
           variant='doughnut'
-          title='가입자 누적 분포'
+          title='종료일 기준 누적 가입자 분포'
           description={`현재 ${cumulativeBasisLabel} 누적 가입자 규모를 비중 중심으로 비교합니다.`}
         />
       </div>
 
       <Card className='border-slate-200/80 bg-white shadow-sm'>
         <CardHeader>
-          <CardTitle className='text-base text-slate-950'>운영 포인트</CardTitle>
-          <CardDescription>가입자 증가가 두드러진 로케일을 빠르게 확인할 수 있습니다.</CardDescription>
+          <CardTitle className='text-base text-slate-950'>선택 기간 성장 상위 로케일</CardTitle>
+          <CardDescription>날짜 필터 기준 가입자 순증이 큰 로케일을 빠르게 확인합니다.</CardDescription>
         </CardHeader>
         <CardContent className='grid gap-3 md:grid-cols-3'>
-          {dashboard.userLocaleRows.slice(0, 3).map((row) => (
-            <div key={row.locale} className='rounded-2xl border border-slate-200 bg-slate-50/70 p-4'>
-              <p className='text-sm font-medium text-slate-500'>{row.label}</p>
-              <p className='mt-2 text-xl font-semibold tracking-tight text-slate-950'>
-                {row.users.cumulative.toLocaleString('ko-KR')}
-              </p>
-              <p className='mt-1 text-sm text-emerald-600'>
-                {row.users.delta >= 0 ? '+' : ''}
-                {row.users.delta.toLocaleString('ko-KR')}
-              </p>
-            </div>
-          ))}
+          {[...dashboard.userLocaleRows]
+            .sort((left, right) => right.users.delta - left.users.delta)
+            .slice(0, 3)
+            .map((row) => (
+              <div key={row.locale} className='rounded-2xl border border-slate-200 bg-slate-50/70 p-4'>
+                <p className='text-sm font-medium text-slate-500'>{row.label}</p>
+                <p className='mt-2 text-xl font-semibold tracking-tight text-slate-950'>
+                  {row.users.delta >= 0 ? '+' : ''}
+                  {row.users.delta.toLocaleString('ko-KR')}
+                </p>
+                <p className='mt-1 text-sm text-slate-500'>
+                  종료일 누적 {row.users.cumulative.toLocaleString('ko-KR')}
+                </p>
+              </div>
+            ))}
         </CardContent>
       </Card>
     </div>
