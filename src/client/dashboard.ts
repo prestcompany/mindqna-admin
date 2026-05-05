@@ -89,6 +89,19 @@ export interface LocaleGrowthRow {
   spaces: GrowthValue;
 }
 
+export interface SpaceTypeCountRow {
+  type: SpaceType;
+  label: string;
+  count: number;
+}
+
+export interface LocaleSpaceTypeDistributionRow {
+  locale: Locale;
+  label: string;
+  total: number;
+  types: SpaceTypeCountRow[];
+}
+
 export interface DashboardGrowthBucket {
   key: string;
   label: string;
@@ -105,6 +118,7 @@ export interface DashboardGrowthResponse {
   };
   buckets: DashboardGrowthBucket[];
   localeTotals: LocaleGrowthRow[];
+  spaceTypeDistributions: LocaleSpaceTypeDistributionRow[];
 }
 
 export interface SpaceStatistics {

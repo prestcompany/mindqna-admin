@@ -4,6 +4,7 @@ import LocaleShareChart from '../charts/LocaleShareChart';
 import DashboardMetricCard from '../sections/DashboardMetricCard';
 import LocaleGrowthTable from '../tables/LocaleGrowthTable';
 import { DashboardGrowthViewModel } from '../types/growth';
+import SpaceTypeDistributionCard from '../sections/SpaceTypeDistributionCard';
 
 interface SpaceTabProps {
   dashboard: DashboardGrowthViewModel;
@@ -50,6 +51,8 @@ function SpaceTab({ dashboard }: SpaceTabProps) {
           description={`현재 ${cumulativeBasisLabel} 누적 공간 규모를 가로 비교합니다.`}
         />
       </div>
+
+      <SpaceTypeDistributionCard rows={dashboard.spaceTypeDistributions} />
 
       <Card className='border-slate-200/80 bg-white shadow-sm'>
         <CardHeader>
