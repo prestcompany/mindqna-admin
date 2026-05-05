@@ -8,6 +8,7 @@ interface LocaleGrowthTableProps {
   totalRow?: DashboardLocaleRow;
   includeTotalRow?: boolean;
   metric: 'users' | 'spaces' | 'overview';
+  view?: 'period' | 'mixed';
 }
 
 function formatDelta(delta: number) {
@@ -20,7 +21,13 @@ function formatAverage(value: number) {
   });
 }
 
-function LocaleGrowthTable({ rows, totalRow, includeTotalRow = false, metric }: LocaleGrowthTableProps) {
+function LocaleGrowthTable({
+  rows,
+  totalRow,
+  includeTotalRow = false,
+  metric,
+  view = 'mixed',
+}: LocaleGrowthTableProps) {
   const tableRows = includeTotalRow && totalRow ? [totalRow, ...rows] : rows;
   const columns: ColumnDef<DashboardLocaleRow>[] = [
     {
@@ -43,31 +50,31 @@ function LocaleGrowthTable({ rows, totalRow, includeTotalRow = false, metric }: 
     },
     {
       id: 'usersDelta',
-      header: '가입자 순증',
-      size: 140,
+      header: view === 'period' ? '선택 기간 가입자 순증' : '가입자 순증',
+      size: view === 'period' ? 190 : 140,
       cell: ({ row }) => formatDelta(row.original.users.delta),
     },
     {
       id: 'dailyAverageUsers',
-      header: '일 평균 가입자',
-      size: 150,
+      header: view === 'period' ? '선택 기간 일평균' : '일 평균 가입자',
+      size: 160,
       cell: ({ row }) => formatAverage(row.original.dailyAverageUsers),
     },
     {
       id: 'usersCumulative',
-      header: '누적 가입자',
+      header: '종료일 기준 누적 가입자',
       size: 150,
       cell: ({ row }) => row.original.users.cumulative.toLocaleString('ko-KR'),
     },
     {
       id: 'spacesDelta',
-      header: '공간 순증',
-      size: 140,
+      header: view === 'period' ? '선택 기간 공간 순증' : '공간 순증',
+      size: view === 'period' ? 180 : 140,
       cell: ({ row }) => formatDelta(row.original.spaces.delta),
     },
     {
       id: 'spacesCumulative',
-      header: '누적 공간',
+      header: '종료일 기준 누적 공간',
       size: 150,
       cell: ({ row }) => row.original.spaces.cumulative.toLocaleString('ko-KR'),
     },
@@ -88,11 +95,26 @@ function LocaleGrowthTable({ rows, totalRow, includeTotalRow = false, metric }: 
     },
   ];
   const visibleColumns =
-    metric === 'users'
-      ? columns.filter((column) => !['spacesDelta', 'spacesCumulative'].includes(column.id ?? ''))
-      : metric === 'spaces'
-        ? columns.filter((column) => !['usersDelta', 'dailyAverageUsers', 'usersCumulative'].includes(column.id ?? ''))
-        : columns;
+    view === 'period' && metric === 'overview'
+      ? columns.filter((column) => !['usersCumulative', 'spacesCumulative', 'share'].includes(column.id ?? ''))
+      : view === 'period' && metric === 'users'
+        ? columns.filter(
+            (column) => !['usersCumulative', 'spacesDelta', 'spacesCumulative', 'share'].includes(column.id ?? ''),
+          )
+        : view === 'period' && metric === 'spaces'
+          ? columns.filter(
+              (column) =>
+                !['usersDelta', 'dailyAverageUsers', 'usersCumulative', 'spacesCumulative', 'share'].includes(
+                  column.id ?? '',
+                ),
+            )
+          : metric === 'users'
+            ? columns.filter((column) => !['spacesDelta', 'spacesCumulative'].includes(column.id ?? ''))
+            : metric === 'spaces'
+              ? columns.filter(
+                  (column) => !['usersDelta', 'dailyAverageUsers', 'usersCumulative'].includes(column.id ?? ''),
+                )
+              : columns;
 
   return <DataTable columns={visibleColumns} data={tableRows} rowKey={(row) => row.locale} />;
 }
