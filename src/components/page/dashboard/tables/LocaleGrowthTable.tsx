@@ -50,7 +50,7 @@ function LocaleGrowthTable({
     },
     {
       id: 'usersDelta',
-      header: view === 'period' ? '선택 기간 가입자 순증' : '가입자 순증',
+      header: view === 'period' ? '선택 기간 가입자 증가' : '가입자 증가',
       size: view === 'period' ? 190 : 140,
       cell: ({ row }) => formatDelta(row.original.users.delta),
     },
@@ -68,7 +68,7 @@ function LocaleGrowthTable({
     },
     {
       id: 'spacesDelta',
-      header: view === 'period' ? '선택 기간 공간 순증' : '공간 순증',
+      header: view === 'period' ? '선택 기간 공간 증가' : '공간 증가',
       size: view === 'period' ? 180 : 140,
       cell: ({ row }) => formatDelta(row.original.spaces.delta),
     },

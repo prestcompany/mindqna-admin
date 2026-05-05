@@ -56,6 +56,10 @@ function formatDelta(delta: number) {
   return `${delta >= 0 ? '+' : ''}${formatNumber(delta)}`;
 }
 
+function formatDecimalDelta(delta: number) {
+  return `${delta >= 0 ? '+' : ''}${numberFormatter.format(Number(delta.toFixed(1)))}`;
+}
+
 function toPercent(value: number) {
   return `${value.toFixed(1)}%`;
 }
@@ -113,7 +117,7 @@ function createTrendSeries(
       metric,
       datasets: [
         {
-          label: `${deltaLabelPrefix} 순증 가입자`,
+          label: `${deltaLabelPrefix} 증가 가입자`,
           type: 'bar',
           values: buckets.map((bucket) => bucket.users.delta),
           color: USER_DELTA_COLOR,
@@ -139,7 +143,7 @@ function createTrendSeries(
       metric,
       datasets: [
         {
-          label: `${deltaLabelPrefix} 순증 공간`,
+          label: `${deltaLabelPrefix} 증가 공간`,
           type: 'bar',
           values: buckets.map((bucket) => bucket.spaces.delta),
           color: SPACE_DELTA_COLOR,
@@ -164,14 +168,14 @@ function createTrendSeries(
     metric,
     datasets: [
       {
-        label: `가입자 ${deltaLabelPrefix} 순증`,
+        label: `가입자 ${deltaLabelPrefix} 증가`,
         type: 'bar',
         values: buckets.map((bucket) => bucket.users.delta),
         color: USER_DELTA_COLOR,
         yAxisID: 'y',
       },
       {
-        label: `공간 ${deltaLabelPrefix} 순증`,
+        label: `공간 ${deltaLabelPrefix} 증가`,
         type: 'bar',
         values: buckets.map((bucket) => bucket.spaces.delta),
         color: SPACE_DELTA_COLOR,
@@ -278,8 +282,8 @@ function createLocaleDailyUserSeries(
     title: granularity === 'day' ? '일별 국가별 가입자' : '기간별 국가별 가입자',
     description:
       granularity === 'day'
-        ? '선택 기간 동안 각 로케일에서 발생한 일별 가입자 순증을 비교합니다.'
-        : '선택 기간 동안 각 로케일에서 발생한 월별 가입자 순증을 비교합니다.',
+        ? '선택 기간 동안 각 로케일에서 새로 늘어난 가입자를 비교합니다.'
+        : '선택 월 범위 동안 각 로케일에서 새로 늘어난 가입자를 비교합니다.',
     labels: buckets.map((bucket) => bucket.label),
     periods: buckets.map((bucket) => bucket.key),
     datasets: localeRowsOnly.map((row, index) => ({
@@ -316,10 +320,6 @@ function buildSpaceTypeDistributions(data?: DashboardGrowthResponse): DashboardL
   });
 }
 
-function getGranularityLabel(granularity: DashboardGrowthGranularity) {
-  return granularity === 'day' ? '일' : '월';
-}
-
 function getCumulativeMetricLabel(granularity: DashboardGrowthGranularity, metric: 'users' | 'spaces') {
   const suffix = metric === 'users' ? '가입자' : '공간';
 
@@ -329,11 +329,7 @@ function getCumulativeMetricLabel(granularity: DashboardGrowthGranularity, metri
 function getDeltaMetricLabel(granularity: DashboardGrowthGranularity, metric: 'users' | 'spaces') {
   const suffix = metric === 'users' ? '가입자' : '공간';
 
-  return granularity === 'day' ? `종료일 ${suffix} 순증` : `종료 월 ${suffix} 순증`;
-}
-
-function getCurrentPeriodAccentLabel(granularity: DashboardGrowthGranularity) {
-  return granularity === 'day' ? '선택 종료일' : '선택 종료 월';
+  return granularity === 'day' ? `선택 기간 ${suffix} 증가` : `선택 월 범위 ${suffix} 증가`;
 }
 
 function getCurrentBasisAccentLabel(granularity: DashboardGrowthGranularity) {
@@ -365,7 +361,6 @@ export function buildDashboardGrowthViewModel(
     spaces: { cumulative: 0, delta: 0 },
   };
   const latestBucket = buckets[buckets.length - 1];
-  const previousBucket = buckets[buckets.length - 2];
   const localeSeed = buckets[buckets.length - 1]?.locales ?? [];
   const localeTotals = ensureRowOrder(data?.localeTotals ?? [], localeSeed)
     .map((row, index) =>
@@ -387,6 +382,10 @@ export function buildDashboardGrowthViewModel(
     .sort((left, right) => right.spaces.cumulative - left.spaces.cumulative)
     .map((row, index) => ({ ...row, rank: index + 1 }));
   const totalLocaleRow = createTotalLocaleRow(localeTotals, summary, safeRangeDayCount);
+  const periodUserDelta = totalLocaleRow.users.delta;
+  const periodSpaceDelta = totalLocaleRow.spaces.delta;
+  const averageUserDelta = periodUserDelta / safeRangeDayCount;
+  const averageSpaceDelta = periodSpaceDelta / safeRangeDayCount;
 
   return {
     response: data,
@@ -400,49 +399,49 @@ export function buildDashboardGrowthViewModel(
       users: createMetricCardValue(
         getCumulativeMetricLabel(granularity, 'users'),
         summary.users.cumulative,
-        summary.users.delta,
+        periodUserDelta,
         'slate',
         {
           formatted: formatNumber(summary.users.cumulative),
-          deltaLabel: `${getCurrentPeriodAccentLabel(granularity)} 순증`,
-          deltaText: formatDelta(latestBucket?.users.delta ?? 0),
+          deltaLabel: '선택 기간 증가',
+          deltaText: formatDelta(periodUserDelta),
           accentLabel: getCurrentBasisAccentLabel(granularity),
         },
       ),
       usersDelta: createMetricCardValue(
         getDeltaMetricLabel(granularity, 'users'),
-        summary.users.delta,
-        summary.users.delta,
+        periodUserDelta,
+        periodUserDelta,
         'emerald',
         {
-          formatted: formatNumber(latestBucket?.users.delta ?? 0),
-          deltaLabel: `직전 ${getGranularityLabel(granularity)} 대비`,
-          deltaText: formatDelta((latestBucket?.users.delta ?? 0) - (previousBucket?.users.delta ?? 0)),
-          accentLabel: getCurrentPeriodAccentLabel(granularity),
+          formatted: formatNumber(periodUserDelta),
+          deltaLabel: '선택 기간 일평균',
+          deltaText: formatDecimalDelta(averageUserDelta),
+          accentLabel: '선택 기간',
         },
       ),
       spaces: createMetricCardValue(
         getCumulativeMetricLabel(granularity, 'spaces'),
         summary.spaces.cumulative,
-        summary.spaces.delta,
+        periodSpaceDelta,
         'sky',
         {
           formatted: formatNumber(summary.spaces.cumulative),
-          deltaLabel: `${getCurrentPeriodAccentLabel(granularity)} 순증`,
-          deltaText: formatDelta(latestBucket?.spaces.delta ?? 0),
+          deltaLabel: '선택 기간 증가',
+          deltaText: formatDelta(periodSpaceDelta),
           accentLabel: getCurrentBasisAccentLabel(granularity),
         },
       ),
       spacesDelta: createMetricCardValue(
         getDeltaMetricLabel(granularity, 'spaces'),
-        summary.spaces.delta,
-        summary.spaces.delta,
+        periodSpaceDelta,
+        periodSpaceDelta,
         'amber',
         {
-          formatted: formatNumber(latestBucket?.spaces.delta ?? 0),
-          deltaLabel: `직전 ${getGranularityLabel(granularity)} 대비`,
-          deltaText: formatDelta((latestBucket?.spaces.delta ?? 0) - (previousBucket?.spaces.delta ?? 0)),
-          accentLabel: getCurrentPeriodAccentLabel(granularity),
+          formatted: formatNumber(periodSpaceDelta),
+          deltaLabel: '선택 기간 일평균',
+          deltaText: formatDecimalDelta(averageSpaceDelta),
+          accentLabel: '선택 기간',
         },
       ),
     },
@@ -451,8 +450,8 @@ export function buildDashboardGrowthViewModel(
       'overview',
       '성장 추이',
       granularity === 'day'
-        ? '가입자와 공간의 일간 순증 및 종료일 기준 누적을 함께 봅니다.'
-        : '가입자와 공간의 월간 순증 및 월말 누적을 함께 봅니다.',
+        ? '가입자와 공간이 일별로 얼마나 늘었는지 종료일 기준 누적과 함께 봅니다.'
+        : '가입자와 공간이 월별로 얼마나 늘었는지 월말 누적과 함께 봅니다.',
       buckets,
     ),
     userTrend: createTrendSeries(
@@ -460,8 +459,8 @@ export function buildDashboardGrowthViewModel(
       'users',
       '가입자 성장 추이',
       granularity === 'day'
-        ? '일간 순증과 종료일 기준 누적을 동시에 추적합니다.'
-        : '월간 순증과 월말 누적을 동시에 추적합니다.',
+        ? '가입자가 일별로 얼마나 늘었는지 종료일 기준 누적과 함께 추적합니다.'
+        : '가입자가 월별로 얼마나 늘었는지 월말 누적과 함께 추적합니다.',
       buckets,
     ),
     spaceTrend: createTrendSeries(
@@ -469,7 +468,7 @@ export function buildDashboardGrowthViewModel(
       'spaces',
       '공간 성장 추이',
       granularity === 'day'
-        ? '일간 순증과 종료일 기준 누적을 동시에 추적합니다.'
+        ? '공간이 일별로 얼마나 늘었는지 종료일 기준 누적과 함께 추적합니다.'
         : '운영 규모가 어떤 속도로 커졌는지 보여줍니다.',
       buckets,
     ),

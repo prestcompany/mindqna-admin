@@ -27,8 +27,9 @@ function SpaceTab({ dashboard }: SpaceTabProps) {
           rows={dashboard.spaceLocaleRows}
           metric='spaces'
           mode='delta'
-          title='공간 기간 순증 분포'
-          description='선택 기간 동안 어느 로케일이 공간 증가를 더 많이 만들었는지 비교합니다.'
+          variant='doughnut'
+          title='선택 기간 공간 증가 분포'
+          description='선택 기간 동안 어느 로케일에서 공간이 더 많이 늘었는지 비교합니다.'
         />
       </div>
 
@@ -36,7 +37,7 @@ function SpaceTab({ dashboard }: SpaceTabProps) {
         <Card className='border-slate-200/80 bg-white shadow-sm'>
           <CardHeader>
             <CardTitle className='text-base text-slate-950'>선택 기간 공간 성장</CardTitle>
-            <CardDescription>날짜 필터가 적용되는 공간 순증만 분리해서 비교합니다.</CardDescription>
+            <CardDescription>날짜 필터가 적용되는 공간 증가만 분리해서 비교합니다.</CardDescription>
           </CardHeader>
           <CardContent>
             <LocaleGrowthTable
@@ -53,36 +54,13 @@ function SpaceTab({ dashboard }: SpaceTabProps) {
           rows={dashboard.spaceLocaleRows}
           metric='spaces'
           mode='cumulative'
+          variant='doughnut'
           title='종료일 기준 누적 공간 분포'
-          description={`현재 ${cumulativeBasisLabel} 누적 공간 규모를 가로 비교합니다.`}
+          description={`현재 ${cumulativeBasisLabel} 누적 공간 규모를 비중 중심으로 비교합니다.`}
         />
       </div>
 
       <SpaceTypeDistributionCard rows={dashboard.spaceTypeDistributions} />
-
-      <Card className='border-slate-200/80 bg-white shadow-sm'>
-        <CardHeader>
-          <CardTitle className='text-base text-slate-950'>선택 기간 성장 상위 로케일</CardTitle>
-          <CardDescription>날짜 필터 기준 공간 순증이 큰 로케일을 빠르게 확인합니다.</CardDescription>
-        </CardHeader>
-        <CardContent className='grid gap-3 md:grid-cols-3'>
-          {[...dashboard.spaceLocaleRows]
-            .sort((left, right) => right.spaces.delta - left.spaces.delta)
-            .slice(0, 3)
-            .map((row) => (
-              <div key={row.locale} className='rounded-2xl border border-slate-200 bg-sky-50/50 p-4'>
-                <p className='text-sm font-medium text-slate-500'>{row.label}</p>
-                <p className='mt-2 text-xl font-semibold tracking-tight text-slate-950'>
-                  {row.spaces.delta >= 0 ? '+' : ''}
-                  {row.spaces.delta.toLocaleString('ko-KR')}
-                </p>
-                <p className='mt-1 text-sm text-slate-500'>
-                  종료일 누적 {row.spaces.cumulative.toLocaleString('ko-KR')}
-                </p>
-              </div>
-            ))}
-        </CardContent>
-      </Card>
     </div>
   );
 }

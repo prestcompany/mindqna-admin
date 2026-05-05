@@ -28,7 +28,7 @@ function LocaleDailyUserChart({ series }: LocaleDailyUserChartProps) {
         </CardHeader>
         <CardContent>
           <div className='flex h-[320px] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 text-sm text-slate-500'>
-            표시할 가입자 순증 데이터가 없습니다.
+            표시할 가입자 증가 데이터가 없습니다.
           </div>
         </CardContent>
       </Card>

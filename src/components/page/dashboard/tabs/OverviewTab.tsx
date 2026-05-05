@@ -31,7 +31,7 @@ function OverviewTab({ dashboard }: OverviewTabProps) {
         <Card className='border-slate-200/80 bg-white shadow-sm'>
           <CardHeader>
             <CardTitle className='text-base text-slate-950'>선택 기간 로케일 성장</CardTitle>
-            <CardDescription>날짜 필터가 적용되는 가입자/공간 순증만 분리해서 비교합니다.</CardDescription>
+            <CardDescription>날짜 필터가 적용되는 가입자/공간 증가만 분리해서 비교합니다.</CardDescription>
           </CardHeader>
           <CardContent>
             <LocaleGrowthTable
