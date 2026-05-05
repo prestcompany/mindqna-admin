@@ -1,14 +1,25 @@
 import { DashboardLocaleRow } from '../types/growth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarElement, CategoryScale, Chart as ChartJS, ChartData, ChartOptions, Legend, LinearScale, Tooltip } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
+import {
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  Chart as ChartJS,
+  ChartData,
+  ChartOptions,
+  Legend,
+  LinearScale,
+  Tooltip,
+} from 'chart.js';
+import { Bar, Doughnut } from 'react-chartjs-2';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend);
 
 interface LocaleShareChartProps {
   rows: DashboardLocaleRow[];
   metric: 'users' | 'spaces';
   mode?: 'cumulative' | 'delta';
+  variant?: 'bar' | 'doughnut';
   title?: string;
   description?: string;
 }
@@ -19,6 +30,7 @@ function LocaleShareChart({
   rows,
   metric,
   mode = 'cumulative',
+  variant = 'bar',
   title = '로케일 분포',
   description = '현재 누적 규모 기준의 로케일 분포와 순위를 비교합니다.',
 }: LocaleShareChartProps) {
@@ -90,6 +102,19 @@ function LocaleShareChart({
       },
     ],
   };
+  const doughnutData: ChartData<'doughnut', number[], string> = {
+    labels: rankedRows.map((row) => row.label),
+    datasets: [
+      {
+        label: metricLabel,
+        data: values,
+        backgroundColor: rankedRows.map((_, index) => colors[index % colors.length]),
+        borderColor: '#ffffff',
+        borderWidth: 3,
+        hoverOffset: 8,
+      },
+    ],
+  };
 
   const options: ChartOptions<'bar'> = {
     responsive: true,
@@ -129,6 +154,25 @@ function LocaleShareChart({
       },
     },
   };
+  const doughnutOptions: ChartOptions<'doughnut'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '62%',
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const value = Number(context.raw || 0);
+            const share = total ? (value / total) * 100 : 0;
+            return `${context.label}: ${value.toLocaleString('ko-KR')} (${share.toFixed(1)}%)`;
+          },
+        },
+      },
+    },
+  };
 
   return (
     <Card className='border-slate-200/80 bg-white shadow-sm'>
@@ -138,7 +182,11 @@ function LocaleShareChart({
       </CardHeader>
       <CardContent className='space-y-4'>
         <div className='h-[320px]'>
-          <Bar data={data} options={options} />
+          {variant === 'doughnut' ? (
+            <Doughnut data={doughnutData} options={doughnutOptions} />
+          ) : (
+            <Bar data={data} options={options} />
+          )}
         </div>
 
         <div className='grid gap-2 sm:grid-cols-2'>
@@ -154,9 +202,15 @@ function LocaleShareChart({
             const share = total ? (value / total) * 100 : 0;
 
             return (
-              <div key={row.locale} className='flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2'>
+              <div
+                key={row.locale}
+                className='flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2'
+              >
                 <div className='flex items-center gap-2'>
-                  <span className='h-2.5 w-2.5 rounded-full' style={{ backgroundColor: colors[index % colors.length] }} />
+                  <span
+                    className='h-2.5 w-2.5 rounded-full'
+                    style={{ backgroundColor: colors[index % colors.length] }}
+                  />
                   <span className='text-sm font-medium text-slate-800'>{row.label}</span>
                 </div>
                 <div className='text-right'>

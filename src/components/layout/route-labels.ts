@@ -1,6 +1,7 @@
 export const ROUTE_LABELS: Record<string, string> = {
   dashboard: '대시보드',
   analytics: '분석',
+  questions: '질문 대시보드',
   user: '유저',
   list: '목록',
   new: '신규',

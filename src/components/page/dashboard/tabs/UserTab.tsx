@@ -4,6 +4,7 @@ import LocaleShareChart from '../charts/LocaleShareChart';
 import DashboardMetricCard from '../sections/DashboardMetricCard';
 import LocaleGrowthTable from '../tables/LocaleGrowthTable';
 import { DashboardGrowthViewModel } from '../types/growth';
+import LocaleDailyUserChart from '../charts/LocaleDailyUserChart';
 
 interface UserTabProps {
   dashboard: DashboardGrowthViewModel;
@@ -21,14 +22,7 @@ function UserTab({ dashboard }: UserTabProps) {
 
       <div className='grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.9fr)]'>
         <GrowthComboChart series={dashboard.userTrend} />
-
-        <LocaleShareChart
-          rows={dashboard.userLocaleRows}
-          metric='users'
-          mode='delta'
-          title='가입자 기간 순증 분포'
-          description='선택 기간 동안 어느 로케일이 가입자 증가를 더 많이 만들었는지 비교합니다.'
-        />
+        <LocaleDailyUserChart series={dashboard.localeDailyUserTrend} />
       </div>
 
       <div className='grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.9fr)]'>
@@ -38,7 +32,12 @@ function UserTab({ dashboard }: UserTabProps) {
             <CardDescription>{`${cumulativeBasisLabel} 누적 가입자와 선택 기간 순증을 평면 테이블로 비교합니다.`}</CardDescription>
           </CardHeader>
           <CardContent>
-            <LocaleGrowthTable rows={dashboard.userLocaleRows} metric='users' />
+            <LocaleGrowthTable
+              rows={dashboard.userLocaleRows}
+              totalRow={dashboard.totalLocaleRow}
+              includeTotalRow
+              metric='users'
+            />
           </CardContent>
         </Card>
 
@@ -46,8 +45,9 @@ function UserTab({ dashboard }: UserTabProps) {
           rows={dashboard.userLocaleRows}
           metric='users'
           mode='cumulative'
+          variant='doughnut'
           title='가입자 누적 분포'
-          description={`현재 ${cumulativeBasisLabel} 누적 가입자 규모를 가로 비교합니다.`}
+          description={`현재 ${cumulativeBasisLabel} 누적 가입자 규모를 비중 중심으로 비교합니다.`}
         />
       </div>
 

@@ -10,7 +10,6 @@ import { startTransition, useDeferredValue, useMemo, useState } from 'react';
 import DashboardCoreStats from './sections/DashboardCoreStats';
 import { DASHBOARD_LOCALES, DashboardRangePreset, DashboardTabValue } from './types/growth';
 import { buildDashboardGrowthViewModel } from './utils/growth-mappers';
-import CardTab from './tabs/CardTab';
 import DashboardFilterBar from './sections/DashboardFilterBar';
 import DashboardGrowthSkeleton from './sections/DashboardGrowthSkeleton';
 import OverviewTab from './tabs/OverviewTab';
@@ -21,7 +20,7 @@ dayjs.extend(weekday);
 dayjs.extend(localeData);
 
 function getDefaultPreset(granularity: DashboardGrowthGranularity): DashboardRangePreset {
-  return granularity === 'day' ? '30d' : '6m';
+  return granularity === 'day' ? '7d' : '6m';
 }
 
 function getRangeFromPreset(granularity: DashboardGrowthGranularity, preset: DashboardRangePreset) {
@@ -71,7 +70,7 @@ function getRangeFromPreset(granularity: DashboardGrowthGranularity, preset: Das
 }
 
 function Dashboard() {
-  const initialGranularity: DashboardGrowthGranularity = 'month';
+  const initialGranularity: DashboardGrowthGranularity = 'day';
   const initialPreset = getDefaultPreset(initialGranularity);
   const initialRange = getRangeFromPreset(initialGranularity, initialPreset);
   const [granularity, setGranularity] = useState<DashboardGrowthGranularity>(initialGranularity);
@@ -94,11 +93,11 @@ function Dashboard() {
   const deferredQuery = useDeferredValue(query);
   const { data, isLoading, isFetching } = useDashboardGrowthAnalytics(deferredQuery);
   const { data: userSummary, isLoading: isUserSummaryLoading } = useUserSummaryAnalytics();
-  const dashboard = buildDashboardGrowthViewModel(data, selectedLocales);
-  const showGrowthFilters = activeTab !== 'cards';
-  const isGranularitySwitching = showGrowthFilters && !!data && data.granularity !== granularity;
-  const isGrowthRefreshing = showGrowthFilters && isFetching && !!data && !isGranularitySwitching;
-  const isGrowthInitialLoading = showGrowthFilters && ((isLoading && !data) || isGranularitySwitching);
+  const rangeDayCount = Math.max(safeEndedAt.startOf('day').diff(safeStartedAt.startOf('day'), 'day') + 1, 1);
+  const dashboard = buildDashboardGrowthViewModel(data, selectedLocales, rangeDayCount);
+  const isGranularitySwitching = !!data && data.granularity !== granularity;
+  const isGrowthRefreshing = isFetching && !!data && !isGranularitySwitching;
+  const isGrowthInitialLoading = (isLoading && !data) || isGranularitySwitching;
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as DashboardTabValue);
@@ -207,29 +206,26 @@ function Dashboard() {
           </div>
         </div>
 
-        {showGrowthFilters && (
-          <DashboardFilterBar
-            granularity={granularity}
-            onGranularityChange={handleGranularityChange}
-            preset={preset}
-            onPresetChange={handlePresetChange}
-            startedAt={startedAt}
-            endedAt={endedAt}
-            setStartedAt={handleStartedAtChange}
-            setEndedAt={handleEndedAtChange}
-            locales={DASHBOARD_LOCALES}
-            selectedLocales={selectedLocales}
-            onToggleLocale={handleToggleLocale}
-            onSelectAllLocales={handleSelectAllLocales}
-          />
-        )}
+        <DashboardFilterBar
+          granularity={granularity}
+          onGranularityChange={handleGranularityChange}
+          preset={preset}
+          onPresetChange={handlePresetChange}
+          startedAt={startedAt}
+          endedAt={endedAt}
+          setStartedAt={handleStartedAtChange}
+          setEndedAt={handleEndedAtChange}
+          locales={DASHBOARD_LOCALES}
+          selectedLocales={selectedLocales}
+          onToggleLocale={handleToggleLocale}
+          onSelectAllLocales={handleSelectAllLocales}
+        />
 
         <Tabs value={activeTab} className='space-y-4' onValueChange={handleTabChange}>
           <TabsList className='w-fit rounded-2xl border border-slate-200 bg-white p-1 shadow-sm'>
             <TabsTrigger value='overview'>개요</TabsTrigger>
             <TabsTrigger value='users'>가입자</TabsTrigger>
             <TabsTrigger value='spaces'>공간</TabsTrigger>
-            <TabsTrigger value='cards'>질문</TabsTrigger>
           </TabsList>
 
           <TabsContent value='overview' className='space-y-4'>
@@ -284,10 +280,6 @@ function Dashboard() {
                 <SpaceTab dashboard={dashboard} />
               </div>
             )}
-          </TabsContent>
-
-          <TabsContent value='cards' className='space-y-4'>
-            <CardTab />
           </TabsContent>
         </Tabs>
       </section>

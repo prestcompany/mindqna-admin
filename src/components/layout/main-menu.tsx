@@ -18,6 +18,12 @@ const overviewMenu: IMenu[] = [
     icon: <LucideLayoutGrid className='w-4 h-4' />,
     link: { path: '/dashboard/analytics' },
   },
+  {
+    id: 'dashboard-questions',
+    name: '질문 대시보드',
+    icon: <BookOpen className='w-4 h-4' />,
+    link: { path: '/dashboard/questions' },
+  },
 ];
 
 const managementMenu: IMenu[] = [

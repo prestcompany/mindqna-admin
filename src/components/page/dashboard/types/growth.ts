@@ -1,8 +1,9 @@
 import { DashboardGrowthGranularity, DashboardGrowthResponse, GrowthValue } from '@/client/dashboard';
-import { Locale } from '@/client/types';
+import { Locale, SpaceType } from '@/client/types';
 
 export type DashboardRangePreset = '6m' | '12m' | 'ytd' | '7d' | '30d' | '90d' | 'custom';
-export type DashboardTabValue = 'overview' | 'users' | 'spaces' | 'cards';
+export type DashboardTabValue = 'overview' | 'users' | 'spaces';
+export type DashboardLocaleRowKey = Locale | 'total';
 
 export const DASHBOARD_LOCALES: Locale[] = ['ko', 'en', 'ja', 'zh', 'zhTw', 'es', 'id'];
 
@@ -41,21 +42,46 @@ export interface DashboardTrendSeries {
   datasets: DashboardTrendDataset[];
 }
 
+export interface DashboardLocaleDailyDataset {
+  locale: Locale;
+  label: string;
+  values: number[];
+  color: string;
+}
+
+export interface DashboardLocaleDailySeries {
+  title: string;
+  description: string;
+  labels: string[];
+  periods: string[];
+  datasets: DashboardLocaleDailyDataset[];
+}
+
 export interface DashboardLocaleRow {
   rank: number;
-  locale: Locale;
+  locale: DashboardLocaleRowKey;
   label: string;
   users: GrowthValue;
   spaces: GrowthValue;
   usersShare: number;
   spacesShare: number;
+  dailyAverageUsers: number;
   dominantMetric: 'users' | 'spaces';
+  isTotal?: boolean;
 }
 
-export interface DashboardInsightCard {
-  title: string;
-  description: string;
-  value: string;
+export interface DashboardSpaceTypeDistributionItem {
+  type: SpaceType;
+  label: string;
+  count: number;
+  share: number;
+}
+
+export interface DashboardLocaleSpaceTypeDistribution {
+  locale: Locale;
+  label: string;
+  total: number;
+  types: DashboardSpaceTypeDistributionItem[];
 }
 
 export interface DashboardGrowthViewModel {
@@ -75,8 +101,10 @@ export interface DashboardGrowthViewModel {
   overviewTrend: DashboardTrendSeries;
   userTrend: DashboardTrendSeries;
   spaceTrend: DashboardTrendSeries;
+  localeDailyUserTrend: DashboardLocaleDailySeries;
+  totalLocaleRow: DashboardLocaleRow;
   localeLeaderboard: DashboardLocaleRow[];
   userLocaleRows: DashboardLocaleRow[];
   spaceLocaleRows: DashboardLocaleRow[];
-  overviewInsights: DashboardInsightCard[];
+  spaceTypeDistributions: DashboardLocaleSpaceTypeDistribution[];
 }
