@@ -1,10 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import GrowthComboChart from '../charts/GrowthComboChart';
-import LocaleShareChart from '../charts/LocaleShareChart';
-import DashboardMetricCard from '../sections/DashboardMetricCard';
-import LocaleGrowthTable from '../tables/LocaleGrowthTable';
+import GrowthComboChart from '../charts/growth-combo-chart';
+import LocaleShareChart from '../charts/locale-share-chart';
+import DashboardMetricCard from '../sections/dashboard-metric-card';
+import LocaleGrowthTable from '../tables/locale-growth-table';
 import { DashboardGrowthViewModel } from '../types/growth';
-import SpaceTypeDistributionCard from '../sections/SpaceTypeDistributionCard';
+import SpaceTypeDistributionCard from '../sections/space-type-distribution-card';
 
 interface SpaceTabProps {
   dashboard: DashboardGrowthViewModel;

@@ -1,6 +1,6 @@
 import { getDefaultLayout } from '@/components/layout/default-layout';
 import pageHeader from '@/components/layout/page-header';
-import CardTab from '@/components/page/dashboard/tabs/CardTab';
+import CardTab from '@/components/page/dashboard/tabs/card-tab';
 
 function QuestionsDashboardPage() {
   return (
