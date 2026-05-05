@@ -20,7 +20,7 @@ import TicketForm from './TicketForm';
 import UserSearch from './UserSearch';
 import { createUserTableColumns } from './UserTableColumns';
 import UserFilterBar from './components/UserFilterBar';
-import UserMigrationModal from './components/UserMigrationModal';
+import UserMigrationModal from './components/user-migration-modal';
 import UserDetailSheet from './components/UserDetailSheet';
 import { useUserFilters } from './hooks/useUserFilters';
 import { useUserModals } from './hooks/useUserModals';
