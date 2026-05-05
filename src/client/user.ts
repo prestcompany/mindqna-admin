@@ -43,7 +43,7 @@ export interface TransferUserParams {
 }
 
 export async function transferUser(params: TransferUserParams) {
-  const res = await client.post('/admin/user/transfer', { body: params });
+  const res = await client.post('/user/transfer', params);
 
   return res.data;
 }

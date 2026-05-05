@@ -225,6 +225,7 @@ function toLocaleRow(
     usersShare,
     spacesShare,
     dailyAverageUsers: row.users.delta / rangeDayCount,
+    dailyAverageSpaces: row.spaces.delta / rangeDayCount,
     dominantMetric: row.users.cumulative >= row.spaces.cumulative ? 'users' : 'spaces',
   };
 }
@@ -264,6 +265,7 @@ function createTotalLocaleRow(
     usersShare: users.cumulative > 0 ? 100 : 0,
     spacesShare: spaces.cumulative > 0 ? 100 : 0,
     dailyAverageUsers: users.delta / rangeDayCount,
+    dailyAverageSpaces: spaces.delta / rangeDayCount,
     dominantMetric: users.cumulative >= spaces.cumulative ? 'users' : 'spaces',
     isTotal: true,
   };
@@ -294,6 +296,48 @@ function createLocaleDailyUserSeries(
         (bucket) => bucket.locales.find((localeRow) => localeRow.locale === row.locale)?.users.delta ?? 0,
       ),
     })),
+  };
+}
+
+function createLocaleSpaceTrendSeries(
+  granularity: DashboardGrowthGranularity,
+  buckets: DashboardGrowthBucket[],
+  localeRows: DashboardLocaleRow[],
+): DashboardTrendSeries {
+  const localeRowsOnly = localeRows.filter(
+    (row): row is DashboardLocaleRow & { locale: Locale } => row.locale !== 'total',
+  );
+  const cumulativeSpaceLabel = granularity === 'day' ? '종료일 기준 누적 공간' : '월말 누적 공간';
+
+  return {
+    title: '국가별 공간 증가 추이',
+    description:
+      granularity === 'day'
+        ? '일별로 새로 늘어난 공간을 국가별 막대로 보고, 종료일 기준 누적 공간을 선으로 함께 봅니다.'
+        : '월별로 새로 늘어난 공간을 국가별 막대로 보고, 월말 누적 공간을 선으로 함께 봅니다.',
+    labels: buckets.map((bucket) => bucket.label),
+    periods: buckets.map((bucket) => bucket.key),
+    metric: 'spaces',
+    stackedBars: true,
+    datasets: [
+      ...localeRowsOnly.map((row, index) => ({
+        label: row.label,
+        type: 'bar' as const,
+        values: buckets.map(
+          (bucket) => bucket.locales.find((localeRow) => localeRow.locale === row.locale)?.spaces.delta ?? 0,
+        ),
+        color: LOCALE_SERIES_COLORS[index % LOCALE_SERIES_COLORS.length],
+        yAxisID: 'y' as const,
+        stack: 'space-locale-increase',
+      })),
+      {
+        label: cumulativeSpaceLabel,
+        type: 'line',
+        values: buckets.map((bucket) => bucket.spaces.cumulative),
+        color: SPACE_CUMULATIVE_COLOR,
+        yAxisID: 'y1',
+      },
+    ],
   };
 }
 
@@ -463,15 +507,7 @@ export function buildDashboardGrowthViewModel(
         : '가입자가 월별로 얼마나 늘었는지 월말 누적과 함께 추적합니다.',
       buckets,
     ),
-    spaceTrend: createTrendSeries(
-      granularity,
-      'spaces',
-      '공간 성장 추이',
-      granularity === 'day'
-        ? '공간이 일별로 얼마나 늘었는지 종료일 기준 누적과 함께 추적합니다.'
-        : '운영 규모가 어떤 속도로 커졌는지 보여줍니다.',
-      buckets,
-    ),
+    spaceTrend: createLocaleSpaceTrendSeries(granularity, buckets, spaceLocaleRows),
     localeDailyUserTrend: createLocaleDailyUserSeries(granularity, buckets, userLocaleRows),
     totalLocaleRow,
     localeLeaderboard: localeTotals,

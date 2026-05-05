@@ -10,11 +10,22 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import {
+  SAME_USER_CODE_ERROR_MESSAGE,
+  USER_CODE_ERROR_MESSAGE,
+  USER_CODE_MIN_LENGTH,
+  areDifferentUserCodes,
+} from '../services/user-migration-validation';
 
-const migrationSchema = z.object({
-  oldUserName: z.string().min(10, '유효한 유저코드를 입력해주세요'),
-  newUserName: z.string().min(10, '유효한 유저코드를 입력해주세요'),
-});
+const migrationSchema = z
+  .object({
+    oldUserName: z.string().trim().min(USER_CODE_MIN_LENGTH, USER_CODE_ERROR_MESSAGE),
+    newUserName: z.string().trim().min(USER_CODE_MIN_LENGTH, USER_CODE_ERROR_MESSAGE),
+  })
+  .refine((values) => areDifferentUserCodes(values.oldUserName, values.newUserName), {
+    message: SAME_USER_CODE_ERROR_MESSAGE,
+    path: ['newUserName'],
+  });
 
 type MigrationFormValues = z.infer<typeof migrationSchema>;
 
@@ -97,7 +108,9 @@ function UserMigrationModal({ open, onClose, onSuccess }: UserMigrationModalProp
                       </FormItem>
                     )}
                   />
-                  <div className='text-sm text-gray-600 mt-2'>이 계정의 모든 데이터는 유지되며, 로그인 수단만 교체됩니다.</div>
+                  <div className='text-sm text-gray-600 mt-2'>
+                    이 계정의 모든 데이터는 유지되며, 로그인 수단만 교체됩니다.
+                  </div>
                 </CardContent>
               </Card>
 

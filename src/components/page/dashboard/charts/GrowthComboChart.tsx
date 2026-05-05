@@ -62,6 +62,7 @@ function GrowthComboChart({ series }: GrowthComboChartProps) {
       pointHoverRadius: dataset.type === 'line' ? 4 : 0,
       tension: dataset.type === 'line' ? 0.3 : 0,
       yAxisID: dataset.yAxisID,
+      stack: dataset.stack,
       maxBarThickness: 24,
       order: dataset.type === 'bar' ? 2 : 1,
     })),
@@ -93,6 +94,7 @@ function GrowthComboChart({ series }: GrowthComboChartProps) {
     },
     scales: {
       x: {
+        stacked: series.stackedBars,
         grid: {
           display: false,
         },
@@ -101,6 +103,7 @@ function GrowthComboChart({ series }: GrowthComboChartProps) {
         },
       },
       y: {
+        stacked: series.stackedBars,
         position: 'left',
         beginAtZero: true,
         grid: {
