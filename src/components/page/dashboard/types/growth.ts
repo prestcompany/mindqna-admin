@@ -42,6 +42,7 @@ export interface DashboardTrendSeries {
   metric: 'users' | 'spaces' | 'overview';
   datasets: DashboardTrendDataset[];
   stackedBars?: boolean;
+  showStackedBarTotals?: boolean;
 }
 
 export interface DashboardLocaleDailyDataset {

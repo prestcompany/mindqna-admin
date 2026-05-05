@@ -12,6 +12,7 @@ import {
   LineElement,
   LinearScale,
   PointElement,
+  Plugin,
   Tooltip,
 } from 'chart.js';
 import { Chart } from 'react-chartjs-2';
@@ -27,6 +28,57 @@ ChartJS.register(
   Tooltip,
   Legend,
 );
+
+const stackedBarTotalLabelPlugin: Plugin<'bar' | 'line'> = {
+  id: 'stackedBarTotalLabel',
+  afterDatasetsDraw: (chart) => {
+    const yScale = chart.scales.y;
+    const labels = chart.data.labels ?? [];
+    const barDatasets = chart.data.datasets
+      .map((dataset, datasetIndex) => ({ dataset, datasetIndex }))
+      .filter(({ dataset, datasetIndex }) => dataset.type === 'bar' && chart.isDatasetVisible(datasetIndex));
+
+    if (!yScale || !labels.length || !barDatasets.length) {
+      return;
+    }
+
+    const { ctx } = chart;
+    ctx.save();
+    ctx.font = '600 11px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillStyle = '#0f172a';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.92)';
+    ctx.lineWidth = 4;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+
+    labels.forEach((_, dataIndex) => {
+      const total = barDatasets.reduce((sum, { dataset }) => {
+        const value = Number(dataset.data[dataIndex] ?? 0);
+
+        return Number.isFinite(value) ? sum + value : sum;
+      }, 0);
+
+      if (total <= 0) {
+        return;
+      }
+
+      const visibleBar = barDatasets.find(({ dataset }) => Number(dataset.data[dataIndex] ?? 0) > 0);
+      const barElement = visibleBar ? chart.getDatasetMeta(visibleBar.datasetIndex).data[dataIndex] : undefined;
+
+      if (!barElement) {
+        return;
+      }
+
+      const y = Math.max(yScale.getPixelForValue(total) - 6, 14);
+      const label = total.toLocaleString('ko-KR');
+
+      ctx.strokeText(label, barElement.x, y);
+      ctx.fillText(label, barElement.x, y);
+    });
+
+    ctx.restore();
+  },
+};
 
 interface GrowthComboChartProps {
   series: DashboardTrendSeries;
@@ -106,6 +158,7 @@ function GrowthComboChart({ series }: GrowthComboChartProps) {
         stacked: series.stackedBars,
         position: 'left',
         beginAtZero: true,
+        grace: series.showStackedBarTotals ? '18%' : undefined,
         grid: {
           color: 'rgba(148, 163, 184, 0.18)',
         },
@@ -136,7 +189,12 @@ function GrowthComboChart({ series }: GrowthComboChartProps) {
       </CardHeader>
       <CardContent>
         <div className='h-[320px]'>
-          <Chart type='bar' data={data} options={options} />
+          <Chart
+            type='bar'
+            data={data}
+            options={options}
+            plugins={series.showStackedBarTotals ? [stackedBarTotalLabelPlugin] : undefined}
+          />
         </div>
       </CardContent>
     </Card>

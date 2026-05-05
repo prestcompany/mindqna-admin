@@ -1,6 +1,6 @@
 import { getDefaultLayout } from '@/components/layout/default-layout';
 import pageHeader from '@/components/layout/page-header';
-import Dashboard from '@/components/page/dashboard/Dashboard';
+import Dashboard from '@/components/page/dashboard/dashboard';
 
 function AnalyticsPage() {
   return (

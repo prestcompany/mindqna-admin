@@ -319,6 +319,7 @@ function createLocaleSpaceTrendSeries(
     periods: buckets.map((bucket) => bucket.key),
     metric: 'spaces',
     stackedBars: true,
+    showStackedBarTotals: true,
     datasets: [
       ...localeRowsOnly.map((row, index) => ({
         label: row.label,
