@@ -16,11 +16,13 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { refreshSpaceCoinMutationCaches } from './services/space-coin-cache';
 
 const schema = z.object({
   operation: z.enum(['give', 'take']),
@@ -58,6 +60,7 @@ const coinTypeOptions = [
 
 function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
   const [isLoading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -100,7 +103,7 @@ function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
       };
 
       toast.success(`${starBool ? '스타' : '하트'} ${values.amount}개 ${values.operation === 'give' ? '지급' : '회수'} 완료`);
-      await reload();
+      await refreshSpaceCoinMutationCaches({ spaceId, queryClient, reload });
       close();
     } catch (err) {
       toast.error(`${err}`);
