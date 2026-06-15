@@ -33,6 +33,7 @@ import CoinForm from './CoinForm';
 import SpaceActiveFilterChips from './components/SpaceActiveFilterChips';
 import SpaceDetailSheet from './components/SpaceDetailSheet';
 import SpaceResultCard from './components/SpaceResultCard';
+import { getSpaceTypeConfig } from './utils/space-display';
 
 function SpaceSearch() {
   const [searchParams, setSearchParams] = useState({
@@ -208,29 +209,34 @@ function SpaceSearch() {
       id: 'type',
       header: '타입',
       size: 80,
-      cell: ({ row }) => <Badge variant='secondary'>{row.original.spaceInfo?.type}</Badge>,
+      cell: ({ row }) => {
+        const config = getSpaceTypeConfig(row.original.spaceInfo?.type);
+        return <Badge variant={config.variant}>{config.text}</Badge>;
+      },
     },
     {
       accessorFn: (row) => row.spaceInfo?.locale,
       id: 'locale',
       header: '언어',
       size: 60,
-      cell: ({ row }) => <Badge variant='secondary'>{row.original.spaceInfo?.locale}</Badge>,
+      cell: ({ row }) => <Badge variant='softNeutral'>{row.original.spaceInfo?.locale?.toUpperCase()}</Badge>,
     },
     {
       accessorFn: (row) => row.profiles?.length,
       id: 'members',
       header: '멤버',
       size: 60,
+      cell: ({ row }) => <span className='text-sm font-medium tabular-nums text-slate-900'>{row.original.profiles?.length ?? 0}</span>,
     },
     {
       id: 'coins',
       header: '하트/스타',
       size: 120,
       cell: ({ row }) => (
-        <div className='flex gap-1'>
-          <Badge variant='destructive'>{row.original.coin}</Badge>
-          <Badge variant='warning'>{row.original.coinPaid}</Badge>
+        <div className='flex items-center gap-2 whitespace-nowrap text-sm font-medium tabular-nums text-slate-900'>
+          <span>하트 {row.original.coin}</span>
+          <span className='text-slate-300'>·</span>
+          <span>스타 {row.original.coinPaid}</span>
         </div>
       ),
     },
@@ -240,9 +246,10 @@ function SpaceSearch() {
       header: '펫 EXP',
       size: 120,
       cell: ({ row }) => (
-        <div className='flex gap-1 items-center whitespace-nowrap'>
-          <Badge variant='info'>EXP {row.original.pet?.exp ?? 0}</Badge>
-          <Badge variant='secondary'>Lv.{row.original.pet?.level ?? 0}</Badge>
+        <div className='flex items-center gap-2 whitespace-nowrap text-sm font-medium tabular-nums text-slate-900'>
+          <span>EXP {row.original.pet?.exp ?? 0}</span>
+          <span className='text-slate-300'>·</span>
+          <span>Lv.{row.original.pet?.level ?? 0}</span>
         </div>
       ),
     },
@@ -255,9 +262,9 @@ function SpaceSearch() {
         const day = dayjs(row.original.createdAt);
         const diffFromNow = Math.max(dayjs().diff(day, 'day'), 0);
         return (
-          <div>
-            <Badge variant='secondary'>D+{diffFromNow}</Badge>
-            <div className='text-xs'>{day.format('MM.DD')}</div>
+          <div className='space-y-1'>
+            <Badge variant='softNeutral'>D+{diffFromNow}</Badge>
+            <div className='text-xs text-slate-500'>{day.format('MM.DD')}</div>
           </div>
         );
       },

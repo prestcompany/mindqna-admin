@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { Copy } from 'lucide-react';
+import { getSpaceTypeConfig } from './utils/space-display';
 
 export interface SpaceTableActionsProps {
   onViewProfiles: (space: Space) => void;
@@ -46,14 +47,7 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
     header: '타입',
     size: 96,
     cell: ({ row }) => {
-      const type = row.original.spaceInfo?.type;
-      const typeMap = {
-        alone: { text: '혼자', variant: 'info' as const },
-        couple: { text: '커플', variant: 'destructive' as const },
-        family: { text: '가족', variant: 'success' as const },
-        friends: { text: '친구', variant: 'warning' as const },
-      };
-      const config = typeMap[type as keyof typeof typeMap] || { text: type, variant: 'muted' as const };
+      const config = getSpaceTypeConfig(row.original.spaceInfo?.type);
       return <Badge variant={config.variant}>{config.text}</Badge>;
     },
   },
@@ -62,14 +56,14 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
     id: 'locale',
     header: '언어',
     size: 72,
-    cell: ({ row }) => <Badge variant='secondary'>{row.original.spaceInfo?.locale?.toUpperCase()}</Badge>,
+    cell: ({ row }) => <Badge variant='softNeutral'>{row.original.spaceInfo?.locale?.toUpperCase()}</Badge>,
   },
   {
     accessorFn: (row) => row.spaceInfo?.members,
     id: 'members',
     header: '멤버',
     size: 88,
-    cell: ({ row }) => <Badge variant='info'>{row.original.spaceInfo?.members || 0}</Badge>,
+    cell: ({ row }) => <span className='text-sm font-medium tabular-nums text-slate-900'>{row.original.spaceInfo?.members || 0}</span>,
   },
   {
     id: 'membership',
@@ -80,13 +74,13 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
       const hasGoldClub = row.original.hasGoldClubMember ?? row.original.profiles?.some((profile) => profile.isGoldClub);
 
       if (!hasPremium && !hasGoldClub) {
-        return <span className='text-sm text-muted-foreground'>-</span>;
+        return <span className='text-sm text-slate-400'>-</span>;
       }
 
       return (
         <div className='flex flex-wrap gap-1'>
-          {hasPremium ? <Badge variant='success'>PREMIUM</Badge> : null}
-          {hasGoldClub ? <Badge variant='warning'>GOLD CLUB</Badge> : null}
+          {hasPremium ? <Badge variant='softSuccess'>PREMIUM</Badge> : null}
+          {hasGoldClub ? <Badge variant='softWarning'>GOLD CLUB</Badge> : null}
         </div>
       );
     },
@@ -99,8 +93,8 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
       const latestCardIssuedAt = row.original.latestCardIssuedAt;
       return (
         <div className='space-y-1 whitespace-nowrap'>
-          <Badge variant='default'>카드 {row.original.cardOrder || 0}</Badge>
-          <div className='text-xs text-muted-foreground'>
+          <Badge variant='softNeutral'>카드 {row.original.cardOrder || 0}</Badge>
+          <div className='text-xs text-slate-500'>
             {latestCardIssuedAt ? dayjs(latestCardIssuedAt).format('YY.MM.DD HH:mm') : '발급 기록 없음'}
           </div>
         </div>
@@ -112,9 +106,10 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
     header: '하트/스타',
     size: 146,
     cell: ({ row }) => (
-      <div className='flex gap-1 whitespace-nowrap'>
-        <Badge variant='destructive'>하트 {row.original.coin}</Badge>
-        <Badge variant='warning'>스타 {row.original.coinPaid}</Badge>
+      <div className='flex items-center gap-2 whitespace-nowrap text-sm font-medium tabular-nums text-slate-900'>
+        <span>하트 {row.original.coin}</span>
+        <span className='text-slate-300'>·</span>
+        <span>스타 {row.original.coinPaid}</span>
       </div>
     ),
   },
@@ -124,9 +119,10 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
     header: '펫 EXP',
     size: 130,
     cell: ({ row }) => (
-      <div className='flex gap-1 whitespace-nowrap'>
-        <Badge variant='info'>EXP {row.original.pet?.exp?.toFixed(1) ?? '0.0'}</Badge>
-        <Badge variant='secondary'>Lv.{row.original.pet?.level ?? 0}</Badge>
+      <div className='flex items-center gap-2 whitespace-nowrap text-sm font-medium tabular-nums text-slate-900'>
+        <span>EXP {row.original.pet?.exp?.toFixed(1) ?? '0.0'}</span>
+        <span className='text-slate-300'>·</span>
+        <span>Lv.{row.original.pet?.level ?? 0}</span>
       </div>
     ),
   },
@@ -135,9 +131,10 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
     header: '방/인테리어',
     size: 140,
     cell: ({ row }) => (
-      <div className='flex gap-1 whitespace-nowrap'>
-        <Badge variant='default'>방 {row.original.rooms?.length || 0}</Badge>
-        <Badge variant='warning'>인테리어 {row.original.InteriorItem?.length || 0}</Badge>
+      <div className='flex items-center gap-2 whitespace-nowrap text-sm font-medium tabular-nums text-slate-900'>
+        <span>방 {row.original.rooms?.length || 0}</span>
+        <span className='text-slate-300'>·</span>
+        <span>인테리어 {row.original.InteriorItem?.length || 0}</span>
       </div>
     ),
   },
@@ -151,8 +148,8 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
       const diffFromNow = Math.max(dayjs().diff(day, 'day'), 0);
       return (
         <div className='flex flex-row gap-1 items-center whitespace-nowrap'>
-          <Badge variant={diffFromNow < 7 ? 'success' : diffFromNow < 30 ? 'warning' : 'muted'}>D+{diffFromNow}</Badge>
-          <div className='text-sm text-muted-foreground'>{day.format('YY.MM.DD HH:mm:ss')}</div>
+          <Badge variant='softNeutral'>D+{diffFromNow}</Badge>
+          <div className='text-sm text-slate-500'>{day.format('YY.MM.DD HH:mm:ss')}</div>
         </div>
       );
     },
@@ -178,8 +175,8 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
 
       return (
         <div className='whitespace-nowrap'>
-          <Badge variant={isUrgent ? 'destructive' : 'warning'}>{gap}만에 삭제</Badge>
-          <div className='text-xs text-muted-foreground'>{day.format('YY.MM.DD HH:mm:ss')}</div>
+          <Badge variant={isUrgent ? 'softDanger' : 'softWarning'}>{gap}만에 삭제</Badge>
+          <div className='text-xs text-slate-500'>{day.format('YY.MM.DD HH:mm:ss')}</div>
         </div>
       );
     },
