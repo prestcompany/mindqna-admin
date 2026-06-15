@@ -33,6 +33,8 @@ const badgeVariants = cva(
           "border-rose-200 bg-rose-50 text-rose-700 font-medium",
         softInfo:
           "border-sky-200 bg-sky-50 text-sky-700 font-medium",
+        tonePink:
+          "border-pink-200 bg-pink-50 text-pink-700 font-medium",
       },
     },
     defaultVariants: {
