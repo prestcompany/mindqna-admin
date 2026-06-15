@@ -27,7 +27,7 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
           event.stopPropagation();
           actions.copyId(row.original.id);
         }}
-        className='flex max-w-[168px] justify-start gap-1 overflow-hidden'
+        className='flex h-9 max-w-[168px] justify-start gap-1 overflow-hidden'
       >
         <span className='truncate'>{row.original.id}</span>
         <Copy className='w-4 h-4' />
@@ -74,7 +74,7 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
       const hasGoldClub = row.original.hasGoldClubMember ?? row.original.profiles?.some((profile) => profile.isGoldClub);
 
       if (!hasPremium && !hasGoldClub) {
-        return <span className='text-sm text-slate-400'>-</span>;
+        return <span className='text-sm text-slate-500'>-</span>;
       }
 
       return (
