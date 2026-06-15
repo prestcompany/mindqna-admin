@@ -168,7 +168,7 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
                       {isOwner ? <Badge variant='softNeutral'>OWNER</Badge> : null}
                       {profile.isPremium ? <Badge variant='softSuccess'>PREMIUM</Badge> : null}
                       {profile.isGoldClub ? <Badge variant='softWarning'>GOLD CLUB</Badge> : null}
-                      {!profile.isAccepted ? <Badge variant='softWarning'>수락대기</Badge> : null}
+                      {profile.isAccepted === false ? <Badge variant='softWarning'>수락대기</Badge> : null}
                       {profile.disabled ? <Badge variant='softNeutral'>비활성</Badge> : null}
                       {profile.removed ? <Badge variant='softDanger'>탈퇴</Badge> : null}
                     </div>
