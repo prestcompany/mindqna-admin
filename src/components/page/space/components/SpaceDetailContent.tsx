@@ -123,7 +123,7 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
         <SectionTitle>상세 정보</SectionTitle>
         <div className='grid grid-cols-1 gap-x-6 gap-y-6 rounded-xl border border-slate-200/80 bg-white p-6 shadow-sm sm:grid-cols-2 xl:grid-cols-3'>
           <DetailField icon={Cat} label='펫 이름 / 종류' value={petNameValue} />
-          <DetailField icon={Bell} label='공지 시간' value={detail.spaceInfo?.noticeTime || '-'} />
+          <DetailField icon={Bell} label='카드 발급 시간' value={detail.spaceInfo?.noticeTime || '-'} />
           <DetailField
             icon={Flag}
             label='시작일'
