@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { CalendarDays, Clock, Copy, Globe, LogIn, type LucideIcon, Mail, Ticket, Trash2, User as UserIcon } from 'lucide-react';
+import { CalendarDays, Clock, Copy, Globe, History, KeyRound, Link2, LogIn, type LucideIcon, Mail, Ticket, Trash2, User as UserIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import {
   formatDate,
@@ -65,10 +65,12 @@ function SectionTitle({ children }: { children: ReactNode }) {
 function UserDetailContent({ user, copyId, onOpenTicket, onRemove }: UserDetailContentProps) {
   const {
     id,
+    code,
     username,
     locale,
     socialAccount,
     createdAt,
+    updateAt,
     _count,
     reserveUnregisterAt,
     spaceMaxCount,
@@ -110,6 +112,7 @@ function UserDetailContent({ user, copyId, onOpenTicket, onRemove }: UserDetailC
                   <Copy className='h-3 w-3' />
                   {id}
                 </button>
+                {typeof code === 'number' ? <span className='font-mono'>#{code}</span> : null}
                 <span className='truncate'>{socialAccount?.email || '이메일 없음'}</span>
               </div>
             </div>
@@ -137,13 +140,14 @@ function UserDetailContent({ user, copyId, onOpenTicket, onRemove }: UserDetailC
       </div>
 
       {/* 2. KPI 타일 — 공간/티켓 핵심 수치 (중립 숫자) */}
-      <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6'>
+      <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4'>
         <StatTile label='공간' value={_count?.profiles ?? 0} accent={getMetricAccent(_count?.profiles, 'text-slate-950')} />
         <StatTile label='최대 공간' value={spaceMaxCount ?? 0} />
         <StatTile label='보유 티켓' value={summary.owned} accent={getMetricAccent(summary.owned, 'text-slate-950')} />
+        <StatTile label='적용 티켓' value={summary.applied} accent={getMetricAccent(summary.applied, 'text-slate-950')} />
+        <StatTile label='미적용 티켓' value={summary.unapplied} accent={getMetricAccent(summary.unapplied, 'text-slate-950')} />
         <StatTile label='사용 티켓' value={summary.used} accent={getMetricAccent(summary.used, 'text-slate-950')} />
         <StatTile label='만료 티켓' value={summary.expired} accent={getMetricAccent(summary.expired, 'text-slate-950')} />
-        <StatTile label='미적용 티켓' value={summary.unapplied} accent={getMetricAccent(summary.unapplied, 'text-slate-950')} />
       </div>
 
       {/* 3. 상세 정보 */}
@@ -153,8 +157,11 @@ function UserDetailContent({ user, copyId, onOpenTicket, onRemove }: UserDetailC
           <DetailField icon={UserIcon} label='닉네임' value={representativeNickname?.trim() || '-'} />
           <DetailField icon={Mail} label='이메일' value={socialAccount?.email || '미등록'} />
           <DetailField icon={LogIn} label='로그인 수단' value={provider.text} />
+          {socialAccount?.socialId ? <DetailField icon={KeyRound} label='소셜 ID' value={socialAccount.socialId} /> : null}
+          {socialAccount?.createdAt ? <DetailField icon={Link2} label='소셜 연동일' value={formatDate(socialAccount.createdAt)} /> : null}
           <DetailField icon={Globe} label='언어' value={getLocaleLabel(locale)} />
           <DetailField icon={CalendarDays} label='가입일' value={`D+${createdDiff} · ${formatDate(createdAt)}`} />
+          {updateAt ? <DetailField icon={History} label='정보 수정일' value={formatDate(updateAt)} /> : null}
           <DetailField
             icon={Clock}
             label='마지막 접속'
