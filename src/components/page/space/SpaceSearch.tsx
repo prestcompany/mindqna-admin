@@ -189,6 +189,7 @@ function SpaceSearch() {
         <Button
           size='sm'
           variant='outline'
+          className='h-9'
           onClick={(event) => {
             event.stopPropagation();
             copyId(row.original.id);

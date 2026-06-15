@@ -90,7 +90,7 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
           <button
             type='button'
             onClick={() => copyId(detail.id)}
-            className='inline-flex items-center gap-1 rounded font-mono text-slate-600 transition-colors hover:text-slate-900'
+            className='-mx-1.5 -my-1 inline-flex items-center gap-1 rounded px-1.5 py-1 font-mono text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900'
           >
             {detail.id}
             <Copy className='h-3 w-3' />
@@ -109,7 +109,7 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
       </div>
 
       {/* 2. KPI 그리드 — 숫자가 주인공. 0은 회색으로 */}
-      <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6'>
+      <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6'>
         <SpaceStatTile label='하트' value={detail.coin} accent={getMetricAccent(detail.coin, 'text-rose-500')} />
         <SpaceStatTile label='스타' value={detail.coinPaid} accent={getMetricAccent(detail.coinPaid, 'text-amber-500')} />
         <SpaceStatTile label='멤버' value={memberCount} accent={getMetricAccent(memberCount, 'text-slate-950')} />
@@ -121,7 +121,7 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
       {/* 3. 상세 정보 — 아이콘 기반 필드 그리드 */}
       <section>
         <SectionTitle>상세 정보</SectionTitle>
-        <div className='grid grid-cols-1 gap-x-6 gap-y-5 rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm sm:grid-cols-2 xl:grid-cols-3'>
+        <div className='grid grid-cols-1 gap-x-6 gap-y-6 rounded-xl border border-slate-200/80 bg-white p-6 shadow-sm sm:grid-cols-2 xl:grid-cols-3'>
           <DetailField icon={Cat} label='펫 이름 / 종류' value={petNameValue} />
           <DetailField icon={Bell} label='공지 시간' value={detail.spaceInfo?.noticeTime || '-'} />
           <DetailField
@@ -177,13 +177,13 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
                       {userCode ? ` · #${userCode}` : ''}
                     </div>
                     {showAccessLine ? (
-                      <div className='flex flex-wrap gap-x-3 text-xs text-slate-400'>
+                      <div className='flex flex-wrap gap-x-3 text-xs text-slate-500'>
                         {latestAccessAt ? <span>최근 접속 {formatDate(latestAccessAt, 'YY.MM.DD HH:mm')}</span> : null}
                         {profile.removed && profile.removedAt ? <span>탈퇴 {formatDate(profile.removedAt, 'YY.MM.DD')}</span> : null}
                       </div>
                     ) : null}
                   </div>
-                  <Button type='button' variant='ghost' size='sm' className='shrink-0' onClick={() => copyId(profile.user?.username ?? profile.id)}>
+                  <Button type='button' variant='ghost' size='sm' className='h-9 shrink-0' onClick={() => copyId(profile.user?.username ?? profile.id)}>
                     복사
                   </Button>
                 </div>
@@ -218,7 +218,7 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
                     <div className={cn('text-sm font-bold tabular-nums', isSpend ? 'text-rose-600' : 'text-emerald-600')}>
                       {buildCoinMetaLabel(meta)}
                     </div>
-                    <div className='text-[11px] text-slate-400'>{formatDate(meta.createdAt, 'MM.DD HH:mm')}</div>
+                    <div className='text-[11px] text-slate-500'>{formatDate(meta.createdAt, 'MM.DD HH:mm')}</div>
                   </div>
                 </div>
               );
