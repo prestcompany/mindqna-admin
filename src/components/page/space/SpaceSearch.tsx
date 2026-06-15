@@ -1,5 +1,5 @@
-import { getSpace, removeProfile, removeSpace, searchSpaces, type SearchSpacesParams } from '@/client/space';
-import { Space, SpaceDetail, SpaceType } from '@/client/types';
+import { removeProfile, removeSpace, searchSpaces, type SearchSpacesParams } from '@/client/space';
+import { Space, SpaceType } from '@/client/types';
 import FormGroup from '@/components/shared/form/ui/form-group';
 import FormSection from '@/components/shared/form/ui/form-section';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
@@ -17,21 +17,22 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet } from '@/components/ui/sheet';
-import { useQueries, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Loader2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import CoinForm from './CoinForm';
-import SpaceDetailContent from './components/SpaceDetailContent';
+import SpaceActiveFilterChips from './components/SpaceActiveFilterChips';
 import SpaceDetailSheet from './components/SpaceDetailSheet';
+import SpaceResultCard from './components/SpaceResultCard';
 
 function SpaceSearch() {
   const [searchParams, setSearchParams] = useState({
@@ -90,15 +91,6 @@ function SpaceSearch() {
   const items = data?.items ?? [];
   const currentPage = submittedSearchParams?.page ?? 1;
   const totalCount = data?.totalCount ?? 0;
-  const detailQueries = useQueries({
-    queries: items.map((space) => ({
-      queryKey: ['space-search-detail', space.id],
-      queryFn: () => getSpace(space.id),
-      enabled: !!submittedSearchParams && viewMode === 'card',
-      staleTime: 30_000,
-    })),
-  });
-
   const copyId = (id: string) => {
     navigator.clipboard.writeText(id);
     toast.success(`${id} 복사`);
@@ -137,6 +129,26 @@ function SpaceSearch() {
   const handleChangePage = (page: number) => {
     if (!submittedSearchParams) return;
     setSubmittedSearchParams({ ...submittedSearchParams, page });
+  };
+
+  const handleRemoveFilterChip = (key: 'type' | 'locale' | 'date') => {
+    setSearchParams((prev) => ({
+      ...prev,
+      type: key === 'type' ? undefined : prev.type,
+      locale: key === 'locale' ? undefined : prev.locale,
+      dateRange: key === 'date' ? { start: null, end: null } : prev.dateRange,
+    }));
+    setSubmittedSearchParams((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, page: 1 };
+      if (key === 'type') next.type = undefined;
+      if (key === 'locale') next.locale = undefined;
+      if (key === 'date') {
+        next.startDate = undefined;
+        next.endDate = undefined;
+      }
+      return next;
+    });
   };
 
   const handleRemoveSpace = (space: Space) => {
@@ -278,56 +290,6 @@ function SpaceSearch() {
     },
   ];
 
-  const renderCardItem = (space: Space, index: number) => {
-    const detailQuery = detailQueries[index];
-    const detail = detailQuery?.data;
-    const isDetailLoading = detailQuery?.isLoading && !detail;
-    const isDetailError = detailQuery?.isError;
-
-    return (
-      <div key={space.id} className='rounded-2xl border border-border/70 bg-card p-4 shadow-sm'>
-        {isDetailLoading ? (
-          <div className='flex min-h-[320px] items-center justify-center'>
-            <Loader2 className='h-5 w-5 animate-spin text-muted-foreground' />
-          </div>
-        ) : isDetailError || !detail ? (
-          <Card className='shadow-none'>
-            <CardHeader>
-              <CardTitle className='text-base'>상세 정보를 불러오지 못했습니다.</CardTitle>
-            </CardHeader>
-            <CardContent className='flex items-center justify-between gap-3'>
-              <div className='text-sm text-muted-foreground'>공간 `{space.id}` 의 상세 조회에 실패했습니다.</div>
-              <div className='flex items-center gap-2'>
-                <Button
-                  type='button'
-                  variant='outline'
-                  size='sm'
-                  onClick={() => {
-                    openCoinForSpace(space);
-                  }}
-                >
-                  코인 관리
-                </Button>
-                <Button type='button' variant='outline' size='sm' onClick={() => setDetailTarget(space)}>
-                  별도 상세 열기
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className='space-y-4'>
-            <div className='flex justify-end'>
-              <Button type='button' variant='outline' size='sm' onClick={() => openCoinForSpace(space)}>
-                코인 관리
-              </Button>
-            </div>
-            <SpaceDetailContent detail={detail as SpaceDetail} copyId={copyId} />
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <>
       <div className='space-y-4'>
@@ -468,6 +430,8 @@ function SpaceSearch() {
           </div>
         )}
 
+        {hasSubmittedSearch && <SpaceActiveFilterChips params={submittedSearchParams} onRemove={handleRemoveFilterChip} />}
+
         {isInitialResultLoading && (
           <Card className='bg-card'>
             <CardContent className='flex min-h-[220px] flex-col items-center justify-center gap-3 py-10 text-center'>
@@ -500,8 +464,16 @@ function SpaceSearch() {
                 })}
               />
             ) : (
-              <div className='space-y-4'>
-                {items.map((space, index) => renderCardItem(space, index))}
+              <div className='space-y-3'>
+                {items.map((space) => (
+                  <SpaceResultCard
+                    key={space.id}
+                    space={space}
+                    onOpenDetail={(target) => setDetailTarget(target)}
+                    onOpenCoin={(target) => openCoinForSpace(target)}
+                    copyId={copyId}
+                  />
+                ))}
                 {totalCount > 0 && (
                   <div className='flex items-center justify-between px-1'>
                     <div className='text-sm text-muted-foreground'>
