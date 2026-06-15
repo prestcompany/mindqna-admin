@@ -189,9 +189,9 @@ function UserSearch() {
       ) : null}
 
       {!data && !isLoading && isFetched && (
-        <Card className='py-8 text-center bg-card'>
+        <Card className='border-slate-200/80 bg-white py-8 text-center shadow-sm'>
           <CardContent>
-            <div className='text-muted-foreground'>
+            <div className='text-slate-500'>
               <p>{error ? '검색을 완료하지 못했습니다' : '검색 결과가 없습니다'}</p>
               <p className='mt-1 text-sm'>{getErrorMessage()}</p>
             </div>

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { Copy } from 'lucide-react';
+import { getJoinStatusConfig, getLocaleLabel, getProviderConfig, getRecencyVariant } from './utils/user-display';
 
 export interface UserTableActionsProps {
   onOpenTicket: (user: UserSummary) => void;
@@ -23,12 +24,12 @@ interface CopyInlineCellProps {
 function CopyInlineCell({ text, copyValue, maxWidthClassName, monospace = false, copyId }: CopyInlineCellProps) {
   return (
     <div className='flex min-w-0 items-center gap-1'>
-      <span className={`${maxWidthClassName} truncate ${monospace ? 'font-mono text-[12px]' : 'font-medium'}`}>{text}</span>
+      <span className={`${maxWidthClassName} truncate ${monospace ? 'font-mono text-[12px] text-slate-700' : 'font-medium text-slate-900'}`}>{text}</span>
       <Button
         type='button'
         variant='ghost'
         size='icon'
-        className='h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground'
+        className='h-8 w-8 shrink-0 text-slate-500 hover:text-slate-900'
         onClick={(event) => {
           event.stopPropagation();
           copyId(copyValue);
@@ -73,7 +74,7 @@ export const createUserTableColumns = (actions: UserTableActionsProps): ColumnDe
     header: '닉네임',
     size: 140,
     cell: ({ row }) => (
-      <span className='block truncate text-sm'>{row.original.representativeNickname?.trim() || '-'}</span>
+      <span className='block truncate text-sm text-slate-900'>{row.original.representativeNickname?.trim() || '-'}</span>
     ),
   },
   {
@@ -81,8 +82,8 @@ export const createUserTableColumns = (actions: UserTableActionsProps): ColumnDe
     header: '가입상태',
     size: 96,
     cell: ({ row }) => {
-      const isCompleted = row.original._count.profiles > 0;
-      return isCompleted ? <Badge variant='success'>완료</Badge> : <Badge variant='warning'>진행중</Badge>;
+      const config = getJoinStatusConfig(row.original._count.profiles > 0);
+      return <Badge variant={config.variant}>{config.text}</Badge>;
     },
   },
   {
@@ -90,7 +91,7 @@ export const createUserTableColumns = (actions: UserTableActionsProps): ColumnDe
     id: 'email',
     header: '이메일',
     size: 260,
-    cell: ({ row }) => <span className='block truncate'>{row.original.socialAccount?.email ?? '-'}</span>,
+    cell: ({ row }) => <span className='block truncate text-slate-700'>{row.original.socialAccount?.email ?? '-'}</span>,
   },
   {
     accessorFn: (row) => row.socialAccount?.provider,
@@ -98,14 +99,7 @@ export const createUserTableColumns = (actions: UserTableActionsProps): ColumnDe
     header: '로그인',
     size: 100,
     cell: ({ row }) => {
-      const provider = row.original.socialAccount?.provider;
-      const providerMap: Record<string, { text: string; variant: 'destructive' | 'warning' | 'muted' | 'success' }> = {
-        GOOGLE: { text: 'Google', variant: 'destructive' },
-        KAKAO: { text: 'Kakao', variant: 'warning' },
-        APPLE: { text: 'Apple', variant: 'muted' },
-        LINE: { text: 'Line', variant: 'success' },
-      };
-      const config = providerMap[provider as string] || { text: provider, variant: 'muted' as const };
+      const config = getProviderConfig(row.original.socialAccount?.provider);
       return <Badge variant={config.variant}>{config.text}</Badge>;
     },
   },
@@ -113,20 +107,7 @@ export const createUserTableColumns = (actions: UserTableActionsProps): ColumnDe
     accessorKey: 'locale',
     header: '언어',
     size: 72,
-    cell: ({ row }) => {
-      const locale = row.original.locale;
-      const localeMap: Record<string, string> = {
-        ko: 'KO',
-        en: 'EN',
-        ja: 'JA',
-        zh: 'ZH',
-        zhTw: 'TW',
-        es: 'ES',
-        id: 'ID',
-      };
-      const code = localeMap[locale as string] || locale?.toUpperCase();
-      return <Badge variant='secondary'>{code}</Badge>;
-    },
+    cell: ({ row }) => <Badge variant='softNeutral'>{getLocaleLabel(row.original.locale)}</Badge>,
   },
   {
     accessorKey: 'createdAt',
@@ -137,8 +118,8 @@ export const createUserTableColumns = (actions: UserTableActionsProps): ColumnDe
       const diffFromNow = dayjs().diff(day, 'day');
       return (
         <div className='flex flex-row gap-1 items-center whitespace-nowrap'>
-          <Badge variant={diffFromNow < 7 ? 'success' : diffFromNow < 30 ? 'warning' : 'muted'}>D+{diffFromNow}</Badge>
-          <div className='text-sm text-muted-foreground'>{day.format('YY.MM.DD HH:mm:ss')}</div>
+          <Badge variant={getRecencyVariant(diffFromNow)}>D+{diffFromNow}</Badge>
+          <div className='text-sm text-slate-500'>{day.format('YY.MM.DD HH:mm:ss')}</div>
         </div>
       );
     },
@@ -158,8 +139,8 @@ export const createUserTableColumns = (actions: UserTableActionsProps): ColumnDe
 
       return (
         <div className='flex flex-row gap-1 items-center whitespace-nowrap'>
-          <Badge variant={isUrgent ? 'destructive' : 'warning'}>{gap}만에 삭제</Badge>
-          <div className='text-sm text-muted-foreground'>{day.format('YY.MM.DD HH:mm:ss')}</div>
+          <Badge variant={isUrgent ? 'softDanger' : 'softWarning'}>{gap}만에 삭제</Badge>
+          <div className='text-sm text-slate-500'>{day.format('YY.MM.DD HH:mm:ss')}</div>
         </div>
       );
     },

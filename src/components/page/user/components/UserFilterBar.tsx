@@ -23,9 +23,9 @@ function UserFilterBar({ filter, onFilterChange, onOpenSearch, onOpenMigration, 
             검색하기
           </Button>
 
-          <div className='w-px h-6 bg-gray-300' />
+          <div className='w-px h-6 bg-slate-200' />
 
-          <span className='font-medium text-gray-700'>필터:</span>
+          <span className='font-medium text-slate-600'>필터:</span>
 
           <Select
             value={(filter.locale ?? [])?.[0] ?? '__all__'}
