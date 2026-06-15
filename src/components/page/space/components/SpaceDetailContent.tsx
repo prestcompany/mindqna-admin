@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { Copy } from 'lucide-react';
+import { Bell, CalendarClock, Cat, Copy, CreditCard, Flag, Trash2, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { formatDate, formatDueRemovedAt, formatSpaceAge, getMetricAccent, getSpaceTypeConfig } from '../utils/space-display';
 import SpaceStatTile from './SpaceStatTile';
@@ -15,15 +15,33 @@ interface SpaceDetailContentProps {
 }
 
 function buildCoinMetaLabel(meta: SpaceCoinHistoryMeta) {
-  const signedAmount = meta.amount > 0 ? `+${meta.amount}` : `${meta.amount}`;
-  return signedAmount;
+  // amount는 양수 크기로 저장되고 isUse 플래그가 방향(사용/지급)을 결정한다.
+  // 부호를 isUse 기준으로 계산해 "사용"이 +로 표기되는 오류를 막는다.
+  const isSpend = meta.isUse || meta.amount < 0;
+  const magnitude = Math.abs(meta.amount);
+  return `${isSpend ? '-' : '+'}${magnitude}`;
 }
 
-function DetailRow({ label, value }: { label: string; value: ReactNode }) {
+function DetailField({
+  icon: Icon,
+  label,
+  value,
+  valueClassName,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: ReactNode;
+  valueClassName?: string;
+}) {
   return (
-    <div className='flex items-start justify-between gap-4 px-4 py-2.5'>
-      <dt className='shrink-0 text-sm text-muted-foreground'>{label}</dt>
-      <dd className='min-w-0 break-words text-right text-sm font-medium text-foreground'>{value}</dd>
+    <div className='flex items-start gap-3'>
+      <span className='mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background text-muted-foreground'>
+        <Icon className='h-4 w-4' />
+      </span>
+      <div className='min-w-0'>
+        <div className='text-xs text-muted-foreground'>{label}</div>
+        <div className={cn('mt-0.5 break-words text-sm font-medium text-foreground', valueClassName)}>{value}</div>
+      </div>
     </div>
   );
 }
@@ -90,17 +108,30 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
         <SpaceStatTile label='방 / 인테리어' value={`${roomCount} / ${interiorCount}`} />
       </div>
 
-      {/* 3. 상세 정보 — 테두리 격자 대신 깔끔한 dl */}
+      {/* 3. 상세 정보 — 아이콘 기반 필드 그리드 */}
       <section>
         <SectionTitle>상세 정보</SectionTitle>
-        <dl className='divide-y rounded-xl border'>
-          <DetailRow label='카드 / 최근 발급' value={`카드 ${detail.cardOrder ?? 0} · ${detail.latestCardIssuedAt ? formatDate(detail.latestCardIssuedAt, 'YY.MM.DD HH:mm') : '발급 기록 없음'}`} />
-          <DetailRow
+        <div className='grid grid-cols-1 gap-x-6 gap-y-5 rounded-xl bg-muted/30 px-4 py-4 sm:grid-cols-2 xl:grid-cols-3'>
+          <DetailField icon={Cat} label='펫 이름' value={detail.spaceInfo?.petName || '-'} />
+          <DetailField icon={Bell} label='공지 시간' value={detail.spaceInfo?.noticeTime || '-'} />
+          <DetailField
+            icon={Flag}
+            label='시작일'
+            value={detail.spaceInfo?.startedAt ? formatDate(detail.spaceInfo.startedAt, 'YY.MM.DD') : '-'}
+          />
+          <DetailField
+            icon={CreditCard}
+            label='카드 / 최근 발급'
+            value={`카드 ${detail.cardOrder ?? 0} · ${detail.latestCardIssuedAt ? formatDate(detail.latestCardIssuedAt, 'YY.MM.DD HH:mm') : '발급 없음'}`}
+          />
+          <DetailField icon={CalendarClock} label='다음 카드 생성 기준' value={detail.cardGenDate ?? '-'} />
+          <DetailField
+            icon={Trash2}
             label='삭제예정일'
             value={dueRemovedMeta ? `${dueRemovedMeta.dateText} (${dueRemovedMeta.gapLabel})` : '예정 없음'}
+            valueClassName={dueRemovedMeta ? 'text-rose-600' : undefined}
           />
-          <DetailRow label='다음 카드 생성 기준' value={detail.cardGenDate ?? '-'} />
-        </dl>
+        </div>
       </section>
 
       {/* 4. 멤버 */}
