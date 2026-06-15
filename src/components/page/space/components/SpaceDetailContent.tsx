@@ -110,8 +110,8 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
 
       {/* 2. KPI 그리드 — 숫자가 주인공. 0은 회색으로 */}
       <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6'>
-        <SpaceStatTile label='하트' value={detail.coin} accent={getMetricAccent(detail.coin, 'text-slate-950')} />
-        <SpaceStatTile label='스타' value={detail.coinPaid} accent={getMetricAccent(detail.coinPaid, 'text-slate-950')} />
+        <SpaceStatTile label='하트' value={detail.coin} accent={getMetricAccent(detail.coin, 'text-rose-500')} />
+        <SpaceStatTile label='스타' value={detail.coinPaid} accent={getMetricAccent(detail.coinPaid, 'text-amber-500')} />
         <SpaceStatTile label='멤버' value={memberCount} accent={getMetricAccent(memberCount, 'text-slate-950')} />
         <SpaceStatTile label='답변' value={replies} accent={getMetricAccent(replies, 'text-slate-950')} />
         <SpaceStatTile label='펫' value={`Lv.${petLevel}`} sub={`EXP ${petExp.toFixed(1)}`} />
@@ -202,22 +202,24 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
           <div className='max-h-[420px] divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-200/80 bg-white px-4 shadow-sm'>
             {detail.recentCoinMetas.map((meta) => {
               const actorName = meta.profile?.nickname ?? meta.profile?.user?.username ?? '-';
-              const isNegative = meta.amount < 0 || meta.isUse;
+              const isSpend = meta.isUse || meta.amount < 0;
               return (
-                <div key={meta.id} className='flex items-start gap-3 py-3'>
-                  <div className={cn('w-12 shrink-0 text-sm font-semibold tabular-nums', isNegative ? 'text-rose-600' : 'text-emerald-600')}>
-                    {buildCoinMetaLabel(meta)}
-                  </div>
+                <div key={meta.id} className='flex items-center gap-3 py-3'>
+                  <Badge variant={meta.isPaid ? 'softWarning' : 'softDanger'} className='w-11 shrink-0 justify-center'>
+                    {meta.isPaid ? '스타' : '하트'}
+                  </Badge>
                   <div className='min-w-0 flex-1'>
-                    <div className='flex flex-wrap items-center gap-x-2 text-sm'>
-                      <span className='truncate font-medium text-slate-900'>{actorName}</span>
-                      <span className='text-xs text-slate-500'>
-                        {meta.isUse ? '사용' : '지급/획득'} · {meta.isPaid ? '스타' : '하트'}
-                      </span>
+                    <div className='truncate text-sm font-medium text-slate-900'>{actorName}</div>
+                    <div className='truncate text-xs text-slate-500'>
+                      {isSpend ? '사용' : '지급'} · {meta.description || '사유 없음'}
                     </div>
-                    <div className='break-words text-xs text-slate-500'>{meta.description || '사유 없음'}</div>
                   </div>
-                  <div className='shrink-0 text-xs text-slate-500'>{formatDate(meta.createdAt)}</div>
+                  <div className='shrink-0 text-right'>
+                    <div className={cn('text-sm font-bold tabular-nums', isSpend ? 'text-rose-600' : 'text-emerald-600')}>
+                      {buildCoinMetaLabel(meta)}
+                    </div>
+                    <div className='text-[11px] text-slate-400'>{formatDate(meta.createdAt, 'MM.DD HH:mm')}</div>
+                  </div>
                 </div>
               );
             })}

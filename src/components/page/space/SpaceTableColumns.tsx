@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { Copy } from 'lucide-react';
-import { getSpaceTypeConfig } from './utils/space-display';
+import { getRecencyVariant, getSpaceTypeConfig } from './utils/space-display';
 
 export interface SpaceTableActionsProps {
   onViewProfiles: (space: Space) => void;
@@ -106,10 +106,10 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
     header: '하트/스타',
     size: 146,
     cell: ({ row }) => (
-      <div className='flex items-center gap-2 whitespace-nowrap text-sm font-medium tabular-nums text-slate-900'>
-        <span>하트 {row.original.coin}</span>
+      <div className='flex items-center gap-2 whitespace-nowrap text-sm font-semibold tabular-nums'>
+        <span className='text-rose-600'>하트 {row.original.coin}</span>
         <span className='text-slate-300'>·</span>
-        <span>스타 {row.original.coinPaid}</span>
+        <span className='text-amber-600'>스타 {row.original.coinPaid}</span>
       </div>
     ),
   },
@@ -148,7 +148,7 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
       const diffFromNow = Math.max(dayjs().diff(day, 'day'), 0);
       return (
         <div className='flex flex-row gap-1 items-center whitespace-nowrap'>
-          <Badge variant='softNeutral'>D+{diffFromNow}</Badge>
+          <Badge variant={getRecencyVariant(diffFromNow)}>D+{diffFromNow}</Badge>
           <div className='text-sm text-slate-500'>{day.format('YY.MM.DD HH:mm:ss')}</div>
         </div>
       );

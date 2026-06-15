@@ -29,18 +29,21 @@ export function buildRoomCategorySummary(rooms?: Room[]) {
 }
 
 export function getSpaceTypeConfig(type?: string | null) {
-  const typeTextMap: Record<string, string> = {
-    alone: '혼자',
-    couple: '커플',
-    family: '가족',
-    friends: '친구',
-  };
+  // 타입은 soft 톤으로 서로 구분되게 색을 부여한다 (alarming한 solid 색은 지양).
+  const map = {
+    alone: { text: '혼자', variant: 'softInfo' },
+    couple: { text: '커플', variant: 'tonePink' },
+    family: { text: '가족', variant: 'softSuccess' },
+    friends: { text: '친구', variant: 'softWarning' },
+  } as const;
+  return map[type as keyof typeof map] ?? { text: type ?? '-', variant: 'softNeutral' as const };
+}
 
-  // 카테고리(타입)는 의미색(빨강/초록 등) 대신 중립 톤으로 표기한다.
-  return {
-    text: typeTextMap[type ?? ''] ?? type ?? '-',
-    variant: 'softNeutral' as const,
-  };
+// 생성 경과일에 따른 신선도 색 (최근=초록, 중간=호박, 오래=중립)
+export function getRecencyVariant(diffDays: number) {
+  if (diffDays < 7) return 'softSuccess' as const;
+  if (diffDays < 30) return 'softWarning' as const;
+  return 'softNeutral' as const;
 }
 
 export function formatDate(value?: string | null, format = 'YY.MM.DD HH:mm:ss') {
