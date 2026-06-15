@@ -29,29 +29,29 @@ function SpaceResultCard({ space, onOpenDetail, onOpenCoin, copyId }: SpaceResul
           onOpenDetail(space);
         }
       }}
-      className='flex cursor-pointer items-center gap-4 rounded-xl border border-border/70 bg-card px-4 py-3 transition-colors hover:bg-muted/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+      className='flex cursor-pointer items-center gap-4 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300'
     >
       <div className='min-w-0 flex-1'>
         <div className='flex flex-wrap items-center gap-2'>
-          <span className='truncate font-semibold text-foreground'>{space.spaceInfo?.name ?? '-'}</span>
+          <span className='truncate font-semibold text-slate-900'>{space.spaceInfo?.name ?? '-'}</span>
           <Badge variant={typeConfig.variant}>{typeConfig.text}</Badge>
           <Badge variant='softNeutral'>{space.spaceInfo?.locale?.toUpperCase() ?? '-'}</Badge>
           <SpaceStatusDot active={space.isActive} />
         </div>
-        <div className='mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground'>
+        <div className='mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500'>
           <button
             type='button'
             onClick={(event) => {
               event.stopPropagation();
               copyId(space.id);
             }}
-            className='font-mono transition-colors hover:text-foreground'
+            className='font-mono transition-colors hover:text-slate-900'
           >
             {space.id}
           </button>
           <span>멤버 {memberCount}</span>
           <span>답변 {replies}</span>
-          <span className='tabular-nums'>♥ {space.coin} · ★ {space.coinPaid}</span>
+          <span className='tabular-nums'>하트 {space.coin} · 스타 {space.coinPaid}</span>
           <span>{createdLabel}</span>
         </div>
       </div>

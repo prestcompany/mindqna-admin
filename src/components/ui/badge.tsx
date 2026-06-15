@@ -24,7 +24,7 @@ const badgeVariants = cva(
         muted:
           "border-transparent bg-muted text-muted-foreground",
         softNeutral:
-          "border-border bg-muted/60 text-foreground/80 font-medium",
+          "border-slate-200 bg-slate-50 text-slate-600 font-medium",
         softSuccess:
           "border-emerald-200 bg-emerald-50 text-emerald-700 font-medium",
         softWarning:
@@ -32,7 +32,7 @@ const badgeVariants = cva(
         softDanger:
           "border-rose-200 bg-rose-50 text-rose-700 font-medium",
         softInfo:
-          "border-blue-200 bg-blue-50 text-blue-700 font-medium",
+          "border-sky-200 bg-sky-50 text-sky-700 font-medium",
       },
     },
     defaultVariants: {

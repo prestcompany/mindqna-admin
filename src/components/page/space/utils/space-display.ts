@@ -57,5 +57,5 @@ export function formatDueRemovedAt(value: string | null | undefined, createdAt: 
  * "값 없음"이 경고색으로 잘못 강조되는 것을 막는다.
  */
 export function getMetricAccent(value: number | null | undefined, activeClass: string) {
-  return value && value > 0 ? activeClass : 'text-muted-foreground';
+  return value && value > 0 ? activeClass : 'text-slate-400';
 }
