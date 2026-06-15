@@ -2,9 +2,17 @@ import { SpaceCoinHistoryMeta, SpaceDetail } from '@/client/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Bell, CalendarClock, Cat, Copy, CreditCard, Flag, Trash2, type LucideIcon } from 'lucide-react';
+import { Bell, CalendarClock, Cat, Copy, CreditCard, Flag, History, Home, Trash2, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { formatDate, formatDueRemovedAt, formatSpaceAge, getMetricAccent, getSpaceTypeConfig } from '../utils/space-display';
+import {
+  buildRoomCategorySummary,
+  formatDate,
+  formatDueRemovedAt,
+  formatSpaceAge,
+  getMetricAccent,
+  getPetTypeLabel,
+  getSpaceTypeConfig,
+} from '../utils/space-display';
 import SpaceStatTile from './SpaceStatTile';
 import SpaceStatusDot from './SpaceStatusDot';
 
@@ -62,6 +70,9 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
   const petExp = detail.pet?.exp ?? 0;
   const roomCount = detail.rooms?.length ?? 0;
   const interiorCount = detail.InteriorItem?.length ?? 0;
+  const petTypeLabel = getPetTypeLabel(detail.pet?.type);
+  const petNameValue = `${detail.spaceInfo?.petName || '-'}${petTypeLabel ? ` · ${petTypeLabel}` : ''}`;
+  const roomSummary = buildRoomCategorySummary(detail.rooms);
 
   return (
     <div className='space-y-6'>
@@ -111,19 +122,21 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
       <section>
         <SectionTitle>상세 정보</SectionTitle>
         <div className='grid grid-cols-1 gap-x-6 gap-y-5 rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm sm:grid-cols-2 xl:grid-cols-3'>
-          <DetailField icon={Cat} label='펫 이름' value={detail.spaceInfo?.petName || '-'} />
+          <DetailField icon={Cat} label='펫 이름 / 종류' value={petNameValue} />
           <DetailField icon={Bell} label='공지 시간' value={detail.spaceInfo?.noticeTime || '-'} />
           <DetailField
             icon={Flag}
             label='시작일'
             value={detail.spaceInfo?.startedAt ? formatDate(detail.spaceInfo.startedAt, 'YY.MM.DD') : '-'}
           />
+          <DetailField icon={Home} label='방 구성' value={roomSummary ?? `방 ${roomCount}`} />
           <DetailField
             icon={CreditCard}
             label='카드 / 최근 발급'
             value={`카드 ${detail.cardOrder ?? 0} · ${detail.latestCardIssuedAt ? formatDate(detail.latestCardIssuedAt, 'YY.MM.DD HH:mm') : '발급 없음'}`}
           />
           <DetailField icon={CalendarClock} label='다음 카드 생성 기준' value={detail.cardGenDate ?? '-'} />
+          <DetailField icon={History} label='최근 수정일' value={detail.updatedAt ? formatDate(detail.updatedAt) : '-'} />
           <DetailField
             icon={Trash2}
             label='삭제예정일'
@@ -141,19 +154,34 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
             {detail.profiles.map((profile) => {
               const isOwner = profile.userId === detail.spaceInfo?.ownerId;
               const initial = (profile.nickname ?? '?').trim().charAt(0).toUpperCase() || '?';
+              const userCode = profile.user?.code;
+              const latestAccessAt = profile.user?.latestAccessAt;
+              const showAccessLine = Boolean(latestAccessAt) || (profile.removed && Boolean(profile.removedAt));
               return (
-                <div key={profile.id} className='flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm'>
+                <div key={profile.id} className='flex items-start gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm'>
                   <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-500'>
                     {initial}
                   </div>
-                  <div className='min-w-0 flex-1'>
+                  <div className='min-w-0 flex-1 space-y-1'>
                     <div className='flex flex-wrap items-center gap-2'>
                       <span className='truncate font-medium text-slate-900'>{profile.nickname}</span>
                       {isOwner ? <Badge variant='softNeutral'>OWNER</Badge> : null}
                       {profile.isPremium ? <Badge variant='softSuccess'>PREMIUM</Badge> : null}
                       {profile.isGoldClub ? <Badge variant='softWarning'>GOLD CLUB</Badge> : null}
+                      {!profile.isAccepted ? <Badge variant='softWarning'>수락대기</Badge> : null}
+                      {profile.disabled ? <Badge variant='softNeutral'>비활성</Badge> : null}
+                      {profile.removed ? <Badge variant='softDanger'>탈퇴</Badge> : null}
                     </div>
-                    <div className='truncate text-xs text-slate-500'>@{profile.user?.username ?? '-'}</div>
+                    <div className='truncate text-xs text-slate-500'>
+                      @{profile.user?.username ?? '-'}
+                      {userCode ? ` · #${userCode}` : ''}
+                    </div>
+                    {showAccessLine ? (
+                      <div className='flex flex-wrap gap-x-3 text-xs text-slate-400'>
+                        {latestAccessAt ? <span>최근 접속 {formatDate(latestAccessAt, 'YY.MM.DD HH:mm')}</span> : null}
+                        {profile.removed && profile.removedAt ? <span>탈퇴 {formatDate(profile.removedAt, 'YY.MM.DD')}</span> : null}
+                      </div>
+                    ) : null}
                   </div>
                   <Button type='button' variant='ghost' size='sm' className='shrink-0' onClick={() => copyId(profile.user?.username ?? profile.id)}>
                     복사

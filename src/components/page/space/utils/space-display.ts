@@ -1,4 +1,32 @@
 import dayjs from 'dayjs';
+import type { Room } from '@/client/types';
+
+export function getPetTypeLabel(type?: string | null) {
+  const map: Record<string, string> = {
+    dog: '강아지',
+    cat: '고양이',
+    rebbit: '토끼',
+    squirrel: '다람쥐',
+    bear: '곰',
+    hamster: '햄스터',
+    chick: '병아리',
+    penguin: '펭귄',
+  };
+  return type ? map[type] ?? type : null;
+}
+
+export function buildRoomCategorySummary(rooms?: Room[]) {
+  if (!rooms?.length) return null;
+  const labelMap: Record<string, string> = { rooftop: '옥상', inner: '실내', outer: '실외' };
+  const counts = rooms.reduce<Record<string, number>>((acc, room) => {
+    acc[room.category] = (acc[room.category] ?? 0) + 1;
+    return acc;
+  }, {});
+  return (['rooftop', 'inner', 'outer'] as const)
+    .filter((category) => counts[category])
+    .map((category) => `${labelMap[category]} ${counts[category]}`)
+    .join(' · ');
+}
 
 export function getSpaceTypeConfig(type?: string | null) {
   const typeTextMap: Record<string, string> = {
