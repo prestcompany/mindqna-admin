@@ -1,14 +1,18 @@
 import dayjs from 'dayjs';
 
 export function getSpaceTypeConfig(type?: string | null) {
-  const typeMap = {
-    alone: { text: '혼자', variant: 'info' as const },
-    couple: { text: '커플', variant: 'destructive' as const },
-    family: { text: '가족', variant: 'success' as const },
-    friends: { text: '친구', variant: 'warning' as const },
+  const typeTextMap: Record<string, string> = {
+    alone: '혼자',
+    couple: '커플',
+    family: '가족',
+    friends: '친구',
   };
 
-  return typeMap[type as keyof typeof typeMap] ?? { text: type ?? '-', variant: 'muted' as const };
+  // 카테고리(타입)는 의미색(빨강/초록 등) 대신 중립 톤으로 표기한다.
+  return {
+    text: typeTextMap[type ?? ''] ?? type ?? '-',
+    variant: 'softNeutral' as const,
+  };
 }
 
 export function formatDate(value?: string | null, format = 'YY.MM.DD HH:mm:ss') {
@@ -46,4 +50,12 @@ export function formatDueRemovedAt(value: string | null | undefined, createdAt: 
     dateText: day.format('YY.MM.DD HH:mm:ss'),
     variant: diff < 60 ? 'destructive' : 'warning',
   } as const;
+}
+
+/**
+ * 지표 값에 적용할 색을 결정한다. 0(또는 falsy)이면 회색으로 떨어뜨려
+ * "값 없음"이 경고색으로 잘못 강조되는 것을 막는다.
+ */
+export function getMetricAccent(value: number | null | undefined, activeClass: string) {
+  return value && value > 0 ? activeClass : 'text-muted-foreground';
 }
