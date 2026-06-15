@@ -33,14 +33,14 @@ function SpaceActiveFilterChips({ params, onRemove }: SpaceActiveFilterChipsProp
       {chips.map((chip) => (
         <span
           key={chip.key}
-          className='inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 py-1 pl-3 pr-1.5 text-xs font-medium text-foreground/80'
+          className='inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white py-1 pl-3 pr-1.5 text-xs font-medium text-slate-600'
         >
           {chip.label}
           <button
             type='button'
             aria-label={`${chip.label} 필터 제거`}
             onClick={() => onRemove(chip.key)}
-            className='inline-flex h-4 w-4 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+            className='inline-flex h-4 w-4 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700'
           >
             <X className='h-3 w-3' />
           </button>

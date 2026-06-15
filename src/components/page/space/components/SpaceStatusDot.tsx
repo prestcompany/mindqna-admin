@@ -11,11 +11,11 @@ function SpaceStatusDot({ active, className }: SpaceStatusDotProps) {
       <span
         className={cn(
           'h-1.5 w-1.5 rounded-full',
-          active ? 'bg-emerald-500' : 'bg-muted-foreground/40',
+          active ? 'bg-emerald-500' : 'bg-slate-300',
         )}
         aria-hidden
       />
-      <span className={active ? 'text-emerald-700' : 'text-muted-foreground'}>
+      <span className={active ? 'text-emerald-700' : 'text-slate-500'}>
         {active ? 'Active' : 'Inactive'}
       </span>
     </span>
