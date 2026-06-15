@@ -67,7 +67,7 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
   },
   {
     id: 'membership',
-    header: '멤버 상태',
+    header: '멤버십',
     size: 150,
     cell: ({ row }) => {
       const hasPremium = row.original.hasPremiumMember ?? row.original.profiles?.some((profile) => profile.isPremium);
