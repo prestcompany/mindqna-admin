@@ -1,5 +1,6 @@
 import client from './@base';
 import {
+  CardEligibilityResult,
   QueryResultWithPagination,
   SearchPageResult,
   Space,
@@ -114,6 +115,12 @@ export async function getSpacePetInterior(id: string) {
 
 export async function getSpaceActivity(id: string, page: number) {
   const res = await client.get<SpaceActivityResult>(`/space/${id}/activity`, { params: { page } });
+
+  return res.data;
+}
+
+export async function getSpaceCardEligibility(id: string) {
+  const res = await client.get<CardEligibilityResult>(`/space/${id}/card-eligibility`);
 
   return res.data;
 }

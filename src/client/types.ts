@@ -551,6 +551,17 @@ export type SpaceAdsRow = { id: number; userId: string; description: string | nu
 
 export type SpaceActivityResult = SearchPageResult<SpaceAccessRow> & { recentAds: SpaceAdsRow[] };
 
+export type CardEligibilityCheck = { key: string; label: string; passed: boolean; detail?: string | null };
+
+export type CardEligibilityResult = {
+  canIssue: boolean;
+  cardOrder: number;
+  nextGenAt: string | null;
+  activeMembers: number;
+  lastCard: { order: number; replyCount: number } | null;
+  checks: CardEligibilityCheck[];
+};
+
 export type InteriorItem = {
   id: number;
   interiorTemplateId: number;
