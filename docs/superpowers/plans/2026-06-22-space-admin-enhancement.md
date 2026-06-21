@@ -751,6 +751,12 @@ git commit -m "feat(admin/space): add GET /admin/space/:id/members (profiles + r
 
 ## 프론트 (Phase 2 UI)
 
+> **디자인 준수 (필수):** 모든 프론트 작업은 `DESIGN.md`를 단일 출처로 따른다. 핵심:
+> - 표면 = `bg-white border-slate-200/80 shadow-sm`, 카드 `rounded-xl`. 텍스트 최저선 `slate-500`(`slate-400` 텍스트 금지).
+> - 색은 의미 신호에만: 재화 사용=`rose-600`/지급=`emerald-600`, 하트=rose·스타=amber, 상태=soft 뱃지. **단순 카운트는 중립 텍스트**(색 뱃지 남발 금지).
+> - 8px 간격(`gap-2/4/6`, `p-4/6`, `space-y-6`), `tabular-nums`, lucide 아이콘(이모지 금지).
+> - 신규 패턴 즉흥 도입 금지 — shadcn `Tabs`/`Badge`/`Button`·`AdminSideSheetContent`·기존 `space-display` 헬퍼 재사용.
+
 ### Task 2.5: 탭 응답 타입 추가
 
 **Files:**
@@ -774,7 +780,15 @@ export type SpaceCardRow = {
   commentCount: number;
 };
 
-export type SpaceCoinRow = SpaceCoinHistoryMeta;
+export type SpaceCoinRow = {
+  id: number;
+  isPaid: boolean;
+  amount: number;
+  isUse: boolean;
+  description?: string | null;
+  createdAt: string;
+  profile?: { id: string; nickname: string; user?: { id: string; username: string } } | null;
+};
 
 export type SpaceMemberRow = {
   id: string;
@@ -954,7 +968,6 @@ git commit -m "feat(space): add reusable paginated tab list wrapper"
 
 ```tsx
 import { getSpaceCards } from '@/client/space';
-import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useState } from 'react';
@@ -987,9 +1000,8 @@ function SpaceCardsTab({ spaceId, active }: { spaceId: string; active: boolean }
             <div className='text-sm font-medium text-slate-900'>#{card.order} · 템플릿 {card.templateId}</div>
             <div className='text-xs text-slate-500'>{dayjs(card.createdAt).format('YY.MM.DD HH:mm')}</div>
           </div>
-          <div className='flex shrink-0 items-center gap-2'>
-            <Badge variant='softInfo'>답변 {card.replyCount}</Badge>
-            <Badge variant='softNeutral'>댓글 {card.commentCount}</Badge>
+          <div className='shrink-0 text-xs tabular-nums text-slate-500'>
+            답변 {card.replyCount} · 댓글 {card.commentCount}
           </div>
         </div>
       ))}
@@ -1136,7 +1148,7 @@ function SpaceMembersTab({ spaceId, active }: { spaceId: string; active: boolean
         <h3 className='text-base font-semibold text-slate-900'>가입/초대 이력 ({data.joinMetas.length})</h3>
         {data.joinMetas.length ? (
           data.joinMetas.map((j) => (
-            <div key={j.id} className='flex items-center justify-between rounded-xl border border-slate-200/80 bg-white px-4 py-2.5 text-sm shadow-sm'>
+            <div key={j.id} className='flex items-center justify-between rounded-xl border border-slate-200/80 bg-white px-4 py-3 text-sm shadow-sm'>
               <span className='font-mono text-xs text-slate-600'>{j.userId}</span>
               <div className='flex items-center gap-2'>
                 <Badge variant={j.isAccepted ? 'softSuccess' : 'softWarning'}>{j.isAccepted ? '수락' : '대기'}</Badge>
@@ -1209,12 +1221,15 @@ function SpaceDetailSheet({ open, space, onClose, copyId }: SpaceDetailSheetProp
     <Sheet open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <AdminSideSheetContent title={detail.spaceInfo?.name ?? '공간 상세'} size='xl'>
         <Tabs value={tab} onValueChange={setTab} className='w-full'>
-          <TabsList className='mb-4 flex w-full flex-wrap justify-start gap-1'>
-            <TabsTrigger value='overview'>개요</TabsTrigger>
-            <TabsTrigger value='members'>멤버</TabsTrigger>
-            <TabsTrigger value='cards'>카드/답변</TabsTrigger>
-            <TabsTrigger value='coins'>재화 내역</TabsTrigger>
-          </TabsList>
+          {/* 기본 shadcn 세그먼트 룩 유지 + 좁은 폭에서는 가로 스크롤(줄바꿈으로 세그먼트가 깨지지 않게) */}
+          <div className='mb-4 overflow-x-auto'>
+            <TabsList>
+              <TabsTrigger value='overview'>개요</TabsTrigger>
+              <TabsTrigger value='members'>멤버</TabsTrigger>
+              <TabsTrigger value='cards'>카드/답변</TabsTrigger>
+              <TabsTrigger value='coins'>재화 내역</TabsTrigger>
+            </TabsList>
+          </div>
           <TabsContent value='overview'>
             {isLoading && !data ? (
               <div className='flex min-h-[320px] items-center justify-center'>
