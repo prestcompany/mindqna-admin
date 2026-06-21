@@ -2,7 +2,7 @@ import { SpaceCoinHistoryMeta, SpaceDetail } from '@/client/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Bell, CalendarClock, Cat, Copy, CreditCard, Flag, History, Home, Trash2, type LucideIcon } from 'lucide-react';
+import { Cat, Copy, Flag, History, Home, Trash2, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import {
   buildRoomCategorySummary,
@@ -123,19 +123,12 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
         <SectionTitle>상세 정보</SectionTitle>
         <div className='grid grid-cols-1 gap-x-6 gap-y-6 rounded-xl border border-slate-200/80 bg-white p-6 shadow-sm sm:grid-cols-2 xl:grid-cols-3'>
           <DetailField icon={Cat} label='펫 이름 / 종류' value={petNameValue} />
-          <DetailField icon={Bell} label='카드 발급 시간' value={detail.spaceInfo?.noticeTime || '-'} />
           <DetailField
             icon={Flag}
             label='시작일'
             value={detail.spaceInfo?.startedAt ? formatDate(detail.spaceInfo.startedAt, 'YY.MM.DD') : '-'}
           />
           <DetailField icon={Home} label='방 구성' value={roomSummary ?? `방 ${roomCount}`} />
-          <DetailField
-            icon={CreditCard}
-            label='카드 / 최근 발급'
-            value={`카드 ${detail.cardOrder ?? 0} · ${detail.latestCardIssuedAt ? formatDate(detail.latestCardIssuedAt, 'YY.MM.DD HH:mm') : '발급 없음'}`}
-          />
-          <DetailField icon={CalendarClock} label='다음 카드 생성 기준' value={detail.cardGenDate ?? '-'} />
           <DetailField icon={History} label='최근 수정일' value={detail.updatedAt ? formatDate(detail.updatedAt) : '-'} />
           <DetailField
             icon={Trash2}
