@@ -64,7 +64,7 @@ function SpaceDetailSheet({ open, space, onClose, copyId }: SpaceDetailSheetProp
               </div>
             ) : (
               <div className='space-y-6'>
-                <SpaceCardEligibilityPanel spaceId={id} active={tab === 'overview'} />
+                <SpaceCardEligibilityPanel spaceId={id} active={tab === 'overview'} detail={detail} />
                 <SpaceDetailContent detail={detail} copyId={copyId} />
               </div>
             )}
