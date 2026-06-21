@@ -5,6 +5,7 @@ import {
   SearchPageResult,
   Space,
   SpaceActivityResult,
+  SpaceCardRepliesResult,
   SpaceCardRow,
   SpaceCoinRow,
   SpaceDetail,
@@ -80,6 +81,12 @@ export async function searchSpaces(by: SearchSpacesParams) {
 
 export async function getSpaceCards(id: string, page: number) {
   const res = await client.get<SearchPageResult<SpaceCardRow>>(`/space/${id}/cards`, { params: { page } });
+
+  return res.data;
+}
+
+export async function getSpaceCardReplies(id: string, cardId: number) {
+  const res = await client.get<SpaceCardRepliesResult>(`/space/${id}/cards/${cardId}/replies`);
 
   return res.data;
 }

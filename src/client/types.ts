@@ -478,6 +478,21 @@ export type SpaceCardRow = {
   commentCount: number;
 };
 
+export type SpaceCardReply = {
+  id: number;
+  content: string;
+  createdAt: string;
+  profile?: { id: string; nickname: string } | null;
+};
+
+export type SpaceCardRepliesResult = {
+  id: number;
+  order: number;
+  createdAt: string;
+  templateName: string | null;
+  replies: SpaceCardReply[];
+};
+
 export type SpaceCoinRow = {
   id: number;
   isPaid: boolean;
