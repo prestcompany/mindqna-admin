@@ -516,6 +516,41 @@ export type SpaceMembersResult = {
   joinMetas: SpaceJoinMetaRow[];
 };
 
+export type SpaceDiaryRow = {
+  id: number;
+  date: string;
+  emotion: string;
+  content: string;
+  createdAt: string;
+  profile?: { id: string; nickname: string };
+  commentCount: number;
+  likeCount: number;
+};
+
+export type SpaceScheduleRow = {
+  id: number;
+  title: string;
+  startedAt: string;
+  endedAt: string;
+  color: string;
+  intervalType: string;
+  createdAt: string;
+  profile?: { id: string; nickname: string };
+};
+
+export type SpacePetInteriorResult = {
+  pet: { type: string | null; level: number; exp: number; updatedAt: string } | null;
+  customs: { id: number; petCustomTemplateId: number; customType: string; isEquipped: boolean }[];
+  rooms: { id: number; category: string; type: string; name: string; order: number }[];
+  interiorItems: { id: number; interiorTemplateId: number; createdAt: string }[];
+};
+
+export type SpaceAccessRow = { id: number; userId: string; heart: number; createdAt: string };
+
+export type SpaceAdsRow = { id: number; userId: string; description: string | null; createdAt: string };
+
+export type SpaceActivityResult = SearchPageResult<SpaceAccessRow> & { recentAds: SpaceAdsRow[] };
+
 export type InteriorItem = {
   id: number;
   interiorTemplateId: number;

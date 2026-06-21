@@ -7,9 +7,13 @@ import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import SpaceDetailContent from './SpaceDetailContent';
+import SpaceActivityTab from './tabs/SpaceActivityTab';
 import SpaceCardsTab from './tabs/SpaceCardsTab';
 import SpaceCoinsTab from './tabs/SpaceCoinsTab';
+import SpaceDiariesTab from './tabs/SpaceDiariesTab';
 import SpaceMembersTab from './tabs/SpaceMembersTab';
+import SpacePetInteriorTab from './tabs/SpacePetInteriorTab';
+import SpaceSchedulesTab from './tabs/SpaceSchedulesTab';
 
 interface SpaceDetailSheetProps {
   open: boolean;
@@ -46,6 +50,10 @@ function SpaceDetailSheet({ open, space, onClose, copyId }: SpaceDetailSheetProp
               <TabsTrigger value='members'>멤버</TabsTrigger>
               <TabsTrigger value='cards'>카드/답변</TabsTrigger>
               <TabsTrigger value='coins'>재화 내역</TabsTrigger>
+              <TabsTrigger value='diaries'>일기</TabsTrigger>
+              <TabsTrigger value='schedules'>일정</TabsTrigger>
+              <TabsTrigger value='pet'>펫/인테리어</TabsTrigger>
+              <TabsTrigger value='activity'>활동로그</TabsTrigger>
             </TabsList>
           </div>
           <TabsContent value='overview'>
@@ -65,6 +73,18 @@ function SpaceDetailSheet({ open, space, onClose, copyId }: SpaceDetailSheetProp
           </TabsContent>
           <TabsContent value='coins'>
             <SpaceCoinsTab spaceId={id} active={tab === 'coins'} />
+          </TabsContent>
+          <TabsContent value='diaries'>
+            <SpaceDiariesTab spaceId={id} active={tab === 'diaries'} />
+          </TabsContent>
+          <TabsContent value='schedules'>
+            <SpaceSchedulesTab spaceId={id} active={tab === 'schedules'} />
+          </TabsContent>
+          <TabsContent value='pet'>
+            <SpacePetInteriorTab spaceId={id} active={tab === 'pet'} />
+          </TabsContent>
+          <TabsContent value='activity'>
+            <SpaceActivityTab spaceId={id} active={tab === 'activity'} />
           </TabsContent>
         </Tabs>
       </AdminSideSheetContent>
