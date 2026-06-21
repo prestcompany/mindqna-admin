@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useState } from 'react';
+import SpaceCoinStats from './SpaceCoinStats';
 import SpaceTabList from './SpaceTabList';
 
 function SpaceCoinsTab({ spaceId, active }: { spaceId: string; active: boolean }) {
@@ -15,16 +16,18 @@ function SpaceCoinsTab({ spaceId, active }: { spaceId: string; active: boolean }
   });
   const items = data?.items ?? [];
   return (
-    <SpaceTabList
-      isLoading={isFetching && !data}
-      isEmpty={!!data && items.length === 0}
-      emptyText='재화 이용 내역이 없습니다.'
-      page={page}
-      totalPage={data?.pageInfo.totalPage ?? 1}
-      totalCount={data?.totalCount ?? 0}
-      onPageChange={setPage}
-    >
-      {items.map((meta) => {
+    <div className='space-y-4'>
+      <SpaceCoinStats spaceId={spaceId} active={active} />
+      <SpaceTabList
+        isLoading={isFetching && !data}
+        isEmpty={!!data && items.length === 0}
+        emptyText='재화 이용 내역이 없습니다.'
+        page={page}
+        totalPage={data?.pageInfo.totalPage ?? 1}
+        totalCount={data?.totalCount ?? 0}
+        onPageChange={setPage}
+      >
+        {items.map((meta) => {
         const isSpend = meta.isUse || meta.amount < 0;
         const actor = meta.profile?.nickname ?? meta.profile?.user?.username ?? '-';
         return (
@@ -51,7 +54,8 @@ function SpaceCoinsTab({ spaceId, active }: { spaceId: string; active: boolean }
           </div>
         );
       })}
-    </SpaceTabList>
+      </SpaceTabList>
+    </div>
   );
 }
 

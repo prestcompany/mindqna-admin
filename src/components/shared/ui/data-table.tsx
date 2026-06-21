@@ -203,10 +203,10 @@ function DataTable<TData, TValue>({
   return (
     <div className='space-y-4'>
       {countLabel !== undefined && (
-        <div className='text-sm text-muted-foreground'>{numeral(countLabel).format('0,0')}건</div>
+        <div className='text-sm font-medium text-slate-600'>{numeral(countLabel).format('0,0')}건</div>
       )}
       <TooltipProvider delayDuration={150}>
-        <div className='rounded-md border'>
+        <div className='overflow-hidden rounded-xl border border-slate-200/80 shadow-sm'>
           <Table className={hasSizedColumn ? 'table-fixed' : undefined}>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -215,7 +215,7 @@ function DataTable<TData, TValue>({
                     <TableHead
                       key={header.id}
                       className={cn(
-                        'overflow-hidden text-ellipsis whitespace-nowrap',
+                        'h-10 overflow-hidden whitespace-nowrap text-ellipsis text-xs font-semibold uppercase tracking-wide text-slate-500',
                         getStickyColumnClassName(header.column.columnDef, 'head'),
                       )}
                       style={getColumnStyle(header.column.columnDef.size)}
@@ -247,7 +247,7 @@ function DataTable<TData, TValue>({
                           <TableCell
                             key={cell.id}
                             className={cn(
-                              'max-w-0 overflow-hidden',
+                              'max-w-0 overflow-hidden py-3 text-sm tabular-nums text-slate-700',
                               getStickyColumnClassName(cell.column.columnDef, 'cell'),
                             )}
                             style={getColumnStyle(cell.column.columnDef.size)}
@@ -268,7 +268,7 @@ function DataTable<TData, TValue>({
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={columns.length} className='h-24 text-center text-muted-foreground'>
+                  <TableCell colSpan={columns.length} className='h-24 text-center text-sm text-slate-500'>
                     데이터가 없습니다
                   </TableCell>
                 </TableRow>

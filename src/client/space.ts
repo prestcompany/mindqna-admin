@@ -1,13 +1,16 @@
 import client from './@base';
 import {
+  CardEligibilityResult,
   QueryResultWithPagination,
   SearchPageResult,
   Space,
   SpaceActivityResult,
+  SpaceCardRepliesResult,
   SpaceCardRow,
   SpaceCoinRow,
   SpaceDetail,
   SpaceDiaryRow,
+  SpaceCoinStatsResult,
   SpaceMembersResult,
   SpacePetInteriorResult,
   SpaceScheduleRow,
@@ -82,6 +85,12 @@ export async function getSpaceCards(id: string, page: number) {
   return res.data;
 }
 
+export async function getSpaceCardReplies(id: string, cardId: number) {
+  const res = await client.get<SpaceCardRepliesResult>(`/space/${id}/cards/${cardId}/replies`);
+
+  return res.data;
+}
+
 export async function getSpaceCoins(id: string, page: number) {
   const res = await client.get<SearchPageResult<SpaceCoinRow>>(`/space/${id}/coins`, { params: { page } });
 
@@ -114,6 +123,18 @@ export async function getSpacePetInterior(id: string) {
 
 export async function getSpaceActivity(id: string, page: number) {
   const res = await client.get<SpaceActivityResult>(`/space/${id}/activity`, { params: { page } });
+
+  return res.data;
+}
+
+export async function getSpaceCardEligibility(id: string) {
+  const res = await client.get<CardEligibilityResult>(`/space/${id}/card-eligibility`);
+
+  return res.data;
+}
+
+export async function getSpaceCoinStats(id: string) {
+  const res = await client.get<SpaceCoinStatsResult>(`/space/${id}/coin-stats`);
 
   return res.data;
 }

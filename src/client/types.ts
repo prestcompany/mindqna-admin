@@ -478,6 +478,21 @@ export type SpaceCardRow = {
   commentCount: number;
 };
 
+export type SpaceCardReply = {
+  id: number;
+  content: string;
+  createdAt: string;
+  profile?: { id: string; nickname: string } | null;
+};
+
+export type SpaceCardRepliesResult = {
+  id: number;
+  order: number;
+  createdAt: string;
+  templateName: string | null;
+  replies: SpaceCardReply[];
+};
+
 export type SpaceCoinRow = {
   id: number;
   isPaid: boolean;
@@ -498,22 +513,13 @@ export type SpaceMemberRow = {
   removed: boolean;
   removedAt: string | null;
   createdAt: string;
-  user?: { id: string; username: string; code?: string | null };
+  user?: { id: string; username: string };
   img?: { uri: string } | null;
-};
-
-export type SpaceJoinMetaRow = {
-  id: number;
-  profileId: string;
-  userId: string;
-  isAccepted: boolean;
-  createdAt: string;
 };
 
 export type SpaceMembersResult = {
   ownerId: string | null;
   profiles: SpaceMemberRow[];
-  joinMetas: SpaceJoinMetaRow[];
 };
 
 export type SpaceDiaryRow = {
@@ -545,11 +551,45 @@ export type SpacePetInteriorResult = {
   interiorItems: { id: number; interiorTemplateId: number; createdAt: string }[];
 };
 
-export type SpaceAccessRow = { id: number; userId: string; heart: number; createdAt: string };
+export type SpaceAccessRow = {
+  id: number;
+  userId: string;
+  heart: number;
+  createdAt: string;
+  user?: { username: string } | null;
+};
 
-export type SpaceAdsRow = { id: number; userId: string; description: string | null; createdAt: string };
+export type SpaceAdsRow = {
+  id: number;
+  userId: string;
+  description: string | null;
+  createdAt: string;
+  user?: { username: string } | null;
+};
 
 export type SpaceActivityResult = SearchPageResult<SpaceAccessRow> & { recentAds: SpaceAdsRow[] };
+
+export type CoinDirectionSum = { given: number; used: number; net: number };
+
+export type CoinStatWindow = {
+  days: number;
+  current: CoinDirectionSum;
+  previous: CoinDirectionSum;
+  changeRate: number | null;
+};
+
+export type SpaceCoinStatsResult = { week: CoinStatWindow; month: CoinStatWindow };
+
+export type CardEligibilityCheck = { key: string; label: string; passed: boolean; detail?: string | null };
+
+export type CardEligibilityResult = {
+  canIssue: boolean;
+  cardOrder: number;
+  nextGenAt: string | null;
+  activeMembers: number;
+  lastCard: { order: number; replyCount: number } | null;
+  checks: CardEligibilityCheck[];
+};
 
 export type InteriorItem = {
   id: number;

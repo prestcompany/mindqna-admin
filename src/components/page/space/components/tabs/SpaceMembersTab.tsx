@@ -1,6 +1,5 @@
 import { getSpaceMembers } from '@/client/space';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { Loader2 } from 'lucide-react';
@@ -19,57 +18,45 @@ function SpaceMembersTab({ spaceId, active }: { spaceId: string; active: boolean
     );
   }
   if (!data) return null;
+  const activeCount = data.profiles.filter((p) => !p.removed && !p.disabled).length;
   return (
-    <div className='space-y-6'>
-      <section className='space-y-2'>
-        <h3 className='text-base font-semibold text-slate-900'>멤버 ({data.profiles.length})</h3>
-        {data.profiles.map((p) => (
-          <div
-            key={p.id}
-            className='flex items-center justify-between rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm'
-          >
-            <div className='min-w-0'>
-              <div className='flex flex-wrap items-center gap-2'>
-                <span className='truncate font-medium text-slate-900'>{p.nickname}</span>
-                {p.userId === data.ownerId ? <Badge variant='softNeutral'>OWNER</Badge> : null}
-                {p.isPremium ? <Badge variant='softSuccess'>PREMIUM</Badge> : null}
-                {p.isGoldClub ? <Badge variant='softWarning'>GOLD CLUB</Badge> : null}
-                {p.disabled ? <Badge variant='softNeutral'>비활성</Badge> : null}
-                {p.removed ? <Badge variant='softDanger'>탈퇴</Badge> : null}
-              </div>
-              <div className='truncate text-xs text-slate-500'>
-                @{p.user?.username ?? '-'}
-                {p.user?.code ? ` · #${p.user.code}` : ''}
-              </div>
-            </div>
-            <div className='shrink-0 text-xs text-slate-500'>{dayjs(p.createdAt).format('YY.MM.DD')}</div>
-          </div>
-        ))}
-      </section>
-      <section className='space-y-2'>
-        <h3 className='text-base font-semibold text-slate-900'>가입/초대 이력 ({data.joinMetas.length})</h3>
-        {data.joinMetas.length ? (
-          data.joinMetas.map((j) => (
+    <section className='space-y-2'>
+      <div className='flex items-center gap-2'>
+        <h3 className='text-base font-semibold text-slate-900'>멤버 {data.profiles.length}</h3>
+        <span className='text-xs text-slate-500'>활성 {activeCount}명</span>
+      </div>
+      <div className='space-y-2'>
+        {data.profiles.map((p) => {
+          const initial = (p.nickname ?? '?').trim().charAt(0).toUpperCase() || '?';
+          const isOwner = p.userId === data.ownerId;
+          return (
             <div
-              key={j.id}
-              className='flex items-center justify-between rounded-xl border border-slate-200/80 bg-white px-4 py-3 text-sm shadow-sm'
+              key={p.id}
+              className='flex items-start gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm'
             >
-              <span className='font-mono text-xs text-slate-600'>{j.userId}</span>
-              <div className='flex items-center gap-2'>
-                <Badge variant={j.isAccepted ? 'softSuccess' : 'softWarning'}>{j.isAccepted ? '수락' : '대기'}</Badge>
-                <span className='text-xs text-slate-500'>{dayjs(j.createdAt).format('YY.MM.DD HH:mm')}</span>
+              <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-500'>
+                {initial}
+              </div>
+              <div className='min-w-0 flex-1 space-y-1'>
+                <div className='flex flex-wrap items-center gap-2'>
+                  <span className='truncate font-medium text-slate-900'>{p.nickname}</span>
+                  {isOwner ? <Badge variant='softNeutral'>OWNER</Badge> : null}
+                  {p.isPremium ? <Badge variant='softSuccess'>PREMIUM</Badge> : null}
+                  {p.isGoldClub ? <Badge variant='softWarning'>GOLD CLUB</Badge> : null}
+                  {p.disabled ? <Badge variant='softNeutral'>비활성</Badge> : null}
+                  {p.removed ? <Badge variant='softDanger'>탈퇴</Badge> : null}
+                </div>
+                <div className='truncate text-xs text-slate-500'>@{p.user?.username ?? '-'}</div>
+                <div className='flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-slate-500'>
+                  <span>가입 {dayjs(p.createdAt).format('YY.MM.DD')}</span>
+                  {p.removed && p.removedAt ? <span>탈퇴 {dayjs(p.removedAt).format('YY.MM.DD')}</span> : null}
+                </div>
               </div>
             </div>
-          ))
-        ) : (
-          <Card className='bg-card'>
-            <CardContent className='py-6 text-center text-sm text-muted-foreground'>
-              가입/초대 이력이 없습니다.
-            </CardContent>
-          </Card>
-        )}
-      </section>
-    </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

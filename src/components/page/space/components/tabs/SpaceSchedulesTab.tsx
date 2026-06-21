@@ -25,7 +25,7 @@ function SpaceSchedulesTab({ spaceId, active }: { spaceId: string; active: boole
     <SpaceTabList
       isLoading={isFetching && !data}
       isEmpty={!!data && items.length === 0}
-      emptyText='등록된 일정이 없습니다.'
+      emptyText='이 공간에 등록된 캘린더 일정이 없습니다. (멤버가 앱에서 일정을 추가하면 표시됩니다)'
       page={page}
       totalPage={data?.pageInfo.totalPage ?? 1}
       totalCount={data?.totalCount ?? 0}
