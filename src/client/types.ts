@@ -526,11 +526,14 @@ export type SpaceDiaryRow = {
   id: number;
   date: string;
   emotion: string;
-  content: string;
   createdAt: string;
   profile?: { id: string; nickname: string };
   commentCount: number;
   likeCount: number;
+};
+
+export type SpaceDiaryDetail = SpaceDiaryRow & {
+  content: string;
 };
 
 export type SpaceScheduleRow = {
