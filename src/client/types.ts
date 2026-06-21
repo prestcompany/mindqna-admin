@@ -554,6 +554,17 @@ export type SpaceAdsRow = {
 
 export type SpaceActivityResult = SearchPageResult<SpaceAccessRow> & { recentAds: SpaceAdsRow[] };
 
+export type CoinDirectionSum = { given: number; used: number; net: number };
+
+export type CoinStatWindow = {
+  days: number;
+  current: CoinDirectionSum;
+  previous: CoinDirectionSum;
+  changeRate: number | null;
+};
+
+export type SpaceCoinStatsResult = { week: CoinStatWindow; month: CoinStatWindow };
+
 export type CardEligibilityCheck = { key: string; label: string; passed: boolean; detail?: string | null };
 
 export type CardEligibilityResult = {
