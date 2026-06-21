@@ -37,7 +37,8 @@ import { getRecencyVariant, getSpaceTypeConfig } from './utils/space-display';
 
 function SpaceSearch() {
   const [searchParams, setSearchParams] = useState({
-    keyword: '',
+    searchKey: 'spaceId' as 'spaceId' | 'name' | 'username' | 'nickname',
+    searchValue: '',
     type: undefined as SpaceType | undefined,
     locale: undefined as string | undefined,
     dateRange: {
@@ -59,15 +60,18 @@ function SpaceSearch() {
   } | null>(null);
 
   const getSearchParams = (page: number): SearchSpacesParams | null => {
-    const keyword = searchParams.keyword.trim();
+    const value = searchParams.searchValue.trim();
 
-    if (!keyword) {
+    if (!value) {
       return null;
     }
 
     return {
       page,
-      keyword,
+      spaceId: searchParams.searchKey === 'spaceId' ? value : undefined,
+      name: searchParams.searchKey === 'name' ? value : undefined,
+      username: searchParams.searchKey === 'username' ? value : undefined,
+      nickname: searchParams.searchKey === 'nickname' ? value : undefined,
       type: searchParams.type,
       locale: searchParams.locale,
       startDate: searchParams.dateRange.start?.format('YYYY-MM-DD'),
@@ -116,7 +120,8 @@ function SpaceSearch() {
 
   const handleResetFilters = () => {
     setSearchParams({
-      keyword: '',
+      searchKey: 'spaceId',
+      searchValue: '',
       type: undefined,
       locale: undefined,
       dateRange: {
@@ -303,15 +308,43 @@ function SpaceSearch() {
       <div className='space-y-4'>
         <FormSection
           title='공간 검색 및 필터'
-          description='공간 ID, 공간 이름, 사용자명, 프로필 닉네임을 하나의 검색어로 조회하고 조건을 추가로 필터링합니다.'
+          description='검색 기준을 선택해 해당 항목으로 조회합니다. 사용자명/공간 ID는 정확히 일치해야 합니다.'
         >
-          <FormGroup title='통합 검색'>
-            <Input
-              placeholder='공간 ID / 공간 이름 / 사용자명 / 프로필 닉네임'
-              value={searchParams.keyword}
-              onChange={(e) => setSearchParams((prev) => ({ ...prev, keyword: e.target.value }))}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            />
+          <FormGroup title='검색 기준'>
+            <div className='flex flex-col gap-2 sm:flex-row'>
+              <Select
+                value={searchParams.searchKey}
+                onValueChange={(v) =>
+                  setSearchParams((prev) => ({
+                    ...prev,
+                    searchKey: v as 'spaceId' | 'name' | 'username' | 'nickname',
+                  }))
+                }
+              >
+                <SelectTrigger className='w-full sm:w-[160px]'>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='spaceId'>공간 ID</SelectItem>
+                  <SelectItem value='name'>공간 이름</SelectItem>
+                  <SelectItem value='username'>사용자명</SelectItem>
+                  <SelectItem value='nickname'>프로필 닉네임</SelectItem>
+                </SelectContent>
+              </Select>
+              <Input
+                className='flex-1'
+                placeholder={
+                  searchParams.searchKey === 'username'
+                    ? '사용자명 정확히 입력'
+                    : searchParams.searchKey === 'spaceId'
+                      ? '공간 ID 정확히 입력'
+                      : '검색어 입력'
+                }
+                value={searchParams.searchValue}
+                onChange={(e) => setSearchParams((prev) => ({ ...prev, searchValue: e.target.value }))}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              />
+            </div>
           </FormGroup>
 
           <FormGroup title='공간 타입'>

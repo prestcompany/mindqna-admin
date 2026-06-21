@@ -463,6 +463,94 @@ export type SpaceDetail = Space & {
   recentCoinMetas: SpaceCoinHistoryMeta[];
 };
 
+export type SearchPageResult<T> = {
+  items: T[];
+  totalCount: number;
+  pageInfo: TotalPageInfo;
+};
+
+export type SpaceCardRow = {
+  id: number;
+  templateId: number;
+  order: number;
+  createdAt: string;
+  replyCount: number;
+  commentCount: number;
+};
+
+export type SpaceCoinRow = {
+  id: number;
+  isPaid: boolean;
+  amount: number;
+  isUse: boolean;
+  description?: string | null;
+  createdAt: string;
+  profile?: { id: string; nickname: string; user?: { id: string; username: string } } | null;
+};
+
+export type SpaceMemberRow = {
+  id: string;
+  nickname: string;
+  userId: string;
+  isPremium: boolean;
+  isGoldClub: boolean;
+  disabled: boolean;
+  removed: boolean;
+  removedAt: string | null;
+  createdAt: string;
+  user?: { id: string; username: string; code?: string | null };
+  img?: { uri: string } | null;
+};
+
+export type SpaceJoinMetaRow = {
+  id: number;
+  profileId: string;
+  userId: string;
+  isAccepted: boolean;
+  createdAt: string;
+};
+
+export type SpaceMembersResult = {
+  ownerId: string | null;
+  profiles: SpaceMemberRow[];
+  joinMetas: SpaceJoinMetaRow[];
+};
+
+export type SpaceDiaryRow = {
+  id: number;
+  date: string;
+  emotion: string;
+  content: string;
+  createdAt: string;
+  profile?: { id: string; nickname: string };
+  commentCount: number;
+  likeCount: number;
+};
+
+export type SpaceScheduleRow = {
+  id: number;
+  title: string;
+  startedAt: string;
+  endedAt: string;
+  color: string;
+  intervalType: string;
+  createdAt: string;
+  profile?: { id: string; nickname: string };
+};
+
+export type SpacePetInteriorResult = {
+  pet: { type: string | null; level: number; exp: number; updatedAt: string } | null;
+  customs: { id: number; petCustomTemplateId: number; customType: string; isEquipped: boolean }[];
+  rooms: { id: number; category: string; type: string; name: string; order: number }[];
+  interiorItems: { id: number; interiorTemplateId: number; createdAt: string }[];
+};
+
+export type SpaceAccessRow = { id: number; userId: string; heart: number; createdAt: string };
+
+export type SpaceAdsRow = { id: number; userId: string; description: string | null; createdAt: string };
+
+export type SpaceActivityResult = SearchPageResult<SpaceAccessRow> & { recentAds: SpaceAdsRow[] };
+
 export type InteriorItem = {
   id: number;
   interiorTemplateId: number;

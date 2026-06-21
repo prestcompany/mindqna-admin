@@ -1,5 +1,18 @@
 import client from './@base';
-import { QueryResultWithPagination, Space, SpaceDetail, SpaceType } from './types';
+import {
+  QueryResultWithPagination,
+  SearchPageResult,
+  Space,
+  SpaceActivityResult,
+  SpaceCardRow,
+  SpaceCoinRow,
+  SpaceDetail,
+  SpaceDiaryRow,
+  SpaceMembersResult,
+  SpacePetInteriorResult,
+  SpaceScheduleRow,
+  SpaceType,
+} from './types';
 
 export type SpaceOrderBy =
   | 'card'
@@ -59,6 +72,48 @@ export async function removeProfile(id: string) {
 
 export async function searchSpaces(by: SearchSpacesParams) {
   const res = await client.get<SearchSpacesResult>(`/space/search`, { params: by });
+
+  return res.data;
+}
+
+export async function getSpaceCards(id: string, page: number) {
+  const res = await client.get<SearchPageResult<SpaceCardRow>>(`/space/${id}/cards`, { params: { page } });
+
+  return res.data;
+}
+
+export async function getSpaceCoins(id: string, page: number) {
+  const res = await client.get<SearchPageResult<SpaceCoinRow>>(`/space/${id}/coins`, { params: { page } });
+
+  return res.data;
+}
+
+export async function getSpaceMembers(id: string) {
+  const res = await client.get<SpaceMembersResult>(`/space/${id}/members`);
+
+  return res.data;
+}
+
+export async function getSpaceDiaries(id: string, page: number) {
+  const res = await client.get<SearchPageResult<SpaceDiaryRow>>(`/space/${id}/diaries`, { params: { page } });
+
+  return res.data;
+}
+
+export async function getSpaceSchedules(id: string, page: number) {
+  const res = await client.get<SearchPageResult<SpaceScheduleRow>>(`/space/${id}/schedules`, { params: { page } });
+
+  return res.data;
+}
+
+export async function getSpacePetInterior(id: string) {
+  const res = await client.get<SpacePetInteriorResult>(`/space/${id}/pet-interior`);
+
+  return res.data;
+}
+
+export async function getSpaceActivity(id: string, page: number) {
+  const res = await client.get<SpaceActivityResult>(`/space/${id}/activity`, { params: { page } });
 
   return res.data;
 }
