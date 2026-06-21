@@ -498,22 +498,13 @@ export type SpaceMemberRow = {
   removed: boolean;
   removedAt: string | null;
   createdAt: string;
-  user?: { id: string; username: string; code?: string | null };
+  user?: { id: string; username: string };
   img?: { uri: string } | null;
-};
-
-export type SpaceJoinMetaRow = {
-  id: number;
-  profileId: string;
-  userId: string;
-  isAccepted: boolean;
-  createdAt: string;
 };
 
 export type SpaceMembersResult = {
   ownerId: string | null;
   profiles: SpaceMemberRow[];
-  joinMetas: SpaceJoinMetaRow[];
 };
 
 export type SpaceDiaryRow = {
@@ -545,9 +536,21 @@ export type SpacePetInteriorResult = {
   interiorItems: { id: number; interiorTemplateId: number; createdAt: string }[];
 };
 
-export type SpaceAccessRow = { id: number; userId: string; heart: number; createdAt: string };
+export type SpaceAccessRow = {
+  id: number;
+  userId: string;
+  heart: number;
+  createdAt: string;
+  user?: { username: string } | null;
+};
 
-export type SpaceAdsRow = { id: number; userId: string; description: string | null; createdAt: string };
+export type SpaceAdsRow = {
+  id: number;
+  userId: string;
+  description: string | null;
+  createdAt: string;
+  user?: { username: string } | null;
+};
 
 export type SpaceActivityResult = SearchPageResult<SpaceAccessRow> & { recentAds: SpaceAdsRow[] };
 

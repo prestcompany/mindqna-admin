@@ -29,10 +29,13 @@ function SpaceActivityTab({ spaceId, active }: { spaceId: string; active: boolea
           {items.map((row) => (
             <div
               key={row.id}
-              className='flex items-center justify-between rounded-xl border border-slate-200/80 bg-white px-4 py-3 text-sm shadow-sm'
+              className='flex items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3 text-sm shadow-sm'
             >
-              <span className='font-mono text-xs text-slate-600'>{row.userId}</span>
-              <div className='flex items-center gap-3'>
+              <div className='min-w-0'>
+                <div className='truncate font-medium text-slate-900'>@{row.user?.username ?? '알 수 없음'}</div>
+                <div className='truncate font-mono text-[11px] text-slate-500'>{row.userId}</div>
+              </div>
+              <div className='flex shrink-0 items-center gap-3'>
                 <span className='tabular-nums text-rose-600'>하트 +{row.heart}</span>
                 <span className='text-xs text-slate-500'>{dayjs(row.createdAt).format('YY.MM.DD HH:mm')}</span>
               </div>
@@ -50,8 +53,11 @@ function SpaceActivityTab({ spaceId, active }: { spaceId: string; active: boolea
                 className='flex items-center justify-between rounded-xl border border-slate-200/80 bg-white px-4 py-3 text-sm shadow-sm'
               >
                 <div className='min-w-0'>
-                  <div className='font-mono text-xs text-slate-600'>{ad.userId}</div>
-                  {ad.description ? <div className='truncate text-xs text-slate-500'>{ad.description}</div> : null}
+                  <div className='truncate font-medium text-slate-900'>@{ad.user?.username ?? '알 수 없음'}</div>
+                  <div className='truncate font-mono text-[11px] text-slate-500'>
+                    {ad.userId}
+                    {ad.description ? ` · ${ad.description}` : ''}
+                  </div>
                 </div>
                 <span className='shrink-0 text-xs text-slate-500'>{dayjs(ad.createdAt).format('YY.MM.DD HH:mm')}</span>
               </div>
