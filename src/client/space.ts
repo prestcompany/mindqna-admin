@@ -1,5 +1,14 @@
 import client from './@base';
-import { QueryResultWithPagination, Space, SpaceDetail, SpaceType } from './types';
+import {
+  QueryResultWithPagination,
+  SearchPageResult,
+  Space,
+  SpaceCardRow,
+  SpaceCoinRow,
+  SpaceDetail,
+  SpaceMembersResult,
+  SpaceType,
+} from './types';
 
 export type SpaceOrderBy =
   | 'card'
@@ -59,6 +68,24 @@ export async function removeProfile(id: string) {
 
 export async function searchSpaces(by: SearchSpacesParams) {
   const res = await client.get<SearchSpacesResult>(`/space/search`, { params: by });
+
+  return res.data;
+}
+
+export async function getSpaceCards(id: string, page: number) {
+  const res = await client.get<SearchPageResult<SpaceCardRow>>(`/space/${id}/cards`, { params: { page } });
+
+  return res.data;
+}
+
+export async function getSpaceCoins(id: string, page: number) {
+  const res = await client.get<SearchPageResult<SpaceCoinRow>>(`/space/${id}/coins`, { params: { page } });
+
+  return res.data;
+}
+
+export async function getSpaceMembers(id: string) {
+  const res = await client.get<SpaceMembersResult>(`/space/${id}/members`);
 
   return res.data;
 }

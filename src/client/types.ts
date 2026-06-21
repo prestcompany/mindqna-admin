@@ -463,6 +463,59 @@ export type SpaceDetail = Space & {
   recentCoinMetas: SpaceCoinHistoryMeta[];
 };
 
+export type SearchPageResult<T> = {
+  items: T[];
+  totalCount: number;
+  pageInfo: TotalPageInfo;
+};
+
+export type SpaceCardRow = {
+  id: number;
+  templateId: number;
+  order: number;
+  createdAt: string;
+  replyCount: number;
+  commentCount: number;
+};
+
+export type SpaceCoinRow = {
+  id: number;
+  isPaid: boolean;
+  amount: number;
+  isUse: boolean;
+  description?: string | null;
+  createdAt: string;
+  profile?: { id: string; nickname: string; user?: { id: string; username: string } } | null;
+};
+
+export type SpaceMemberRow = {
+  id: string;
+  nickname: string;
+  userId: string;
+  isPremium: boolean;
+  isGoldClub: boolean;
+  disabled: boolean;
+  removed: boolean;
+  removedAt: string | null;
+  createdAt: string;
+  user?: { id: string; username: string; code?: string | null };
+  img?: { uri: string } | null;
+};
+
+export type SpaceJoinMetaRow = {
+  id: number;
+  profileId: string;
+  userId: string;
+  isAccepted: boolean;
+  createdAt: string;
+};
+
+export type SpaceMembersResult = {
+  ownerId: string | null;
+  profiles: SpaceMemberRow[];
+  joinMetas: SpaceJoinMetaRow[];
+};
+
 export type InteriorItem = {
   id: number;
   interiorTemplateId: number;
