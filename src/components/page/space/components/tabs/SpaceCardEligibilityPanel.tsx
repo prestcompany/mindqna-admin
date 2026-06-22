@@ -1,10 +1,27 @@
 import { getSpaceCardEligibility } from '@/client/space';
-import type { SpaceDetail } from '@/client/types';
+import type { CardEligibilityStatus, SpaceDetail } from '@/client/types';
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { Check, Loader2, X } from 'lucide-react';
 import type { ReactNode } from 'react';
+
+type StatusVariant = 'softSuccess' | 'softInfo' | 'softWarning' | 'softDanger';
+
+const STATUS_META: Record<CardEligibilityStatus, { label: string; variant: StatusVariant; desc: string }> = {
+  issuable: { label: '발급 가능', variant: 'softSuccess', desc: '모든 조건을 충족해 다음 주기에 발급됩니다.' },
+  waitingSchedule: { label: '발급 대기', variant: 'softInfo', desc: '예정 시각이 되면 자동 발급됩니다. (정상 대기)' },
+  waitingParticipation: {
+    label: '참여 대기',
+    variant: 'softWarning',
+    desc: '직전 카드 참여가 부족해 멤버 답변을 기다리는 중입니다.',
+  },
+  inactive: { label: '비활성', variant: 'softWarning', desc: 'owner 첫 답변 전이라 공간이 비활성 상태입니다.' },
+  needsMembers: { label: '멤버 부족', variant: 'softWarning', desc: '그룹 공간은 활성 멤버 2명 이상이어야 발급됩니다.' },
+  noTemplate: { label: '템플릿 소진', variant: 'softDanger', desc: '발급할 다음 카드 템플릿이 없습니다. (조치 필요)' },
+  scheduledRemoval: { label: '삭제 예정', variant: 'softDanger', desc: '삭제 예정 공간이라 발급되지 않습니다.' },
+  error: { label: '공간 정보 없음', variant: 'softDanger', desc: '공간 정보가 없어 발급 판정이 불가합니다.' },
+};
 
 function Metric({ label, value }: { label: string; value: ReactNode }) {
   return (
@@ -39,6 +56,7 @@ function SpaceCardEligibilityPanel({
   }
   if (!data) return null;
 
+  const meta = STATUS_META[data.status] ?? STATUS_META.error;
   const blockedReasons = data.checks.filter((c) => !c.passed);
   const latestText = detail.latestCardIssuedAt
     ? dayjs(detail.latestCardIssuedAt).format('YY.MM.DD HH:mm')
@@ -49,9 +67,8 @@ function SpaceCardEligibilityPanel({
     <section className='space-y-3'>
       <div className='flex flex-wrap items-center gap-x-3 gap-y-1'>
         <h3 className='text-base font-semibold text-slate-900'>카드 발급 상태</h3>
-        <Badge variant={data.canIssue ? 'softSuccess' : 'softWarning'}>
-          {data.canIssue ? '발급 가능' : '발급 차단됨'}
-        </Badge>
+        <Badge variant={meta.variant}>{meta.label}</Badge>
+        <span className='text-xs text-slate-500'>{meta.desc}</span>
       </div>
 
       <div className='grid gap-4 lg:grid-cols-2'>
