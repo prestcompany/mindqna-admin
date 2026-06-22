@@ -536,6 +536,11 @@ export type SpaceDiaryDetail = SpaceDiaryRow & {
   content: string;
 };
 
+export type SpaceDiaryStats = {
+  total: number;
+  byEmotion: { emotion: string; count: number }[];
+};
+
 export type SpaceScheduleRow = {
   id: number;
   title: string;

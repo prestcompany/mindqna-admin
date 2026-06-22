@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import SpaceDiaryDetail from './SpaceDiaryDetail';
+import SpaceDiaryStats from './SpaceDiaryStats';
 import SpaceTabList from './SpaceTabList';
 
 function SpaceDiariesTab({ spaceId, active }: { spaceId: string; active: boolean }) {
@@ -18,15 +19,17 @@ function SpaceDiariesTab({ spaceId, active }: { spaceId: string; active: boolean
   });
   const items = data?.items ?? [];
   return (
-    <SpaceTabList
-      isLoading={isFetching && !data}
-      isEmpty={!!data && items.length === 0}
-      emptyText='작성된 일기가 없습니다.'
-      page={page}
-      totalPage={data?.pageInfo.totalPage ?? 1}
-      totalCount={data?.totalCount ?? 0}
-      onPageChange={setPage}
-    >
+    <div className='space-y-4'>
+      <SpaceDiaryStats spaceId={spaceId} active={active} />
+      <SpaceTabList
+        isLoading={isFetching && !data}
+        isEmpty={!!data && items.length === 0}
+        emptyText='작성된 일기가 없습니다.'
+        page={page}
+        totalPage={data?.pageInfo.totalPage ?? 1}
+        totalCount={data?.totalCount ?? 0}
+        onPageChange={setPage}
+      >
       {items.map((diary) => {
         const expanded = expandedId === diary.id;
         return (
@@ -57,7 +60,8 @@ function SpaceDiariesTab({ spaceId, active }: { spaceId: string; active: boolean
           </div>
         );
       })}
-    </SpaceTabList>
+      </SpaceTabList>
+    </div>
   );
 }
 
