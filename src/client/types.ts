@@ -584,6 +584,21 @@ export type SpaceScheduleRow = {
   profile?: { id: string; nickname: string };
 };
 
+export type SpaceScheduleDetail = {
+  id: number;
+  title: string;
+  startedAt: string;
+  endedAt: string;
+  color: string;
+  memo: string | null;
+  intervalType: string;
+  intervalEndedAt: string | null;
+  createdAt: string;
+  profile?: { id: string; nickname: string };
+  items: { id: number; date: string }[];
+  memberMetas: { id: number; profile?: { id: string; nickname: string } }[];
+};
+
 export type SpacePetInteriorResult = {
   pet: { type: string | null; level: number; exp: number; updatedAt: string } | null;
   customs: { id: number; petCustomTemplateId: number; customType: string; isEquipped: boolean }[];

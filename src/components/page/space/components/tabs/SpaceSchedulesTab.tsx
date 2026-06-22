@@ -1,8 +1,11 @@
 import { getSpaceSchedules } from '@/client/space';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
+import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
+import SpaceScheduleDetail from './SpaceScheduleDetail';
 import SpaceTabList from './SpaceTabList';
 
 const INTERVAL_LABEL: Record<string, string> = {
@@ -15,6 +18,7 @@ const INTERVAL_LABEL: Record<string, string> = {
 
 function SpaceSchedulesTab({ spaceId, active }: { spaceId: string; active: boolean }) {
   const [page, setPage] = useState(1);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
   const { data, isFetching } = useQuery({
     queryKey: ['space-schedules', spaceId, page],
     queryFn: () => getSpaceSchedules(spaceId, page),
@@ -31,29 +35,41 @@ function SpaceSchedulesTab({ spaceId, active }: { spaceId: string; active: boole
       totalCount={data?.totalCount ?? 0}
       onPageChange={setPage}
     >
-      {items.map((schedule) => (
-        <div
-          key={schedule.id}
-          className='flex items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm'
-        >
-          <div className='flex min-w-0 items-center gap-2.5'>
-            <span
-              className='h-2.5 w-2.5 shrink-0 rounded-full'
-              style={{ backgroundColor: schedule.color }}
-              aria-hidden
-            />
-            <div className='min-w-0'>
-              <div className='truncate text-sm font-medium text-slate-900'>{schedule.title}</div>
-              <div className='text-xs text-slate-500'>
-                {dayjs(schedule.startedAt).format('YY.MM.DD')} ~ {dayjs(schedule.endedAt).format('YY.MM.DD')}
+      {items.map((schedule) => {
+        const expanded = expandedId === schedule.id;
+        return (
+          <div key={schedule.id} className='overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm'>
+            <button
+              type='button'
+              onClick={() => setExpandedId(expanded ? null : schedule.id)}
+              className='flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50'
+            >
+              <div className='flex min-w-0 items-center gap-2.5'>
+                <span
+                  className='h-2.5 w-2.5 shrink-0 rounded-full'
+                  style={{ backgroundColor: schedule.color }}
+                  aria-hidden
+                />
+                <div className='min-w-0'>
+                  <div className='truncate text-sm font-medium text-slate-900'>{schedule.title}</div>
+                  <div className='text-xs text-slate-500'>
+                    {dayjs(schedule.startedAt).format('YY.MM.DD')} ~ {dayjs(schedule.endedAt).format('YY.MM.DD')}
+                  </div>
+                </div>
               </div>
-            </div>
+              <div className='flex shrink-0 items-center gap-2'>
+                <Badge variant='softNeutral'>{INTERVAL_LABEL[schedule.intervalType] ?? schedule.intervalType}</Badge>
+                <ChevronDown className={cn('h-4 w-4 text-slate-400 transition-transform', expanded && 'rotate-180')} />
+              </div>
+            </button>
+            {expanded ? (
+              <div className='border-t border-slate-100 bg-slate-50/40 px-4 py-3'>
+                <SpaceScheduleDetail spaceId={spaceId} scheduleId={schedule.id} />
+              </div>
+            ) : null}
           </div>
-          <Badge variant='softNeutral' className='shrink-0'>
-            {INTERVAL_LABEL[schedule.intervalType] ?? schedule.intervalType}
-          </Badge>
-        </div>
-      ))}
+        );
+      })}
     </SpaceTabList>
   );
 }

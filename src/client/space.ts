@@ -17,6 +17,7 @@ import {
   SpaceMemberDetail,
   SpaceMembersResult,
   SpacePetInteriorResult,
+  SpaceScheduleDetail,
   SpaceScheduleRow,
   SpaceType,
 } from './types';
@@ -133,6 +134,12 @@ export async function getSpaceDiaryStats(id: string) {
 
 export async function getSpaceSchedules(id: string, page: number) {
   const res = await client.get<SearchPageResult<SpaceScheduleRow>>(`/space/${id}/schedules`, { params: { page } });
+
+  return res.data;
+}
+
+export async function getSpaceScheduleDetail(id: string, scheduleId: number) {
+  const res = await client.get<SpaceScheduleDetail>(`/space/${id}/schedules/${scheduleId}`);
 
   return res.data;
 }
