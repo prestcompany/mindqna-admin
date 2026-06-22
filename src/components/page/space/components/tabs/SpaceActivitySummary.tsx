@@ -21,7 +21,7 @@ function SpaceActivitySummary({ spaceId, active }: { spaceId: string; active: bo
   const rateSub = data.lastCard ? `${data.lastCard.replyCount}/${data.lastCard.activeMembers} 답변` : undefined;
   return (
     <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
-      <SpaceStatTile label='최근 7일 접속' value={data.access7d} />
+      <SpaceStatTile label='최근 7일 접속 횟수' value={data.access7d} />
       <SpaceStatTile label='최근 30일 일기' value={data.diary30d} />
       <SpaceStatTile label='직전 카드 답변율' value={rateText} sub={rateSub} />
     </div>
