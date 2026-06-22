@@ -522,6 +522,38 @@ export type SpaceMembersResult = {
   profiles: SpaceMemberRow[];
 };
 
+export type SpacePremiumTicket = {
+  id: number;
+  platform: string;
+  productId: string;
+  dueAt: string | null;
+  isActive: boolean;
+  createdAt: string;
+};
+
+export type SpaceMemberDetail = {
+  profile: {
+    id: string;
+    nickname: string;
+    createdAt: string;
+    disabled: boolean;
+    removed: boolean;
+    removedAt: string | null;
+    isPremium: boolean;
+    isGoldClub: boolean;
+    user?: { id: string; username: string };
+  };
+  counts: {
+    replyCount: number;
+    diaryCount: number;
+    scheduleCount: number;
+    cardCommentCount: number;
+    diaryCommentCount: number;
+  };
+  coin: { given: number; used: number };
+  premiumTickets: SpacePremiumTicket[];
+};
+
 export type SpaceDiaryRow = {
   id: number;
   date: string;

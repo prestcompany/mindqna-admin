@@ -14,6 +14,7 @@ import {
   SpaceDiaryRow,
   SpaceDiaryStats,
   SpaceCoinStatsResult,
+  SpaceMemberDetail,
   SpaceMembersResult,
   SpacePetInteriorResult,
   SpaceScheduleRow,
@@ -102,6 +103,12 @@ export async function getSpaceCoins(id: string, page: number) {
 
 export async function getSpaceMembers(id: string) {
   const res = await client.get<SpaceMembersResult>(`/space/${id}/members`);
+
+  return res.data;
+}
+
+export async function getSpaceMemberDetail(id: string, profileId: string) {
+  const res = await client.get<SpaceMemberDetail>(`/space/${id}/members/${profileId}`);
 
   return res.data;
 }
