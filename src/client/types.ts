@@ -601,9 +601,20 @@ export type SpaceScheduleDetail = {
 
 export type SpacePetInteriorResult = {
   pet: { type: string | null; level: number; exp: number; updatedAt: string } | null;
-  customs: { id: number; petCustomTemplateId: number; customType: string; isEquipped: boolean }[];
+  customs: {
+    id: number;
+    petCustomTemplateId: number;
+    customType: string;
+    isEquipped: boolean;
+    template?: { name: string | null; type: string; img?: { uri: string } | null } | null;
+  }[];
   rooms: { id: number; category: string; type: string; name: string; order: number }[];
-  interiorItems: { id: number; interiorTemplateId: number; createdAt: string }[];
+  interiorItems: {
+    id: number;
+    interiorTemplateId: number;
+    createdAt: string;
+    template?: { name: string; category: string; type: string; img?: { uri: string } | null } | null;
+  }[];
 };
 
 export type SpaceAccessRow = {
