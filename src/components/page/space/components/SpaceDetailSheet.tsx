@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import SpaceDetailContent from './SpaceDetailContent';
+import SpaceIdentityStrip from './SpaceIdentityStrip';
 import SpaceActivityTab from './tabs/SpaceActivityTab';
 import SpaceCardEligibilityPanel from './tabs/SpaceCardEligibilityPanel';
 import SpaceCardsTab from './tabs/SpaceCardsTab';
@@ -64,6 +65,7 @@ function SpaceDetailSheet({ open, space, onClose, copyId }: SpaceDetailSheetProp
               </div>
             ) : (
               <div className='space-y-6'>
+                <SpaceIdentityStrip detail={detail} copyId={copyId} />
                 <SpaceCardEligibilityPanel spaceId={id} active={tab === 'overview'} detail={detail} />
                 <SpaceDetailContent detail={detail} copyId={copyId} />
               </div>

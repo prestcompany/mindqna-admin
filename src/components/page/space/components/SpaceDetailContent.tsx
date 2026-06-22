@@ -2,19 +2,16 @@ import { SpaceCoinHistoryMeta, SpaceDetail } from '@/client/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Cat, Copy, Flag, History, Home, Trash2, type LucideIcon } from 'lucide-react';
+import { Cat, Flag, History, Home, Trash2, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import {
   buildRoomCategorySummary,
   formatDate,
   formatDueRemovedAt,
-  formatSpaceAge,
   getMetricAccent,
   getPetTypeLabel,
-  getSpaceTypeConfig,
 } from '../utils/space-display';
 import SpaceStatTile from './SpaceStatTile';
-import SpaceStatusDot from './SpaceStatusDot';
 
 interface SpaceDetailContentProps {
   detail: SpaceDetail;
@@ -59,10 +56,7 @@ function SectionTitle({ children }: { children: ReactNode }) {
 
 function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
   const hasPremiumMember = detail.hasPremiumMember ?? detail.profiles?.some((profile) => profile.isPremium);
-  const hasGoldClubMember = detail.hasGoldClubMember ?? detail.profiles?.some((profile) => profile.isGoldClub);
-  const createdMeta = formatSpaceAge(detail.createdAt);
   const dueRemovedMeta = formatDueRemovedAt(detail.dueRemovedAt, detail.createdAt, hasPremiumMember);
-  const typeConfig = getSpaceTypeConfig(detail.spaceInfo?.type);
 
   const memberCount = detail.spaceInfo?.members ?? detail.profiles?.length ?? 0;
   const replies = detail.spaceInfo?.replies ?? 0;
@@ -76,39 +70,7 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
 
   return (
     <div className='space-y-6'>
-      {/* 1. Identity strip — 이름/타입/언어/상태/ID/생성·삭제를 한 곳으로 통합 */}
-      <div className='rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm'>
-        <div className='flex flex-wrap items-center gap-x-2 gap-y-1.5'>
-          <span className='truncate text-lg font-semibold text-slate-900'>{detail.spaceInfo?.name ?? '공간 상세'}</span>
-          <Badge variant={typeConfig.variant}>{typeConfig.text}</Badge>
-          <Badge variant='softNeutral'>{detail.spaceInfo?.locale?.toUpperCase() ?? '-'}</Badge>
-          <SpaceStatusDot active={detail.isActive} className='ml-1' />
-          {hasPremiumMember ? <Badge variant='softSuccess'>PREMIUM</Badge> : null}
-          {hasGoldClubMember ? <Badge variant='softWarning'>GOLD CLUB</Badge> : null}
-        </div>
-        <div className='mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500'>
-          <button
-            type='button'
-            onClick={() => copyId(detail.id)}
-            className='-mx-1.5 -my-1 inline-flex items-center gap-1 rounded px-1.5 py-1 font-mono text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900'
-          >
-            {detail.id}
-            <Copy className='h-3 w-3' />
-          </button>
-          <span aria-hidden>·</span>
-          <span>
-            생성 {createdMeta.diffLabel} · {createdMeta.dateText}
-          </span>
-          {dueRemovedMeta ? (
-            <>
-              <span aria-hidden>·</span>
-              <span className='font-medium text-rose-600'>삭제예정 {dueRemovedMeta.dateText}</span>
-            </>
-          ) : null}
-        </div>
-      </div>
-
-      {/* 2. KPI 그리드 — 숫자가 주인공. 0은 회색으로 */}
+      {/* KPI 그리드 — 숫자가 주인공. 0은 회색으로 */}
       <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6'>
         <SpaceStatTile label='하트' value={detail.coin} accent={getMetricAccent(detail.coin, 'text-rose-500')} />
         <SpaceStatTile label='스타' value={detail.coinPaid} accent={getMetricAccent(detail.coinPaid, 'text-amber-500')} />
