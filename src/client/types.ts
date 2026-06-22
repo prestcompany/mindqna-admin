@@ -654,8 +654,19 @@ export type SpaceCoinStatsResult = { week: CoinStatWindow; month: CoinStatWindow
 
 export type CardEligibilityCheck = { key: string; label: string; passed: boolean; detail?: string | null };
 
+export type CardEligibilityStatus =
+  | 'issuable'
+  | 'waitingSchedule'
+  | 'waitingParticipation'
+  | 'inactive'
+  | 'needsMembers'
+  | 'noTemplate'
+  | 'scheduledRemoval'
+  | 'error';
+
 export type CardEligibilityResult = {
   canIssue: boolean;
+  status: CardEligibilityStatus;
   cardOrder: number;
   nextGenAt: string | null;
   activeMembers: number;
