@@ -577,6 +577,12 @@ export type SpaceAdsRow = {
 
 export type SpaceActivityResult = SearchPageResult<SpaceAccessRow> & { recentAds: SpaceAdsRow[] };
 
+export type SpaceActivitySummary = {
+  access7d: number;
+  diary30d: number;
+  lastCard: { order: number; replyCount: number; activeMembers: number; rate: number } | null;
+};
+
 export type CoinDirectionSum = { given: number; used: number; net: number };
 
 export type CoinStatWindow = {

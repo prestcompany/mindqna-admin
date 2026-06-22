@@ -5,6 +5,7 @@ import {
   SearchPageResult,
   Space,
   SpaceActivityResult,
+  SpaceActivitySummary,
   SpaceCardRepliesResult,
   SpaceCardRow,
   SpaceCoinRow,
@@ -149,6 +150,12 @@ export async function getSpaceCardEligibility(id: string) {
 
 export async function getSpaceCoinStats(id: string) {
   const res = await client.get<SpaceCoinStatsResult>(`/space/${id}/coin-stats`);
+
+  return res.data;
+}
+
+export async function getSpaceActivitySummary(id: string) {
+  const res = await client.get<SpaceActivitySummary>(`/space/${id}/activity-summary`);
 
   return res.data;
 }
