@@ -1,4 +1,5 @@
 import { getSpaceMembers } from '@/client/space';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
@@ -34,9 +35,10 @@ function SpaceMembersTab({ spaceId, active }: { spaceId: string; active: boolean
               key={p.id}
               className='flex items-start gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm'
             >
-              <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-500'>
-                {initial}
-              </div>
+              <Avatar className='h-9 w-9 shrink-0'>
+                {p.img?.uri ? <AvatarImage src={p.img.uri} alt={p.nickname} className='object-cover' /> : null}
+                <AvatarFallback className='bg-slate-100 text-sm font-semibold text-slate-500'>{initial}</AvatarFallback>
+              </Avatar>
               <div className='min-w-0 flex-1 space-y-1'>
                 <div className='flex flex-wrap items-center gap-2'>
                   <span className='truncate font-medium text-slate-900'>{p.nickname}</span>

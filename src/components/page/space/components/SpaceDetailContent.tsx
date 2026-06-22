@@ -1,4 +1,5 @@
 import { SpaceCoinHistoryMeta, SpaceDetail } from '@/client/types';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -114,9 +115,10 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
               const showAccessLine = Boolean(latestAccessAt) || (profile.removed && Boolean(profile.removedAt));
               return (
                 <div key={profile.id} className='flex items-start gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm'>
-                  <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-500'>
-                    {initial}
-                  </div>
+                  <Avatar className='h-9 w-9 shrink-0'>
+                    {profile.img?.uri ? <AvatarImage src={profile.img.uri} alt={profile.nickname} className='object-cover' /> : null}
+                    <AvatarFallback className='bg-slate-100 text-sm font-semibold text-slate-500'>{initial}</AvatarFallback>
+                  </Avatar>
                   <div className='min-w-0 flex-1 space-y-1'>
                     <div className='flex flex-wrap items-center gap-2'>
                       <span className='truncate font-medium text-slate-900'>{profile.nickname}</span>
