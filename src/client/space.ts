@@ -5,15 +5,19 @@ import {
   SearchPageResult,
   Space,
   SpaceActivityResult,
+  SpaceActivitySummary,
   SpaceCardRepliesResult,
   SpaceCardRow,
   SpaceCoinRow,
   SpaceDetail,
   SpaceDiaryDetail,
   SpaceDiaryRow,
+  SpaceDiaryStats,
   SpaceCoinStatsResult,
+  SpaceMemberDetail,
   SpaceMembersResult,
   SpacePetInteriorResult,
+  SpaceScheduleDetail,
   SpaceScheduleRow,
   SpaceType,
 } from './types';
@@ -104,6 +108,12 @@ export async function getSpaceMembers(id: string) {
   return res.data;
 }
 
+export async function getSpaceMemberDetail(id: string, profileId: string) {
+  const res = await client.get<SpaceMemberDetail>(`/space/${id}/members/${profileId}`);
+
+  return res.data;
+}
+
 export async function getSpaceDiaries(id: string, page: number) {
   const res = await client.get<SearchPageResult<SpaceDiaryRow>>(`/space/${id}/diaries`, { params: { page } });
 
@@ -116,8 +126,20 @@ export async function getSpaceDiary(id: string, diaryId: number) {
   return res.data;
 }
 
+export async function getSpaceDiaryStats(id: string) {
+  const res = await client.get<SpaceDiaryStats>(`/space/${id}/diary-stats`);
+
+  return res.data;
+}
+
 export async function getSpaceSchedules(id: string, page: number) {
   const res = await client.get<SearchPageResult<SpaceScheduleRow>>(`/space/${id}/schedules`, { params: { page } });
+
+  return res.data;
+}
+
+export async function getSpaceScheduleDetail(id: string, scheduleId: number) {
+  const res = await client.get<SpaceScheduleDetail>(`/space/${id}/schedules/${scheduleId}`);
 
   return res.data;
 }
@@ -142,6 +164,12 @@ export async function getSpaceCardEligibility(id: string) {
 
 export async function getSpaceCoinStats(id: string) {
   const res = await client.get<SpaceCoinStatsResult>(`/space/${id}/coin-stats`);
+
+  return res.data;
+}
+
+export async function getSpaceActivitySummary(id: string) {
+  const res = await client.get<SpaceActivitySummary>(`/space/${id}/activity-summary`);
 
   return res.data;
 }

@@ -8,6 +8,7 @@ import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import SpaceDetailContent from './SpaceDetailContent';
 import SpaceIdentityStrip from './SpaceIdentityStrip';
+import SpaceActivitySummary from './tabs/SpaceActivitySummary';
 import SpaceActivityTab from './tabs/SpaceActivityTab';
 import SpaceCardEligibilityPanel from './tabs/SpaceCardEligibilityPanel';
 import SpaceCardsTab from './tabs/SpaceCardsTab';
@@ -66,6 +67,7 @@ function SpaceDetailSheet({ open, space, onClose, copyId }: SpaceDetailSheetProp
             ) : (
               <div className='space-y-6'>
                 <SpaceIdentityStrip detail={detail} copyId={copyId} />
+                <SpaceActivitySummary spaceId={id} active={tab === 'overview'} />
                 <SpaceCardEligibilityPanel spaceId={id} active={tab === 'overview'} detail={detail} />
                 <SpaceDetailContent detail={detail} copyId={copyId} />
               </div>

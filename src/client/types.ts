@@ -522,6 +522,38 @@ export type SpaceMembersResult = {
   profiles: SpaceMemberRow[];
 };
 
+export type SpacePremiumTicket = {
+  id: number;
+  platform: string;
+  productId: string;
+  dueAt: string | null;
+  isActive: boolean;
+  createdAt: string;
+};
+
+export type SpaceMemberDetail = {
+  profile: {
+    id: string;
+    nickname: string;
+    createdAt: string;
+    disabled: boolean;
+    removed: boolean;
+    removedAt: string | null;
+    isPremium: boolean;
+    isGoldClub: boolean;
+    user?: { id: string; username: string };
+  };
+  counts: {
+    replyCount: number;
+    diaryCount: number;
+    scheduleCount: number;
+    cardCommentCount: number;
+    diaryCommentCount: number;
+  };
+  coin: { given: number; used: number };
+  premiumTickets: SpacePremiumTicket[];
+};
+
 export type SpaceDiaryRow = {
   id: number;
   date: string;
@@ -536,6 +568,11 @@ export type SpaceDiaryDetail = SpaceDiaryRow & {
   content: string;
 };
 
+export type SpaceDiaryStats = {
+  total: number;
+  byEmotion: { emotion: string; count: number }[];
+};
+
 export type SpaceScheduleRow = {
   id: number;
   title: string;
@@ -547,11 +584,37 @@ export type SpaceScheduleRow = {
   profile?: { id: string; nickname: string };
 };
 
+export type SpaceScheduleDetail = {
+  id: number;
+  title: string;
+  startedAt: string;
+  endedAt: string;
+  color: string;
+  memo: string | null;
+  intervalType: string;
+  intervalEndedAt: string | null;
+  createdAt: string;
+  profile?: { id: string; nickname: string };
+  items: { id: number; date: string }[];
+  memberMetas: { id: number; profile?: { id: string; nickname: string } }[];
+};
+
 export type SpacePetInteriorResult = {
   pet: { type: string | null; level: number; exp: number; updatedAt: string } | null;
-  customs: { id: number; petCustomTemplateId: number; customType: string; isEquipped: boolean }[];
+  customs: {
+    id: number;
+    petCustomTemplateId: number;
+    customType: string;
+    isEquipped: boolean;
+    template?: { name: string | null; type: string; img?: { uri: string } | null } | null;
+  }[];
   rooms: { id: number; category: string; type: string; name: string; order: number }[];
-  interiorItems: { id: number; interiorTemplateId: number; createdAt: string }[];
+  interiorItems: {
+    id: number;
+    interiorTemplateId: number;
+    createdAt: string;
+    template?: { name: string; category: string; type: string; img?: { uri: string } | null } | null;
+  }[];
 };
 
 export type SpaceAccessRow = {
@@ -571,6 +634,12 @@ export type SpaceAdsRow = {
 };
 
 export type SpaceActivityResult = SearchPageResult<SpaceAccessRow> & { recentAds: SpaceAdsRow[] };
+
+export type SpaceActivitySummary = {
+  access7d: number;
+  diary30d: number;
+  lastCard: { order: number; replyCount: number; activeMembers: number; rate: number } | null;
+};
 
 export type CoinDirectionSum = { given: number; used: number; net: number };
 
