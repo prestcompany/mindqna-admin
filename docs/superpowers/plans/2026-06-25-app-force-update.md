@@ -95,6 +95,7 @@ function createPrismaMock() {
 describe('CoreService.getVersionPolicies', () => {
   let service: { getVersionPolicies: () => Promise<any> };
   let prisma: ReturnType<typeof createPrismaMock>;
+  const ENV_SNAPSHOT = { ...process.env };
 
   beforeEach(async () => {
     prisma = createPrismaMock();
@@ -104,7 +105,10 @@ describe('CoreService.getVersionPolicies', () => {
     service = moduleRef.get(CoreService);
   });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...ENV_SNAPSHOT };
+  });
 
   it('maps db rows into ios/android policy map', async () => {
     prisma.appVersionPolicy.findMany.mockResolvedValue([
@@ -324,7 +328,7 @@ export class AppVersionController {
     return (await this.appVersionService.getPolicies()) as any;
   }
 
-  @TypedRoute.Patch(':platform')
+  @TypedRoute.Put(':platform')
   async updatePolicy(@TypedParam('platform') platform: AppPlatform, @TypedBody() body: UpdateAppVersionParams) {
     return (await this.appVersionService.updatePolicy(platform, body)) as any;
   }
@@ -358,7 +362,7 @@ import { AppVersionModule } from './app-version/app-version.module';
 
 ```bash
 git add src/admin/app-version src/admin/admin.module.ts
-git commit -m "feat(admin/app-version): add GET/PATCH /admin/app-version policy endpoints"
+git commit -m "feat(admin/app-version): add GET/PUT /admin/app-version policy endpoints"
 ```
 
 ## Task 4: 프론트 타입 + client
@@ -398,7 +402,7 @@ export async function getAppVersionPolicies() {
 }
 
 export async function updateAppVersionPolicy(platform: AppPlatform, body: UpdateAppVersionParams) {
-  const res = await client.patch<AppVersionPolicy>(`/app-version/${platform}`, body);
+  const res = await client.put<AppVersionPolicy>(`/app-version/${platform}`, body);
 
   return res.data;
 }
@@ -548,12 +552,12 @@ function AppVersionManager() {
 
 export default AppVersionManager;
 ```
-> 의존: shadcn `Switch`가 `src/components/ui/switch.tsx`에 있는지 Step 2에서 확인. 없으면 `npx shadcn-ui@latest add switch` 또는 RadioGroup(on/off)로 대체.
+> 의존: shadcn `Switch`(`src/components/ui/switch.tsx`)는 **존재 확인됨** — 그대로 import.
 
 - [ ] **Step 2: Switch 컴포넌트 존재 확인**
 
 Run: `cd /Users/gargoyle92/Documents/frontend/mindqna-admin && ls src/components/ui/switch.tsx`
-Expected: 파일 존재. 없으면 `npx shadcn-ui@latest add switch` 실행(또는 `forceEnabled`를 RadioGroup '강제/선택'으로 대체하고 import 교체).
+Expected: 파일 존재 (확인됨). 그대로 사용.
 
 - [ ] **Step 3: 페이지 작성** — `src/pages/app-version/index.tsx`:
 
@@ -608,7 +612,7 @@ git commit -m "feat(app-version): add admin page to manage per-platform version 
 ## 최종 검증
 - [ ] 백엔드: `yarn test src/core/core.service.spec.ts src/admin/app-version/app-version.service.spec.ts` 전부 PASS, `yarn build` 성공.
 - [ ] 프론트: `npx tsc --noEmit` 0 errors, `yarn lint` 무경고, `yarn build` 성공.
-- [ ] 수동: `GET /admin/app-version` 200(2 플랫폼), `PATCH /admin/app-version/ios` 반영, `GET /core/check` 응답에 `policies.{ios,android}` 포함.
+- [ ] 수동: `GET /admin/app-version` 200(2 플랫폼), `PUT /admin/app-version/ios` 반영, `GET /core/check` 응답에 `policies.{ios,android}` 포함.
 
 ## 비범위
 - `prisma migrate` 미사용(테이블 수동 생성). `prisma generate`만.
