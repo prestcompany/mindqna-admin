@@ -754,3 +754,19 @@ export type UpdateRuleParams = CreateRuleParams & {
   id: number;
   isActive: boolean;
 };
+
+export type AppPlatform = 'ios' | 'android';
+
+export type AppVersionPolicy = {
+  platform: AppPlatform;
+  minVersionCode: number;
+  minVersionName: string;
+  latestVersionCode: number;
+  latestVersionName: string;
+  forceEnabled: boolean;
+  updatedAt: string;
+};
+
+export type AppVersionPolicies = { ios: AppVersionPolicy | null; android: AppVersionPolicy | null };
+
+export type UpdateAppVersionParams = Omit<AppVersionPolicy, 'platform' | 'updatedAt'>;
