@@ -118,17 +118,10 @@ function PlatformCard({ platform, label }: { platform: AppPlatform; label: strin
 
 function AppVersionManager() {
   return (
-    <div className='space-y-4'>
-      <div className='rounded-xl border border-slate-200/80 bg-white px-5 py-4 text-sm text-slate-600 shadow-sm'>
-        설치된 앱의 <span className='font-medium text-slate-900'>versionCode(정수 빌드 번호)</span>가{' '}
-        <span className='font-medium text-slate-900'>최소 버전</span> 미만이면 강제 업데이트(차단)됩니다. 버전 이름은
-        표시용이며, 변경 시 재배포 없이 즉시 반영됩니다.
-      </div>
-      <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-        {PLATFORMS.map((p) => (
-          <PlatformCard key={p.key} platform={p.key} label={p.label} />
-        ))}
-      </div>
+    <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+      {PLATFORMS.map((p) => (
+        <PlatformCard key={p.key} platform={p.key} label={p.label} />
+      ))}
     </div>
   );
 }
