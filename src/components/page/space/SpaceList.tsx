@@ -24,6 +24,7 @@ import { toast } from 'sonner';
 import CoinForm from './CoinForm';
 import SpaceSearch from './SpaceSearch';
 import { createSpaceTableColumns } from './SpaceTableColumns';
+import BulkMessageKeywords from './components/BulkMessageKeywords';
 import SpaceDetailSheet from './components/SpaceDetailSheet';
 import SpaceFilterBar from './components/SpaceFilterBar';
 import SpaceProfileModal from './components/SpaceProfileModal';
@@ -381,6 +382,9 @@ function SpaceList() {
             <div className='space-y-2'>
               <label className='block text-sm font-medium text-foreground'>메시지</label>
               <Input value={bulkMeta} onChange={(e) => setBulkMeta(e.target.value)} placeholder='메시지 내용' />
+              <BulkMessageKeywords
+                onPick={(keyword) => setBulkMeta((prev) => (prev.trim() ? `${prev} ${keyword}` : keyword))}
+              />
             </div>
 
             {bulkResult?.status === 'partial' ? (
