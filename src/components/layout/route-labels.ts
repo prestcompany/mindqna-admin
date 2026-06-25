@@ -31,6 +31,7 @@ export const ROUTE_LABELS: Record<string, string> = {
   'square-library': '라이브러리',
   info: '소식',
   article: '아티클',
+  'app-version': '앱 버전 관리',
 };
 
 const COMPOSITE_LAST_SEGMENTS = new Set(['list', 'new']);
