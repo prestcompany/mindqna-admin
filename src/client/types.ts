@@ -761,8 +761,6 @@ export type AppVersionPolicy = {
   platform: AppPlatform;
   minVersionCode: number;
   minVersionName: string;
-  latestVersionCode: number;
-  latestVersionName: string;
   forceEnabled: boolean;
   updatedAt: string;
 };
