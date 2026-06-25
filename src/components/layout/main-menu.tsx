@@ -6,6 +6,7 @@ import {
   LucideLayoutGrid,
   MegaphoneIcon,
   ShoppingCartIcon,
+  Smartphone,
   UsersIcon,
 } from 'lucide-react';
 import React from 'react';
@@ -111,6 +112,12 @@ const systemMenu: IMenu[] = [
       { id: 'assets', name: '이미지 관리', link: { path: '/resource/assets' } },
       { id: 'locales', name: '다국어 관리', link: { path: '/resource/locales' } },
     ],
+  },
+  {
+    id: 'app-version',
+    name: '앱 버전 관리',
+    icon: <Smartphone className='w-4 h-4' />,
+    link: { path: '/app-version' },
   },
 ];
 
