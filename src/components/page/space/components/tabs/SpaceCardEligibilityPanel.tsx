@@ -1,10 +1,25 @@
-import { getSpaceCardEligibility } from '@/client/space';
+import { forceCreateCard, getSpaceCardEligibility } from '@/client/space';
 import type { CardEligibilityStatus, SpaceDetail } from '@/client/types';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { Check, Loader2, X } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+
+const FORCE_ISSUABLE_STATUSES = ['waitingSchedule', 'waitingParticipation', 'needsMembers'];
 
 type StatusVariant = 'softSuccess' | 'softInfo' | 'softWarning' | 'softDanger';
 
@@ -47,6 +62,21 @@ function SpaceCardEligibilityPanel({
     enabled: active && !!spaceId,
   });
 
+  const queryClient = useQueryClient();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const mutation = useMutation({
+    mutationFn: () => forceCreateCard(spaceId),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['space-card-eligibility', spaceId] }),
+        queryClient.invalidateQueries({ queryKey: ['space-detail', spaceId] }),
+      ]);
+      toast.success('카드를 강제 발급했습니다.');
+      setConfirmOpen(false);
+    },
+    onError: (err) => toast.error((err as any)?.response?.data?.message ?? `${err}`),
+  });
+
   if (isFetching && !data) {
     return (
       <div className='flex min-h-[120px] items-center justify-center rounded-xl border border-slate-200/80 bg-white shadow-sm'>
@@ -65,11 +95,47 @@ function SpaceCardEligibilityPanel({
 
   return (
     <section className='space-y-3'>
-      <div className='flex flex-wrap items-center gap-x-3 gap-y-1'>
-        <h3 className='text-base font-semibold text-slate-900'>카드 발급 상태</h3>
-        <Badge variant={meta.variant}>{meta.label}</Badge>
-        <span className='text-xs text-slate-500'>{meta.desc}</span>
+      <div className='flex items-start justify-between gap-3'>
+        <div className='flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1'>
+          <h3 className='text-base font-semibold text-slate-900'>카드 발급 상태</h3>
+          <Badge variant={meta.variant}>{meta.label}</Badge>
+          <span className='text-xs text-slate-500'>{meta.desc}</span>
+        </div>
+        {FORCE_ISSUABLE_STATUSES.includes(data.status) ? (
+          <Button
+            type='button'
+            variant='outline'
+            size='default'
+            className='shrink-0'
+            onClick={() => setConfirmOpen(true)}
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending ? <Loader2 className='mr-1 h-4 w-4 animate-spin' /> : null}
+            강제 발급
+          </Button>
+        ) : null}
       </div>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>카드 강제 발급</AlertDialogTitle>
+            <AlertDialogDescription>
+              게이트(시간·참여·멤버)를 우회해 카드를 즉시 발급합니다. 멤버 전원에게 푸시 알림이 전송되며 이 작업은 되돌릴 수 없습니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={mutation.isPending}>취소</AlertDialogCancel>
+            <AlertDialogAction
+              className='bg-rose-600 text-white hover:bg-rose-700'
+              onClick={() => mutation.mutate()}
+              disabled={mutation.isPending}
+            >
+              강제 발급
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <div className='grid gap-4 lg:grid-cols-2'>
         {/* 카드 현황 — 상세 정보에 흩어져 있던 카드 항목을 취합 */}
