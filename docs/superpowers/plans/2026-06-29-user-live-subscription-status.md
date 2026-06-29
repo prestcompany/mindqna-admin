@@ -82,6 +82,8 @@ const { AppStoreError, decodeTransaction, decodeRenewalInfo, TransactionType } =
     let svc: PremiumService;
 
     beforeEach(() => {
+      // 기존 iap mock에는 verifyAppleReceipt만 있으므로 AOS 테스트용으로 추가한다.
+      (iap as any).verifyGoogleReceipt = jest.fn();
       svc = new PremiumService(prisma as any, config as any, iap as any, {} as any);
       iosClientModule.default.getSubscriptionStatuses.mockReset();
       decodeTransaction.mockReset();
@@ -117,7 +119,7 @@ const { AppStoreError, decodeTransaction, decodeRenewalInfo, TransactionType } =
         { id: 2, platform: 'IOS', productId: 'premium_month', transactionId: 'tx-rev' },
       ]);
       iosClientModule.default.getSubscriptionStatuses.mockResolvedValue({
-        data: [{ lastTransactions: [{ originalTransactionId: 'tx-rev', status: 5, signedTransactionInfo: 'sig', signedRenewalInfo: null }] }],
+        data: [{ lastTransactions: [{ originalTransactionId: 'tx-rev', status: 5, signedTransactionInfo: 'sig', signedRenewalInfo: '' }] }],
       });
       decodeTransaction.mockResolvedValue({ productId: 'premium_month', expiresDate: null });
 
@@ -231,17 +233,31 @@ const IOS_STATUS_MAP: Record<number, LiveSubscriptionStatus> = {
       const platform: 'IOS' | 'AOS' = sub.platform === 'AOS' ? 'AOS' : 'IOS';
       try {
         if (sub.platform === 'IOS') {
-          rows.push(await this.resolveIOSLiveStatus(sub.id, sub.transactionId, sub.productId));
+          rows.push(await this.withTimeout(this.resolveIOSLiveStatus(sub.id, sub.transactionId, sub.productId), 12000));
         } else if (sub.platform === 'AOS') {
-          rows.push(await this.resolveAOSLiveStatus(sub.id, sub.transactionId, sub.productId));
+          rows.push(await this.withTimeout(this.resolveAOSLiveStatus(sub.id, sub.transactionId, sub.productId), 12000));
         } else {
           rows.push({ id: sub.id, platform, productId: sub.productId, status: 'error', expiresAt: null, autoRenew: null });
         }
       } catch {
+        // 스토어 오류/타임아웃/레코드 불일치 → 해당 행만 error로 격리
         rows.push({ id: sub.id, platform, productId: sub.productId, status: 'error', expiresAt: null, autoRenew: null });
       }
     }
     return rows;
+  }
+
+  // 스토어 응답 지연이 어드민 요청을 무한정 잡지 않도록 레코드별 타임아웃.
+  private async withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+    let timer: NodeJS.Timeout | undefined;
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error('store timeout')), ms);
+    });
+    try {
+      return await Promise.race([p, timeout]);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
   }
 
   private async resolveIOSLiveStatus(id: number, transactionId: string, productId: string): Promise<LiveSubscriptionRow> {
@@ -281,6 +297,8 @@ const IOS_STATUS_MAP: Record<number, LiveSubscriptionStatus> = {
     const expiryMs = parseInt(data.expiryTimeMillis);
     const expired = dayjs(expiryMs).isBefore(dayjs());
     const autoRenew = typeof data.autoRenewing === 'boolean' ? data.autoRenewing : null;
+    // Google: cancelReason는 미취소 시 응답에서 생략됨(타입은 number지만 런타임 optional).
+    // 0=사용자취소, 1=결제문제, 2=상품교체, 3=개발자취소 — 어드민 조회 단계에선 모두 canceled로 묶음.
     const canceled = (data as any).cancelReason !== undefined && (data as any).cancelReason !== null;
 
     let status: LiveSubscriptionStatus;
@@ -471,8 +489,8 @@ const LIVE_STATUS_META: Record<LiveSubscriptionStatus, { label: string; variant:
   grace: { label: '결제유예', variant: 'softWarning' },
   billingRetry: { label: '결제재시도', variant: 'softWarning' },
   expired: { label: '만료', variant: 'softNeutral' },
-  revoked: { label: '환불/취소', variant: 'softNeutral' },
   canceled: { label: '자동갱신 해지', variant: 'softNeutral' },
+  revoked: { label: '환불/취소', variant: 'softDanger' }, // 환불은 어드민 주목 필요 → danger
   error: { label: '조회 실패', variant: 'softDanger' },
 };
 ```
@@ -483,27 +501,44 @@ const LIVE_STATUS_META: Record<LiveSubscriptionStatus, { label: string; variant:
 
 ```tsx
       <div className='space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3'>
-        <div className='flex items-center justify-between gap-2'>
+        <div className='space-y-2'>
           <div className='text-xs text-slate-500'>
-            평상시 상태는 5분 주기 동기화 값입니다. 최신 스토어 상태는 버튼으로 확인하세요.
+            평상시 값은 5분 주기 동기화입니다. 현재 스토어 상태를 확인하려면 아래 버튼을 누르세요.
           </div>
-          <Button type='button' variant='outline' size='sm' onClick={() => live.refetch()} disabled={live.isFetching}>
-            {live.isFetching ? <Loader2 className='mr-1 h-3.5 w-3.5 animate-spin' /> : <RefreshCw className='mr-1 h-3.5 w-3.5' />}
+          <Button
+            type='button'
+            variant='outline'
+            size='default'
+            className='w-full sm:w-auto'
+            onClick={() => live.refetch()}
+            disabled={live.isFetching}
+          >
+            {live.isFetching ? <Loader2 className='h-3.5 w-3.5 animate-spin' /> : <RefreshCw className='h-3.5 w-3.5' />}
             스토어 실시간 확인
           </Button>
         </div>
-        {live.isError ? <div className='text-xs text-rose-600'>실시간 조회에 실패했습니다.</div> : null}
-        {live.data ? (
+
+        {live.isError ? (
+          <div className='text-xs text-rose-600'>실시간 조회에 실패했습니다. 잠시 후 다시 시도하세요.</div>
+        ) : live.data ? (
           live.data.length === 0 ? (
             <div className='text-xs text-slate-500'>구독 레코드가 없습니다.</div>
           ) : (
             <div className='space-y-2'>
+              <div className='flex items-center justify-between'>
+                <h4 className='text-xs font-semibold text-slate-500'>스토어 실시간</h4>
+                {live.dataUpdatedAt > 0 ? (
+                  <span className='text-[11px] tabular-nums text-slate-500'>
+                    {dayjs(live.dataUpdatedAt).format('HH:mm:ss')} 기준
+                  </span>
+                ) : null}
+              </div>
               {live.data.map((row: LiveSubscriptionRow) => {
                 const meta = LIVE_STATUS_META[row.status];
                 return (
                   <div
                     key={`${row.platform}-${row.id}`}
-                    className='flex items-center gap-3 rounded-lg border border-slate-200/80 bg-white px-3 py-2 shadow-sm'
+                    className='flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm'
                   >
                     <Badge variant='softNeutral' className='w-12 shrink-0 justify-center uppercase'>
                       {row.platform}
@@ -527,7 +562,7 @@ const LIVE_STATUS_META: Record<LiveSubscriptionStatus, { label: string; variant:
       </div>
 ```
 
-> 기존 DB 엔타이틀먼트 섹션(프리미엄/골드클럽/구독 이력 `<Section>`들)은 이 블록 아래에 그대로 유지한다.
+> 기존 DB 엔타이틀먼트 섹션(프리미엄/골드클럽/구독 이력 `<Section>`들)은 이 블록 아래에 그대로 유지하되, DB 섹션 첫 `<Section>` 앞에 `<div className='border-t border-slate-100' />`를 두어 "위=실시간 / 아래=DB 동기화" 경계를 명확히 한다. (참고: 라이브와 DB 구독이력에 같은 productId가 양쪽에 보일 수 있음 — 헤더로 구분)
 
 - [ ] **Step 3: 타입체크 + 빌드**
 
