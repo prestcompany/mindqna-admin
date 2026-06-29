@@ -1,5 +1,15 @@
 import client from './@base';
-import { QueryResultWithPagination, UserDetail, UserSummary } from './types';
+import {
+  QueryResultWithPagination,
+  UserAccessRow,
+  UserDetail,
+  UserEntitlements,
+  UserProfileRow,
+  UserPurchaseRow,
+  UserPushRow,
+  UserSummary,
+  UserTabPageResult,
+} from './types';
 
 export async function getUsers(page: number, locale?: string[]) {
   const res = await client.get<QueryResultWithPagination<UserSummary>>('/user', { params: { page, locale } });
@@ -44,6 +54,36 @@ export interface TransferUserParams {
 
 export async function transferUser(params: TransferUserParams) {
   const res = await client.post('/user/transfer', params);
+
+  return res.data;
+}
+
+export async function getUserProfiles(username: string) {
+  const res = await client.get<UserProfileRow[]>(`/user/${username}/profiles`);
+
+  return res.data;
+}
+
+export async function getUserPurchases(username: string, page: number) {
+  const res = await client.get<UserTabPageResult<UserPurchaseRow>>(`/user/${username}/purchases`, { params: { page } });
+
+  return res.data;
+}
+
+export async function getUserEntitlements(username: string) {
+  const res = await client.get<UserEntitlements>(`/user/${username}/entitlements`);
+
+  return res.data;
+}
+
+export async function getUserAccess(username: string, page: number) {
+  const res = await client.get<UserTabPageResult<UserAccessRow>>(`/user/${username}/access`, { params: { page } });
+
+  return res.data;
+}
+
+export async function getUserPushes(username: string, page: number) {
+  const res = await client.get<UserTabPageResult<UserPushRow>>(`/user/${username}/pushes`, { params: { page } });
 
   return res.data;
 }
