@@ -866,3 +866,9 @@ export type LiveSubscriptionRow = {
   expiresAt: string | null;
   autoRenew: boolean | null;
 };
+
+export type UpdateUserParams = {
+  locale?: Locale;
+  spaceMaxCount?: number;
+  reserveUnregisterAt?: string | null;
+};
