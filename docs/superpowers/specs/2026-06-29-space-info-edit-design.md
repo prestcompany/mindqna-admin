@@ -69,7 +69,9 @@ export interface UpdateSpaceParams {
   4. `$transaction`:
      - `spaceInfo` 데이터(`name`/`petName`/`type`/`startedAt`/`locale`/`noticeTime`) 중 전달된 것만 모아 비어있지 않으면 `prisma.spaceInfo.update({ where: { spaceId: id }, data })`
      - `space` 데이터(`isActive`/`dueRemovedAt`) 중 전달된 것만 모아 비어있지 않으면 `prisma.space.update({ where: { id }, data })`. `dueRemovedAt`는 `null`이면 그대로 null(예약 취소), 문자열이면 `new Date(...)`.
-  5. 갱신된 상세를 반환(`getSpace(id)` 재사용)
+  5. **반환값 없음(`void`)**. 어드민이 저장 성공 시 관련 쿼리를 invalidate해 refetch하므로 서비스가 갱신 상세를 다시 조회하지 않는다(불필요한 DB 재조회 회피).
+- 검증 실패(잘못된 enum, 빈 문자열)는 `BadRequestException`(HTTP 400)으로 던진다. `error.ts`에 없으므로 코드 16으로 신규 추가한다.
+- enum 멤버십 검증은 `Object.values(SpaceType)`/`Object.values(Locale)`로 스키마와 자동 동기화.
 - `this.prisma` 직접 사용(기존 `removeSpace`와 동일 패턴).
 
 ### controller — `space.controller.ts`
@@ -111,11 +113,12 @@ export const updateSpace = async (id: string, body: UpdateSpaceParams) => {
 - `SpaceProfileModal` 패턴을 따른다(Dialog 기반).
 - props: `detail: SpaceDetail`, `open`, `onOpenChange`.
 - 폼 상태: 8개 필드 현재값 prefill(`detail.spaceInfo.*`, `detail.isActive`, `detail.dueRemovedAt`).
-- 3그룹 시각 분리(표시 / 동작 / 운영). 운영 그룹은 위험 안내 문구:
-  - `isActive` off → "비활성화하면 카드 생성이 중단됩니다."
-  - `dueRemovedAt` 설정 → "삭제 예약이 설정/변경됩니다." / 비우기 → 예약 취소
-- 저장: 원본과 비교해 **변경된 필드만** `updateSpace` 호출. `useMutation` + 성공 시 `queryClient.invalidateQueries(['space', id])`(상세 키), `toast.success`.
+- 3그룹 시각 분리(표시 / 동작 / 운영). 운영 그룹은 위험 안내 문구 + **위험 액션 확인 다이얼로그(`AlertDialog`)**:
+  - `isActive`를 off로 바꿀 때 또는 `dueRemovedAt`를 신규/변경 설정할 때 → 저장 전 확인 다이얼로그를 띄운다. 예약 취소(`null`)는 안전 방향이라 확인 생략.
+  - `isActive` off 경고는 "원래 active였다가 off로 바꾼 경우"에만 노출(기존 비활성 공간 열 때 노이즈 방지).
+- 저장: 원본과 비교해 **변경된 필드만** `updateSpace` 호출. `useMutation` + 성공 시 `queryClient.invalidateQueries`로 상세 키 `['space-detail', id]` 와 목록 키 `['spaces']`, `['space-search']`(prefix 매칭)를 무효화, `toast.success`.
 - 트리거: `SpaceIdentityStrip`에 연필 버튼 추가 → 모달 open.
+- 접근성/레이아웃: 모든 필드 `id`/`htmlFor` 연결, `DialogContent`는 `max-h` + 본문 `overflow-y-auto`(긴 폼 화면 이탈 방지), `grid-cols-1 sm:grid-cols-2` 반응형.
 
 ## 에러 / 엣지 처리
 
@@ -137,8 +140,19 @@ export const updateSpace = async (id: string, body: UpdateSpaceParams) => {
 
 기존 spec 파일(`space.service.spec.ts` 등) 패턴(PrismaService 직접 주입, AAA, virtual mock) 준수. 잦은 커밋.
 
+## 날짜(dueRemovedAt) 처리 주의
+
+- 저장: 모달의 `<input type=date>` 값(`YYYY-MM-DD`)을 `new Date('YYYY-MM-DD').toISOString()`(UTC 자정)으로 보낸다.
+- 표시: 서버가 `removeSpace`로 자동 설정한 값은 UTC 자정이 아닐 수 있어(현재시각+30일) `.slice(0,10)`로 자르면 KST 기준 하루 밀릴 수 있다. 표시는 로컬 타임존 포맷(`new Date(value).toLocaleDateString('sv-SE')`)으로 한다.
+- 과거 날짜 방지: `<input type=date>`에 `min={오늘}` 부여.
+
+## 알려진 한계 (서브프로젝트 1 범위 밖)
+
+- **감사 로그 없음**: `isActive` off, 삭제예약 등 위험 조작의 who/what/when 기록은 별도 작업(서브프로젝트 2 또는 공통 감사 기능)으로 다룬다.
+- **동시 편집 락 없음**: 낙관적 잠금/버전 체크 없음(어드민 저동시성). last-write-wins.
+
 ## 배포 / 운영 주의
 
-- 스키마 변경 없음 → `prisma generate`만(마이그레이션 불필요).
+- 스키마 변경 없음 → `prisma generate`만(마이그레이션 불필요). `error.ts`에 `BadRequestException` 추가는 코드 변경일 뿐 DB 영향 없음.
 - `isActive`/`dueRemovedAt`는 앱 동작에 직접 영향 → 운영자 확인 다이얼로그로 오조작 방지.
 - 푸시는 사용자가 수동(자격증명 write 권한 없음).

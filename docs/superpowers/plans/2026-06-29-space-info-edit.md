@@ -19,6 +19,7 @@
 ## File Structure
 
 **백엔드 (`mindqna-server`)**
+- Modify `src/common/exception/error.ts` — `BadRequestException`(코드 16, HTTP 400) 추가
 - Modify `src/admin/space/space.interface.ts` — `UpdateSpaceParams` 인터페이스 추가
 - Modify `src/admin/space/space.service.ts` — `updateSpace` 메서드 추가(주석 자리 `:349` 대체), import에 `ForbiddenException` 추가
 - Modify `src/admin/space/space.controller.ts` — `PUT :id` 라우트 추가, `TypedBody`/`UpdateSpaceParams` import
@@ -30,6 +31,37 @@
 - Create `src/components/page/space/components/SpaceEditModal.tsx` — 수정 폼 모달
 - Modify `src/components/page/space/components/SpaceIdentityStrip.tsx` — `onEdit` prop + 수정 버튼
 - Modify `src/components/page/space/components/SpaceDetailSheet.tsx` — 모달 상태/렌더, IdentityStrip에 `onEdit` 연결
+
+---
+
+## Task 0: 백엔드 `BadRequestException` 추가
+
+**Files:**
+- Modify: `src/common/exception/error.ts`
+
+작업 디렉터리: `/Users/gargoyle92/Documents/backend/mindqna-server`
+
+- [ ] **Step 1: 예외 헬퍼 추가**
+
+`src/common/exception/error.ts`의 마지막 `export const ConflictPetEvolution = ...` 줄(코드 15) 아래에 추가한다(다음 가용 코드는 16):
+
+```ts
+export const BadRequestException = (message?: string) =>
+  new AppException(new AppError(16, 400, message ?? 'Bad Request'));
+```
+
+- [ ] **Step 2: 타입체크**
+
+Run: `cd /Users/gargoyle92/Documents/backend/mindqna-server && npx tsc --noEmit`
+Expected: 신규 변경 관련 에러 없음.
+
+- [ ] **Step 3: 커밋**
+
+```bash
+cd /Users/gargoyle92/Documents/backend/mindqna-server
+git add src/common/exception/error.ts
+git commit -m "feat(exception): add BadRequestException (400)"
+```
 
 ---
 
@@ -52,14 +84,14 @@
     },
 ```
 
-같은 파일 상단의 에러 모듈 mock에 `ForbiddenException`을 추가한다(현재 `NotFoundException`만 있음):
+같은 파일 상단의 에러 모듈 mock에 `BadRequestException`을 추가한다(현재 `NotFoundException`만 있음 — 이 `jest.mock` 블록을 교체하는 것이지, 새 `jest.mock`을 추가하는 게 아님):
 
 ```ts
 jest.mock(
   'src/common/exception/error',
   () => ({
     NotFoundException: () => new Error('Not Found'),
-    ForbiddenException: () => new Error('Forbidden'),
+    BadRequestException: (message?: string) => new Error(message ?? 'Bad Request'),
   }),
   { virtual: true },
 );
@@ -120,7 +152,8 @@ jest.mock(
     });
 
     it('clears the scheduled removal when dueRemovedAt is null', async () => {
-      prisma.space.findUnique.mockResolvedValue(existing);
+      const scheduled = { ...existing, dueRemovedAt: new Date('2026-08-01T00:00:00.000Z') };
+      prisma.space.findUnique.mockResolvedValue(scheduled);
 
       await service.updateSpace('space-1', { dueRemovedAt: null });
 
@@ -153,20 +186,29 @@ jest.mock(
     it('rejects an invalid space type', async () => {
       prisma.space.findUnique.mockResolvedValue(existing);
 
-      await expect(service.updateSpace('space-1', { type: 'bogus' })).rejects.toThrow('Forbidden');
+      await expect(service.updateSpace('space-1', { type: 'bogus' as any })).rejects.toThrow('Bad Request');
       expect(prisma.spaceInfo.update).not.toHaveBeenCalled();
     });
 
     it('rejects an invalid locale', async () => {
       prisma.space.findUnique.mockResolvedValue(existing);
 
-      await expect(service.updateSpace('space-1', { locale: 'kr' })).rejects.toThrow('Forbidden');
+      await expect(service.updateSpace('space-1', { locale: 'kr' as any })).rejects.toThrow('Bad Request');
     });
 
     it('rejects an empty name', async () => {
       prisma.space.findUnique.mockResolvedValue(existing);
 
-      await expect(service.updateSpace('space-1', { name: '   ' })).rejects.toThrow('Forbidden');
+      await expect(service.updateSpace('space-1', { name: '   ' })).rejects.toThrow('Bad Request');
+    });
+
+    it('does nothing when no fields are provided', async () => {
+      prisma.space.findUnique.mockResolvedValue(existing);
+
+      await service.updateSpace('space-1', {});
+
+      expect(prisma.spaceInfo.update).not.toHaveBeenCalled();
+      expect(prisma.space.update).not.toHaveBeenCalled();
     });
 
     it('throws when the space does not exist', async () => {
@@ -201,14 +243,23 @@ export interface UpdateSpaceParams {
 
 - [ ] **Step 5: 서비스 구현**
 
-`src/admin/space/space.service.ts` 상단 import에서 예외 헬퍼에 `ForbiddenException`을 추가한다. 현재:
+`src/admin/space/space.service.ts` 상단 import에서 예외 헬퍼에 `BadRequestException`을 추가한다. 현재:
 
 ```ts
 import { NotFoundException } from 'src/common/exception/error';
 ```
 변경:
 ```ts
-import { ForbiddenException, NotFoundException } from 'src/common/exception/error';
+import { BadRequestException, NotFoundException } from 'src/common/exception/error';
+```
+
+`@prisma/client` import에 `SpaceType`, `Locale`을 추가한다. 현재:
+```ts
+import { Prisma } from '@prisma/client';
+```
+변경:
+```ts
+import { Prisma, SpaceType, Locale } from '@prisma/client';
 ```
 
 같은 파일 상단 import에서 인터페이스에 `UpdateSpaceParams`를 추가한다. 현재:
@@ -224,9 +275,6 @@ import { GetSpacesParams, SearchSpacesParams, UpdateSpaceParams } from './space.
 
 ```ts
   async updateSpace(id: string, params: UpdateSpaceParams) {
-    const SPACE_TYPES = ['couple', 'family', 'friends', 'alone'];
-    const LOCALES = ['ko', 'en', 'zh', 'zhTw', 'ja', 'es', 'id'];
-
     const space = await this.prisma.space.findUnique({
       where: { id },
       include: { spaceInfo: true },
@@ -234,15 +282,19 @@ import { GetSpacesParams, SearchSpacesParams, UpdateSpaceParams } from './space.
 
     if (!space) throw NotFoundException();
 
-    if (params.type !== undefined && !SPACE_TYPES.includes(params.type)) throw ForbiddenException();
-    if (params.locale !== undefined && !LOCALES.includes(params.locale)) throw ForbiddenException();
+    if (params.type !== undefined && !Object.values(SpaceType).includes(params.type)) {
+      throw BadRequestException('Invalid space type');
+    }
+    if (params.locale !== undefined && !Object.values(Locale).includes(params.locale)) {
+      throw BadRequestException('Invalid locale');
+    }
 
     const spaceInfoData: Record<string, unknown> = {};
     for (const key of ['name', 'petName', 'startedAt', 'noticeTime'] as const) {
       const value = params[key];
       if (value !== undefined) {
         const trimmed = value.trim();
-        if (!trimmed) throw ForbiddenException();
+        if (!trimmed) throw BadRequestException(`${key} must not be empty`);
         spaceInfoData[key] = trimmed;
       }
     }
@@ -269,7 +321,7 @@ import { GetSpacesParams, SearchSpacesParams, UpdateSpaceParams } from './space.
 - [ ] **Step 6: 테스트 통과 확인**
 
 Run: `cd /Users/gargoyle92/Documents/backend/mindqna-server && npx jest src/admin/space/space.service.spec.ts -t updateSpace`
-Expected: PASS (9 tests)
+Expected: PASS (10 tests)
 
 전체 파일 회귀도 확인:
 Run: `cd /Users/gargoyle92/Documents/backend/mindqna-server && npx jest src/admin/space/space.service.spec.ts`
@@ -411,6 +463,16 @@ git commit -m "feat(space): add updateSpace client fetcher and type"
 ```tsx
 import { updateSpace } from '@/client/space';
 import type { Locale, SpaceDetail, SpaceType, UpdateSpaceParams } from '@/client/types';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -462,29 +524,34 @@ type FormState = {
   dueRemovedAt: string; // 'YYYY-MM-DD' 또는 ''(예약 없음)
 };
 
+// 서버 ISO 값을 로컬 타임존 기준 YYYY-MM-DD로 표시(UTC slice의 하루 밀림 방지).
 function toDateInput(value: string | null | undefined): string {
   if (!value) return '';
-  return value.slice(0, 10);
+  return new Date(value).toLocaleDateString('sv-SE');
 }
 
 function buildInitialForm(detail: SpaceDetail): FormState {
   const info = detail.spaceInfo;
   return {
-    name: info?.name ?? '',
-    petName: info?.petName ?? '',
+    name: (info?.name ?? '').trim(),
+    petName: (info?.petName ?? '').trim(),
     type: (info?.type as SpaceType) ?? 'couple',
-    startedAt: info?.startedAt ?? '',
+    startedAt: (info?.startedAt ?? '').trim(),
     locale: (info?.locale as Locale) ?? 'ko',
-    noticeTime: info?.noticeTime ?? '',
+    noticeTime: (info?.noticeTime ?? '').trim(),
     isActive: detail.isActive,
     dueRemovedAt: toDateInput(detail.dueRemovedAt),
   };
 }
 
+const TODAY = new Date().toLocaleDateString('sv-SE');
+
 function SpaceEditModal({ open, detail, onOpenChange }: SpaceEditModalProps) {
   const queryClient = useQueryClient();
   const initial = buildInitialForm(detail);
   const [form, setForm] = useState<FormState>(initial);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingBody, setPendingBody] = useState<UpdateSpaceParams | null>(null);
 
   useEffect(() => {
     setForm(buildInitialForm(detail));
@@ -496,7 +563,11 @@ function SpaceEditModal({ open, detail, onOpenChange }: SpaceEditModalProps) {
   const mutation = useMutation({
     mutationFn: (body: UpdateSpaceParams) => updateSpace(detail.id, body),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['space-detail', detail.id] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['space-detail', detail.id] }),
+        queryClient.invalidateQueries({ queryKey: ['spaces'] }),
+        queryClient.invalidateQueries({ queryKey: ['space-search'] }),
+      ]);
       toast.success('공간 정보를 수정했습니다.');
       onOpenChange(false);
     },
@@ -505,17 +576,27 @@ function SpaceEditModal({ open, detail, onOpenChange }: SpaceEditModalProps) {
 
   const diff = (): UpdateSpaceParams => {
     const body: UpdateSpaceParams = {};
-    if (form.name.trim() !== (initial.name ?? '')) body.name = form.name.trim();
-    if (form.petName.trim() !== (initial.petName ?? '')) body.petName = form.petName.trim();
+    if (form.name.trim() !== initial.name) body.name = form.name.trim();
+    if (form.petName.trim() !== initial.petName) body.petName = form.petName.trim();
     if (form.type !== initial.type) body.type = form.type;
-    if (form.startedAt.trim() !== (initial.startedAt ?? '')) body.startedAt = form.startedAt.trim();
+    if (form.startedAt.trim() !== initial.startedAt) body.startedAt = form.startedAt.trim();
     if (form.locale !== initial.locale) body.locale = form.locale;
-    if (form.noticeTime.trim() !== (initial.noticeTime ?? '')) body.noticeTime = form.noticeTime.trim();
+    if (form.noticeTime.trim() !== initial.noticeTime) body.noticeTime = form.noticeTime.trim();
     if (form.isActive !== initial.isActive) body.isActive = form.isActive;
     if (form.dueRemovedAt !== initial.dueRemovedAt) {
       body.dueRemovedAt = form.dueRemovedAt ? new Date(form.dueRemovedAt).toISOString() : null;
     }
     return body;
+  };
+
+  const isDangerous = (body: UpdateSpaceParams) =>
+    body.isActive === false || (body.dueRemovedAt !== undefined && body.dueRemovedAt !== null && body.dueRemovedAt !== '');
+
+  const confirmMessage = () => {
+    const lines: string[] = [];
+    if (pendingBody?.isActive === false) lines.push('활성화를 끄면 이 공간의 카드 생성이 즉시 중단됩니다.');
+    if (pendingBody?.dueRemovedAt) lines.push('삭제 예약을 설정하면 해당 날짜에 공간이 삭제됩니다.');
+    return lines.join(' ');
   };
 
   const save = () => {
@@ -524,8 +605,18 @@ function SpaceEditModal({ open, detail, onOpenChange }: SpaceEditModalProps) {
       toast.info('변경된 내용이 없습니다.');
       return;
     }
-    if (form.name.trim() === '' || form.petName.trim() === '') {
-      toast.warning('이름과 펫 이름은 비울 수 없습니다.');
+    if (
+      form.name.trim() === '' ||
+      form.petName.trim() === '' ||
+      form.startedAt.trim() === '' ||
+      form.noticeTime.trim() === ''
+    ) {
+      toast.warning('이름·펫 이름·시작일·알림 시각은 비울 수 없습니다.');
+      return;
+    }
+    if (isDangerous(body)) {
+      setPendingBody(body);
+      setConfirmOpen(true);
       return;
     }
     mutation.mutate(body);
@@ -533,27 +624,27 @@ function SpaceEditModal({ open, detail, onOpenChange }: SpaceEditModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-[560px]'>
-        <DialogHeader>
+      <DialogContent className='flex max-h-[90vh] w-full max-w-[560px] flex-col'>
+        <DialogHeader className='shrink-0'>
           <DialogTitle>공간 정보 수정</DialogTitle>
         </DialogHeader>
 
-        <div className='space-y-5'>
+        <div className='min-h-0 flex-1 space-y-6 overflow-y-auto py-1 pr-1'>
           <section className='space-y-3'>
-            <div className='text-xs font-medium text-slate-500'>표시 정보</div>
-            <div className='grid grid-cols-2 gap-3'>
+            <div className='text-xs font-semibold uppercase tracking-wide text-slate-500'>표시 정보</div>
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
               <div className='space-y-1.5'>
-                <Label className='text-xs text-slate-500'>공간 이름</Label>
-                <Input value={form.name} onChange={(e) => set('name', e.target.value)} />
+                <Label htmlFor='space-name' className='text-xs text-slate-600'>공간 이름</Label>
+                <Input id='space-name' value={form.name} onChange={(e) => set('name', e.target.value)} />
               </div>
               <div className='space-y-1.5'>
-                <Label className='text-xs text-slate-500'>펫 이름</Label>
-                <Input value={form.petName} onChange={(e) => set('petName', e.target.value)} />
+                <Label htmlFor='space-pet-name' className='text-xs text-slate-600'>펫 이름</Label>
+                <Input id='space-pet-name' value={form.petName} onChange={(e) => set('petName', e.target.value)} />
               </div>
               <div className='space-y-1.5'>
-                <Label className='text-xs text-slate-500'>타입</Label>
+                <Label htmlFor='space-type' className='text-xs text-slate-600'>타입</Label>
                 <Select value={form.type} onValueChange={(v) => set('type', v as SpaceType)}>
-                  <SelectTrigger>
+                  <SelectTrigger id='space-type'>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -566,19 +657,24 @@ function SpaceEditModal({ open, detail, onOpenChange }: SpaceEditModalProps) {
                 </Select>
               </div>
               <div className='space-y-1.5'>
-                <Label className='text-xs text-slate-500'>시작일</Label>
-                <Input value={form.startedAt} onChange={(e) => set('startedAt', e.target.value)} />
+                <Label htmlFor='space-started-at' className='text-xs text-slate-600'>시작일</Label>
+                <Input
+                  id='space-started-at'
+                  value={form.startedAt}
+                  placeholder='예: 2024-01-01'
+                  onChange={(e) => set('startedAt', e.target.value)}
+                />
               </div>
             </div>
           </section>
 
-          <section className='space-y-3'>
-            <div className='text-xs font-medium text-slate-500'>동작 설정</div>
-            <div className='grid grid-cols-2 gap-3'>
+          <section className='space-y-3 border-t border-slate-100 pt-6'>
+            <div className='text-xs font-semibold uppercase tracking-wide text-slate-500'>동작 설정</div>
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
               <div className='space-y-1.5'>
-                <Label className='text-xs text-slate-500'>로케일</Label>
+                <Label htmlFor='space-locale' className='text-xs text-slate-600'>로케일</Label>
                 <Select value={form.locale} onValueChange={(v) => set('locale', v as Locale)}>
-                  <SelectTrigger>
+                  <SelectTrigger id='space-locale'>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -591,20 +687,28 @@ function SpaceEditModal({ open, detail, onOpenChange }: SpaceEditModalProps) {
                 </Select>
               </div>
               <div className='space-y-1.5'>
-                <Label className='text-xs text-slate-500'>알림 시각</Label>
-                <Input value={form.noticeTime} onChange={(e) => set('noticeTime', e.target.value)} />
+                <Label htmlFor='space-notice-time' className='text-xs text-slate-600'>알림 시각</Label>
+                <Input
+                  id='space-notice-time'
+                  value={form.noticeTime}
+                  placeholder='예: 21:00'
+                  onChange={(e) => set('noticeTime', e.target.value)}
+                />
               </div>
             </div>
           </section>
 
-          <section className='space-y-3 rounded-lg border border-amber-200/70 bg-amber-50/50 p-3'>
-            <div className='text-xs font-medium text-amber-700'>운영 (앱 동작에 영향)</div>
+          <section className='space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3'>
+            <div className='flex items-center gap-1.5'>
+              <span className='h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500' aria-hidden />
+              <span className='text-xs font-semibold text-slate-700'>운영 — 앱 동작에 영향</span>
+            </div>
             <div className='flex items-center justify-between'>
               <div>
                 <Label htmlFor='space-active' className='text-sm text-slate-700'>
                   활성 상태
                 </Label>
-                {!form.isActive ? (
+                {initial.isActive && !form.isActive ? (
                   <p className='text-xs text-rose-600'>비활성화하면 카드 생성이 중단됩니다.</p>
                 ) : null}
               </div>
@@ -615,17 +719,28 @@ function SpaceEditModal({ open, detail, onOpenChange }: SpaceEditModalProps) {
               />
             </div>
             <div className='space-y-1.5'>
-              <Label className='text-xs text-slate-500'>삭제 예약일 (비우면 예약 취소)</Label>
-              <Input
-                type='date'
-                value={form.dueRemovedAt}
-                onChange={(e) => set('dueRemovedAt', e.target.value)}
-              />
+              <Label htmlFor='space-due-removed' className='text-xs text-slate-600'>삭제 예약일</Label>
+              <div className='flex items-center gap-2'>
+                <Input
+                  id='space-due-removed'
+                  type='date'
+                  min={TODAY}
+                  value={form.dueRemovedAt}
+                  onChange={(e) => set('dueRemovedAt', e.target.value)}
+                  className='flex-1'
+                />
+                {form.dueRemovedAt ? (
+                  <Button type='button' variant='outline' size='sm' onClick={() => set('dueRemovedAt', '')}>
+                    예약 취소
+                  </Button>
+                ) : null}
+              </div>
+              <p className='text-xs text-slate-500'>날짜를 비우거나 "예약 취소"를 누르면 삭제 예약이 해제됩니다.</p>
             </div>
           </section>
         </div>
 
-        <div className='mt-2 flex justify-end gap-2'>
+        <div className='flex shrink-0 justify-end gap-2 border-t border-slate-100 pt-4'>
           <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
             취소
           </Button>
@@ -635,12 +750,35 @@ function SpaceEditModal({ open, detail, onOpenChange }: SpaceEditModalProps) {
           </Button>
         </div>
       </DialogContent>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>운영 변경 확인</AlertDialogTitle>
+            <AlertDialogDescription>{confirmMessage()}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingBody(null)}>취소</AlertDialogCancel>
+            <AlertDialogAction
+              className='bg-rose-600 text-white hover:bg-rose-700'
+              onClick={() => {
+                if (pendingBody) mutation.mutate(pendingBody);
+                setConfirmOpen(false);
+              }}
+            >
+              확인하고 저장
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
 
 export default SpaceEditModal;
 ```
+
+> 참고: `startedAt`/`noticeTime`은 DB 저장 포맷이 확정되지 않아 `type=date`/`type=time` 강제 대신 text + placeholder를 유지한다. 실제 저장 포맷을 확인했다면 각 입력 타입을 좁혀도 된다.
 
 - [ ] **Step 2: 타입체크**
 
@@ -787,10 +925,14 @@ git commit -m "feat(space): wire space edit modal into detail side panel"
 - [ ] 어드민 실행 → 공간 목록 → 공간 클릭 → 사이드패널 개요 상단 "수정" 버튼 노출
 - [ ] 이름/펫이름/타입/시작일 변경 후 저장 → 패널 즉시 갱신, toast 성공
 - [ ] 로케일/알림시각 변경 → 저장 반영
-- [ ] 활성 스위치 off → "카드 생성 중단" 경고 노출, 저장 시 `isActive=false` 반영
-- [ ] 삭제 예약일 설정 후 저장 → IdentityStrip "삭제예정" 표시 갱신
-- [ ] 삭제 예약일 비우고 저장 → 예약 취소(삭제예정 표시 사라짐)
+- [ ] 이름/타입/활성 변경 후 → 공간 목록(검색/리스트)도 최신값으로 갱신
+- [ ] 활성 스위치 off(원래 active였던 공간) → "카드 생성 중단" 경고 노출 + 저장 시 **확인 다이얼로그** → 확인해야 `isActive=false` 반영
+- [ ] 이미 비활성인 공간을 열기만 함 → 경고 텍스트 노출 안 됨(노이즈 없음)
+- [ ] 삭제 예약일 설정 후 저장 → **확인 다이얼로그** → 확인 시 IdentityStrip "삭제예정" 표시 갱신
+- [ ] 삭제 예약일에 과거 날짜 선택 불가(`min` 적용)
+- [ ] "예약 취소" 버튼 또는 날짜 비우고 저장 → 확인 없이 예약 취소(삭제예정 표시 사라짐)
 - [ ] 변경 없이 저장 → "변경된 내용이 없습니다" 안내, 요청 미발생
-- [ ] 이름 비우고 저장 시도 → 차단 경고
+- [ ] 이름/펫이름/시작일/알림시각 중 하나라도 비우고 저장 시도 → 차단 경고
+- [ ] 좁은 화면/작은 뷰포트 → 모달 본문 스크롤, 하단 버튼 잘리지 않음
 
 > 푸시(서버·어드민)는 사용자가 수동으로 진행. 스키마 변경 없으므로 마이그레이션 불필요.
