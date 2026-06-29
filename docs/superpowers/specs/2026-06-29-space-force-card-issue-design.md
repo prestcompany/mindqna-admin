@@ -12,6 +12,8 @@
 
 핵심 원칙: **발급 로직은 cron(`card-create.cron`)의 기존 코드를 재사용**한다(`generateNewCard` → 생성 트랜잭션 + 알림). 별도 발급 경로를 새로 만들면 cron과 동작이 갈리므로 금지. `card-eligibility` 평가기를 단일 소스로 쓴 것과 동일한 원칙.
 
+**중요 — 이중 게이트 구조**: 발급 게이트는 두 층에 있다. ① cron의 상위 필터(`shouldGenerateCard` 등) ② **`executeCardCreationTransaction` 내부 재검증**(`hasValidTiming`/`isEligibleForCardCreation`/`shouldGenerateCard`, 트랜잭션에서 fresh read로 재확인). 따라서 단순히 `generateNewCard`를 호출하면 트랜잭션 내부 게이트에 막혀 `null`이 반환된다. 강제 발급은 **`skipGates` 옵션을 `generateNewCard → createCardAndUpdateSpace → executeCardCreationTransaction`로 전달**해 그 3개 재검증을 건너뛴다(옵션 미전달 시 기존 cron 동작 그대로 보존).
+
 ## 강제 범위 (결정됨)
 
 `card-eligibility`의 status별 처리:
