@@ -779,3 +779,72 @@ export type AppVersionPolicy = {
 export type AppVersionPolicies = { ios: AppVersionPolicy | null; android: AppVersionPolicy | null };
 
 export type UpdateAppVersionParams = Omit<AppVersionPolicy, 'platform' | 'updatedAt'>;
+
+export type UserTabPageResult<T> = {
+  items: T[];
+  totalCount: number;
+  pageInfo: { totalPage: number };
+};
+
+export type UserProfileRow = {
+  id: string;
+  nickname: string;
+  spaceId: string | null;
+  spaceName: string | null;
+  isPremium: boolean;
+  isGoldClub: boolean;
+  disabled: boolean;
+  removed: boolean;
+  createdAt: string;
+};
+
+export type UserPurchaseRow = {
+  id: number;
+  productId: string;
+  platform: string;
+  price: string;
+  isSubscribe: boolean;
+  createdAt: string;
+};
+
+// PremiumTicket.dueAt은 nullable, GoldClub.dueAt은 non-null이지만 공유 타입은 nullable로 둔다.
+export type UserEntitlementTicket = {
+  id: number;
+  productId: string;
+  platform: string;
+  isActive: boolean;
+  dueAt: string | null;
+  profileId: string | null;
+  createdAt: string;
+};
+
+export type UserSubscriptionRow = {
+  id: number;
+  productId: string;
+  platform: string;
+  transactionId: string;
+  createdAt: string;
+};
+
+export type UserEntitlements = {
+  premiumTickets: UserEntitlementTicket[];
+  goldClubs: UserEntitlementTicket[];
+  subscriptions: UserSubscriptionRow[];
+};
+
+export type UserAccessRow = {
+  id: number;
+  spaceId: string;
+  spaceName: string | null;
+  heart: number;
+  createdAt: string;
+};
+
+export type UserPushRow = {
+  id: number;
+  title: string;
+  desc: string | null;
+  isChecked: boolean;
+  spaceId: string | null;
+  createdAt: string;
+};
