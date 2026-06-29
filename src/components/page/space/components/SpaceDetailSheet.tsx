@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import SpaceDetailContent from './SpaceDetailContent';
+import SpaceEditModal from './SpaceEditModal';
 import SpaceIdentityStrip from './SpaceIdentityStrip';
 import SpaceActivitySummary from './tabs/SpaceActivitySummary';
 import SpaceActivityTab from './tabs/SpaceActivityTab';
@@ -28,6 +29,7 @@ interface SpaceDetailSheetProps {
 function SpaceDetailSheet({ open, space, onClose, copyId }: SpaceDetailSheetProps) {
   const spaceId = space?.id;
   const [tab, setTab] = useState('overview');
+  const [editOpen, setEditOpen] = useState(false);
   const { data, isLoading } = useQuery({
     queryKey: ['space-detail', spaceId],
     queryFn: () => getSpace(spaceId as string),
@@ -66,7 +68,8 @@ function SpaceDetailSheet({ open, space, onClose, copyId }: SpaceDetailSheetProp
               </div>
             ) : (
               <div className='space-y-6'>
-                <SpaceIdentityStrip detail={detail} copyId={copyId} />
+                <SpaceIdentityStrip detail={detail} copyId={copyId} onEdit={() => setEditOpen(true)} />
+                <SpaceEditModal open={editOpen} detail={detail} onOpenChange={setEditOpen} />
                 <SpaceActivitySummary spaceId={id} active={tab === 'overview'} />
                 <SpaceCardEligibilityPanel spaceId={id} active={tab === 'overview'} detail={detail} />
                 <SpaceDetailContent detail={detail} copyId={copyId} />
