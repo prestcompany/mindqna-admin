@@ -201,6 +201,7 @@ Expected: FAIL — `service.getUserProfiles is not a function`
     const items = await this.prisma.profile.findMany({
       where: { user: { username } },
       orderBy: { createdAt: 'desc' },
+      take: 100, // 안전장치: spaceMaxCount 기본 5이나 상향 가능성 대비 상한
       select: {
         id: true,
         nickname: true,
@@ -315,6 +316,12 @@ git commit -m "feat(admin/user): add getUserProfiles and getUserEntitlements"
       expect(result.items[0].spaceName).toBe('우리집');
       expect(result.totalCount).toBe(1);
     });
+
+    it('throws when the user does not exist', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+
+      await expect(service.getUserAccess!('missing', {})).rejects.toThrow('Not Found');
+    });
   });
 
   describe('getUserPushes', () => {
@@ -329,6 +336,12 @@ git commit -m "feat(admin/user): add getUserProfiles and getUserEntitlements"
 
       expect(result.items).toHaveLength(1);
       expect(result.totalCount).toBe(1);
+    });
+
+    it('throws when the user does not exist', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+
+      await expect(service.getUserPushes!('missing', {})).rejects.toThrow('Not Found');
     });
   });
 ```
@@ -539,6 +552,7 @@ export type UserPurchaseRow = {
   createdAt: string;
 };
 
+// PremiumTicket.dueAt은 nullable, GoldClub.dueAt은 non-null이지만 공유 타입은 nullable로 둔다.
 export type UserEntitlementTicket = {
   id: number;
   productId: string;
@@ -692,12 +706,12 @@ function UserPurchasesTab({ username, active }: { username: string; active: bool
           key={row.id}
           className='flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm'
         >
-          <Badge variant='softNeutral' className='shrink-0 uppercase'>
+          <Badge variant='softNeutral' className='w-16 shrink-0 justify-center uppercase'>
             {row.platform}
           </Badge>
           <div className='min-w-0 flex-1'>
             <div className='truncate text-sm font-medium text-slate-900'>{row.productId}</div>
-            <div className='truncate text-xs text-slate-500'>
+            <div className='truncate text-[11px] text-slate-500'>
               {row.isSubscribe ? '구독' : '단건'} · {dayjs(row.createdAt).format('YYYY.MM.DD HH:mm')}
             </div>
           </div>
@@ -716,8 +730,10 @@ export default UserPurchasesTab;
 ```tsx
 import { getUserAccess } from '@/client/user';
 import SpaceTabList from '@/components/page/space/components/tabs/SpaceTabList';
+import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
+import { Heart } from 'lucide-react';
 import { useState } from 'react';
 
 function UserAccessTab({ username, active }: { username: string; active: boolean }) {
@@ -745,9 +761,17 @@ function UserAccessTab({ username, active }: { username: string; active: boolean
         >
           <div className='min-w-0 flex-1'>
             <div className='truncate text-sm font-medium text-slate-900'>{row.spaceName ?? row.spaceId}</div>
-            <div className='truncate text-xs text-slate-500'>{dayjs(row.createdAt).format('YYYY.MM.DD HH:mm')}</div>
+            <div className='truncate text-[11px] text-slate-500'>{dayjs(row.createdAt).format('YYYY.MM.DD HH:mm')}</div>
           </div>
-          <div className='shrink-0 text-sm tabular-nums text-rose-600'>♥ {row.heart}</div>
+          <div
+            className={cn(
+              'flex shrink-0 items-center gap-1 text-sm tabular-nums',
+              row.heart > 0 ? 'text-rose-600' : 'text-slate-500',
+            )}
+          >
+            <Heart className='h-3.5 w-3.5' />
+            {row.heart}
+          </div>
         </div>
       ))}
     </SpaceTabList>
@@ -871,9 +895,17 @@ function UserProfilesTab({ username, active }: { username: string; active: boole
         >
           <div className='min-w-0 flex-1'>
             <div className='flex items-center gap-2'>
-              <span className='truncate text-sm font-medium text-slate-900'>{profile.spaceName ?? profile.spaceId ?? '-'}</span>
+              <span className='truncate text-sm font-medium text-slate-900'>
+                {profile.spaceName ?? (
+                  profile.spaceId ? (
+                    <span className='font-mono text-slate-500'>{profile.spaceId.slice(0, 8)}…</span>
+                  ) : (
+                    '-'
+                  )
+                )}
+              </span>
               {profile.isPremium ? <Badge variant='softSuccess'>PREMIUM</Badge> : null}
-              {profile.isGoldClub ? <Badge variant='softWarning'>GOLD</Badge> : null}
+              {profile.isGoldClub ? <Badge variant='softWarning'>GOLD CLUB</Badge> : null}
               {profile.disabled || profile.removed ? <Badge variant='softNeutral'>비활성</Badge> : null}
             </div>
             <div className='truncate text-xs text-slate-500'>
@@ -896,9 +928,11 @@ import { getUserEntitlements } from '@/client/user';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import type { UserEntitlementTicket } from '@/client/types';
+import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { Loader2 } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 function isLive(t: UserEntitlementTicket): boolean {
   if (!t.isActive) return false;
@@ -906,20 +940,32 @@ function isLive(t: UserEntitlementTicket): boolean {
   return new Date(t.dueAt).getTime() > Date.now();
 }
 
+function Section({ title, count, children }: { title: string; count: number; children: ReactNode }) {
+  if (count === 0) return null;
+  return (
+    <section className='space-y-2'>
+      <h4 className='text-xs font-semibold text-slate-500'>
+        {title} <span className='tabular-nums text-slate-400'>{count}</span>
+      </h4>
+      <div className='space-y-3'>{children}</div>
+    </section>
+  );
+}
+
 function EntitlementRow({ label, t }: { label: string; t: UserEntitlementTicket }) {
   const live = isLive(t);
   return (
     <div className='flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm'>
-      <Badge variant={live ? 'softSuccess' : 'softNeutral'} className='shrink-0'>
+      <Badge variant={live ? 'softSuccess' : 'softNeutral'} className='w-16 shrink-0 justify-center'>
         {label}
       </Badge>
       <div className='min-w-0 flex-1'>
         <div className='truncate text-sm font-medium text-slate-900'>{t.productId}</div>
-        <div className='truncate text-xs text-slate-500'>
+        <div className='truncate text-[11px] text-slate-500'>
           {t.platform.toUpperCase()} · {t.dueAt ? `만료 ${dayjs(t.dueAt).format('YYYY.MM.DD')}` : '만료 없음'}
         </div>
       </div>
-      <span className={`shrink-0 text-xs font-medium ${live ? 'text-emerald-600' : 'text-slate-500'}`}>
+      <span className={cn('shrink-0 text-xs font-medium', live ? 'text-emerald-600' : 'text-slate-500')}>
         {live ? '활성' : '비활성'}
       </span>
     </div>
@@ -956,33 +1002,40 @@ function UserEntitlementsTab({ username, active }: { username: string; active: b
 
   return (
     <div className='space-y-4'>
-      <p className='text-xs text-slate-500'>
+      <div className='rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500'>
         구독 레코드는 DB 보유 정보입니다. 스토어 실시간 갱신/취소 상태는 추후 연동 예정입니다.
-      </p>
-      <div className='space-y-3'>
+      </div>
+
+      <Section title='프리미엄' count={tickets.length}>
         {tickets.map((t) => (
           <EntitlementRow key={`p-${t.id}`} label='프리미엄' t={t} />
         ))}
+      </Section>
+
+      <Section title='골드클럽' count={golds.length}>
         {golds.map((t) => (
           <EntitlementRow key={`g-${t.id}`} label='골드클럽' t={t} />
         ))}
+      </Section>
+
+      <Section title='구독 이력' count={subs.length}>
         {subs.map((s) => (
           <div
             key={`s-${s.id}`}
             className='flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm'
           >
-            <Badge variant='softNeutral' className='shrink-0'>
+            <Badge variant='softNeutral' className='w-16 shrink-0 justify-center'>
               구독
             </Badge>
             <div className='min-w-0 flex-1'>
               <div className='truncate text-sm font-medium text-slate-900'>{s.productId}</div>
-              <div className='truncate text-xs text-slate-500'>
+              <div className='truncate text-[11px] text-slate-500'>
                 {s.platform.toUpperCase()} · {dayjs(s.createdAt).format('YYYY.MM.DD')}
               </div>
             </div>
           </div>
         ))}
-      </div>
+      </Section>
     </div>
   );
 }
@@ -1057,8 +1110,8 @@ import UserPushesTab from './tabs/UserPushesTab';
 ```tsx
         ) : (
           <Tabs value={tab} onValueChange={setTab} className='w-full'>
-            <div className='mb-4 overflow-x-auto'>
-              <TabsList>
+            <div className='mb-4 overflow-x-auto pb-1'>
+              <TabsList className='whitespace-nowrap'>
                 <TabsTrigger value='overview'>개요</TabsTrigger>
                 <TabsTrigger value='profiles'>참여 공간</TabsTrigger>
                 <TabsTrigger value='purchases'>결제 내역</TabsTrigger>
@@ -1089,7 +1142,16 @@ import UserPushesTab from './tabs/UserPushesTab';
         )}
 ```
 
-> `data.username`은 `UserDetail`의 필드. 만약 타입에 username이 없으면 `user.username`(props)을 사용한다.
+> `data.username`은 `UserDetail`의 필드(`UserSummary`에서 상속). 항상 존재하므로 `data.username`을 그대로 사용한다.
+
+또한 `AdminSideSheetContent`의 `description` 문구가 개요만 설명하므로 탭 구조에 맞게 갱신한다. 현재:
+```tsx
+        description='목록에서 숨긴 접속 기록과 티켓 현황을 포함한 사용자 상세 정보입니다.'
+```
+변경:
+```tsx
+        description='사용자 상세 정보와 결제/구독/접속/푸시 탭을 확인합니다.'
+```
 
 - [ ] **Step 4: 타입체크 + 빌드**
 
