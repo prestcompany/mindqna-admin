@@ -180,3 +180,9 @@ export async function updateSpace(id: string, body: UpdateSpaceParams) {
 
   return res.data;
 }
+
+export async function forceCreateCard(spaceId: string) {
+  const res = await client.post(`/space/${spaceId}/force-card`);
+
+  return res.data;
+}
