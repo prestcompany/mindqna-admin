@@ -848,3 +848,21 @@ export type UserPushRow = {
   spaceId: string | null;
   createdAt: string;
 };
+
+export type LiveSubscriptionStatus =
+  | 'active'
+  | 'grace'
+  | 'billingRetry'
+  | 'expired'
+  | 'revoked'
+  | 'canceled'
+  | 'error';
+
+export type LiveSubscriptionRow = {
+  id: number;
+  platform: 'IOS' | 'AOS';
+  productId: string;
+  status: LiveSubscriptionStatus;
+  expiresAt: string | null;
+  autoRenew: boolean | null;
+};
