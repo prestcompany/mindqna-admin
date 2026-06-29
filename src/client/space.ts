@@ -20,6 +20,7 @@ import {
   SpaceScheduleDetail,
   SpaceScheduleRow,
   SpaceType,
+  UpdateSpaceParams,
 } from './types';
 
 export type SpaceOrderBy =
@@ -170,6 +171,12 @@ export async function getSpaceCoinStats(id: string) {
 
 export async function getSpaceActivitySummary(id: string) {
   const res = await client.get<SpaceActivitySummary>(`/space/${id}/activity-summary`);
+
+  return res.data;
+}
+
+export async function updateSpace(id: string, body: UpdateSpaceParams) {
+  const res = await client.put(`/space/${id}`, body);
 
   return res.data;
 }

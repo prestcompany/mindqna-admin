@@ -1,15 +1,16 @@
 import { SpaceDetail } from '@/client/types';
 import { Badge } from '@/components/ui/badge';
-import { Copy } from 'lucide-react';
+import { Copy, Pencil } from 'lucide-react';
 import { formatDueRemovedAt, formatSpaceAge, getSpaceTypeConfig } from '../utils/space-display';
 import SpaceStatusDot from './SpaceStatusDot';
 
 interface SpaceIdentityStripProps {
   detail: SpaceDetail;
   copyId: (id: string) => void;
+  onEdit?: () => void;
 }
 
-function SpaceIdentityStrip({ detail, copyId }: SpaceIdentityStripProps) {
+function SpaceIdentityStrip({ detail, copyId, onEdit }: SpaceIdentityStripProps) {
   const hasPremiumMember = detail.hasPremiumMember ?? detail.profiles?.some((profile) => profile.isPremium);
   const hasGoldClubMember = detail.hasGoldClubMember ?? detail.profiles?.some((profile) => profile.isGoldClub);
   const createdMeta = formatSpaceAge(detail.createdAt);
@@ -18,13 +19,25 @@ function SpaceIdentityStrip({ detail, copyId }: SpaceIdentityStripProps) {
 
   return (
     <div className='rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm'>
-      <div className='flex flex-wrap items-center gap-x-2 gap-y-1.5'>
-        <span className='truncate text-lg font-semibold text-slate-900'>{detail.spaceInfo?.name ?? '공간 상세'}</span>
-        <Badge variant={typeConfig.variant}>{typeConfig.text}</Badge>
-        <Badge variant='softNeutral'>{detail.spaceInfo?.locale?.toUpperCase() ?? '-'}</Badge>
-        <SpaceStatusDot active={detail.isActive} className='ml-1' />
-        {hasPremiumMember ? <Badge variant='softSuccess'>PREMIUM</Badge> : null}
-        {hasGoldClubMember ? <Badge variant='softWarning'>GOLD CLUB</Badge> : null}
+      <div className='flex items-start justify-between gap-2'>
+        <div className='flex flex-wrap items-center gap-x-2 gap-y-1.5'>
+          <span className='truncate text-lg font-semibold text-slate-900'>{detail.spaceInfo?.name ?? '공간 상세'}</span>
+          <Badge variant={typeConfig.variant}>{typeConfig.text}</Badge>
+          <Badge variant='softNeutral'>{detail.spaceInfo?.locale?.toUpperCase() ?? '-'}</Badge>
+          <SpaceStatusDot active={detail.isActive} className='ml-1' />
+          {hasPremiumMember ? <Badge variant='softSuccess'>PREMIUM</Badge> : null}
+          {hasGoldClubMember ? <Badge variant='softWarning'>GOLD CLUB</Badge> : null}
+        </div>
+        {onEdit ? (
+          <button
+            type='button'
+            onClick={onEdit}
+            className='inline-flex shrink-0 items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-xs text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900'
+          >
+            <Pencil className='h-3 w-3' />
+            수정
+          </button>
+        ) : null}
       </div>
       <div className='mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500'>
         <button

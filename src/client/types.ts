@@ -459,6 +459,17 @@ export type SpaceCoinHistoryMeta = {
   };
 };
 
+export type UpdateSpaceParams = {
+  name?: string;
+  petName?: string;
+  type?: SpaceType;
+  startedAt?: string;
+  locale?: Locale;
+  noticeTime?: string;
+  isActive?: boolean;
+  dueRemovedAt?: string | null;
+};
+
 export type SpaceDetail = Space & {
   recentCoinMetas: SpaceCoinHistoryMeta[];
 };
