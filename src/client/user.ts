@@ -8,6 +8,7 @@ import {
   UserProfileRow,
   UserPurchaseRow,
   UserPushRow,
+  UpdateUserParams,
   UserSummary,
   UserTabPageResult,
 } from './types';
@@ -91,6 +92,12 @@ export async function getUserPushes(username: string, page: number) {
 
 export async function getUserSubscriptionStatus(username: string) {
   const res = await client.get<LiveSubscriptionRow[]>(`/user/${username}/subscription-status`);
+
+  return res.data;
+}
+
+export async function updateUser(username: string, body: UpdateUserParams) {
+  const res = await client.put(`/user/${username}`, body);
 
   return res.data;
 }

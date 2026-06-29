@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import UserDetailContent from './UserDetailContent';
+import UserEditModal from './UserEditModal';
 import UserProfilesTab from './tabs/UserProfilesTab';
 import UserPurchasesTab from './tabs/UserPurchasesTab';
 import UserEntitlementsTab from './tabs/UserEntitlementsTab';
@@ -25,6 +26,7 @@ interface UserDetailSheetProps {
 function UserDetailSheet({ open, user, onClose, copyId, onOpenTicket, onRemove }: UserDetailSheetProps) {
   const username = user?.username;
   const [tab, setTab] = useState('overview');
+  const [editOpen, setEditOpen] = useState(false);
   useEffect(() => {
     setTab('overview');
   }, [username]);
@@ -66,7 +68,14 @@ function UserDetailSheet({ open, user, onClose, copyId, onOpenTicket, onRemove }
               </TabsList>
             </div>
             <TabsContent value='overview'>
-              <UserDetailContent user={data} copyId={copyId} onOpenTicket={onOpenTicket} onRemove={onRemove} />
+              <UserDetailContent
+                user={data}
+                copyId={copyId}
+                onOpenTicket={onOpenTicket}
+                onRemove={onRemove}
+                onEdit={() => setEditOpen(true)}
+              />
+              <UserEditModal open={editOpen} user={data} onOpenChange={setEditOpen} />
             </TabsContent>
             <TabsContent value='profiles'>
               <UserProfilesTab username={data.username} active={tab === 'profiles'} />

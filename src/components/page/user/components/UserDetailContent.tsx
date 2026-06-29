@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { CalendarDays, Clock, Copy, Globe, History, KeyRound, Link2, LogIn, type LucideIcon, Mail, Ticket, Trash2, User as UserIcon } from 'lucide-react';
+import { CalendarDays, Clock, Copy, Globe, History, KeyRound, Link2, LogIn, type LucideIcon, Mail, Pencil, Ticket, Trash2, User as UserIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import {
   formatDate,
@@ -22,6 +22,7 @@ interface UserDetailContentProps {
   copyId: (value: string) => void;
   onOpenTicket?: (user: UserSummary) => void;
   onRemove?: (user: UserSummary) => void;
+  onEdit?: () => void;
 }
 
 function StatTile({ label, value, sub, accent }: { label: string; value: ReactNode; sub?: ReactNode; accent?: string }) {
@@ -62,7 +63,7 @@ function SectionTitle({ children }: { children: ReactNode }) {
   return <h3 className='mb-2 text-base font-semibold text-slate-900'>{children}</h3>;
 }
 
-function UserDetailContent({ user, copyId, onOpenTicket, onRemove }: UserDetailContentProps) {
+function UserDetailContent({ user, copyId, onOpenTicket, onRemove, onEdit }: UserDetailContentProps) {
   const {
     id,
     code,
@@ -118,8 +119,14 @@ function UserDetailContent({ user, copyId, onOpenTicket, onRemove }: UserDetailC
             </div>
           </div>
 
-          {onOpenTicket || onRemove ? (
+          {onOpenTicket || onRemove || onEdit ? (
             <div className='flex shrink-0 items-center gap-1.5'>
+              {onEdit ? (
+                <Button size='sm' variant='outline' className='h-9' onClick={onEdit}>
+                  <Pencil className='h-4 w-4' />
+                  수정
+                </Button>
+              ) : null}
               {onOpenTicket ? (
                 <Button size='sm' variant='outline' className='h-9' onClick={() => onOpenTicket(user)}>
                   <Ticket className='h-4 w-4' />
