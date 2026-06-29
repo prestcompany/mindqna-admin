@@ -68,7 +68,7 @@ export type PurchaseMeta = {
   - `platform` → `platform: { equals }`.
   - `isProduction` → `isProduction: { equals }`.
   - `status`:
-    - `success` → `isSuccess: true`
+    - `success` → `OR: [{ isSuccess: true }, { isSuccess: false, createdAt: { lt: LEGACY_SUCCESS_BEFORE } }]` — **프런트 표시 규칙(레거시 보정)과 정합**(2024-06 이전 건도 성공 필터에 포함).
     - `expired` → `isExpired: true`
     - `failed` → 끝까지 실패한 건: `isSuccess: false, isExpired: false, transactionId notIn (성공/만료된 transactionId 집합)` — 기존 dedup의 AND 분기와 동일.
   - `status` 미지정 시 기존 mergedWhere(dedup) 그대로.
