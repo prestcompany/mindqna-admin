@@ -42,32 +42,11 @@
 
 작업 디렉터리: `/Users/gargoyle92/Documents/backend/mindqna-server`
 
-- [ ] **Step 1: 테스트 하네스 확장**
+- [ ] **Step 1: 테스트 하네스 확장 (서비스 타입 선언만)**
 
-`src/admin/user/user.service.spec.ts` 상단 에러 모듈 mock에 `BadRequestException`을 추가한다(현재 `NotFoundException`만 있을 수 있음 — 이 `jest.mock` 블록을 교체하는 것이지 새로 추가하는 게 아님). 현재:
-```ts
-jest.mock(
-  'src/common/exception/error',
-  () => ({
-    NotFoundException: () => new Error('Not Found'),
-  }),
-  { virtual: true },
-);
-```
-변경:
-```ts
-jest.mock(
-  'src/common/exception/error',
-  () => ({
-    NotFoundException: () => new Error('Not Found'),
-    BadRequestException: (message?: string) => new Error(message ?? 'Bad Request'),
-  }),
-  { virtual: true },
-);
-```
-> 만약 이미 다른 예외들이 들어 있으면 기존 항목은 유지하고 `BadRequestException`만 추가한다.
+> 검증 예외는 `@nestjs/common`의 `BadRequestException`(이미 `user.service.ts`에서 `new`로 사용 중)을 그대로 쓴다. 이건 실제 클래스라 spec에서 mock 불필요 — `.rejects.toThrow('Invalid locale')`는 그 message로 매칭된다. 따라서 에러 모듈 mock은 **건드리지 않는다**(기존 `NotFoundException` mock 유지).
 
-같은 파일의 서비스 타입 선언(`const { UserService } = require('./user.service') as { UserService: new (...) => { ... } }`)에서 `getUserPushes?` 줄 다음에 추가:
+`src/admin/user/user.service.spec.ts`의 서비스 타입 선언(`const { UserService } = require('./user.service') as { UserService: new (...) => { ... } }`)에서 `getUserPushes?` 줄 다음에 추가:
 ```ts
     updateUser?: (
       username: string,
@@ -121,6 +100,15 @@ jest.mock(
       await expect(service.updateUser!('ralph', { spaceMaxCount: -1 })).rejects.toThrow('Invalid spaceMaxCount');
     });
 
+    it('rejects a past reserveUnregisterAt date', async () => {
+      prisma.user.findUnique.mockResolvedValue({ id: 'user_1' });
+
+      await expect(service.updateUser!('ralph', { reserveUnregisterAt: '2020-01-01T00:00:00.000Z' })).rejects.toThrow(
+        'reserveUnregisterAt',
+      );
+      expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+
     it('does nothing when no fields are provided', async () => {
       prisma.user.findUnique.mockResolvedValue({ id: 'user_1' });
 
@@ -156,11 +144,11 @@ export interface UpdateUserParams {
 - [ ] **Step 5: 서비스 구현**
 
 `src/admin/user/user.service.ts` 상단 import 조정.
-- 예외 헬퍼: 현재 `import { NotFoundException } from 'src/common/exception/error';` → `import { BadRequestException, NotFoundException } from 'src/common/exception/error';`
+- 예외: **`@nestjs/common`의 `BadRequestException`을 그대로 사용**(이미 line 1에서 `import { BadRequestException, Injectable } from '@nestjs/common';`로 import되어 있고 171·218줄에서 `new BadRequestException(...)`로 사용 중). 커스텀 `src/common/exception/error`에서 가져오지 **않는다**(중복 식별자/호출규약 충돌 방지). `NotFoundException`은 기존대로 커스텀에서 유지.
 - Prisma enum: `@prisma/client` import에 `Locale` 추가(현재 import 라인에 합침). 없으면 `import { Locale } from '@prisma/client';` 추가.
 - 인터페이스: `import { ... , UpdateUserParams } from './user.interface';`에 `UpdateUserParams` 추가.
 
-`UserService` 클래스 안에 메서드 추가(기존 메서드 뒤, 클래스 닫힘 전):
+`UserService` 클래스 안에 메서드 추가(기존 메서드 뒤, 클래스 닫힘 전). 검증 예외는 `new BadRequestException(...)`(NestJS 클래스, 기존 171·218줄과 동일 호출규약):
 ```ts
   async updateUser(username: string, params: UpdateUserParams) {
     const user = await this.prisma.user.findUnique({
@@ -170,13 +158,20 @@ export interface UpdateUserParams {
     if (!user) throw NotFoundException();
 
     if (params.locale !== undefined && !Object.values(Locale).includes(params.locale)) {
-      throw BadRequestException('Invalid locale');
+      throw new BadRequestException('Invalid locale');
     }
     if (
       params.spaceMaxCount !== undefined &&
       (!Number.isInteger(params.spaceMaxCount) || params.spaceMaxCount < 0)
     ) {
-      throw BadRequestException('Invalid spaceMaxCount');
+      throw new BadRequestException('Invalid spaceMaxCount');
+    }
+    if (params.reserveUnregisterAt !== undefined && params.reserveUnregisterAt !== null) {
+      const target = new Date(params.reserveUnregisterAt);
+      // 과거/무효 날짜는 거부 — auth-user-remove cron이 지난 날짜를 즉시 삭제 대상으로 처리(되돌릴 수 없음)
+      if (Number.isNaN(target.getTime()) || target < new Date(new Date().toDateString())) {
+        throw new BadRequestException('reserveUnregisterAt must be a valid future date');
+      }
     }
 
     const data: Record<string, unknown> = {};
@@ -216,11 +211,7 @@ git commit -m "feat(admin/user): add updateUser partial update service"
 
 - [ ] **Step 1: import 확장**
 
-`user.controller.ts`의 nestia import에 `TypedBody`를 추가한다(현재 `import { TypedParam, TypedQuery, TypedRoute } from '@nestia/core';`):
-```ts
-import { TypedBody, TypedParam, TypedQuery, TypedRoute } from '@nestia/core';
-```
-인터페이스 import에 `UpdateUserParams` 추가(현재 `import { SearchUserParams, TransferUserAccountParams, UserTabQuery } from './user.interface';`):
+`TypedBody`는 이미 import되어 있다(transfer 라우트가 사용 중) — 건드리지 않는다. 인터페이스 import에만 `UpdateUserParams`를 추가한다(현재 `import { SearchUserParams, TransferUserAccountParams, UserTabQuery } from './user.interface';`):
 ```ts
 import { SearchUserParams, TransferUserAccountParams, UpdateUserParams, UserTabQuery } from './user.interface';
 ```
@@ -433,30 +424,30 @@ function UserEditModal({ open, user, onOpenChange }: UserEditModalProps) {
           <DialogTitle>사용자 정보 수정</DialogTitle>
         </DialogHeader>
 
-        <div className='min-h-0 flex-1 space-y-6 overflow-y-auto py-1 pr-1'>
-          <section className='space-y-3'>
-            <div className='text-xs font-semibold uppercase tracking-wide text-slate-500'>표시</div>
-            <div className='space-y-1.5'>
-              <Label htmlFor='user-locale' className='text-xs text-slate-600'>
-                언어
-              </Label>
-              <Select value={form.locale} onValueChange={(v) => set('locale', v as Locale)}>
-                <SelectTrigger id='user-locale'>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {LOCALES.map((l) => (
-                    <SelectItem key={l.value} value={l.value}>
-                      {l.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </section>
+        <div className='min-h-0 flex-1 space-y-4 overflow-y-auto py-1 pr-1'>
+          <div className='space-y-1.5'>
+            <Label htmlFor='user-locale' className='text-xs text-slate-600'>
+              언어
+            </Label>
+            <Select value={form.locale} onValueChange={(v) => set('locale', v as Locale)}>
+              <SelectTrigger id='user-locale'>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {LOCALES.map((l) => (
+                  <SelectItem key={l.value} value={l.value}>
+                    {l.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-          <section className='space-y-3 border-t border-slate-100 pt-6'>
-            <div className='text-xs font-semibold uppercase tracking-wide text-slate-500'>운영</div>
+          <section className='space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3'>
+            <div className='flex items-center gap-1.5'>
+              <span className='h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500' aria-hidden />
+              <span className='text-xs font-semibold text-slate-700'>운영 — 계정에 영향</span>
+            </div>
             <div className='space-y-1.5'>
               <Label htmlFor='user-space-max' className='text-xs text-slate-600'>
                 최대 공간 수
@@ -488,9 +479,7 @@ function UserEditModal({ open, user, onOpenChange }: UserEditModalProps) {
                   </Button>
                 ) : null}
               </div>
-              <p className='text-xs text-slate-500'>
-                날짜를 비우거나 &quot;예약 취소&quot;를 누르면 탈퇴 예약이 해제됩니다. 설정 시 해당 날짜에 계정이 삭제됩니다.
-              </p>
+              <p className='text-xs text-slate-500'>날짜를 비우거나 &quot;예약 취소&quot;를 누르면 탈퇴 예약이 해제됩니다.</p>
             </div>
           </section>
         </div>
@@ -521,6 +510,7 @@ function UserEditModal({ open, user, onOpenChange }: UserEditModalProps) {
               onClick={() => {
                 if (pendingBody) mutation.mutate(pendingBody);
                 setConfirmOpen(false);
+                setPendingBody(null);
               }}
             >
               확인하고 저장
