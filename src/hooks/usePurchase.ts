@@ -6,6 +6,9 @@ type Props = {
   username?: string;
   startDate?: string;
   endDate?: string;
+  platform?: 'IOS' | 'AOS' | 'EVENT';
+  status?: 'success' | 'failed' | 'expired';
+  isProduction?: boolean;
 };
 
 function usePurchases(by: Props) {

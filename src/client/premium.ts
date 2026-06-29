@@ -9,7 +9,15 @@ import {
   RevokeTicketParams,
 } from './types';
 
-export async function getPurchases(by: { page: number; username?: string; startDate?: string; endDate?: string }) {
+export async function getPurchases(by: {
+  page: number;
+  username?: string;
+  startDate?: string;
+  endDate?: string;
+  platform?: 'IOS' | 'AOS' | 'EVENT';
+  status?: 'success' | 'failed' | 'expired';
+  isProduction?: boolean;
+}) {
   const res = await client.get<QueryResultWithPagination<PurchaseMeta>>('/purchase', { params: by });
 
   return res.data;

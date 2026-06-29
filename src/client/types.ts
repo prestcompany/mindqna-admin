@@ -347,14 +347,15 @@ export type PurchaseMeta = {
   id: number;
   userId: string;
   username: string;
-  platform: 'EVENT' | 'IOS' | 'EVENT';
+  platform: 'EVENT' | 'IOS' | 'AOS';
   transactionId: string;
   productId: string;
   log?: string;
+  receipt?: string | null;
   isSuccess: boolean;
   isExpired: boolean;
   isProduction: boolean;
-
+  completedAt: string | null;
   createdAt: string;
 };
 
