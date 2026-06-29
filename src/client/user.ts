@@ -1,5 +1,6 @@
 import client from './@base';
 import {
+  LiveSubscriptionRow,
   QueryResultWithPagination,
   UserAccessRow,
   UserDetail,
@@ -84,6 +85,12 @@ export async function getUserAccess(username: string, page: number) {
 
 export async function getUserPushes(username: string, page: number) {
   const res = await client.get<UserTabPageResult<UserPushRow>>(`/user/${username}/pushes`, { params: { page } });
+
+  return res.data;
+}
+
+export async function getUserSubscriptionStatus(username: string) {
+  const res = await client.get<LiveSubscriptionRow[]>(`/user/${username}/subscription-status`);
 
   return res.data;
 }
