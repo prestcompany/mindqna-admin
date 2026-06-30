@@ -58,9 +58,10 @@
 ### `src/card/card.module.ts`
 - `providers`/`exports`에 `CardIssuanceService` 추가. `CardCreateCron`은 유지(이제 `CardIssuanceService` 의존).
 
-### 어드민 배선 — `src/admin/space/space.controller.ts`
-- `CardCreateCron` 주입 → `CardIssuanceService` 주입으로 교체. `this.cardCreateCron.forceCreateCard` → `this.issuanceService.forceCreateCard`.
-- `space.module.ts`는 이미 `CardModule` import 중(변경 없음).
+### 호출부 배선
+- `src/admin/space/space.controller.ts`: `CardCreateCron` 주입 → `CardIssuanceService` 주입으로 교체(`forceCreateCard` 호출). `space.module.ts`는 이미 `CardModule` import 중.
+- `src/test/test.controller.ts`: `processSpaceById`(이동)와 `createSpaceCard`(잔류)를 **둘 다** 호출하므로, `CardIssuanceService`를 추가 주입하고 `processSpaceById` 호출만 서비스로 바꾼다(단순 교체 아님). test.module은 이미 `CardModule` import 중.
+- 이동 메서드의 외부 호출자는 위 둘뿐임(전체 grep 확인).
 
 ## 테스트 (동작 보존 증명)
 
@@ -77,7 +78,7 @@
 
 - 순수 리팩터링 — 새 기능/동작 변경 없음.
 - `card-remind.cron`(CardRemindCron)은 범위 밖(발급과 무관).
-- 파일 위치는 `src/card/cron/` 유지 또는 `src/card/`로 승격 — 계획 단계에서 확정(기본: `src/card/cron/card-issuance.service.ts`로 cron과 동거, import 경로 최소화).
+- 파일 위치는 `src/card/cron/card-issuance.service.ts`로 확정(cron과 동거, import 경로 최소화).
 
 ## 배포 / 운영 주의
 

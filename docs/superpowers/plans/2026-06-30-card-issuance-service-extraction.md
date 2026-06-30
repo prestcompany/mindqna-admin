@@ -24,6 +24,7 @@
 - Modify `src/card/cron/card-create.cron.spec.ts` — 스케줄링 테스트만 잔류
 - Modify `src/card/card.module.ts` — `CardIssuanceService` provider/export
 - Modify `src/admin/space/space.controller.ts` — 주입을 `CardIssuanceService`로 교체
+- Modify `src/test/test.controller.ts` — `processSpaceById`가 서비스로 이동하므로 `CardIssuanceService`도 주입(단순 교체 아님 — `createSpaceCard`는 cron 유지)
 
 **이동 대상 메서드(본문 무수정, cron→service)**: `processSpaceById`, `forceCreateCard`, `isEligibleForCardCreation`, `hasValidTiming`, `getActiveProfileCount`, `processSpace`, `shouldGenerateCard`, `hasHighParticipation`, `generateNewCard`, `handleCardCreatedNotification`, `getCardTemplate`, `createCardAndUpdateSpace`, `ensureUniqueTemplate`, `executeCardCreationTransaction`, `handleFirstCard`, `sendNewCardPushes`.
 
@@ -82,6 +83,8 @@ export class CardIssuanceService {
 
 > 주의: `forceCreateCard`는 cron에 남기지 않는다(서비스로 이동). cron에서 완전히 사라져야 한다.
 
+> **접근제한자 변경(유일한 예외)**: `processSpace`는 cron의 `processBatch`에서 `this.issuanceService.processSpace(space)`로 호출되므로, 이동 시 `private`를 제거해 **public**으로 만든다(다른 클래스에서 private 멤버 호출 불가). 로직 본문은 무수정.
+
 - [ ] **Step 3: cron 잔류부 정리 (호출부·생성자·import)**
 
 `card-create.cron.ts`에서:
@@ -100,12 +103,13 @@ export class CardIssuanceService {
   }
 ```
 4. import 추가: `import { CardIssuanceService } from './card-issuance.service';`. `evalHasValidTiming`(`hasValidTiming as evalHasValidTiming` from `src/card/card-eligibility`)은 유지.
-5. 이동으로 미사용이 된 import 제거(`FcmService`, `generatePath`, `t`, `getActiveMemberWhere`, `hasEnoughParticipation`, `isMemberEligible`, `NotFoundCardTemplateException`, `NotFoundException`, `BadRequestException`, `DateUtil` 등 — 실제 잔류 메서드가 안 쓰는 것만). 잔류 메서드(`createSpaceCard`/`fetchSpacesBatch`/`filterSpacesToProcess`/`processBatch`)가 쓰는 것(`Logger`, `Cron`/`CronExpression`, `Space`, `dayjs`, `ExecutionCalculator`, `DatabaseManagerService`, `evalHasValidTiming`)은 유지.
+5. 이동으로 미사용이 된 import 제거(`FcmService`, `generatePath`, `t`, `getActiveMemberWhere`, `hasEnoughParticipation`, `isMemberEligible`, `NotFoundCardTemplateException`, `NotFoundException`, `BadRequestException` — 실제 잔류 메서드가 안 쓰는 것만). 잔류 메서드(`createSpaceCard`/`fetchSpacesBatch`/`filterSpacesToProcess`/`processBatch`)가 쓰는 것(`Logger`, `Cron`/`CronExpression`, `Space`, `dayjs`, `ExecutionCalculator`, `DatabaseManagerService`, `evalHasValidTiming`, **`DateUtil`**)은 유지.
+> 주의: `DateUtil`은 잔류 메서드 `fetchSpacesBatch`가 `DateUtil.format(dayjs())`(card-create.cron.ts:138)로 사용하므로 **제거 금지** — 유지 목록에 포함.
 
 - [ ] **Step 4: 타입체크 (미사용 import·참조 깨짐 탐지)**
 
-Run: `cd /Users/gargoyle92/Documents/backend/mindqna-server && npx tsc --noEmit 2>&1 | grep -iE "card-create.cron|card-issuance" ; echo DONE`
-Expected: 에러 줄 없음. 에러가 나면(미사용 import / 누락 메서드) Step 2~3을 보정.
+Run: `cd /Users/gargoyle92/Documents/backend/mindqna-server && npx tsc --noEmit 2>&1 | tail -30`
+Expected: 신규 에러 없음(전체 출력 확인 — `test.controller.ts` 등 다른 파일의 cross-file 에러도 여기서 드러남). 에러가 나면(미사용 import / 누락 메서드 / 깨진 호출부) Step 2~3 및 Task 2를 보정.
 
 - [ ] **Step 5: 커밋**
 
@@ -159,17 +163,25 @@ export class CardModule {}
 - 생성자: `private readonly cardCreateCron: CardCreateCron` → `private readonly issuanceService: CardIssuanceService`
 - 라우트 호출: `this.cardCreateCron.forceCreateCard(id)` → `this.issuanceService.forceCreateCard(id)`
 
-- [ ] **Step 3: 타입체크**
+- [ ] **Step 3: 테스트 컨트롤러 주입 보정 (`src/test/test.controller.ts`)**
 
-Run: `cd /Users/gargoyle92/Documents/backend/mindqna-server && npx tsc --noEmit 2>&1 | grep -iE "card.module|admin/space" ; echo DONE`
-Expected: 에러 줄 없음.
+이 파일은 `createSpaceCard`(cron 잔류)와 `processSpaceById`(서비스 이동)를 **둘 다** 호출하므로 단순 교체가 아니라 **두 주입을 모두 유지**한다. test.module은 이미 `CardModule`을 import 중이라 `CardIssuanceService` 주입 가능.
+- import 추가: `import { CardIssuanceService } from 'src/card/cron/card-issuance.service';` (기존 `CardCreateCron` import 유지)
+- 생성자에 `private issuanceService: CardIssuanceService` 추가(기존 `cardCreateCron: CardCreateCron`는 유지 — `createSpaceCard`용)
+- line 76 `this.cardCreateCron.createSpaceCard()` → 변경 없음(잔류)
+- line 83 `this.cardCreateCron.processSpaceById(spaceId)` → `this.issuanceService.processSpaceById(spaceId)`
 
-- [ ] **Step 4: 커밋**
+- [ ] **Step 4: 타입체크 (전체)**
+
+Run: `cd /Users/gargoyle92/Documents/backend/mindqna-server && npx tsc --noEmit 2>&1 | tail -30`
+Expected: 신규 에러 없음(전체 출력 — card.module / admin/space / test.controller 포함 cross-file 에러 모두 확인).
+
+- [ ] **Step 5: 커밋**
 
 ```bash
 cd /Users/gargoyle92/Documents/backend/mindqna-server
-git add src/card/card.module.ts src/admin/space/space.controller.ts
-git commit -m "refactor(card): register CardIssuanceService; admin injects it instead of cron"
+git add src/card/card.module.ts src/admin/space/space.controller.ts src/test/test.controller.ts
+git commit -m "refactor(card): register CardIssuanceService; admin/test inject it instead of cron"
 ```
 
 ---
@@ -218,7 +230,7 @@ const { CardIssuanceService } = jest.requireActual('./card-issuance.service') as
 
 `card-create.cron.spec.ts`에서 Step 1로 옮긴 발급 테스트들을 **삭제**한다. 잔류:
 - `'loads only active member replies when fetching batch candidates'`(fetchSpacesBatch 검증)
-- 서비스 타입 선언에서 `forceCreateCard` 제거(cron엔 더 이상 없음). `createService`는 그대로 두되, cron이 이제 `CardIssuanceService`를 생성자 2번째 인자로 받으므로 헬퍼를 보정:
+- 서비스 타입 선언에서 이동된 메서드(`shouldGenerateCard`, `forceCreateCard`)를 제거(cron엔 더 이상 없음). 잔류 테스트는 `(service as any)`/`fetchSpacesBatch`만 쓰므로 타입 선언은 비워도 무방. `createService`는 cron이 이제 `CardIssuanceService`를 생성자 2번째 인자로 받으므로 헬퍼를 보정:
 ```ts
   function createService(databaseManager: any = {}, issuanceService: any = {}) {
     return new CardCreateCron(databaseManager as never, issuanceService as never);
