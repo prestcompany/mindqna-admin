@@ -13,6 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,11 +21,65 @@ import { Sheet } from '@/components/ui/sheet';
 import { useQuery } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import dayjs from 'dayjs';
-import { Loader2, Search } from 'lucide-react';
+import { Copy, Loader2, Search } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import TicketForm from './TicketForm';
-import UserDetailContent from './components/UserDetailContent';
+import UserDetailSheet from './components/UserDetailSheet';
+import { getLocaleLabel } from './utils/user-display';
+
+interface UserResultCardProps {
+  user: UserDetail;
+  onOpenDetail: (user: UserDetail) => void;
+  copyId: (value: string) => void;
+}
+
+function UserResultCard({ user, onOpenDetail, copyId }: UserResultCardProps) {
+  const spaceCount = user._count?.profiles ?? 0;
+  const joinedLabel = dayjs(user.createdAt).format('YYYY.MM.DD');
+
+  return (
+    <div
+      role='button'
+      tabIndex={0}
+      onClick={() => onOpenDetail(user)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onOpenDetail(user);
+        }
+      }}
+      className='flex cursor-pointer items-center gap-4 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300'
+    >
+      <div className='min-w-0 flex-1'>
+        <div className='flex flex-wrap items-center gap-2'>
+          <span className='truncate font-semibold text-slate-900'>{user.username}</span>
+          {typeof user.code === 'number' ? <span className='font-mono text-xs text-slate-500'>#{user.code}</span> : null}
+          <Badge variant='softNeutral'>{getLocaleLabel(user.locale)}</Badge>
+          {user.representativeNickname?.trim() ? (
+            <span className='truncate text-xs text-slate-500'>{user.representativeNickname}</span>
+          ) : null}
+        </div>
+        <div className='mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500'>
+          <button
+            type='button'
+            onClick={(event) => {
+              event.stopPropagation();
+              copyId(user.id);
+            }}
+            className='inline-flex items-center gap-1 font-mono transition-colors hover:text-slate-900'
+          >
+            <Copy className='h-3 w-3' />
+            {user.id}
+          </button>
+          <span className='truncate'>{user.socialAccount?.email || '이메일 없음'}</span>
+          <span>공간 {spaceCount}개</span>
+          <span>가입일 {joinedLabel}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function UserSearch() {
   const [userId, setUserId] = useState('');
@@ -34,6 +89,8 @@ function UserSearch() {
   const [focused, setFocused] = useState<string>('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<UserSummary | null>(null);
+  const [detailUser, setDetailUser] = useState<UserSummary | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const getFilledFields = () =>
     [
@@ -102,6 +159,8 @@ function UserSearch() {
       await removeUser(confirmTarget.id);
       toast.success(`${confirmTarget.username} 사용자가 삭제되었습니다`);
       await refetch();
+      setDetailUser(null);
+      setDetailOpen(false);
     } catch (err) {
       toast.error(`삭제 실패: ${err}`);
     } finally {
@@ -177,14 +236,13 @@ function UserSearch() {
       </FormSection>
 
       {data ? (
-        <UserDetailContent
+        <UserResultCard
           user={data}
           copyId={copyId}
-          onOpenTicket={(user) => {
-            setOpenTicket(true);
-            setFocused(user.username);
+          onOpenDetail={(user) => {
+            setDetailUser(user as UserSummary);
+            setDetailOpen(true);
           }}
-          onRemove={handleRemoveClick}
         />
       ) : null}
 
@@ -219,6 +277,22 @@ function UserSearch() {
           />
         </AdminSideSheetContent>
       </Sheet>
+
+      <UserDetailSheet
+        open={detailOpen}
+        user={detailUser}
+        onClose={() => setDetailOpen(false)}
+        copyId={copyId}
+        onOpenTicket={(user) => {
+          setDetailOpen(false);
+          setOpenTicket(true);
+          setFocused(user.username);
+        }}
+        onRemove={(user) => {
+          setDetailOpen(false);
+          handleRemoveClick(user);
+        }}
+      />
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
