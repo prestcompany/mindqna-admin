@@ -1,6 +1,7 @@
 import { PurchaseMeta } from '@/client/types';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import DataTable from '@/components/shared/ui/data-table';
+import { resolveStatus } from '@/components/shared/purchase/purchase-status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DatePickerWithRange } from '@/components/ui/DatePickerWithRange';
@@ -16,9 +17,6 @@ import { Copy, Eye } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-// 이 이전 결제건은 isSuccess 미기록 → 성공으로 간주(레거시 데이터 보정)
-const LEGACY_SUCCESS_BEFORE = '2024-06-01';
-
 type StatusValue = 'all' | 'success' | 'failed' | 'expired';
 type PlatformValue = 'all' | 'IOS' | 'AOS' | 'EVENT';
 type EnvValue = 'all' | 'prod' | 'test';
@@ -28,12 +26,6 @@ const PLATFORM_META: Record<string, { variant: 'softNeutral' | 'softInfo' | 'sof
   AOS: { variant: 'softNeutral', text: 'Android' }, // slate — 표준 스토어
   EVENT: { variant: 'softWarning', text: 'EVENT' }, // amber — 실결제 아닌 시스템 지급, 구분
 };
-
-function resolveStatus(record: PurchaseMeta): { label: string; variant: 'softSuccess' | 'softDanger' | 'softNeutral' } {
-  if (record.isExpired) return { label: '만료', variant: 'softNeutral' };
-  const isSuccess = record.isSuccess || dayjs(record.createdAt).isBefore(LEGACY_SUCCESS_BEFORE);
-  return isSuccess ? { label: '성공', variant: 'softSuccess' } : { label: '실패', variant: 'softDanger' };
-}
 
 function PurchaseMetaList() {
   const [currentPage, setCurrentPage] = useState(1);
