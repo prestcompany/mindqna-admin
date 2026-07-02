@@ -9,6 +9,7 @@ function PurchaseManagement() {
   const router = useRouter();
   const tab = router.query.tab === 'products' ? 'products' : 'purchases';
   const [detailContext, setDetailContext] = useState<PurchaseDetailContext | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const setTab = (next: string) => {
     router.replace({ pathname: router.pathname, query: { ...router.query, tab: next } }, undefined, {
@@ -16,7 +17,10 @@ function PurchaseManagement() {
     });
   };
 
-  const openDetail = (ctx: PurchaseDetailContext) => setDetailContext(ctx);
+  const openDetail = (ctx: PurchaseDetailContext) => {
+    setDetailContext(ctx);
+    setDetailOpen(true);
+  };
 
   return (
     <div>
@@ -33,7 +37,7 @@ function PurchaseManagement() {
         </TabsContent>
       </Tabs>
 
-      <PurchaseDetailSheet open={!!detailContext} context={detailContext} onClose={() => setDetailContext(null)} />
+      <PurchaseDetailSheet open={detailOpen} context={detailContext} onClose={() => setDetailOpen(false)} />
     </div>
   );
 }
