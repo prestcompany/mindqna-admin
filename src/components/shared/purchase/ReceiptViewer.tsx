@@ -41,9 +41,9 @@ function ReceiptViewer({ title, raw }: { title: string; raw: string }) {
         >
           {open ? <ChevronDown className='h-3.5 w-3.5' /> : <ChevronRight className='h-3.5 w-3.5' />}
           {title}
-          {pretty === null ? <span className='ml-1 font-normal text-slate-400'>(원문)</span> : null}
+          {pretty === null ? <span className='ml-1 font-normal text-slate-500'>(원문)</span> : null}
         </button>
-        <Button variant='ghost' size='sm' className='h-7 px-2 text-xs text-slate-500' onClick={copyRaw}>
+        <Button variant='ghost' size='sm' className='px-2 text-xs text-slate-500' onClick={copyRaw}>
           <Copy className='mr-1 h-3 w-3' />
           복사
         </Button>
