@@ -4,6 +4,8 @@
 
 **Goal:** 인앱 결제 내역·인앱 상품 관리를 하나의 "인앱 결제 관리" 화면(탭 2개)으로 통합하고, 구조화된 결제 상세 패널(영수증 뷰어 + 이용권/스토어 실시간 + 운영 액션)을 추가한다.
 
+**상태: 구현 완료 (2026-07-03).** 전 태스크(1-12) 실행·리뷰 완료, 최종 whole-branch 리뷰 머지 승인. 서버 커밋 af04e10/49913b5/fcba50e (`feature/iap-purchase-detail`, main 병합 대기), 프론트 커밋 c716a49..91f97a0 (develop). 태스크별 리뷰 지적(Important) 수정 커밋: 3937d2d, fd68871, a0f2f8c, 91f97a0. 진행 기록: `.superpowers/sdd/progress.md`.
+
 **Architecture:** 서버(`mindqna-server`)에 결제 단건 상세 API와 이용권 목록 필터를 추가한 뒤, 프론트(`mindqna-admin`)에서 유저 패널의 결제 관련 컴포넌트를 `shared/purchase/`로 추출해 신규 `PurchaseDetailSheet`와 공유한다. 마지막으로 탭 컨테이너로 두 목록을 통합하고 메뉴를 정리한다.
 
 **Tech Stack:** Next.js 13(pages) + shadcn/ui + TanStack Query (프론트), NestJS + nestia(TypedRoute) + Prisma + Jest (서버)
@@ -33,7 +35,7 @@
 - Consumes: Prisma 모델 `purchaseMeta`, `user`, `premiumTicket`, `goldClub`, `purchaseHistoryMeta`
 - Produces: `ProductAdminService.getPurchaseDetail(id: number): Promise<PurchaseDetailResult>` — Task 2의 컨트롤러가 사용
 
-- [ ] **Step 1: 타입 추가**
+- [x] **Step 1: 타입 추가**
 
 `src/admin/product/types/product.types.ts` 끝에 추가:
 
@@ -56,7 +58,7 @@ export type PurchaseDetailResult = PurchaseMetaWithUsername & {
 };
 ```
 
-- [ ] **Step 2: 테스트 mock 인프라 확장**
+- [x] **Step 2: 테스트 mock 인프라 확장**
 
 `src/admin/test-utils/create-prisma-service.mock.ts`에 다음을 추가한다 (Task 1 테스트가 호출하는 mock이 현재 없음):
 
@@ -64,7 +66,7 @@ export type PurchaseDetailResult = PurchaseMetaWithUsername & {
 - 기존 `purchaseHistoryMeta` 객체에 `findMany: jest.fn(),` 추가 (현재 `create`만 있음)
 - `goldClub: { findMany: jest.fn() },` 항목 신설 (다른 모델과 같은 패턴, `premiumTicket` 옆)
 
-- [ ] **Step 3: 실패하는 테스트 작성**
+- [x] **Step 3: 실패하는 테스트 작성**
 
 `src/admin/product/product.service.spec.ts`의 require 타입 선언 블록(24-38행, 기존 메서드 선언 옆)에 `getPurchaseDetail: (id: number) => Promise<any>;` 를 추가하고, describe 블록 안에 추가:
 
@@ -140,12 +142,12 @@ describe('getPurchaseDetail', () => {
 });
 ```
 
-- [ ] **Step 4: 테스트 실패 확인**
+- [x] **Step 4: 테스트 실패 확인**
 
 Run: `cd /Users/gargoyle92/Documents/backend/mindqna-server && npx jest src/admin/product/product.service.spec.ts -t getPurchaseDetail`
 Expected: FAIL — `service.getPurchaseDetail is not a function`
 
-- [ ] **Step 5: 서비스 구현**
+- [x] **Step 5: 서비스 구현**
 
 `src/admin/product/product.service.ts`에 추가 (import에 `PurchaseDetailResult`, `PurchaseRelatedTicket` 추가):
 
@@ -200,12 +202,12 @@ async getPurchaseDetail(id: number): Promise<PurchaseDetailResult> {
 }
 ```
 
-- [ ] **Step 6: 테스트 통과 확인**
+- [x] **Step 6: 테스트 통과 확인**
 
 Run: `npx jest src/admin/product/product.service.spec.ts`
 Expected: PASS (기존 테스트 포함 전체)
 
-- [ ] **Step 7: 타입 체크 후 커밋**
+- [x] **Step 7: 타입 체크 후 커밋**
 
 ```bash
 npx tsc --noEmit
@@ -224,7 +226,7 @@ git commit -m "feat(admin): add purchase detail lookup with related tickets and 
 - Consumes: Task 1의 `productAdminService.getPurchaseDetail(id)`
 - Produces: `GET /purchase/:id` → `PurchaseDetailResult` JSON — Task 5의 프론트 클라이언트가 사용
 
-- [ ] **Step 1: 라우트 추가**
+- [x] **Step 1: 라우트 추가**
 
 기존 `getPurchaseMetas` 라우트 아래에 추가:
 
@@ -237,12 +239,12 @@ async getPurchaseDetail(@TypedParam('id') id: number) {
 }
 ```
 
-- [ ] **Step 2: 타입 체크**
+- [x] **Step 2: 타입 체크**
 
 Run: `npx tsc --noEmit`
 Expected: 에러 없음
 
-- [ ] **Step 3: 커밋**
+- [x] **Step 3: 커밋**
 
 ```bash
 git add src/admin/admin.controller.ts
@@ -262,7 +264,7 @@ git commit -m "feat(admin): expose GET /purchase/:id endpoint"
 **Interfaces:**
 - Produces: `GET /products?page&search&isActive&platform&isProduction&isSubscribe` — Task 5/9의 프론트가 사용. 기존 파라미터만 보내는 호출은 동작 불변(하위 호환)
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 기존 `getProducts` describe(없으면 신설)에 추가:
 
@@ -296,12 +298,12 @@ it('isSubscribe=false는 dueAt이 null인 소모품만 조회한다', async () =
 
 spec 상단 require 타입의 `getProducts` 파라미터도 `{ page: number; search?: string; isActive?: boolean; platform?: 'IOS' | 'AOS' | 'EVENT'; isProduction?: boolean; isSubscribe?: boolean }`로 갱신.
 
-- [ ] **Step 2: 테스트 실패 확인**
+- [x] **Step 2: 테스트 실패 확인**
 
 Run: `npx jest src/admin/product/product.service.spec.ts -t 필터`
 Expected: FAIL — where 조건 불일치
 
-- [ ] **Step 3: 타입/서비스/컨트롤러 구현**
+- [x] **Step 3: 타입/서비스/컨트롤러 구현**
 
 `GetProductsParams` 교체:
 
@@ -377,16 +379,16 @@ async getProducts(
 }
 ```
 
-- [ ] **Step 4: 기존 search 테스트 기대값 갱신**
+- [x] **Step 4: 기존 search 테스트 기대값 갱신**
 
 `product.service.spec.ts`의 기존 `getProducts` search 테스트(68-74행 부근)는 `where: { OR: [...] }`를 기대한다. AND 래핑 구현에 맞춰 기대값을 `where: { AND: [{ OR: [...] }] }`로 수정한다 (검색 동작 자체는 동일).
 
-- [ ] **Step 5: 테스트/타입 체크 통과 확인**
+- [x] **Step 5: 테스트/타입 체크 통과 확인**
 
 Run: `npx jest src/admin/product/product.service.spec.ts && npx tsc --noEmit`
 Expected: 전체 PASS
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add src/admin/
@@ -413,7 +415,7 @@ git commit -m "feat(admin): add isActive/platform/isProduction/isSubscribe filte
   - `LiveStatusBlock({ username }: { username: string })`
   - `PurchaseHistoryRow({ row }: { row: UserPurchaseRow })`
 
-- [ ] **Step 1: purchase-status.ts 생성**
+- [x] **Step 1: purchase-status.ts 생성**
 
 ```ts
 import dayjs from 'dayjs';
@@ -431,7 +433,7 @@ export function resolveStatus(record: { isExpired: boolean; isSuccess: boolean; 
 }
 ```
 
-- [ ] **Step 2: EntitlementRow / LiveStatusBlock 이동**
+- [x] **Step 2: EntitlementRow / LiveStatusBlock 이동**
 
 `UserEntitlementsTab.tsx`에서 `LIVE_STATUS_META`, `isLive`, `EntitlementRow`, `LiveStatusBlock`을 잘라내어 각 파일로 이동한다. 코드는 기존과 동일하며 import만 조정한다.
 
@@ -570,7 +572,7 @@ function LiveStatusBlock({ username }: { username: string }) {
 export default LiveStatusBlock;
 ```
 
-- [ ] **Step 3: PurchaseHistoryRow 생성**
+- [x] **Step 3: PurchaseHistoryRow 생성**
 
 `UserPurchasesTab.tsx`의 카드 마크업(26-42행)을 추출:
 
@@ -599,13 +601,13 @@ function PurchaseHistoryRow({ row }: { row: UserPurchaseRow }) {
 export default PurchaseHistoryRow;
 ```
 
-- [ ] **Step 4: 원본 파일들 import 교체**
+- [x] **Step 4: 원본 파일들 import 교체**
 
 - `UserEntitlementsTab.tsx`: 이동한 코드 삭제, `import EntitlementRow from '@/components/shared/purchase/EntitlementRow';` `import LiveStatusBlock from '@/components/shared/purchase/LiveStatusBlock';`
 - `UserPurchasesTab.tsx`: 카드 마크업을 `<PurchaseHistoryRow key={row.id} row={row} />`로 교체
 - `PurchaseMetaList.tsx`: 로컬 `LEGACY_SUCCESS_BEFORE`/`resolveStatus`(20-36행) 삭제, `import { resolveStatus } from '@/components/shared/purchase/purchase-status';`
 
-- [ ] **Step 5: 검증 후 커밋**
+- [x] **Step 5: 검증 후 커밋**
 
 Run: `cd /Users/gargoyle92/Documents/frontend/mindqna-admin && npx tsc --noEmit && npm run lint`
 Expected: 신규 에러 없음 (Global Constraints의 기존 5건 제외)
@@ -633,7 +635,7 @@ git commit -m "refactor(purchase): extract shared purchase components from user 
   - `useProducts({ page, search?, isActive?, platform?, isProduction?, isSubscribe? })`
   - `usePurchaseDetail(id: number | null)` → `{ data, isLoading, isError }`
 
-- [ ] **Step 1: types.ts에 타입 추가** (PurchaseMeta 아래)
+- [x] **Step 1: types.ts에 타입 추가** (PurchaseMeta 아래)
 
 ```ts
 export type PurchaseRelatedTicket = {
@@ -654,7 +656,7 @@ export type PurchaseDetail = PurchaseMeta & {
 };
 ```
 
-- [ ] **Step 2: premium.ts 수정**
+- [x] **Step 2: premium.ts 수정**
 
 ```ts
 export type GetProductsFilters = {
@@ -681,7 +683,7 @@ export async function getPurchaseDetail(id: number) {
 
 (import에 `PurchaseDetail` 추가)
 
-- [ ] **Step 3: 훅 작성**
+- [x] **Step 3: 훅 작성**
 
 `src/hooks/usePurchaseDetail.ts`:
 
@@ -721,7 +723,7 @@ function useProducts(by: GetProductsFilters) {
 export default useProducts;
 ```
 
-- [ ] **Step 4: 검증 후 커밋**
+- [x] **Step 4: 검증 후 커밋**
 
 Run: `npx tsc --noEmit && npm run lint`
 
@@ -740,7 +742,7 @@ git commit -m "feat(purchase): add purchase detail client and extended products 
 **Interfaces:**
 - Produces: `ReceiptViewer({ title, raw }: { title: string; raw: string })` — Task 7이 사용
 
-- [ ] **Step 1: 컴포넌트 작성**
+- [x] **Step 1: 컴포넌트 작성**
 
 JSON 파싱 성공 시 key 정렬 pretty-print, 실패 시 원문. 접기 토글 + 원문 복사.
 
@@ -807,7 +809,7 @@ function ReceiptViewer({ title, raw }: { title: string; raw: string }) {
 export default ReceiptViewer;
 ```
 
-- [ ] **Step 2: 검증 후 커밋**
+- [x] **Step 2: 검증 후 커밋**
 
 Run: `npx tsc --noEmit && npm run lint`
 
@@ -829,7 +831,7 @@ git commit -m "feat(purchase): add receipt/log JSON viewer"
   - `type PurchaseDetailContext = { type: 'purchase'; purchaseId: number } | { type: 'ticket'; ticket: IAPProduct }`
   - `PurchaseDetailSheet({ open, context, onClose }: { open: boolean; context: PurchaseDetailContext | null; onClose: () => void })`
 
-- [ ] **Step 1: 컴포넌트 작성**
+- [x] **Step 1: 컴포넌트 작성**
 
 ```tsx
 import { IAPProduct } from '@/client/premium';
@@ -1134,7 +1136,7 @@ export default PurchaseDetailSheet;
 
 참고: `TicketForm`은 의도적으로 중첩 Sheet로 연다 — 결제 상세 컨텍스트를 유지한 채 액션을 수행하기 위함이며, Radix Sheet는 포털 기반이라 중첩 동작에 문제가 없다. (기존 `UserList`는 상세 시트를 닫고 티켓 시트를 여는 패턴이나, 이 화면에서는 컨텍스트 유지가 더 중요하다.)
 
-- [ ] **Step 2: 검증 후 커밋**
+- [x] **Step 2: 검증 후 커밋**
 
 Run: `npx tsc --noEmit && npm run lint`
 
@@ -1154,7 +1156,7 @@ git commit -m "feat(purchase): add purchase detail sheet with entitlements, live
 - Consumes: Task 7의 `PurchaseDetailContext`
 - Produces: `PurchaseMetaList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetailContext) => void })` — Task 10의 컨테이너가 사용
 
-- [ ] **Step 1: 다이얼로그 제거 + 행 클릭 연결**
+- [x] **Step 1: 다이얼로그 제거 + 행 클릭 연결**
 
 1. props 추가: `function PurchaseMetaList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetailContext) => void })`
 2. `detailDialog` state, `showDetail`, `Dialog` 렌더 블록(363-372행), Dialog 관련 import 제거
@@ -1186,7 +1188,7 @@ onClick={(e) => {
 
 6. 최상위 `<TooltipProvider>` 래퍼는 유지한다 — Dialog 제거 후에도 남은 컬럼들의 truncate 툴팁과 복사 버튼에 필요하다.
 
-- [ ] **Step 2: 검증 후 커밋**
+- [x] **Step 2: 검증 후 커밋**
 
 Run: `npx tsc --noEmit && npm run lint`
 (주의: 이 시점에 `purchase.tsx`가 props 없이 렌더해 tsc 에러가 나면 Task 10에서 해소되므로, 임시로 `onOpenDetail`을 옵셔널로 두지 말고 Task 10과 같은 커밋으로 묶지 않는 대신 `pages/product/purchase.tsx`에 `onOpenDetail={() => {}}`를 임시 전달한다.)
@@ -1207,7 +1209,7 @@ git commit -m "feat(purchase): open detail sheet from purchase list rows"
 - Consumes: Task 5의 `useProducts` 확장 파라미터, Task 7의 `PurchaseDetailContext`
 - Produces: `ProductList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetailContext) => void })` — Task 10이 사용
 
-- [ ] **Step 1: 필터 상태/UI 추가 및 뱃지 정비**
+- [x] **Step 1: 필터 상태/UI 추가 및 뱃지 정비**
 
 전체 교체:
 
@@ -1408,7 +1410,7 @@ function ProductList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetailConte
 export default ProductList;
 ```
 
-- [ ] **Step 2: IAPProduct.owner nullable 수정**
+- [x] **Step 2: IAPProduct.owner nullable 수정**
 
 서버는 탈퇴 유저의 이용권에서 `owner: null`을 반환하므로 `src/client/premium.ts`의 `IAPProduct` 타입을 수정한다:
 
@@ -1423,7 +1425,7 @@ export type IAPProduct = {
 
 Step 1 코드에서 기존 `(row as any).owner?.username` 우회는 이미 `row.owner?.username`으로 교체되었으므로, 이 타입 수정으로 캐스팅 없이 컴파일된다. Task 7의 `context.ticket.owner?.username`도 이 타입에 의존한다.
 
-- [ ] **Step 3: 검증 후 커밋**
+- [x] **Step 3: 검증 후 커밋**
 
 Run: `npx tsc --noEmit && npm run lint`
 (이 시점 `iap-product.tsx`가 props 없이 렌더하면 임시로 `onOpenDetail={() => {}}` 전달 — Task 10에서 리다이렉트로 교체됨)
@@ -1448,7 +1450,7 @@ git commit -m "feat(purchase): add filters and soft badges to product list, open
 - Consumes: Task 7/8/9의 컴포넌트
 - Produces: `/product/purchase?tab=purchases|products` 단일 진입점
 
-- [ ] **Step 1: PurchaseManagement 작성**
+- [x] **Step 1: PurchaseManagement 작성**
 
 ```tsx
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -1494,7 +1496,7 @@ function PurchaseManagement() {
 export default PurchaseManagement;
 ```
 
-- [ ] **Step 2: 페이지 교체**
+- [x] **Step 2: 페이지 교체**
 
 `src/pages/product/purchase.tsx`:
 
@@ -1539,7 +1541,7 @@ IapProductRedirectPage.getLayout = getDefaultLayout;
 export default IapProductRedirectPage;
 ```
 
-- [ ] **Step 3: 메뉴/라벨 정리**
+- [x] **Step 3: 메뉴/라벨 정리**
 
 `main-menu.tsx` 상품 관리 submenu 교체:
 
@@ -1552,7 +1554,7 @@ submenu: [
 
 `route-labels.ts`: `purchase` 라벨이 있으면 '인앱 결제 관리'로 갱신, `'iap-product': '인앱 상품'` 항목은 유지(리다이렉트 페이지 브레드크럼용).
 
-- [ ] **Step 4: 검증 후 커밋**
+- [x] **Step 4: 검증 후 커밋**
 
 Run: `npx tsc --noEmit && npm run lint && npm run dev` (dev로 `/product/purchase` 탭 전환, `/product/iap-product` 리다이렉트 수동 확인)
 
@@ -1572,7 +1574,7 @@ git commit -m "feat(product): merge purchase history and product list into unifi
 - Consumes: `getUser(username)` (`src/client/user.ts:22`)
 - Produces: `/user/list?username=<username>` 진입 시 해당 유저의 상세 시트 자동 오픈 — Task 7의 "유저 상세 열기" 버튼이 사용
 
-- [ ] **Step 1: 딥링크 처리 추가**
+- [x] **Step 1: 딥링크 처리 추가**
 
 `UserList` 컴포넌트에 추가 (기존 state 아래):
 
@@ -1599,7 +1601,7 @@ useEffect(() => {
 - import 추가: `useRouter`(next/router), `useQuery`(@tanstack/react-query), `getUser`(@/client/user), `useEffect`(react)
 - 참고: `UserDetail`은 `Omit<UserSummary, 'socialAccount'> & { socialAccount: SocialAccount; ... }`로 UserSummary에 구조적으로 할당 가능하다(`SocialAccount`가 `SocialAccountSummary`의 상위집합). 단일 `as UserSummary`로 충분하다
 
-- [ ] **Step 2: 검증 후 커밋**
+- [x] **Step 2: 검증 후 커밋**
 
 Run: `npx tsc --noEmit && npm run lint` + dev에서 `/user/list?username=<실존유저>` 수동 확인
 
@@ -1612,17 +1614,17 @@ git commit -m "feat(user): support username deep link to open detail sheet"
 
 ### Task 12: 최종 검증
 
-- [ ] **Step 1: 서버 전체 검증**
+- [x] **Step 1: 서버 전체 검증**
 
 Run: `cd /Users/gargoyle92/Documents/backend/mindqna-server && npx jest src/admin/product/product.service.spec.ts && npx tsc --noEmit`
 Expected: 전체 PASS
 
-- [ ] **Step 2: 프론트 전체 검증**
+- [x] **Step 2: 프론트 전체 검증**
 
 Run: `cd /Users/gargoyle92/Documents/frontend/mindqna-admin && npx tsc --noEmit && npm run lint`
 Expected: Global Constraints의 기존 5건 외 에러 없음
 
-- [ ] **Step 3: 수동 시나리오 (dev 서버, 포트 4000)**
+- [x] **Step 3: 수동 시나리오 (dev 서버, 포트 4000)**
 
 1. `/product/purchase` → 결제 내역 행 클릭 → 상세 패널: 요약/영수증/이용권/이력/액션 렌더 확인
 2. 상세 패널 "스토어 실시간 확인" 버튼 동작 확인
