@@ -67,6 +67,7 @@ function UserResultCard({ user, onOpenDetail, copyId }: UserResultCardProps) {
               event.stopPropagation();
               copyId(user.id);
             }}
+            onKeyDown={(event) => event.stopPropagation()}
             className='inline-flex items-center gap-1 font-mono transition-colors hover:text-slate-900'
           >
             <Copy className='h-3 w-3' />

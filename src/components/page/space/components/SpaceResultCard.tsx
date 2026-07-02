@@ -45,6 +45,7 @@ function SpaceResultCard({ space, onOpenDetail, onOpenCoin, copyId }: SpaceResul
               event.stopPropagation();
               copyId(space.id);
             }}
+            onKeyDown={(event) => event.stopPropagation()}
             className='font-mono transition-colors hover:text-slate-900'
           >
             {space.id}
@@ -56,7 +57,7 @@ function SpaceResultCard({ space, onOpenDetail, onOpenCoin, copyId }: SpaceResul
         </div>
       </div>
       <div className='shrink-0' onClick={(event) => event.stopPropagation()}>
-        <Button type='button' variant='outline' size='sm' onClick={() => onOpenCoin(space)}>
+        <Button type='button' variant='outline' size='sm' onClick={() => onOpenCoin(space)} onKeyDown={(event) => event.stopPropagation()}>
           코인 관리
         </Button>
       </div>
