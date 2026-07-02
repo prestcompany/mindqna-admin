@@ -5,7 +5,7 @@ import PurchaseMetaList from '@/components/page/premium/PurchaseMetaList';
 function PurchasePage() {
   return (
     <div>
-      <PurchaseMetaList />
+      <PurchaseMetaList onOpenDetail={() => {}} />
     </div>
   );
 }

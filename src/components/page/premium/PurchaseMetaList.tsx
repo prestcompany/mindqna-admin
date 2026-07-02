@@ -2,10 +2,10 @@ import { PurchaseMeta } from '@/client/types';
 import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import DataTable from '@/components/shared/ui/data-table';
 import { resolveStatus } from '@/components/shared/purchase/purchase-status';
+import type { PurchaseDetailContext } from '@/components/page/premium/PurchaseDetailSheet';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DatePickerWithRange } from '@/components/ui/DatePickerWithRange';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,7 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import usePurchases from '@/hooks/usePurchase';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
-import { Copy, Eye } from 'lucide-react';
+import { Copy } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -27,7 +27,7 @@ const PLATFORM_META: Record<string, { variant: 'softNeutral' | 'softInfo' | 'sof
   EVENT: { variant: 'softWarning', text: 'EVENT' }, // amber — 실결제 아닌 시스템 지급, 구분
 };
 
-function PurchaseMetaList() {
+function PurchaseMetaList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetailContext) => void }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchFilters, setSearchFilters] = useState<{
     username?: string;
@@ -43,7 +43,6 @@ function PurchaseMetaList() {
   const [envFilter, setEnvFilter] = useState<EnvValue>('all');
   const [startedAt, setStartedAt] = useState<dayjs.Dayjs | null>(null);
   const [endedAt, setEndedAt] = useState<dayjs.Dayjs | null>(null);
-  const [detailDialog, setDetailDialog] = useState<{ title: string; content: string } | null>(null);
 
   const { items, isLoading, totalPage } = usePurchases({ page: currentPage, ...searchFilters });
 
@@ -51,7 +50,6 @@ function PurchaseMetaList() {
     navigator.clipboard.writeText(text);
     toast.success(`${label} 복사됨`);
   };
-  const showDetail = (content: string, title: string) => setDetailDialog({ title, content });
 
   const buildFilters = (overrides?: { status?: StatusValue }) => {
     const status = overrides?.status ?? statusFilter;
@@ -115,7 +113,15 @@ function PurchaseMetaList() {
               </TooltipTrigger>
               <TooltipContent>{userId}</TooltipContent>
             </Tooltip>
-            <Button variant='ghost' size='sm' className='h-8 w-8 p-0' onClick={() => copyToClipboard(userId, '유저 ID')}>
+            <Button
+              variant='ghost'
+              size='sm'
+              className='h-8 w-8 p-0'
+              onClick={(e) => {
+                e.stopPropagation();
+                copyToClipboard(userId, '유저 ID');
+              }}
+            >
               <Copy className='h-3.5 w-3.5' />
             </Button>
           </div>
@@ -137,7 +143,15 @@ function PurchaseMetaList() {
               </TooltipTrigger>
               <TooltipContent>{value}</TooltipContent>
             </Tooltip>
-            <Button variant='ghost' size='sm' className='h-8 w-8 p-0' onClick={() => copyToClipboard(value, '상품 ID')}>
+            <Button
+              variant='ghost'
+              size='sm'
+              className='h-8 w-8 p-0'
+              onClick={(e) => {
+                e.stopPropagation();
+                copyToClipboard(value, '상품 ID');
+              }}
+            >
               <Copy className='h-3.5 w-3.5' />
             </Button>
           </div>
@@ -159,7 +173,15 @@ function PurchaseMetaList() {
               </TooltipTrigger>
               <TooltipContent>{value}</TooltipContent>
             </Tooltip>
-            <Button variant='ghost' size='sm' className='h-8 w-8 p-0' onClick={() => copyToClipboard(value, '결제 ID')}>
+            <Button
+              variant='ghost'
+              size='sm'
+              className='h-8 w-8 p-0'
+              onClick={(e) => {
+                e.stopPropagation();
+                copyToClipboard(value, '결제 ID');
+              }}
+            >
               <Copy className='h-3.5 w-3.5' />
             </Button>
           </div>
@@ -214,41 +236,6 @@ function PurchaseMetaList() {
           <div className='space-y-0.5'>
             <div className='text-sm tabular-nums text-slate-900'>{day.format('YYYY.MM.DD')}</div>
             <div className='text-[11px] tabular-nums text-slate-500'>{day.format('HH:mm')}</div>
-          </div>
-        );
-      },
-    },
-    {
-      id: 'detail',
-      header: '상세',
-      size: 90,
-      cell: ({ row }) => {
-        const { log, receipt } = row.original;
-        return (
-          <div className='flex items-center gap-1'>
-            {log ? (
-              <Button
-                variant='ghost'
-                size='sm'
-                className='h-8 px-2 text-xs text-slate-600'
-                onClick={() => showDetail(log, '로그 상세')}
-              >
-                <Eye className='mr-1 h-3.5 w-3.5' />
-                로그
-              </Button>
-            ) : null}
-            {receipt ? (
-              <Button
-                variant='ghost'
-                size='sm'
-                className='h-8 px-2 text-xs text-slate-600'
-                onClick={() => showDetail(receipt, '영수증 원문')}
-              >
-                <Eye className='mr-1 h-3.5 w-3.5' />
-                영수증
-              </Button>
-            ) : null}
-            {!log && !receipt ? <span className='text-xs text-slate-500'>없음</span> : null}
           </div>
         );
       },
@@ -344,6 +331,9 @@ function PurchaseMetaList() {
         columns={columns}
         data={items || []}
         loading={isLoading}
+        onRow={(record) => ({
+          onClick: () => onOpenDetail({ type: 'purchase', purchaseId: record.id }),
+        })}
         pagination={{
           total: totalPage * 20,
           page: currentPage,
@@ -351,17 +341,6 @@ function PurchaseMetaList() {
           onChange: (page) => setCurrentPage(page),
         }}
       />
-
-      <Dialog open={!!detailDialog} onOpenChange={(open) => !open && setDetailDialog(null)}>
-        <DialogContent className='max-w-2xl'>
-          <DialogHeader>
-            <DialogTitle>{detailDialog?.title}</DialogTitle>
-          </DialogHeader>
-          <div className='max-h-96 overflow-auto'>
-            <pre className='whitespace-pre-wrap rounded bg-slate-50 p-3 text-xs text-slate-700'>{detailDialog?.content}</pre>
-          </div>
-        </DialogContent>
-      </Dialog>
     </TooltipProvider>
   );
 }
