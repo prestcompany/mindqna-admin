@@ -1,5 +1,5 @@
 import { UserSummary } from '@/client/types';
-import { removeUser } from '@/client/user';
+import { getUser, removeUser } from '@/client/user';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import {
   AlertDialog,
@@ -14,7 +14,9 @@ import {
 import { Sheet } from '@/components/ui/sheet';
 import DataTable from '@/components/shared/ui/data-table';
 import useUsers from '@/hooks/useUsers';
-import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import TicketForm from './TicketForm';
 import UserSearch from './UserSearch';
@@ -29,6 +31,21 @@ function UserList() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<UserSummary | null>(null);
   const [detailTarget, setDetailTarget] = useState<UserSummary | null>(null);
+
+  const router = useRouter();
+  const deepLinkUsername = typeof router.query.username === 'string' ? router.query.username : undefined;
+
+  const { data: deepLinkUser } = useQuery({
+    queryKey: ['user-deeplink', deepLinkUsername],
+    queryFn: () => getUser(deepLinkUsername as string),
+    enabled: !!deepLinkUsername,
+  });
+
+  useEffect(() => {
+    if (deepLinkUser) {
+      setDetailTarget(deepLinkUser as UserSummary);
+    }
+  }, [deepLinkUser]);
 
   const { filter, currentPage, setCurrentPage, updateFilter } = useUserFilters();
   const {
@@ -131,7 +148,12 @@ function UserList() {
       <UserDetailSheet
         open={!!detailTarget}
         user={detailTarget}
-        onClose={() => setDetailTarget(null)}
+        onClose={() => {
+          setDetailTarget(null);
+          if (deepLinkUsername) {
+            router.replace({ pathname: router.pathname }, undefined, { shallow: true });
+          }
+        }}
         copyId={copyId}
         onOpenTicket={handleOpenTicket}
         onRemove={handleRemoveClick}
