@@ -48,6 +48,7 @@ function CopyableValue({ value, label }: { value: string; label: string }) {
         variant='ghost'
         size='sm'
         className='h-7 w-7 shrink-0 p-0'
+        aria-label={`${label} 복사`}
         onClick={() => {
           navigator.clipboard.writeText(value);
           toast.success(`${label} 복사됨`);
