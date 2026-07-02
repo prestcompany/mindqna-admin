@@ -333,7 +333,7 @@ export type GiveCoinBulkParams = {
   message: string;
 };
 
-export type GiveCoinBulkFailureReason = 'not_found' | 'insufficient_balance';
+export type GiveCoinBulkFailureReason = 'not_found';
 
 export type GiveCoinBulkFailure = {
   spaceId: string;

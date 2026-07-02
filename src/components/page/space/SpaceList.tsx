@@ -50,7 +50,7 @@ function getBulkFailureReasonLabel(reason: GiveCoinBulkFailure['reason']) {
   if (reason === 'not_found') {
     return '공간 없음';
   }
-  return '잔액 부족';
+  return '처리 실패';
 }
 
 function SpaceList() {
