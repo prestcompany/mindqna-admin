@@ -5,7 +5,7 @@ import ProductList from '@/components/page/premium/ProductList';
 function ProductPage() {
   return (
     <div>
-      <ProductList />
+      <ProductList onOpenDetail={() => {}} />
     </div>
   );
 }

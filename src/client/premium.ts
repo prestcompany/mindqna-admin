@@ -81,7 +81,7 @@ export type IAPProduct = {
   id: number;
   owner: {
     username: string;
-  };
+  } | null;
   profileId: string;
   platform: string;
   productId: string;
