@@ -16,7 +16,7 @@ import DataTable from '@/components/shared/ui/data-table';
 import useUsers from '@/hooks/useUsers';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import TicketForm from './TicketForm';
 import UserSearch from './UserSearch';
@@ -41,11 +41,16 @@ function UserList() {
     enabled: !!deepLinkUsername,
   });
 
+  const consumedDeepLinkRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (deepLinkUser) {
+    if (!deepLinkUser || !deepLinkUsername) return;
+    if (consumedDeepLinkRef.current === deepLinkUsername) return;
+    consumedDeepLinkRef.current = deepLinkUsername;
+    if (!detailTarget) {
       setDetailTarget(deepLinkUser as UserSummary);
     }
-  }, [deepLinkUser]);
+  }, [deepLinkUser, deepLinkUsername, detailTarget]);
 
   const { filter, currentPage, setCurrentPage, updateFilter } = useUserFilters();
   const {
@@ -71,14 +76,21 @@ function UserList() {
     toast.success(`${id} 복사됨`);
   };
 
-  const handleRemoveClick = (user: UserSummary) => {
+  const closeDetail = () => {
     setDetailTarget(null);
+    if (deepLinkUsername) {
+      router.replace({ pathname: router.pathname }, undefined, { shallow: true });
+    }
+  };
+
+  const handleRemoveClick = (user: UserSummary) => {
+    closeDetail();
     setConfirmTarget(user);
     setConfirmOpen(true);
   };
 
   const handleOpenTicket = (user: UserSummary) => {
-    setDetailTarget(null);
+    closeDetail();
     openTicket(user);
   };
 
@@ -148,12 +160,7 @@ function UserList() {
       <UserDetailSheet
         open={!!detailTarget}
         user={detailTarget}
-        onClose={() => {
-          setDetailTarget(null);
-          if (deepLinkUsername) {
-            router.replace({ pathname: router.pathname }, undefined, { shallow: true });
-          }
-        }}
+        onClose={closeDetail}
         copyId={copyId}
         onOpenTicket={handleOpenTicket}
         onRemove={handleRemoveClick}
