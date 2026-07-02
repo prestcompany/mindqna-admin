@@ -56,9 +56,17 @@ export type PurchaseDetailResult = PurchaseMetaWithUsername & {
 };
 ```
 
-- [ ] **Step 2: 실패하는 테스트 작성**
+- [ ] **Step 2: 테스트 mock 인프라 확장**
 
-`src/admin/product/product.service.spec.ts`의 require 타입 선언에 `getPurchaseDetail: (id: number) => Promise<any>;` 를 추가하고, describe 블록 안에 추가:
+`src/admin/test-utils/create-prisma-service.mock.ts`에 다음을 추가한다 (Task 1 테스트가 호출하는 mock이 현재 없음):
+
+- 기존 `purchaseMeta` 객체에 `findUnique: jest.fn(),` 추가 (현재 `create`/`findMany`/`count`만 있음)
+- 기존 `purchaseHistoryMeta` 객체에 `findMany: jest.fn(),` 추가 (현재 `create`만 있음)
+- `goldClub: { findMany: jest.fn() },` 항목 신설 (다른 모델과 같은 패턴, `premiumTicket` 옆)
+
+- [ ] **Step 3: 실패하는 테스트 작성**
+
+`src/admin/product/product.service.spec.ts`의 require 타입 선언 블록(24-38행, 기존 메서드 선언 옆)에 `getPurchaseDetail: (id: number) => Promise<any>;` 를 추가하고, describe 블록 안에 추가:
 
 ```ts
 describe('getPurchaseDetail', () => {
@@ -132,14 +140,12 @@ describe('getPurchaseDetail', () => {
 });
 ```
 
-- [ ] **Step 3: 테스트 실패 확인**
+- [ ] **Step 4: 테스트 실패 확인**
 
 Run: `cd /Users/gargoyle92/Documents/backend/mindqna-server && npx jest src/admin/product/product.service.spec.ts -t getPurchaseDetail`
 Expected: FAIL — `service.getPurchaseDetail is not a function`
 
-(참고: `createPrismaServiceMock`이 `purchaseMeta.findUnique`/`goldClub.findMany`를 노출하지 않으면 `src/admin/test-utils/create-prisma-service.mock.ts`에 같은 패턴으로 mock 메서드를 추가한다.)
-
-- [ ] **Step 4: 서비스 구현**
+- [ ] **Step 5: 서비스 구현**
 
 `src/admin/product/product.service.ts`에 추가 (import에 `PurchaseDetailResult`, `PurchaseRelatedTicket` 추가):
 
@@ -194,12 +200,12 @@ async getPurchaseDetail(id: number): Promise<PurchaseDetailResult> {
 }
 ```
 
-- [ ] **Step 5: 테스트 통과 확인**
+- [ ] **Step 6: 테스트 통과 확인**
 
 Run: `npx jest src/admin/product/product.service.spec.ts`
 Expected: PASS (기존 테스트 포함 전체)
 
-- [ ] **Step 6: 타입 체크 후 커밋**
+- [ ] **Step 7: 타입 체크 후 커밋**
 
 ```bash
 npx tsc --noEmit
@@ -371,12 +377,16 @@ async getProducts(
 }
 ```
 
-- [ ] **Step 4: 테스트/타입 체크 통과 확인**
+- [ ] **Step 4: 기존 search 테스트 기대값 갱신**
+
+`product.service.spec.ts`의 기존 `getProducts` search 테스트(68-74행 부근)는 `where: { OR: [...] }`를 기대한다. AND 래핑 구현에 맞춰 기대값을 `where: { AND: [{ OR: [...] }] }`로 수정한다 (검색 동작 자체는 동일).
+
+- [ ] **Step 5: 테스트/타입 체크 통과 확인**
 
 Run: `npx jest src/admin/product/product.service.spec.ts && npx tsc --noEmit`
-Expected: 전체 PASS. 주의: 기존 search-only 테스트가 `where: { OR: [...] }` 형태를 기대하면 `where: { AND: [{ OR: [...] }] }`로 기대값을 갱신한다(동작 동일).
+Expected: 전체 PASS
 
-- [ ] **Step 5: 커밋**
+- [ ] **Step 6: 커밋**
 
 ```bash
 git add src/admin/
@@ -462,7 +472,103 @@ function EntitlementRow({ label, t }: { label: string; t: UserEntitlementTicket 
 export default EntitlementRow;
 ```
 
-`src/components/shared/purchase/LiveStatusBlock.tsx` — `UserEntitlementsTab.tsx`의 `LIVE_STATUS_META`(12-23행)와 `LiveStatusBlock`(63-132행)을 그대로 이동 (import: `getUserSubscriptionStatus`, `LiveSubscriptionRow`, `LiveSubscriptionStatus`, Badge/Button/useQuery/dayjs/Loader2/RefreshCw).
+`src/components/shared/purchase/LiveStatusBlock.tsx` — `UserEntitlementsTab.tsx`의 `LIVE_STATUS_META`(12-23행)와 `LiveStatusBlock`(63-132행)을 이동한 전체 파일:
+
+```tsx
+import { getUserSubscriptionStatus } from '@/client/user';
+import type { LiveSubscriptionRow, LiveSubscriptionStatus } from '@/client/types';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { useQuery } from '@tanstack/react-query';
+import dayjs from 'dayjs';
+import { Loader2, RefreshCw } from 'lucide-react';
+
+const LIVE_STATUS_META: Record<
+  LiveSubscriptionStatus,
+  { label: string; variant: 'softSuccess' | 'softWarning' | 'softNeutral' | 'softDanger' }
+> = {
+  active: { label: '활성', variant: 'softSuccess' },
+  grace: { label: '결제유예', variant: 'softWarning' },
+  billingRetry: { label: '결제재시도', variant: 'softWarning' },
+  expired: { label: '만료', variant: 'softNeutral' },
+  canceled: { label: '자동갱신 해지', variant: 'softNeutral' },
+  revoked: { label: '환불/취소', variant: 'softDanger' },
+  error: { label: '조회 실패', variant: 'softDanger' },
+};
+
+function LiveStatusBlock({ username }: { username: string }) {
+  const live = useQuery({
+    queryKey: ['user-subscription-status', username],
+    queryFn: () => getUserSubscriptionStatus(username),
+    enabled: false,
+  });
+
+  return (
+    <div className='space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3'>
+      <div className='space-y-2'>
+        <div className='text-xs text-slate-500'>
+          평상시 값은 5분 주기 동기화입니다. 현재 스토어 상태를 확인하려면 아래 버튼을 누르세요.
+        </div>
+        <Button
+          type='button'
+          variant='outline'
+          size='default'
+          className='w-full sm:w-auto'
+          onClick={() => live.refetch()}
+          disabled={live.isFetching}
+        >
+          {live.isFetching ? <Loader2 className='h-3.5 w-3.5 animate-spin' /> : <RefreshCw className='h-3.5 w-3.5' />}
+          스토어 실시간 확인
+        </Button>
+      </div>
+
+      {live.isError ? (
+        <div className='text-xs text-rose-600'>실시간 조회에 실패했습니다. 잠시 후 다시 시도하세요.</div>
+      ) : live.data ? (
+        live.data.length === 0 ? (
+          <div className='text-xs text-slate-500'>구독 레코드가 없습니다.</div>
+        ) : (
+          <div className='space-y-2'>
+            <div className='flex items-center justify-between'>
+              <h4 className='text-xs font-semibold text-slate-500'>스토어 실시간</h4>
+              {live.dataUpdatedAt > 0 ? (
+                <span className='text-[11px] tabular-nums text-slate-500'>
+                  {dayjs(live.dataUpdatedAt).format('HH:mm:ss')} 기준
+                </span>
+              ) : null}
+            </div>
+            {live.data.map((row: LiveSubscriptionRow) => {
+              const meta = LIVE_STATUS_META[row.status];
+              return (
+                <div
+                  key={`${row.platform}-${row.id}`}
+                  className='flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm'
+                >
+                  <Badge variant='softNeutral' className='w-12 shrink-0 justify-center uppercase'>
+                    {row.platform}
+                  </Badge>
+                  <div className='min-w-0 flex-1'>
+                    <div className='truncate text-sm font-medium text-slate-900'>{row.productId}</div>
+                    <div className='truncate text-[11px] text-slate-500'>
+                      {row.expiresAt ? `만료 ${dayjs(row.expiresAt).format('YYYY.MM.DD')}` : '만료 정보 없음'}
+                      {row.autoRenew === null ? '' : row.autoRenew ? ' · 자동갱신 ON' : ' · 자동갱신 OFF'}
+                    </div>
+                  </div>
+                  <Badge variant={meta.variant} className='shrink-0'>
+                    {meta.label}
+                  </Badge>
+                </div>
+              );
+            })}
+          </div>
+        )
+      ) : null}
+    </div>
+  );
+}
+
+export default LiveStatusBlock;
+```
 
 - [ ] **Step 3: PurchaseHistoryRow 생성**
 
@@ -870,9 +976,9 @@ function UserContextSections({ username }: { username: string }) {
         <AdminSideSheetContent title='티켓 관리' size='md'>
           <TicketForm
             username={username}
-            reload={() => {
-              queryClient.invalidateQueries({ queryKey: ['user-entitlements', username] });
-              queryClient.invalidateQueries({ queryKey: ['user-purchases', username] });
+            reload={async () => {
+              await queryClient.invalidateQueries({ queryKey: ['user-entitlements', username] });
+              await queryClient.invalidateQueries({ queryKey: ['user-purchases', username] });
             }}
             close={() => setTicketOpen(false)}
           />
@@ -1026,6 +1132,8 @@ export default PurchaseDetailSheet;
 
 참고: `usePurchaseDetail`은 동일 queryKey라 `PurchaseSummary`/`PurchaseUserSections`에서 중복 호출되지 않는다(TanStack Query 캐시 공유). `EntitlementRow`의 `t`는 `UserEntitlementTicket` 형태를 요구하므로 relatedTickets에 `profileId: null`을 보강한다.
 
+참고: `TicketForm`은 의도적으로 중첩 Sheet로 연다 — 결제 상세 컨텍스트를 유지한 채 액션을 수행하기 위함이며, Radix Sheet는 포털 기반이라 중첩 동작에 문제가 없다. (기존 `UserList`는 상세 시트를 닫고 티켓 시트를 여는 패턴이나, 이 화면에서는 컨텍스트 유지가 더 중요하다.)
+
 - [ ] **Step 2: 검증 후 커밋**
 
 Run: `npx tsc --noEmit && npm run lint`
@@ -1075,6 +1183,8 @@ onClick={(e) => {
 ```
 
 (유저/상품 ID/결제 ID 세 컬럼 모두 동일 적용)
+
+6. 최상위 `<TooltipProvider>` 래퍼는 유지한다 — Dialog 제거 후에도 남은 컬럼들의 truncate 툴팁과 복사 버튼에 필요하다.
 
 - [ ] **Step 2: 검증 후 커밋**
 
@@ -1298,9 +1408,22 @@ function ProductList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetailConte
 export default ProductList;
 ```
 
-참고: `IAPProduct.owner` 타입이 `{ username: string }`(non-null)이지만 서버는 null을 반환할 수 있으므로 `src/client/premium.ts`의 `IAPProduct.owner`를 `{ username: string } | null`로 수정한다 (기존 `(row as any).owner?.username` 우회 제거).
+- [ ] **Step 2: IAPProduct.owner nullable 수정**
 
-- [ ] **Step 2: 검증 후 커밋**
+서버는 탈퇴 유저의 이용권에서 `owner: null`을 반환하므로 `src/client/premium.ts`의 `IAPProduct` 타입을 수정한다:
+
+```ts
+export type IAPProduct = {
+  id: number;
+  owner: {
+    username: string;
+  } | null;
+  // 이하 기존 필드 유지
+```
+
+Step 1 코드에서 기존 `(row as any).owner?.username` 우회는 이미 `row.owner?.username`으로 교체되었으므로, 이 타입 수정으로 캐스팅 없이 컴파일된다. Task 7의 `context.ticket.owner?.username`도 이 타입에 의존한다.
+
+- [ ] **Step 3: 검증 후 커밋**
 
 Run: `npx tsc --noEmit && npm run lint`
 (이 시점 `iap-product.tsx`가 props 없이 렌더하면 임시로 `onOpenDetail={() => {}}` 전달 — Task 10에서 리다이렉트로 교체됨)
@@ -1465,14 +1588,16 @@ const { data: deepLinkUser } = useQuery({
 
 useEffect(() => {
   if (deepLinkUser) {
-    setDetailTarget(deepLinkUser as unknown as UserSummary);
+    setDetailTarget(deepLinkUser as UserSummary);
   }
 }, [deepLinkUser]);
 ```
 
+존재하지 않는 username이면 쿼리가 에러로 끝나 시트가 열리지 않는다(무해). 별도 에러 UI는 두지 않는다.
+
 - 상세 시트 close 시 쿼리 제거: 기존 `UserDetailSheet`의 `onClose`에서 `setDetailTarget(null)` 후 `if (deepLinkUsername) router.replace({ pathname: router.pathname }, undefined, { shallow: true });` 호출
 - import 추가: `useRouter`(next/router), `useQuery`(@tanstack/react-query), `getUser`(@/client/user), `useEffect`(react)
-- 참고: `UserDetail`은 `Omit<UserSummary, 'socialAccount'> & { socialAccount: SocialAccount; ... }`로 UserSummary 요구 필드를 모두 포함하므로 캐스팅은 런타임 안전
+- 참고: `UserDetail`은 `Omit<UserSummary, 'socialAccount'> & { socialAccount: SocialAccount; ... }`로 UserSummary에 구조적으로 할당 가능하다(`SocialAccount`가 `SocialAccountSummary`의 상위집합). 단일 `as UserSummary`로 충분하다
 
 - [ ] **Step 2: 검증 후 커밋**
 
