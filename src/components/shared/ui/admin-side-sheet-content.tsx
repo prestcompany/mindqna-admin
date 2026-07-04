@@ -41,11 +41,11 @@ function AdminSideSheetContent({
       {...props}
     >
       <div className='flex min-h-full flex-col'>
-        <SheetHeader className='sticky top-0 z-20 border-b bg-background/95 px-6 py-4 text-left backdrop-blur supports-[backdrop-filter]:bg-background/80'>
-          <SheetTitle className='pr-8 text-base font-semibold tracking-tight'>{title}</SheetTitle>
-          {description ? <SheetDescription className='pr-8'>{description}</SheetDescription> : null}
+        <SheetHeader className='sticky top-0 z-20 border-b bg-background/95 px-5 py-3 text-left backdrop-blur supports-[backdrop-filter]:bg-background/80'>
+          <SheetTitle className='pr-8 text-sm font-semibold tracking-tight'>{title}</SheetTitle>
+          {description ? <SheetDescription className='pr-8 text-xs'>{description}</SheetDescription> : null}
         </SheetHeader>
-        <div className={cn('flex-1 px-6 py-5', bodyClassName)}>{children}</div>
+        <div className={cn('flex-1 px-5 py-4', bodyClassName)}>{children}</div>
       </div>
     </SheetContent>
   );
