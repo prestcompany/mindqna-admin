@@ -141,7 +141,6 @@ function UserList() {
         loading={isLoading}
         onRow={(user) => ({
           onClick: () => setDetailTarget(user),
-          className: 'cursor-pointer',
         })}
       />
 

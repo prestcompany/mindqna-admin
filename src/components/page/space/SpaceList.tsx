@@ -241,7 +241,6 @@ function SpaceList() {
           loading={isLoading}
           onRow={(space) => ({
             onClick: () => setDetailTarget(space),
-            className: 'cursor-pointer',
           })}
         />
       </div>

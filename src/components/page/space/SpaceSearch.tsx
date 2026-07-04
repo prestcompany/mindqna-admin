@@ -501,7 +501,6 @@ function SpaceSearch() {
                 }}
                 onRow={(space) => ({
                   onClick: () => setDetailTarget(space),
-                  className: 'cursor-pointer',
                 })}
               />
             ) : (

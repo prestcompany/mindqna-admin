@@ -215,7 +215,7 @@ function DataTable<TData, TValue>({
                     <TableHead
                       key={header.id}
                       className={cn(
-                        'h-10 overflow-hidden whitespace-nowrap text-ellipsis text-xs font-semibold uppercase tracking-wide text-slate-500',
+                        'h-9 overflow-hidden whitespace-nowrap text-ellipsis text-xs font-medium text-slate-500',
                         getStickyColumnClassName(header.column.columnDef, 'head'),
                       )}
                       style={getColumnStyle(header.column.columnDef.size)}
@@ -241,13 +241,31 @@ function DataTable<TData, TValue>({
                       <TableRow
                         data-state={row.getIsSelected() && 'selected'}
                         onClick={rowProps?.onClick}
-                        className={cn('group', rowProps?.className || (rowProps?.onClick ? 'cursor-pointer' : ''))}
+                        tabIndex={rowProps?.onClick ? 0 : undefined}
+                        role={rowProps?.onClick ? 'button' : undefined}
+                        onKeyDown={
+                          rowProps?.onClick
+                            ? (event) => {
+                                if (event.target !== event.currentTarget) return;
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                  event.preventDefault();
+                                  rowProps.onClick?.();
+                                }
+                              }
+                            : undefined
+                        }
+                        className={cn(
+                          'group transition-colors duration-fast',
+                          rowProps?.onClick &&
+                            'cursor-pointer hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring',
+                          rowProps?.className,
+                        )}
                       >
                         {row.getVisibleCells().map((cell) => (
                           <TableCell
                             key={cell.id}
                             className={cn(
-                              'max-w-0 overflow-hidden py-3 text-sm tabular-nums text-slate-700',
+                              'max-w-0 overflow-hidden py-2 text-sm tabular-nums text-slate-700',
                               getStickyColumnClassName(cell.column.columnDef, 'cell'),
                             )}
                             style={getColumnStyle(cell.column.columnDef.size)}
@@ -287,6 +305,7 @@ function DataTable<TData, TValue>({
             <Button
               variant='outline'
               size='sm'
+              className='h-8 w-8 p-0'
               onClick={() => pagination.onChange(1, pageSize)}
               disabled={currentPage <= 1}
             >
@@ -295,6 +314,7 @@ function DataTable<TData, TValue>({
             <Button
               variant='outline'
               size='sm'
+              className='h-8 w-8 p-0'
               onClick={() => pagination.onChange(currentPage - 1, pageSize)}
               disabled={currentPage <= 1}
             >
@@ -306,6 +326,7 @@ function DataTable<TData, TValue>({
             <Button
               variant='outline'
               size='sm'
+              className='h-8 w-8 p-0'
               onClick={() => pagination.onChange(currentPage + 1, pageSize)}
               disabled={currentPage >= pageCount}
             >
@@ -314,6 +335,7 @@ function DataTable<TData, TValue>({
             <Button
               variant='outline'
               size='sm'
+              className='h-8 w-8 p-0'
               onClick={() => pagination.onChange(pageCount, pageSize)}
               disabled={currentPage >= pageCount}
             >
