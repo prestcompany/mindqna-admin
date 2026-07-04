@@ -231,7 +231,6 @@ git commit -m "feat(design): add dot badge variants for status values"
   data-state={row.getIsSelected() && 'selected'}
   onClick={rowProps?.onClick}
   tabIndex={rowProps?.onClick ? 0 : undefined}
-  role={rowProps?.onClick ? 'button' : undefined}
   onKeyDown={
     rowProps?.onClick
       ? (event) => {
@@ -252,7 +251,7 @@ git commit -m "feat(design): add dot badge variants for status values"
 >
 ```
 
-(`event.target !== event.currentTarget` 가드: 셀 안 복사 버튼 등 중첩 인터랙션의 키 입력이 행 활성화로 새지 않게 — UserSearch/SpaceResultCard 수정과 동일한 원칙. **className은 기존 `||` 단락 대신 병합** — 기존 소비자가 `className: 'cursor-pointer'`를 넘겨도 hover/focus 스타일이 유지된다.)
+(`event.target !== event.currentTarget` 가드: 셀 안 복사 버튼 등 중첩 인터랙션의 키 입력이 행 활성화로 새지 않게 — UserSearch/SpaceResultCard 수정과 동일한 원칙. **className은 기존 `||` 단락 대신 병합** — 기존 소비자가 `className: 'cursor-pointer'`를 넘겨도 hover/focus 스타일이 유지된다.) (리뷰 반영: role='button'은 tr의 테이블 시맨틱을 파괴하므로 제거 — tabIndex+onKeyDown만으로 키보드 활성화 지원.)
 
 - [ ] **Step 3b: 중복 className 콜사이트 정리**
 

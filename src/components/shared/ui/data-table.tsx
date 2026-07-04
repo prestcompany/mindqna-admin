@@ -242,7 +242,6 @@ function DataTable<TData, TValue>({
                         data-state={row.getIsSelected() && 'selected'}
                         onClick={rowProps?.onClick}
                         tabIndex={rowProps?.onClick ? 0 : undefined}
-                        role={rowProps?.onClick ? 'button' : undefined}
                         onKeyDown={
                           rowProps?.onClick
                             ? (event) => {

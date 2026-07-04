@@ -111,7 +111,7 @@ analytics 대시보드 기준. 카드/시트 내부의 표면·텍스트 위계�
 - 흰 카드 + `border-slate-200/80` + `shadow-sm`. 내부 패딩 `p-4`(밀집) ~ `p-6`(여유).
 
 ### Badge
-- shadcn `Badge`(`src/components/ui/badge.tsx`) 사용. 데이터 화면 = soft 톤. 카테고리는 색, 단순 카운트는 중립 텍스트.
+- shadcn `Badge`(`src/components/ui/badge.tsx`) 사용. 데이터 화면 = soft 톤. 카테고리는 색, 단순 카운트는 중립 텍스트. 상태값은 §2.3의 dot 변형 우선(soft vs dot 규칙 참조).
 
 ### Table — `DataTable` (canonical)
 - 리스트는 `DataTable` 사용(레거시 `DefaultTable`은 신규 사용 금지).
@@ -138,7 +138,7 @@ analytics 대시보드 기준. 카드/시트 내부의 표면·텍스트 위계�
 - **색 단독 금지**: 색 + 라벨/부호/아이콘 병행(예: 사용/지급은 색 + `+/-` + 텍스트).
 - **히트영역(데스크톱 포인터 기준)**: 툴바/필터/인라인 컨트롤 최소 32px(`h-8`), 주요 액션 버튼 36px(`h-9`). 터치 44px 규칙은 터치 지원 화면 한정. 인라인 복사 버튼은 패딩으로 히트영역 확보 + hover 피드백. 칩 내부 제거(X) 버튼 등 마이크로 컨트롤은 예외적으로 24px(`h-6`)까지 허용하되 여백으로 히트영역을 보강한다.
 - **포커스**: 키보드 포커스 링 가시화(`--ring`).
-- **모션**: `transition-colors` 150–300ms. 레이아웃 시프트 유발하는 scale hover 지양.
+- **모션**: §4.1의 3단 토큰(fast/base/slow)만 사용. 레이아웃 시프트 유발하는 scale hover 지양.
 
 ---
 
