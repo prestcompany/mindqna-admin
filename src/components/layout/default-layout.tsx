@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { NextComponentType, NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
+import CommandPalette from '@/components/shared/command-palette/CommandPalette';
 import Header from './header';
 import MainMenu from './main-menu';
 import MenuBtn from './menu-btn';
@@ -60,6 +61,7 @@ const DefaultLayout = ({ Page, ...props }: IDefaultLayoutProps) => {
 
   return (
     <div className='min-h-screen bg-background'>
+      <CommandPalette />
       <Sidebar isShowSidebar={isShowSidebar} hideSidebar={hideSidebar} />
 
       {/* mobile navigation */}
