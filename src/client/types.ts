@@ -359,6 +359,23 @@ export type PurchaseMeta = {
   createdAt: string;
 };
 
+export type PurchaseRelatedTicket = {
+  type: 'premium' | 'goldclub';
+  id: number;
+  productId: string;
+  platform: string;
+  dueAt: string | null;
+  isActive: boolean;
+  isProduction: boolean;
+  createdAt: string;
+};
+
+export type PurchaseDetail = PurchaseMeta & {
+  price: string | null;
+  isSubscribe: boolean | null;
+  relatedTickets: PurchaseRelatedTicket[];
+};
+
 export type UserSummary = {
   id: string;
   username: string;

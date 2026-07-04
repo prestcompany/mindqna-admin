@@ -64,8 +64,7 @@ const managementMenu: IMenu[] = [
     name: '상품 관리',
     icon: <ShoppingCartIcon className='w-4 h-4' />,
     submenu: [
-      { id: 'iap-purchase', name: '인앱 결제 내역', link: { path: '/product/purchase' } },
-      { id: 'iap-product', name: '인앱 상품 관리', link: { path: '/product/iap-product' } },
+      { id: 'iap-purchase', name: '인앱 결제 관리', link: { path: '/product/purchase' } },
       { id: 'coupon', name: '쿠폰 관리', link: { path: '/product/coupon' } },
     ],
   },

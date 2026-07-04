@@ -15,7 +15,7 @@ export const ROUTE_LABELS: Record<string, string> = {
   exp: '펫 경험치',
   snack: '펫 간식',
   product: '상품',
-  purchase: '결제 내역',
+  purchase: '인앱 결제 관리',
   'iap-product': '인앱 상품',
   coupon: '쿠폰',
   game: '게임',

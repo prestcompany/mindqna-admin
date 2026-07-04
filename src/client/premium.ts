@@ -5,6 +5,7 @@ import {
   GiveCoinParams,
   GiveTicketParams,
   PurchaseMeta,
+  PurchaseDetail,
   QueryResultWithPagination,
   RevokeTicketParams,
 } from './types';
@@ -23,8 +24,23 @@ export async function getPurchases(by: {
   return res.data;
 }
 
-export async function getProducts(by: { page: number; search?: string }) {
+export type GetProductsFilters = {
+  page: number;
+  search?: string;
+  isActive?: boolean;
+  platform?: 'IOS' | 'AOS' | 'EVENT';
+  isProduction?: boolean;
+  isSubscribe?: boolean;
+};
+
+export async function getProducts(by: GetProductsFilters) {
   const res = await client.get<QueryResultWithPagination<IAPProduct>>('/products', { params: by });
+
+  return res.data;
+}
+
+export async function getPurchaseDetail(id: number) {
+  const res = await client.get<PurchaseDetail>(`/purchase/${id}`);
 
   return res.data;
 }
@@ -65,7 +81,7 @@ export type IAPProduct = {
   id: number;
   owner: {
     username: string;
-  };
+  } | null;
   profileId: string;
   platform: string;
   productId: string;
