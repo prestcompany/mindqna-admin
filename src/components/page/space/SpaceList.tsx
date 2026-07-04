@@ -1,5 +1,5 @@
 import { giveCoinBulk } from '@/client/premium';
-import { removeProfile, removeSpace } from '@/client/space';
+import { getSpace, removeProfile, removeSpace } from '@/client/space';
 import { GiveCoinBulkFailure, Space } from '@/client/types';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import {
@@ -19,7 +19,9 @@ import useSpaces from '@/hooks/useSpaces';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import DataTable from '@/components/shared/ui/data-table';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/router';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import CoinForm from './CoinForm';
 import SpaceSearch from './SpaceSearch';
@@ -54,8 +56,35 @@ function getBulkFailureReasonLabel(reason: GiveCoinBulkFailure['reason']) {
 }
 
 function SpaceList() {
+  const router = useRouter();
   const [isFetching, setFetching] = useState(false);
   const [detailTarget, setDetailTarget] = useState<Space | null>(null);
+
+  const deepLinkSpaceId = typeof router.query.spaceId === 'string' ? router.query.spaceId : undefined;
+  const consumedDeepLinkRef = useRef<string | null>(null);
+
+  const { data: deepLinkSpace } = useQuery({
+    queryKey: ['space-deeplink', deepLinkSpaceId],
+    queryFn: () => getSpace(deepLinkSpaceId as string),
+    enabled: !!deepLinkSpaceId,
+    retry: false,
+  });
+
+  useEffect(() => {
+    if (!deepLinkSpace || !deepLinkSpaceId) return;
+    if (consumedDeepLinkRef.current === deepLinkSpaceId) return;
+    consumedDeepLinkRef.current = deepLinkSpaceId;
+    if (!detailTarget) {
+      setDetailTarget(deepLinkSpace as Space);
+    }
+  }, [deepLinkSpace, deepLinkSpaceId, detailTarget]);
+
+  const closeDetail = () => {
+    setDetailTarget(null);
+    if (deepLinkSpaceId) {
+      router.replace({ pathname: router.pathname }, undefined, { shallow: true });
+    }
+  };
 
   const { filter, currentPage, setCurrentPage, updateFilter } = useSpaceFilters();
   const {
@@ -281,7 +310,7 @@ function SpaceList() {
         copyId={copyId}
       />
 
-      <SpaceDetailSheet open={!!detailTarget} space={detailTarget} onClose={() => setDetailTarget(null)} copyId={copyId} />
+      <SpaceDetailSheet open={!!detailTarget} space={detailTarget} onClose={closeDetail} copyId={copyId} />
 
       {/* 공간 삭제 확인 */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
