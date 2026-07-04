@@ -32,7 +32,7 @@
 **Interfaces:**
 - Produces: 이후 모든 태스크의 디자인 기준. 코드 변경 없음
 
-- [ ] **Step 1: §2.3 뱃지 표에 dot 변형 행 추가**
+- [x] **Step 1: §2.3 뱃지 표에 dot 변형 행 추가**
 
 `### 2.3 액센트 & 뱃지 변형` 표 아래(soft 행들 다음)에 추가:
 
@@ -42,7 +42,7 @@
 > **soft vs dot 사용 규칙**: 카테고리/종류 태그(플랫폼, 타입, 재화 종류)는 soft, **상태값은 dot**을 기본으로 한다. dot은 항상 텍스트 라벨을 병행한다(색 단독 금지).
 ```
 
-- [ ] **Step 2: §4 밀도·곡률 개정**
+- [x] **Step 2: §4 밀도·곡률 개정**
 
 `## 4. 간격 · 그리드 · 곡률 · 깊이`의 곡률 항목을 다음으로 교체:
 
@@ -51,7 +51,7 @@
 - **테이블 밀도**: 행 패딩 `py-2`(행높이 ≈36px), 헤더 `h-9` 소문자 라벨(`text-xs font-medium text-slate-500`, 대문자 변환 금지).
 ```
 
-- [ ] **Step 3: 모션 절 신설**
+- [x] **Step 3: 모션 절 신설**
 
 `## 4` 섹션 끝에 추가:
 
@@ -67,7 +67,7 @@
 - 임의 duration 값 사용 금지 — 위 3단 토큰만 사용.
 ```
 
-- [ ] **Step 4: §6 히트영역 규칙 개정**
+- [x] **Step 4: §6 히트영역 규칙 개정**
 
 `- **터치/히트영역**: 인터랙션 요소 최소 36px(\`h-9\`), 가능하면 44px. 인라인 복사 버튼은 패딩으로 히트영역 확보 + hover 피드백.` 를 다음으로 교체:
 
@@ -75,14 +75,14 @@
 - **히트영역(데스크톱 포인터 기준)**: 툴바/필터/인라인 컨트롤 최소 32px(`h-8`), 주요 액션 버튼 36px(`h-9`). 터치 44px 규칙은 터치 지원 화면 한정. 인라인 복사 버튼은 패딩으로 히트영역 확보 + hover 피드백. 칩 내부 제거(X) 버튼 등 마이크로 컨트롤은 예외적으로 24px(`h-6`)까지 허용하되 여백으로 히트영역을 보강한다.
 ```
 
-- [ ] **Step 5: §7 Do/Don't에 추가**
+- [x] **Step 5: §7 Do/Don't에 추가**
 
 ```markdown
 - ✅ 상태값은 dot 뱃지, 카테고리는 soft 뱃지 / ❌ 상태·카테고리 구분 없이 배경칠 뱃지 남발
 - ✅ 모션은 3단 토큰(fast/base/slow)만 / ❌ 임의 duration 혼용
 ```
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add DESIGN.md
@@ -100,7 +100,7 @@ git commit -m "docs(design): adopt Linear benchmark rules — dot badges, densit
 **Interfaces:**
 - Produces: Tailwind 클래스 `duration-fast`(120ms) / `duration-base`(160ms) / `duration-slow`(200ms) — Task 4/5/9가 사용
 
-- [ ] **Step 1: tailwind.config.js에 duration 토큰 추가**
+- [x] **Step 1: tailwind.config.js에 duration 토큰 추가**
 
 `theme.extend` 객체 안(예: `colors` 다음 레벨)에 추가:
 
@@ -112,7 +112,7 @@ transitionDuration: {
 },
 ```
 
-- [ ] **Step 2: globals.css에 reduced-motion 전역 규칙 추가**
+- [x] **Step 2: globals.css에 reduced-motion 전역 규칙 추가**
 
 파일 끝에 추가:
 
@@ -129,7 +129,7 @@ transitionDuration: {
 }
 ```
 
-- [ ] **Step 3: 검증 후 커밋**
+- [x] **Step 3: 검증 후 커밋**
 
 Run: `npx tsc --noEmit && npm run lint`
 
@@ -149,7 +149,7 @@ git commit -m "feat(design): add motion duration tokens and reduced-motion guard
 **Interfaces:**
 - Produces: Badge `variant` 값 `dotNeutral | dotSuccess | dotWarning | dotDanger | dotInfo`; `resolveStatus(record): { label; variant; dotVariant: 'dotSuccess' | 'dotDanger' | 'dotNeutral' }` — Task 9가 사용
 
-- [ ] **Step 1: badge.tsx variants에 dot 5종 추가** (`tonePink` 다음)
+- [x] **Step 1: badge.tsx variants에 dot 5종 추가** (`tonePink` 다음)
 
 ```ts
 dotNeutral:
@@ -166,7 +166,7 @@ dotInfo:
 
 (dot은 데코 요소이므로 `bg-slate-400` 허용 — DESIGN.md §2.2의 "텍스트 금지" 규칙과 충돌 없음. 텍스트는 `text-slate-700`.)
 
-- [ ] **Step 2: purchase-status.ts 확장** — 전체 교체:
+- [x] **Step 2: purchase-status.ts 확장** — 전체 교체:
 
 ```ts
 import dayjs from 'dayjs';
@@ -189,7 +189,7 @@ export function resolveStatus(record: { isExpired: boolean; isSuccess: boolean; 
 }
 ```
 
-- [ ] **Step 3: 검증 후 커밋**
+- [x] **Step 3: 검증 후 커밋**
 
 Run: `npx tsc --noEmit && npm run lint` (기존 호출부는 `variant`만 쓰므로 하위 호환)
 
@@ -212,7 +212,7 @@ git commit -m "feat(design): add dot badge variants for status values"
 - Consumes: Task 2의 `duration-fast`
 - Produces: 시각/키보드 변화만 — props API 불변 (onRow 시그니처 그대로)
 
-- [ ] **Step 1: 헤더 스타일 변경** (TableHead className, 현재 218행 부근)
+- [x] **Step 1: 헤더 스타일 변경** (TableHead className, 현재 218행 부근)
 
 `'h-10 overflow-hidden whitespace-nowrap text-ellipsis text-xs font-semibold uppercase tracking-wide text-slate-500'` →
 
@@ -220,11 +220,11 @@ git commit -m "feat(design): add dot badge variants for status values"
 'h-9 overflow-hidden whitespace-nowrap text-ellipsis text-xs font-medium text-slate-500'
 ```
 
-- [ ] **Step 2: 셀 밀도 변경** (TableCell className, 현재 250행 부근)
+- [x] **Step 2: 셀 밀도 변경** (TableCell className, 현재 250행 부근)
 
 `'max-w-0 overflow-hidden py-3 text-sm tabular-nums text-slate-700'` → `'max-w-0 overflow-hidden py-2 text-sm tabular-nums text-slate-700'`
 
-- [ ] **Step 3: 행 hover·키보드 접근** — 데이터 행 `<TableRow>`(현재 241-245행)를 다음으로 교체:
+- [x] **Step 3: 행 hover·키보드 접근** — 데이터 행 `<TableRow>`(현재 241-245행)를 다음으로 교체:
 
 ```tsx
 <TableRow
@@ -253,15 +253,15 @@ git commit -m "feat(design): add dot badge variants for status values"
 
 (`event.target !== event.currentTarget` 가드: 셀 안 복사 버튼 등 중첩 인터랙션의 키 입력이 행 활성화로 새지 않게 — UserSearch/SpaceResultCard 수정과 동일한 원칙. **className은 기존 `||` 단락 대신 병합** — 기존 소비자가 `className: 'cursor-pointer'`를 넘겨도 hover/focus 스타일이 유지된다.) (리뷰 반영: role='button'은 tr의 테이블 시맨틱을 파괴하므로 제거 — tabIndex+onKeyDown만으로 키보드 활성화 지원.)
 
-- [ ] **Step 3b: 중복 className 콜사이트 정리**
+- [x] **Step 3b: 중복 className 콜사이트 정리**
 
 `UserList.tsx`, `SpaceSearch.tsx`, `SpaceList.tsx`의 `onRow={(...) => ({ onClick: ..., className: 'cursor-pointer' })}`에서 `className: 'cursor-pointer'` 항목을 제거한다(이제 onClick만으로 자동 적용되어 중복).
 
 참고(확산 단계 과제로 기록): 클릭 불가 행은 `table.tsx`의 기본 `hover:bg-muted/50`이 유지되어 클릭 가능 행(`hover:bg-slate-50`)과 회색조가 미세하게 다르다 — 파일럿에서는 허용, 확산 시 통일 검토.
 
-- [ ] **Step 4: 페이지네이션 컴팩트화** — 하단 4개 `<Button variant='outline' size='sm' ...>`에 `className='h-8 w-8 p-0'` 추가
+- [x] **Step 4: 페이지네이션 컴팩트화** — 하단 4개 `<Button variant='outline' size='sm' ...>`에 `className='h-8 w-8 p-0'` 추가
 
-- [ ] **Step 5: 검증 후 커밋**
+- [x] **Step 5: 검증 후 커밋**
 
 Run: `npx tsc --noEmit && npm run lint`
 
@@ -282,20 +282,20 @@ git commit -m "feat(design): densify DataTable rows, lowercase headers, keyboard
 - Consumes: Task 2의 `duration-slow`
 - Produces: 시각 변화만 — props API 불변
 
-- [ ] **Step 1: admin-side-sheet-content.tsx 헤더/본문 컴팩트화**
+- [x] **Step 1: admin-side-sheet-content.tsx 헤더/본문 컴팩트화**
 
 - SheetHeader: `'sticky top-0 z-20 border-b bg-background/95 px-6 py-4 ...'` → `px-5 py-3` (나머지 유지)
 - SheetTitle: `'pr-8 text-base font-semibold tracking-tight'` → `'pr-8 text-sm font-semibold tracking-tight'`
 - SheetDescription: `'pr-8'` → `'pr-8 text-xs'`
 - 본문 div: `'flex-1 px-6 py-5'` → `'flex-1 px-5 py-4'`
 
-- [ ] **Step 2: sheet.tsx 모션 토큰 + easing 적용** (34행)
+- [x] **Step 2: sheet.tsx 모션 토큰 + easing 적용** (34행)
 
 `data-[state=closed]:duration-300 data-[state=open]:duration-500` → `data-[state=closed]:duration-[140ms] data-[state=open]:duration-slow data-[state=open]:ease-out data-[state=closed]:ease-in`
 
 동시에 같은 클래스 문자열의 `transition ease-in-out`에서 `ease-in-out`을 제거한다(위 data-state별 easing이 대신함) — 스펙 §3.2 "enter ease-out / exit ease-in" 구현.
 
-- [ ] **Step 3: 검증 후 커밋**
+- [x] **Step 3: 검증 후 커밋**
 
 Run: `npx tsc --noEmit && npm run lint`
 
@@ -317,7 +317,7 @@ git commit -m "feat(design): compact side sheet header and apply motion tokens t
   - `FilterChips({ chips: FilterChipItem[]; onRemove(key) })`, `type FilterChipItem = { key: string; label: string }`
   - `FILTER_CONTROL_CLASS = 'h-8 text-[13px]'` — 툴바 컨트롤 공통 클래스
 
-- [ ] **Step 1: 컴포넌트 작성** (기존 `SpaceActiveFilterChips` 칩 마크업을 일반화 — 원본은 유지, 확산 단계에서 교체)
+- [x] **Step 1: 컴포넌트 작성** (기존 `SpaceActiveFilterChips` 칩 마크업을 일반화 — 원본은 유지, 확산 단계에서 교체)
 
 ```tsx
 import { cn } from '@/lib/utils';
@@ -372,7 +372,7 @@ export function FilterBar({ children, chips, onRemoveChip, className }: FilterBa
 }
 ```
 
-- [ ] **Step 2: 검증 후 커밋**
+- [x] **Step 2: 검증 후 커밋**
 
 Run: `npx tsc --noEmit && npm run lint`
 
@@ -396,12 +396,12 @@ git commit -m "feat(design): add compact FilterBar and FilterChips shared compon
 - Consumes: `IMenu`(`src/components/layout/nav/index.tsx:12` — `{ id?, name, link?: { path, query? }, submenu?, ... }` — 정확한 필드명은 파일에서 확인), `getUser`(client/user), `searchSpaces`(client/space:82), `useDebouncedValue` 훅
 - Produces: `⌘K`/`Ctrl+K`로 열리는 전역 팔레트. 유저 선택 → `/user/list?username=`, 스페이스 선택 → `/space/list?spaceId=`(Task 8이 딥링크 구현)
 
-- [ ] **Step 1: cmdk 설치**
+- [x] **Step 1: cmdk 설치**
 
 Run: `npm install cmdk`
 Expected: package.json dependencies에 cmdk 추가
 
-- [ ] **Step 2: `src/components/ui/command.tsx` 생성** (shadcn 표준 — Dialog는 기존 `@/components/ui/dialog` 재사용)
+- [x] **Step 2: `src/components/ui/command.tsx` 생성** (shadcn 표준 — Dialog는 기존 `@/components/ui/dialog` 재사용)
 
 ```tsx
 import * as React from 'react';
@@ -521,7 +521,7 @@ CommandItem.displayName = CommandPrimitive.Item.displayName;
 export { Command, CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandSeparator };
 ```
 
-- [ ] **Step 3: main-menu.tsx 메뉴 배열 export**
+- [x] **Step 3: main-menu.tsx 메뉴 배열 export**
 
 `const systemMenu: IMenu[] = [...]` 정의 이후, 컴포넌트 정의 앞에 추가 (배열 이름 4개는 파일에서 확인: `overviewMenu`, `managementMenu`, `contentMenu`, `systemMenu`):
 
@@ -530,7 +530,7 @@ export { Command, CommandDialog, CommandInput, CommandList, CommandEmpty, Comman
 export const allAdminMenus: IMenu[] = [...overviewMenu, ...managementMenu, ...contentMenu, ...systemMenu];
 ```
 
-- [ ] **Step 4: CommandPalette 작성** — `src/components/shared/command-palette/CommandPalette.tsx`
+- [x] **Step 4: CommandPalette 작성** — `src/components/shared/command-palette/CommandPalette.tsx`
 
 ```tsx
 import { searchSpaces } from '@/client/space';
@@ -680,7 +680,7 @@ export default CommandPalette;
 
 구현 참고: `Space` 타입에 표시용 이름 필드가 있으면(`client/types.ts`의 `Space` 확인, `SpaceResultCard.tsx`의 접근자 참조) `{space.id}` 대신 `이름 (id 앞 8자)` 형태로 표시를 개선한다. 없으면 id 그대로.
 
-- [ ] **Step 5: default-layout.tsx에 전역 마운트**
+- [x] **Step 5: default-layout.tsx에 전역 마운트**
 
 import 추가 후, DefaultLayout 반환 JSX 최상위(예: `<Header ...>` 형제 위치)에 `<CommandPalette />` 1회 렌더:
 
@@ -688,7 +688,7 @@ import 추가 후, DefaultLayout 반환 JSX 최상위(예: `<Header ...>` 형제
 import CommandPalette from '@/components/shared/command-palette/CommandPalette';
 ```
 
-- [ ] **Step 6: 검증 후 커밋**
+- [x] **Step 6: 검증 후 커밋**
 
 Run: `npx tsc --noEmit && npm run lint`
 
@@ -708,7 +708,7 @@ git commit -m "feat(shell): add global cmd+k command palette with menu, user and
 - Consumes: `getSpace(id)`(`src/client/space.ts:64`), 기존 `detailTarget`/`SpaceDetailSheet`(285행: `open={!!detailTarget} space={detailTarget} onClose={() => setDetailTarget(null)}`)
 - Produces: `/space/list?spaceId=<id>` 진입 시 해당 스페이스 상세 시트 자동 오픈 — Task 7의 스페이스 그룹 목적지
 
-- [ ] **Step 1: 딥링크 처리 추가** (UserList Task 11과 동일 패턴 — 재오픈/수동선택 가드 포함)
+- [x] **Step 1: 딥링크 처리 추가** (UserList Task 11과 동일 패턴 — 재오픈/수동선택 가드 포함)
 
 ```tsx
 const router = useRouter();
@@ -744,7 +744,7 @@ const closeDetail = () => {
 - import 추가: `useRouter`(next/router), `useQuery`(@tanstack/react-query — 기존 import 확인), `getSpace`(@/client/space), `useRef`/`useEffect`(react)
 - `SpaceDetail`이 `Space`에 구조적으로 호환되는지 `client/types.ts`에서 확인 후 캐스팅(비호환 필드가 있으면 `as unknown as Space` 대신 필요한 필드만 매핑)
 
-- [ ] **Step 2: 검증 후 커밋**
+- [x] **Step 2: 검증 후 커밋**
 
 Run: `npx tsc --noEmit && npm run lint`
 
@@ -767,7 +767,7 @@ git commit -m "feat(space): support spaceId deep link to open detail sheet"
 **Interfaces:**
 - Consumes: Task 3 `dotVariant`/dot variants, Task 6 `FilterBar`/`FilterChips`/`FILTER_CONTROL_CLASS`
 
-- [ ] **Step 1: PurchaseMetaList 필터를 FilterBar로 교체**
+- [x] **Step 1: PurchaseMetaList 필터를 FilterBar로 교체**
 
 - 기존 `DefaultTableBtn` + form 레이아웃을 `FilterBar`로 재구성하되, **기존 `<form onSubmit={...}>` 요소를 FilterBar의 children으로 그대로 유지**해 Enter 제출을 보존한다(form 제거 금지). 각 컨트롤(Input/SelectTrigger/버튼)에 `FILTER_CONTROL_CLASS` 적용, Label은 제거하고 placeholder/SelectValue로 대체(한 줄 툴바). 날짜는 `DatePickerWithRange`에 `triggerClassName?: string` prop을 추가(트리거 `Button`의 className에 `cn(..., triggerClassName)` 병합)한 뒤 `triggerClassName={FILTER_CONTROL_CLASS}` 전달. `검색`/`실패만 보기`/`초기화` 버튼은 `h-8`(서버 페이지네이션 검색이라 Enter 제출 유지 — 스펙 §3.4 예외).
 - 적용된 필터 칩 — 다음 코드를 컴포넌트에 추가하고 `<FilterBar chips={chips} onRemoveChip={removeChip}>`로 연결. 기존 `필터 적용됨` Badge와 `hasActiveFilters`는 제거:
@@ -819,17 +819,17 @@ const removeChip = (key: string) => {
 (import: `@/components/shared/ui/filter-bar`에서 `FilterBar`, `type FilterChipItem`, `FILTER_CONTROL_CLASS`를 가져온다. `FilterChips`는 FilterBar가 내부에서 렌더하므로 직접 import 불필요. `setSearchFilters`는 useState setter라 함수형 업데이트 기본 지원.)
 - 상태 컬럼 셀: `<Badge variant={s.variant}>` → `<Badge variant={s.dotVariant}>` (`resolveStatus` 반환의 `dotVariant` 사용). 플랫폼/환경 컬럼은 soft 유지.
 
-- [ ] **Step 2: ProductList 필터를 FilterBar로 교체**
+- [x] **Step 2: ProductList 필터를 FilterBar로 교체**
 
 - 4개 Select + 검색 Input을 `FilterBar` 안에 `FILTER_CONTROL_CLASS`로 재배치(Label 제거, SelectValue placeholder 활용). 즉시 반영(디바운스) 방식 유지 — 컨트롤이 항상 현재 상태를 표시하므로 **칩은 사용하지 않음**(스펙 §3.4: 제출식 화면만 칩 필수).
 - `활성화` 컬럼: `<Badge variant={value ? 'softSuccess' : 'softNeutral'}>` → `<Badge variant={value ? 'dotSuccess' : 'dotNeutral'}>`. 플랫폼/구독·소모품/환경 컬럼은 soft 유지.
 
-- [ ] **Step 3: PurchaseDetailSheet 밀도 정리**
+- [x] **Step 3: PurchaseDetailSheet 밀도 정리**
 
 - 최상위 `<div className='space-y-6'>` → `space-y-5`
 - 요약 뱃지 행: 상태 뱃지(`resolveStatus` 결과, 이용권 컨텍스트의 활성/만료)를 dot으로 전환 — `<Badge variant={status.dotVariant}>{status.label}</Badge>`, 이용권 컨텍스트는 `<Badge variant={t.isActive ? 'dotSuccess' : 'dotNeutral'}>`. 플랫폼/환경/구독·단건 뱃지는 soft 유지.
 
-- [ ] **Step 4: shared purchase 카드 3종 곡률·패딩 컴팩트화**
+- [x] **Step 4: shared purchase 카드 3종 곡률·패딩 컴팩트화**
 
 `EntitlementRow.tsx`, `PurchaseHistoryRow.tsx`, `LiveStatusBlock.tsx`(내부 행 카드 포함)에서:
 - `rounded-xl` → `rounded-lg`
@@ -837,7 +837,7 @@ const removeChip = (key: string) => {
 
 (이 3종은 유저 상세 패널도 공유 — 동일 밀도로 함께 조정되는 것이 의도된 동작.)
 
-- [ ] **Step 5: 검증 후 커밋**
+- [x] **Step 5: 검증 후 커밋**
 
 Run: `npx tsc --noEmit && npm run lint`
 
@@ -850,12 +850,12 @@ git commit -m "feat(product): apply Linear density, dot status badges and compac
 
 ### Task 10: 최종 검증 + 수동 검수
 
-- [ ] **Step 1: 전체 게이트**
+- [x] **Step 1: 전체 게이트**
 
 Run: `npx tsc --noEmit && npm run lint`
 Expected: 신규 에러/경고 0
 
-- [ ] **Step 2: 수동 검수 (dev 서버, 포트 4000)** — 스펙 §7 성공 기준 매핑
+- [x] **Step 2: 수동 검수 (dev 서버, 포트 4000)** — 스펙 §7 성공 기준 매핑
 
 1. `/product/purchase` 결제 내역: 행 높이 축소로 표시 행 수 증가 확인(성공 기준 1), 상태 dot 렌더, FilterBar 칩 추가/제거
 2. 행 hover 즉각 반응, Tab으로 행 포커스 → Enter로 상세 패널 오픈(성공 기준 4)
@@ -864,6 +864,6 @@ Expected: 신규 에러/경고 0
 5. 스팟 체크: 유저 목록·스페이스 목록(공통 DataTable 변경 회귀 확인), 유저 상세 패널(공유 카드 밀도)
 6. 시스템 설정에서 reduced-motion 켜고 모션 최소화 확인
 
-- [ ] **Step 3: 원장 기록**
+- [x] **Step 3: 원장 기록**
 
 `.superpowers/sdd/progress.md`에 완료 기록 후 종료. 확산(Phase 5)은 파일럿 검수 승인 후 별도 계획.
