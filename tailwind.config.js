@@ -98,6 +98,11 @@ module.exports = {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
+  		},
+  		transitionDuration: {
+  			fast: '120ms',
+  			base: '160ms',
+  			slow: '200ms'
   		}
   	}
   },
