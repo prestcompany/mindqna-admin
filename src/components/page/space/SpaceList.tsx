@@ -79,6 +79,10 @@ function SpaceList() {
     }
   }, [deepLinkSpace, deepLinkSpaceId, detailTarget]);
 
+  useEffect(() => {
+    if (!deepLinkSpaceId) consumedDeepLinkRef.current = null;
+  }, [deepLinkSpaceId]);
+
   const closeDetail = () => {
     setDetailTarget(null);
     if (deepLinkSpaceId) {
