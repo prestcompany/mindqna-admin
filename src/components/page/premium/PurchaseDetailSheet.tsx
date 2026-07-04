@@ -163,7 +163,7 @@ function PurchaseSummary({ context }: { context: PurchaseDetailContext }) {
     return (
       <div className='space-y-4'>
         <div className='flex flex-wrap gap-1.5'>
-          <Badge variant={t.isActive ? 'softSuccess' : 'softNeutral'}>{t.isActive ? '활성' : '만료'}</Badge>
+          <Badge variant={t.isActive ? 'dotSuccess' : 'dotNeutral'}>{t.isActive ? '활성' : '만료'}</Badge>
           <Badge variant='softNeutral'>{PLATFORM_LABEL[t.platform] ?? t.platform}</Badge>
           <Badge variant={t.dueAt ? 'softInfo' : 'softNeutral'}>{t.dueAt ? '구독' : '소모품'}</Badge>
           <Badge variant={t.isProduction ? 'softNeutral' : 'softWarning'}>{t.isProduction ? 'PROD' : 'TEST'}</Badge>
@@ -199,7 +199,7 @@ function PurchaseSummary({ context }: { context: PurchaseDetailContext }) {
   return (
     <div className='space-y-4'>
       <div className='flex flex-wrap gap-1.5'>
-        <Badge variant={status.variant}>{status.label}</Badge>
+        <Badge variant={status.dotVariant}>{status.label}</Badge>
         <Badge variant='softNeutral'>{PLATFORM_LABEL[p.platform] ?? p.platform}</Badge>
         <Badge variant={p.isProduction ? 'softNeutral' : 'softWarning'}>{p.isProduction ? 'PROD' : 'TEST'}</Badge>
         {p.isSubscribe !== null ? (
@@ -263,7 +263,7 @@ function PurchaseDetailSheet({ open, context, onClose }: PurchaseDetailSheetProp
         description='결제 정보와 유저의 이용권/구독 상태를 확인합니다.'
         size='lg'
       >
-        <div className='space-y-6'>
+        <div className='space-y-5'>
           <PurchaseSummary context={context} />
           {context.type === 'purchase' ? (
             <PurchaseUserSections purchaseId={context.purchaseId} />
