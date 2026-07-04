@@ -72,7 +72,7 @@
 `- **터치/히트영역**: 인터랙션 요소 최소 36px(\`h-9\`), 가능하면 44px. 인라인 복사 버튼은 패딩으로 히트영역 확보 + hover 피드백.` 를 다음으로 교체:
 
 ```markdown
-- **히트영역(데스크톱 포인터 기준)**: 툴바/필터/인라인 컨트롤 최소 32px(`h-8`), 주요 액션 버튼 36px(`h-9`). 터치 44px 규칙은 터치 지원 화면 한정. 인라인 복사 버튼은 패딩으로 히트영역 확보 + hover 피드백.
+- **히트영역(데스크톱 포인터 기준)**: 툴바/필터/인라인 컨트롤 최소 32px(`h-8`), 주요 액션 버튼 36px(`h-9`). 터치 44px 규칙은 터치 지원 화면 한정. 인라인 복사 버튼은 패딩으로 히트영역 확보 + hover 피드백. 칩 내부 제거(X) 버튼 등 마이크로 컨트롤은 예외적으로 24px(`h-6`)까지 허용하되 여백으로 히트영역을 보강한다.
 ```
 
 - [ ] **Step 5: §7 Do/Don't에 추가**
@@ -204,6 +204,9 @@ git commit -m "feat(design): add dot badge variants for status values"
 
 **Files:**
 - Modify: `src/components/shared/ui/data-table.tsx`
+- Modify: `src/components/page/user/UserList.tsx` (onRow의 중복 `className: 'cursor-pointer'` 제거)
+- Modify: `src/components/page/space/SpaceSearch.tsx` (동일)
+- Modify: `src/components/page/space/SpaceList.tsx` (동일)
 
 **Interfaces:**
 - Consumes: Task 2의 `duration-fast`
@@ -242,15 +245,20 @@ git commit -m "feat(design): add dot badge variants for status values"
   }
   className={cn(
     'group transition-colors duration-fast',
-    rowProps?.className ||
-      (rowProps?.onClick
-        ? 'cursor-pointer hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring'
-        : ''),
+    rowProps?.onClick &&
+      'cursor-pointer hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring',
+    rowProps?.className,
   )}
 >
 ```
 
-(`event.target !== event.currentTarget` 가드: 셀 안 복사 버튼 등 중첩 인터랙션의 키 입력이 행 활성화로 새지 않게 — UserSearch/SpaceResultCard 수정과 동일한 원칙.)
+(`event.target !== event.currentTarget` 가드: 셀 안 복사 버튼 등 중첩 인터랙션의 키 입력이 행 활성화로 새지 않게 — UserSearch/SpaceResultCard 수정과 동일한 원칙. **className은 기존 `||` 단락 대신 병합** — 기존 소비자가 `className: 'cursor-pointer'`를 넘겨도 hover/focus 스타일이 유지된다.)
+
+- [ ] **Step 3b: 중복 className 콜사이트 정리**
+
+`UserList.tsx`, `SpaceSearch.tsx`, `SpaceList.tsx`의 `onRow={(...) => ({ onClick: ..., className: 'cursor-pointer' })}`에서 `className: 'cursor-pointer'` 항목을 제거한다(이제 onClick만으로 자동 적용되어 중복).
+
+참고(확산 단계 과제로 기록): 클릭 불가 행은 `table.tsx`의 기본 `hover:bg-muted/50`이 유지되어 클릭 가능 행(`hover:bg-slate-50`)과 회색조가 미세하게 다르다 — 파일럿에서는 허용, 확산 시 통일 검토.
 
 - [ ] **Step 4: 페이지네이션 컴팩트화** — 하단 4개 `<Button variant='outline' size='sm' ...>`에 `className='h-8 w-8 p-0'` 추가
 
@@ -282,9 +290,11 @@ git commit -m "feat(design): densify DataTable rows, lowercase headers, keyboard
 - SheetDescription: `'pr-8'` → `'pr-8 text-xs'`
 - 본문 div: `'flex-1 px-6 py-5'` → `'flex-1 px-5 py-4'`
 
-- [ ] **Step 2: sheet.tsx 모션 토큰 적용** (34행)
+- [ ] **Step 2: sheet.tsx 모션 토큰 + easing 적용** (34행)
 
-`data-[state=closed]:duration-300 data-[state=open]:duration-500` → `data-[state=closed]:duration-[140ms] data-[state=open]:duration-slow`
+`data-[state=closed]:duration-300 data-[state=open]:duration-500` → `data-[state=closed]:duration-[140ms] data-[state=open]:duration-slow data-[state=open]:ease-out data-[state=closed]:ease-in`
+
+동시에 같은 클래스 문자열의 `transition ease-in-out`에서 `ease-in-out`을 제거한다(위 data-state별 easing이 대신함) — 스펙 §3.2 "enter ease-out / exit ease-in" 구현.
 
 - [ ] **Step 3: 검증 후 커밋**
 
@@ -336,7 +346,7 @@ export function FilterChips({ chips, onRemove }: { chips: FilterChipItem[]; onRe
             type='button'
             aria-label={`${chip.label} 필터 제거`}
             onClick={() => onRemove(chip.key)}
-            className='inline-flex h-4 w-4 items-center justify-center rounded-full text-slate-500 transition-colors duration-fast hover:bg-slate-100 hover:text-slate-700'
+            className='-my-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-slate-500 transition-colors duration-fast hover:bg-slate-100 hover:text-slate-700'
           >
             <X className='h-3 w-3' />
           </button>
@@ -401,7 +411,7 @@ import { Command as CommandPrimitive } from 'cmdk';
 import { Search } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
@@ -415,11 +425,20 @@ const Command = React.forwardRef<
 ));
 Command.displayName = CommandPrimitive.displayName;
 
-const CommandDialog = ({ children, ...props }: DialogProps) => {
+interface CommandDialogProps extends DialogProps {
+  shouldFilter?: boolean;
+}
+
+const CommandDialog = ({ children, shouldFilter, ...props }: CommandDialogProps) => {
   return (
     <Dialog {...props}>
-      <DialogContent className='overflow-hidden p-0'>
-        <Command className='[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-slate-500 [&_[cmdk-group]]:px-2 [&_[cmdk-input]]:h-11 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-2'>
+      {/* [&>button]:hidden — Dialog 기본 우상단 X가 입력줄과 겹치므로 숨김(ESC/오버레이로 닫힘) */}
+      <DialogContent className='overflow-hidden p-0 [&>button]:hidden'>
+        <DialogTitle className='sr-only'>커맨드 팔레트</DialogTitle>
+        <Command
+          shouldFilter={shouldFilter}
+          className='[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-slate-500 [&_[cmdk-group]]:px-2 [&_[cmdk-input]]:h-11 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-2'
+        >
           {children}
         </Command>
       </DialogContent>
@@ -570,10 +589,21 @@ function CommandPalette() {
 
   const menuEntries = useMemo(flattenMenus, []);
 
+  // shouldFilter={false}(비동기 결과 혼합 시 cmdk 기본 필터가 스페이스/유저 항목을 잘못 걸러냄)
+  // → 메뉴는 keyword로 수동 필터링한다.
+  const filteredMenus = useMemo(() => {
+    if (!keyword) return menuEntries;
+    const lowered = keyword.toLowerCase();
+    return menuEntries.filter((entry) => `${entry.group} ${entry.name}`.toLowerCase().includes(lowered));
+  }, [menuEntries, keyword]);
+
+  // URL 경로에 그대로 들어가는 값이므로 username 형태로 게이트(경로 파괴 문자·불필요한 404 방지)
+  const isUsernameLike = /^[A-Za-z0-9._-]{2,}$/.test(keyword);
+
   const userLookup = useQuery({
     queryKey: ['cmdk-user', keyword],
     queryFn: () => getUser(keyword),
-    enabled: open && keyword.length >= 2,
+    enabled: open && isUsernameLike,
     retry: false,
   });
 
@@ -584,6 +614,8 @@ function CommandPalette() {
     retry: false,
   });
 
+  const isSearching = userLookup.isFetching || spaceLookup.isFetching;
+
   const go = (path: string) => {
     setOpen(false);
     setQuery('');
@@ -593,18 +625,21 @@ function CommandPalette() {
   const spaceItems = (spaceLookup.data?.items ?? []).slice(0, 5);
 
   return (
-    <CommandDialog open={open} onOpenChange={setOpen}>
+    <CommandDialog open={open} onOpenChange={setOpen} shouldFilter={false}>
       <CommandInput value={query} onValueChange={setQuery} placeholder='메뉴 이동 · 유저/스페이스 검색 (2자 이상)' />
       <CommandList>
+        {isSearching ? <div className='px-3 py-2 text-xs text-slate-500'>검색 중…</div> : null}
         <CommandEmpty>결과가 없습니다.</CommandEmpty>
-        <CommandGroup heading='메뉴'>
-          {menuEntries.map((entry) => (
-            <CommandItem key={entry.id} value={`${entry.group} ${entry.name}`} onSelect={() => go(entry.path)}>
-              {entry.group ? <span className='mr-1 text-slate-500'>{entry.group} ·</span> : null}
-              {entry.name}
-            </CommandItem>
-          ))}
-        </CommandGroup>
+        {filteredMenus.length > 0 ? (
+          <CommandGroup heading='메뉴'>
+            {filteredMenus.map((entry) => (
+              <CommandItem key={entry.id} value={`${entry.group} ${entry.name}`} onSelect={() => go(entry.path)}>
+                {entry.group ? <span className='mr-1 text-slate-500'>{entry.group} ·</span> : null}
+                {entry.name}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        ) : null}
         {userLookup.data ? (
           <>
             <CommandSeparator />
@@ -726,6 +761,7 @@ git commit -m "feat(space): support spaceId deep link to open detail sheet"
 **Files:**
 - Modify: `src/components/page/premium/PurchaseMetaList.tsx` (FilterBar + dot 상태)
 - Modify: `src/components/page/premium/ProductList.tsx` (FilterBar + dot 상태)
+- Modify: `src/components/ui/DatePickerWithRange.tsx` (`triggerClassName` prop 추가 — 현재 `className`은 래퍼 div에만 적용되어 트리거 Button 높이를 못 바꿈)
 - Modify: `src/components/page/premium/PurchaseDetailSheet.tsx` (간격·dot·곡률)
 - Modify: `src/components/shared/purchase/EntitlementRow.tsx`, `PurchaseHistoryRow.tsx`, `LiveStatusBlock.tsx` (카드 곡률·패딩)
 
@@ -734,7 +770,7 @@ git commit -m "feat(space): support spaceId deep link to open detail sheet"
 
 - [ ] **Step 1: PurchaseMetaList 필터를 FilterBar로 교체**
 
-- 기존 `DefaultTableBtn` + form 레이아웃을 `FilterBar`로 재구성: 각 컨트롤(Input/SelectTrigger/DatePicker 트리거/버튼)에 `FILTER_CONTROL_CLASS` 적용, Label은 제거하고 placeholder/SelectValue로 대체(한 줄 툴바). `검색`/`실패만 보기`/`초기화` 버튼은 `h-8` 유지(Enter 제출 유지 — 서버 페이지네이션 검색이므로 스펙 §3.4 예외).
+- 기존 `DefaultTableBtn` + form 레이아웃을 `FilterBar`로 재구성하되, **기존 `<form onSubmit={...}>` 요소를 FilterBar의 children으로 그대로 유지**해 Enter 제출을 보존한다(form 제거 금지). 각 컨트롤(Input/SelectTrigger/버튼)에 `FILTER_CONTROL_CLASS` 적용, Label은 제거하고 placeholder/SelectValue로 대체(한 줄 툴바). 날짜는 `DatePickerWithRange`에 `triggerClassName?: string` prop을 추가(트리거 `Button`의 className에 `cn(..., triggerClassName)` 병합)한 뒤 `triggerClassName={FILTER_CONTROL_CLASS}` 전달. `검색`/`실패만 보기`/`초기화` 버튼은 `h-8`(서버 페이지네이션 검색이라 Enter 제출 유지 — 스펙 §3.4 예외).
 - 적용된 필터 칩 — 다음 코드를 컴포넌트에 추가하고 `<FilterBar chips={chips} onRemoveChip={removeChip}>`로 연결. 기존 `필터 적용됨` Badge와 `hasActiveFilters`는 제거:
 
 ```tsx
@@ -749,8 +785,15 @@ if (searchFilters.status) chips.push({ key: 'status', label: `상태: ${CHIP_VAL
 if (searchFilters.platform) chips.push({ key: 'platform', label: `플랫폼: ${CHIP_VALUE_LABELS[searchFilters.platform]}` });
 if (searchFilters.isProduction !== undefined)
   chips.push({ key: 'env', label: `환경: ${searchFilters.isProduction ? 'PROD' : 'TEST'}` });
-if (searchFilters.startDate || searchFilters.endDate)
-  chips.push({ key: 'date', label: `기간: ${searchFilters.startDate ?? '~'} ~ ${searchFilters.endDate ?? '~'}` });
+if (searchFilters.startDate || searchFilters.endDate) {
+  const dateLabel =
+    searchFilters.startDate && searchFilters.endDate
+      ? `${searchFilters.startDate} ~ ${searchFilters.endDate}`
+      : searchFilters.startDate
+        ? `${searchFilters.startDate} 이후`
+        : `${searchFilters.endDate} 이전`;
+  chips.push({ key: 'date', label: `기간: ${dateLabel}` });
+}
 
 const removeChip = (key: string) => {
   if (key === 'username') setUsernameKeyword('');
@@ -774,7 +817,7 @@ const removeChip = (key: string) => {
 };
 ```
 
-(import: `FilterBar, FilterChips 불필요 — FilterBar가 내부 렌더`, `type FilterChipItem`, `FILTER_CONTROL_CLASS`를 `@/components/shared/ui/filter-bar`에서. `setSearchFilters`가 함수형 업데이트를 받도록 기존 타입 확인 — useState라 기본 지원.)
+(import: `@/components/shared/ui/filter-bar`에서 `FilterBar`, `type FilterChipItem`, `FILTER_CONTROL_CLASS`를 가져온다. `FilterChips`는 FilterBar가 내부에서 렌더하므로 직접 import 불필요. `setSearchFilters`는 useState setter라 함수형 업데이트 기본 지원.)
 - 상태 컬럼 셀: `<Badge variant={s.variant}>` → `<Badge variant={s.dotVariant}>` (`resolveStatus` 반환의 `dotVariant` 사용). 플랫폼/환경 컬럼은 soft 유지.
 
 - [ ] **Step 2: ProductList 필터를 FilterBar로 교체**
