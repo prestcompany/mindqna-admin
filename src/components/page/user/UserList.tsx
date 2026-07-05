@@ -52,6 +52,10 @@ function UserList() {
     }
   }, [deepLinkUser, deepLinkUsername, detailTarget]);
 
+  useEffect(() => {
+    if (!deepLinkUsername) consumedDeepLinkRef.current = null;
+  }, [deepLinkUsername]);
+
   const { filter, currentPage, setCurrentPage, updateFilter } = useUserFilters();
   const {
     isOpenSearch,
@@ -141,7 +145,6 @@ function UserList() {
         loading={isLoading}
         onRow={(user) => ({
           onClick: () => setDetailTarget(user),
-          className: 'cursor-pointer',
         })}
       />
 

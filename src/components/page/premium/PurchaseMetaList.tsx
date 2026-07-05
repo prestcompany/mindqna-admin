@@ -1,16 +1,16 @@
 import { PurchaseMeta } from '@/client/types';
-import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
 import DataTable from '@/components/shared/ui/data-table';
+import { FilterBar, FILTER_CONTROL_CLASS, type FilterChipItem } from '@/components/shared/ui/filter-bar';
 import { resolveStatus } from '@/components/shared/purchase/purchase-status';
 import type { PurchaseDetailContext } from '@/components/page/premium/PurchaseDetailSheet';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DatePickerWithRange } from '@/components/ui/DatePickerWithRange';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import usePurchases from '@/hooks/usePurchase';
+import { cn } from '@/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { Copy } from 'lucide-react';
@@ -25,6 +25,15 @@ const PLATFORM_META: Record<string, { variant: 'softNeutral' | 'softInfo' | 'sof
   IOS: { variant: 'softInfo', text: 'iOS' }, // sky — Apple
   AOS: { variant: 'softNeutral', text: 'Android' }, // slate — 표준 스토어
   EVENT: { variant: 'softWarning', text: 'EVENT' }, // amber — 실결제 아닌 시스템 지급, 구분
+};
+
+const CHIP_VALUE_LABELS: Record<string, string> = {
+  success: '성공',
+  failed: '실패',
+  expired: '만료',
+  IOS: 'iOS',
+  AOS: 'Android',
+  EVENT: 'EVENT',
 };
 
 function PurchaseMetaList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetailContext) => void }) {
@@ -83,7 +92,42 @@ function PurchaseMetaList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetail
     setCurrentPage(1);
   };
 
-  const hasActiveFilters = Object.values(searchFilters).some((v) => v !== undefined);
+  const chips: FilterChipItem[] = [];
+  if (searchFilters.username) chips.push({ key: 'username', label: `유저: ${searchFilters.username}` });
+  if (searchFilters.status) chips.push({ key: 'status', label: `상태: ${CHIP_VALUE_LABELS[searchFilters.status]}` });
+  if (searchFilters.platform) chips.push({ key: 'platform', label: `플랫폼: ${CHIP_VALUE_LABELS[searchFilters.platform]}` });
+  if (searchFilters.isProduction !== undefined)
+    chips.push({ key: 'env', label: `환경: ${searchFilters.isProduction ? 'PROD' : 'TEST'}` });
+  if (searchFilters.startDate || searchFilters.endDate) {
+    const dateLabel =
+      searchFilters.startDate && searchFilters.endDate
+        ? `${searchFilters.startDate} ~ ${searchFilters.endDate}`
+        : searchFilters.startDate
+          ? `${searchFilters.startDate} 이후`
+          : `${searchFilters.endDate} 이전`;
+    chips.push({ key: 'date', label: `기간: ${dateLabel}` });
+  }
+
+  const removeChip = (key: string) => {
+    if (key === 'username') setUsernameKeyword('');
+    if (key === 'status') setStatusFilter('all');
+    if (key === 'platform') setPlatformFilter('all');
+    if (key === 'env') setEnvFilter('all');
+    if (key === 'date') {
+      setStartedAt(null);
+      setEndedAt(null);
+    }
+    setSearchFilters((prev) => ({
+      ...prev,
+      username: key === 'username' ? undefined : prev.username,
+      status: key === 'status' ? undefined : prev.status,
+      platform: key === 'platform' ? undefined : prev.platform,
+      isProduction: key === 'env' ? undefined : prev.isProduction,
+      startDate: key === 'date' ? undefined : prev.startDate,
+      endDate: key === 'date' ? undefined : prev.endDate,
+    }));
+    setCurrentPage(1);
+  };
 
   const columns: ColumnDef<PurchaseMeta>[] = [
     {
@@ -194,7 +238,7 @@ function PurchaseMetaList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetail
       size: 80,
       cell: ({ row }) => {
         const s = resolveStatus(row.original);
-        return <Badge variant={s.variant}>{s.label}</Badge>;
+        return <Badge variant={s.dotVariant}>{s.label}</Badge>;
       },
     },
     {
@@ -244,88 +288,75 @@ function PurchaseMetaList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetail
 
   return (
     <TooltipProvider>
-      <DefaultTableBtn className='justify-between'>
+      <FilterBar chips={chips} onRemoveChip={removeChip}>
         <form
           onSubmit={(e) => {
             e.preventDefault();
             handleSearch();
           }}
-          className='flex flex-1 flex-wrap items-end gap-3'
+          className='flex flex-1 flex-wrap items-center gap-2'
         >
-          <div className='space-y-2'>
-            <Label className='text-xs text-slate-600'>유저 ID</Label>
-            <Input
-              value={usernameKeyword}
-              onChange={(e) => setUsernameKeyword(e.target.value)}
-              placeholder='유저 ID 입력'
-              className='w-[200px]'
-            />
-          </div>
+          <Input
+            value={usernameKeyword}
+            onChange={(e) => setUsernameKeyword(e.target.value)}
+            placeholder='유저 ID 입력'
+            className={cn('w-[200px]', FILTER_CONTROL_CLASS)}
+          />
 
-          <div className='space-y-2'>
-            <Label className='text-xs text-slate-600'>상태</Label>
-            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusValue)}>
-              <SelectTrigger className='w-[110px]'>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='all'>전체</SelectItem>
-                <SelectItem value='success'>성공</SelectItem>
-                <SelectItem value='failed'>실패</SelectItem>
-                <SelectItem value='expired'>만료</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusValue)}>
+            <SelectTrigger className={cn('w-[110px]', FILTER_CONTROL_CLASS)}>
+              <SelectValue placeholder='상태' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='all'>전체</SelectItem>
+              <SelectItem value='success'>성공</SelectItem>
+              <SelectItem value='failed'>실패</SelectItem>
+              <SelectItem value='expired'>만료</SelectItem>
+            </SelectContent>
+          </Select>
 
-          <div className='space-y-2'>
-            <Label className='text-xs text-slate-600'>플랫폼</Label>
-            <Select value={platformFilter} onValueChange={(v) => setPlatformFilter(v as PlatformValue)}>
-              <SelectTrigger className='w-[110px]'>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='all'>전체</SelectItem>
-                <SelectItem value='IOS'>iOS</SelectItem>
-                <SelectItem value='AOS'>Android</SelectItem>
-                <SelectItem value='EVENT'>EVENT</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={platformFilter} onValueChange={(v) => setPlatformFilter(v as PlatformValue)}>
+            <SelectTrigger className={cn('w-[110px]', FILTER_CONTROL_CLASS)}>
+              <SelectValue placeholder='플랫폼' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='all'>전체</SelectItem>
+              <SelectItem value='IOS'>iOS</SelectItem>
+              <SelectItem value='AOS'>Android</SelectItem>
+              <SelectItem value='EVENT'>EVENT</SelectItem>
+            </SelectContent>
+          </Select>
 
-          <div className='space-y-2'>
-            <Label className='text-xs text-slate-600'>환경</Label>
-            <Select value={envFilter} onValueChange={(v) => setEnvFilter(v as EnvValue)}>
-              <SelectTrigger className='w-[100px]'>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='all'>전체</SelectItem>
-                <SelectItem value='prod'>PROD</SelectItem>
-                <SelectItem value='test'>TEST</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={envFilter} onValueChange={(v) => setEnvFilter(v as EnvValue)}>
+            <SelectTrigger className={cn('w-[100px]', FILTER_CONTROL_CLASS)}>
+              <SelectValue placeholder='환경' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='all'>전체</SelectItem>
+              <SelectItem value='prod'>PROD</SelectItem>
+              <SelectItem value='test'>TEST</SelectItem>
+            </SelectContent>
+          </Select>
 
-          <div className='space-y-2'>
-            <Label className='text-xs text-slate-600'>날짜 범위</Label>
-            <DatePickerWithRange
-              startedAt={startedAt}
-              endedAt={endedAt}
-              setStartedAt={setStartedAt}
-              setEndedAt={setEndedAt}
-            />
-          </div>
+          <DatePickerWithRange
+            startedAt={startedAt}
+            endedAt={endedAt}
+            setStartedAt={setStartedAt}
+            setEndedAt={setEndedAt}
+            triggerClassName={FILTER_CONTROL_CLASS}
+          />
 
-          <Button type='submit'>검색</Button>
-          <Button type='button' variant='outline' onClick={showFailedOnly}>
+          <Button type='submit' className='h-8'>
+            검색
+          </Button>
+          <Button type='button' variant='outline' className='h-8' onClick={showFailedOnly}>
             실패만 보기
           </Button>
-          <Button type='button' variant='outline' onClick={handleReset}>
+          <Button type='button' variant='outline' className='h-8' onClick={handleReset}>
             초기화
           </Button>
-          {hasActiveFilters ? <Badge variant='softNeutral'>필터 적용됨</Badge> : null}
         </form>
-      </DefaultTableBtn>
+      </FilterBar>
 
       <DataTable
         columns={columns}

@@ -12,7 +12,7 @@ function isLive(t: UserEntitlementTicket): boolean {
 function EntitlementRow({ label, t }: { label: string; t: UserEntitlementTicket }) {
   const live = isLive(t);
   return (
-    <div className='flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm'>
+    <div className='flex items-center gap-3 rounded-lg border border-slate-200/80 bg-white px-3 py-2.5 shadow-sm'>
       <Badge variant={live ? 'softSuccess' : 'softNeutral'} className='w-16 shrink-0 justify-center'>
         {label}
       </Badge>

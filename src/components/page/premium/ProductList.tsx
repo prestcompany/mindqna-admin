@@ -1,10 +1,10 @@
 import { IAPProduct } from '@/client/premium';
-import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import { FilterBar, FILTER_CONTROL_CLASS } from '@/components/shared/ui/filter-bar';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DataTable from '@/components/shared/ui/data-table';
+import { cn } from '@/lib/utils';
 import useDebouncedValue from '@/hooks/useDebouncedValue';
 import useProducts from '@/hooks/useProducts';
 import type { PurchaseDetailContext } from './PurchaseDetailSheet';
@@ -92,7 +92,7 @@ function ProductList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetailConte
       size: 92,
       cell: ({ row }) => {
         const value = row.original.isActive;
-        return <Badge variant={value ? 'softSuccess' : 'softNeutral'}>{value ? '활성화' : '만료'}</Badge>;
+        return <Badge variant={value ? 'dotSuccess' : 'dotNeutral'}>{value ? '활성화' : '만료'}</Badge>;
       },
     },
     {
@@ -114,67 +114,58 @@ function ProductList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetailConte
 
   return (
     <>
-      <DefaultTableBtn className='justify-between'>
-        <div className='flex flex-1 flex-wrap items-end gap-3 py-4'>
-          <div className='space-y-2'>
-            <Label className='text-xs text-slate-600'>검색</Label>
-            <div className='relative min-w-[280px]'>
-              <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
-              <Input
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder='유저 / 상품 ID / 결제 ID (2자 이상)'
-                className='pl-9'
-              />
-            </div>
-          </div>
-          <div className='space-y-2'>
-            <Label className='text-xs text-slate-600'>활성 상태</Label>
-            <Select value={activeFilter} onValueChange={(v) => setActiveFilter(v as ActiveValue)}>
-              <SelectTrigger className='w-[110px]'><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value='all'>전체</SelectItem>
-                <SelectItem value='active'>활성</SelectItem>
-                <SelectItem value='expired'>만료</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className='space-y-2'>
-            <Label className='text-xs text-slate-600'>유형</Label>
-            <Select value={kindFilter} onValueChange={(v) => setKindFilter(v as KindValue)}>
-              <SelectTrigger className='w-[120px]'><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value='all'>전체</SelectItem>
-                <SelectItem value='sub'>구독</SelectItem>
-                <SelectItem value='consumable'>소모품</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className='space-y-2'>
-            <Label className='text-xs text-slate-600'>플랫폼</Label>
-            <Select value={platformFilter} onValueChange={(v) => setPlatformFilter(v as PlatformValue)}>
-              <SelectTrigger className='w-[110px]'><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value='all'>전체</SelectItem>
-                <SelectItem value='IOS'>iOS</SelectItem>
-                <SelectItem value='AOS'>Android</SelectItem>
-                <SelectItem value='EVENT'>EVENT</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className='space-y-2'>
-            <Label className='text-xs text-slate-600'>환경</Label>
-            <Select value={envFilter} onValueChange={(v) => setEnvFilter(v as EnvValue)}>
-              <SelectTrigger className='w-[100px]'><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value='all'>전체</SelectItem>
-                <SelectItem value='prod'>PROD</SelectItem>
-                <SelectItem value='test'>TEST</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      <FilterBar>
+        <div className='relative min-w-[280px]'>
+          <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+          <Input
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder='유저 / 상품 ID / 결제 ID (2자 이상)'
+            className={cn('pl-9', FILTER_CONTROL_CLASS)}
+          />
         </div>
-      </DefaultTableBtn>
+        <Select value={activeFilter} onValueChange={(v) => setActiveFilter(v as ActiveValue)}>
+          <SelectTrigger className={cn('w-[110px]', FILTER_CONTROL_CLASS)}>
+            <SelectValue placeholder='활성 상태' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='all'>전체</SelectItem>
+            <SelectItem value='active'>활성</SelectItem>
+            <SelectItem value='expired'>만료</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={kindFilter} onValueChange={(v) => setKindFilter(v as KindValue)}>
+          <SelectTrigger className={cn('w-[120px]', FILTER_CONTROL_CLASS)}>
+            <SelectValue placeholder='유형' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='all'>전체</SelectItem>
+            <SelectItem value='sub'>구독</SelectItem>
+            <SelectItem value='consumable'>소모품</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={platformFilter} onValueChange={(v) => setPlatformFilter(v as PlatformValue)}>
+          <SelectTrigger className={cn('w-[110px]', FILTER_CONTROL_CLASS)}>
+            <SelectValue placeholder='플랫폼' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='all'>전체</SelectItem>
+            <SelectItem value='IOS'>iOS</SelectItem>
+            <SelectItem value='AOS'>Android</SelectItem>
+            <SelectItem value='EVENT'>EVENT</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={envFilter} onValueChange={(v) => setEnvFilter(v as EnvValue)}>
+          <SelectTrigger className={cn('w-[100px]', FILTER_CONTROL_CLASS)}>
+            <SelectValue placeholder='환경' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='all'>전체</SelectItem>
+            <SelectItem value='prod'>PROD</SelectItem>
+            <SelectItem value='test'>TEST</SelectItem>
+          </SelectContent>
+        </Select>
+      </FilterBar>
       <DataTable
         columns={columns}
         data={items || []}

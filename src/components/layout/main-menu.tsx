@@ -120,6 +120,9 @@ const systemMenu: IMenu[] = [
   },
 ];
 
+// 커맨드 팔레트 등 외부에서 메뉴 트리를 소비할 수 있도록 export
+export const allAdminMenus: IMenu[] = [...overviewMenu, ...managementMenu, ...contentMenu, ...systemMenu];
+
 const MainMenu = () => {
   return (
     <nav className='pb-2'>

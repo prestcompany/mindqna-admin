@@ -61,8 +61,11 @@ analytics 대시보드 기준. 카드/시트 내부의 표면·텍스트 위계�
 | `softWarning` | amber | 주의/골드클럽/스타 |
 | `softDanger` | rose | 위험/삭제/하트 |
 | `softInfo` | sky | 정보/혼자 타입 |
+| `dotSuccess`/`dotDanger`/`dotWarning`/`dotNeutral`/`dotInfo` | 색 점 + 중립 텍스트 | **상태값**(활성/만료/성공/실패/구독상태) 전용. 배경칠 없음 — soft 뱃지보다 시각 소음 낮음 |
 | `tonePink` | pink | 커플 타입 |
 | `default`/`destructive`/`success`/`warning`/`info`/`secondary` | (solid) | 강한 강조가 필요한 폼·버튼 맥락에서만 |
+
+> **soft vs dot 사용 규칙**: 카테고리/종류 태그(플랫폼, 타입, 재화 종류)는 soft, **상태값은 dot**을 기본으로 한다. dot은 항상 텍스트 라벨을 병행한다(색 단독 금지).
 
 ### 2.4 의미색 규칙 (Currency / Status)
 - **재화 방향**: 사용/차감 = `rose-600`, 지급/획득 = `emerald-600`
@@ -86,8 +89,19 @@ analytics 대시보드 기준. 카드/시트 내부의 표면·텍스트 위계�
 ## 4. 간격 · 그리드 · 곡률 · 깊이
 - **8px 스케일**: `gap-2/4/6`, `p-4/6`, `space-y-6`. 20px(`gap-5`/`p-5`)처럼 그리드 밖 값은 지양.
 - KPI 그리드는 화면폭에 따라 단계적 확장(예: `grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6`), 좁은 폭에서 과밀 금지.
-- **곡률 위계**: 카드 `rounded-xl`(12) > 칩/아이콘 `rounded-lg`(10) > 알약/아바타 `rounded-full`.
+- **곡률 위계**: 카드 `rounded-lg`(10, `--radius` 정합) > 칩/입력 `rounded-md`(8) > 알약/아바타 `rounded-full`. (기존 `rounded-xl` 카드는 파일럿/확산 단계에서 순차 전환)
+- **테이블 밀도**: 행 패딩 `py-2`(행높이 ≈36px), 헤더 `h-9` 소문자 라벨(`text-xs font-medium text-slate-500`, 대문자 변환 금지).
 - **깊이**: `shadow-sm`만. 그 이상 그림자·그라데이션 지양(헤어라인 보더로 분리).
+
+### 4.1 모션 토큰
+| 토큰 | 값 | 용도 |
+|---|---|---|
+| `duration-fast` | 120ms | hover/press 색·불투명도, 리스트 행 hover |
+| `duration-base` | 160ms | 팝오버/드롭다운/툴팁 fade+scale |
+| `duration-slow` | 200ms | 시트/모달 진입 (퇴장 ≈140ms — enter보다 짧게) |
+
+- easing: enter `ease-out`, exit `ease-in`. `prefers-reduced-motion` 전역 존중.
+- 임의 duration 값 사용 금지 — 위 3단 토큰만 사용.
 
 ---
 
@@ -97,7 +111,7 @@ analytics 대시보드 기준. 카드/시트 내부의 표면·텍스트 위계�
 - 흰 카드 + `border-slate-200/80` + `shadow-sm`. 내부 패딩 `p-4`(밀집) ~ `p-6`(여유).
 
 ### Badge
-- shadcn `Badge`(`src/components/ui/badge.tsx`) 사용. 데이터 화면 = soft 톤. 카테고리는 색, 단순 카운트는 중립 텍스트.
+- shadcn `Badge`(`src/components/ui/badge.tsx`) 사용. 데이터 화면 = soft 톤. 카테고리는 색, 단순 카운트는 중립 텍스트. 상태값은 §2.3의 dot 변형 우선(soft vs dot 규칙 참조).
 
 ### Table — `DataTable` (canonical)
 - 리스트는 `DataTable` 사용(레거시 `DefaultTable`은 신규 사용 금지).
@@ -122,9 +136,9 @@ analytics 대시보드 기준. 카드/시트 내부의 표면·텍스트 위계�
 ## 6. 접근성 (필수)
 - **대비**: 본문/보조 텍스트 최소 `slate-500`(권장 `slate-600`), 4.5:1 지향. `slate-400` 이하 텍스트 금지.
 - **색 단독 금지**: 색 + 라벨/부호/아이콘 병행(예: 사용/지급은 색 + `+/-` + 텍스트).
-- **터치/히트영역**: 인터랙션 요소 최소 36px(`h-9`), 가능하면 44px. 인라인 복사 버튼은 패딩으로 히트영역 확보 + hover 피드백.
+- **히트영역(데스크톱 포인터 기준)**: 툴바/필터/인라인 컨트롤 최소 32px(`h-8`), 주요 액션 버튼 36px(`h-9`). 터치 44px 규칙은 터치 지원 화면 한정. 인라인 복사 버튼은 패딩으로 히트영역 확보 + hover 피드백. 칩 내부 제거(X) 버튼 등 마이크로 컨트롤은 예외적으로 24px(`h-6`)까지 허용하되 여백으로 히트영역을 보강한다.
 - **포커스**: 키보드 포커스 링 가시화(`--ring`).
-- **모션**: `transition-colors` 150–300ms. 레이아웃 시프트 유발하는 scale hover 지양.
+- **모션**: §4.1의 3단 토큰(fast/base/slow)만 사용. 레이아웃 시프트 유발하는 scale hover 지양.
 
 ---
 
@@ -135,6 +149,8 @@ analytics 대시보드 기준. 카드/시트 내부의 표면·텍스트 위계�
 - ✅ `slate-500`+ 텍스트 / ❌ `slate-400` 텍스트
 - ✅ 8px 간격·곡률 위계 준수 / ❌ `gap-5`·곡률 혼용
 - ✅ 이모지 대신 SVG 아이콘(lucide) / ❌ 이모지 아이콘
+- ✅ 상태값은 dot 뱃지, 카테고리는 soft 뱃지 / ❌ 상태·카테고리 구분 없이 배경칠 뱃지 남발
+- ✅ 모션은 3단 토큰(fast/base/slow)만 / ❌ 임의 duration 혼용
 
 ---
 

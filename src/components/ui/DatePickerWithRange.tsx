@@ -17,6 +17,7 @@ interface DatePickerWithRangeProps extends React.HTMLAttributes<HTMLDivElement> 
   setStartedAt: (date: dayjs.Dayjs | null) => void;
   setEndedAt: (date: dayjs.Dayjs | null) => void;
   onDateChange?: () => void;
+  triggerClassName?: string;
 }
 
 export function DatePickerWithRange({
@@ -26,6 +27,7 @@ export function DatePickerWithRange({
   setStartedAt,
   setEndedAt,
   onDateChange,
+  triggerClassName,
 }: DatePickerWithRangeProps) {
   // 기존 date 상태는 실제 반영된 날짜, pendingDate는 사용자가 선택 중인 날짜
   const [date, setDate] = React.useState<DateRange | undefined>(
@@ -122,7 +124,7 @@ export function DatePickerWithRange({
           <Button
             id='date'
             variant={'outline'}
-            className={cn('w-auto justify-start text-left font-normal', !date && 'text-muted-foreground')}
+            className={cn('w-auto justify-start text-left font-normal', !date && 'text-muted-foreground', triggerClassName)}
           >
             <CalendarIcon className='mr-2 w-4 h-4' />
             {date?.from ? (

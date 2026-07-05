@@ -159,3 +159,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* 모션 민감 사용자: 전역 모션 최소화 (DESIGN.md §4.1) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
