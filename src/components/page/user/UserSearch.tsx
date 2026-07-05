@@ -285,7 +285,6 @@ function UserSearch() {
         onClose={() => setDetailOpen(false)}
         copyId={copyId}
         onOpenTicket={(user) => {
-          setDetailOpen(false);
           setOpenTicket(true);
           setFocused(user.username);
         }}
