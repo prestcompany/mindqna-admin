@@ -36,15 +36,15 @@ const badgeVariants = cva(
         tonePink:
           "border-pink-200 bg-pink-50 text-pink-700 font-medium",
         dotNeutral:
-          "gap-1.5 border-transparent bg-transparent px-1 py-0.5 text-[13px] font-medium text-slate-700 before:h-1.5 before:w-1.5 before:shrink-0 before:rounded-full before:bg-slate-400 before:content-['']",
+          "gap-1.5 border-transparent bg-transparent px-1 py-0.5 text-sm font-medium text-slate-700 before:h-1.5 before:w-1.5 before:shrink-0 before:rounded-full before:bg-slate-400 before:content-['']",
         dotSuccess:
-          "gap-1.5 border-transparent bg-transparent px-1 py-0.5 text-[13px] font-medium text-slate-700 before:h-1.5 before:w-1.5 before:shrink-0 before:rounded-full before:bg-emerald-500 before:content-['']",
+          "gap-1.5 border-transparent bg-transparent px-1 py-0.5 text-sm font-medium text-slate-700 before:h-1.5 before:w-1.5 before:shrink-0 before:rounded-full before:bg-emerald-500 before:content-['']",
         dotWarning:
-          "gap-1.5 border-transparent bg-transparent px-1 py-0.5 text-[13px] font-medium text-slate-700 before:h-1.5 before:w-1.5 before:shrink-0 before:rounded-full before:bg-amber-500 before:content-['']",
+          "gap-1.5 border-transparent bg-transparent px-1 py-0.5 text-sm font-medium text-slate-700 before:h-1.5 before:w-1.5 before:shrink-0 before:rounded-full before:bg-amber-500 before:content-['']",
         dotDanger:
-          "gap-1.5 border-transparent bg-transparent px-1 py-0.5 text-[13px] font-medium text-slate-700 before:h-1.5 before:w-1.5 before:shrink-0 before:rounded-full before:bg-rose-500 before:content-['']",
+          "gap-1.5 border-transparent bg-transparent px-1 py-0.5 text-sm font-medium text-slate-700 before:h-1.5 before:w-1.5 before:shrink-0 before:rounded-full before:bg-rose-500 before:content-['']",
         dotInfo:
-          "gap-1.5 border-transparent bg-transparent px-1 py-0.5 text-[13px] font-medium text-slate-700 before:h-1.5 before:w-1.5 before:shrink-0 before:rounded-full before:bg-sky-500 before:content-['']",
+          "gap-1.5 border-transparent bg-transparent px-1 py-0.5 text-sm font-medium text-slate-700 before:h-1.5 before:w-1.5 before:shrink-0 before:rounded-full before:bg-sky-500 before:content-['']",
       },
     },
     defaultVariants: {

@@ -33,9 +33,9 @@ const PLATFORM_LABEL: Record<string, string> = { IOS: 'iOS', AOS: 'Android', EVE
 
 function SummaryField({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className='space-y-0.5'>
-      <div className='text-[11px] font-medium text-slate-500'>{label}</div>
-      <div className='text-sm text-slate-900'>{children}</div>
+    <div className='space-y-1'>
+      <div className='text-xs font-medium text-slate-600'>{label}</div>
+      <div className='flex min-h-6 items-center text-sm text-slate-900'>{children}</div>
     </div>
   );
 }
@@ -47,7 +47,7 @@ function CopyableValue({ value, label }: { value: string; label: string }) {
       <Button
         variant='ghost'
         size='sm'
-        className='h-7 w-7 shrink-0 p-0'
+        className='h-6 w-6 shrink-0 p-0 hover:bg-slate-100'
         aria-label={`${label} 복사`}
         onClick={() => {
           navigator.clipboard.writeText(value);
@@ -62,8 +62,8 @@ function CopyableValue({ value, label }: { value: string; label: string }) {
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className='space-y-2'>
-      <h4 className='text-xs font-semibold text-slate-500'>{title}</h4>
+    <section className='space-y-2 border-t border-slate-100 pt-4'>
+      <h4 className='text-xs font-semibold text-slate-600'>{title}</h4>
       {children}
     </section>
   );
@@ -106,7 +106,7 @@ function UserContextSections({ username }: { username: string }) {
               <EntitlementRow key={`g-${t.id}`} label='골드클럽' t={t} />
             ))}
             {tickets.length === 0 && golds.length === 0 ? (
-              <div className='text-xs text-slate-500'>DB에 저장된 이용권이 없습니다.</div>
+              <div className='text-xs text-slate-600'>DB에 저장된 이용권이 없습니다.</div>
             ) : null}
           </div>
         )}
@@ -118,7 +118,7 @@ function UserContextSections({ username }: { username: string }) {
             <Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />
           </div>
         ) : historyItems.length === 0 ? (
-          <div className='text-xs text-slate-500'>결제 이력이 없습니다.</div>
+          <div className='text-xs text-slate-600'>결제 이력이 없습니다.</div>
         ) : (
           <div className='space-y-2'>
             {historyItems.map((row) => (
@@ -128,13 +128,17 @@ function UserContextSections({ username }: { username: string }) {
         )}
       </Section>
 
-      <div className='flex flex-wrap gap-2 border-t border-slate-100 pt-4'>
-        <Button variant='outline' onClick={() => router.push(`/user/list?username=${encodeURIComponent(username)}`)}>
-          <ExternalLink className='mr-1.5 h-3.5 w-3.5' />
+      <div className='sticky bottom-0 -mx-5 -mb-4 flex flex-wrap justify-end gap-2 border-t border-slate-100 bg-background/95 px-5 py-3 backdrop-blur'>
+        <Button
+          variant='outline'
+          className='h-9'
+          onClick={() => router.push(`/user/list?username=${encodeURIComponent(username)}`)}
+        >
+          <ExternalLink className='mr-1.5 h-4 w-4' />
           유저 상세 열기
         </Button>
-        <Button variant='outline' onClick={() => setTicketOpen(true)}>
-          <Ticket className='mr-1.5 h-3.5 w-3.5' />
+        <Button variant='outline' className='h-9' onClick={() => setTicketOpen(true)}>
+          <Ticket className='mr-1.5 h-4 w-4' />
           티켓 지급/회수
         </Button>
       </div>
@@ -270,7 +274,7 @@ function PurchaseDetailSheet({ open, context, onClose }: PurchaseDetailSheetProp
           ) : username ? (
             <UserContextSections username={username} />
           ) : (
-            <div className='rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500'>
+            <div className='rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600'>
               탈퇴한 유저입니다. 이용권/이력 조회를 사용할 수 없습니다.
             </div>
           )}
@@ -286,7 +290,7 @@ function PurchaseUserSections({ purchaseId }: { purchaseId: number }) {
   if (!detail.data) return null;
   if (!detail.data.username) {
     return (
-      <div className='rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500'>
+      <div className='rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600'>
         탈퇴한 유저입니다. 이용권/이력 조회를 사용할 수 없습니다.
       </div>
     );

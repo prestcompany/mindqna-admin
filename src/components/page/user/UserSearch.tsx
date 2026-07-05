@@ -54,13 +54,13 @@ function UserResultCard({ user, onOpenDetail, copyId }: UserResultCardProps) {
       <div className='min-w-0 flex-1'>
         <div className='flex flex-wrap items-center gap-2'>
           <span className='truncate font-semibold text-slate-900'>{user.username}</span>
-          {typeof user.code === 'number' ? <span className='font-mono text-xs text-slate-500'>#{user.code}</span> : null}
+          {typeof user.code === 'number' ? <span className='font-mono text-xs text-slate-600'>#{user.code}</span> : null}
           <Badge variant='softNeutral'>{getLocaleLabel(user.locale)}</Badge>
           {user.representativeNickname?.trim() ? (
-            <span className='truncate text-xs text-slate-500'>{user.representativeNickname}</span>
+            <span className='truncate text-xs text-slate-600'>{user.representativeNickname}</span>
           ) : null}
         </div>
-        <div className='mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500'>
+        <div className='mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-600'>
           <button
             type='button'
             onClick={(event) => {
@@ -285,7 +285,6 @@ function UserSearch() {
         onClose={() => setDetailOpen(false)}
         copyId={copyId}
         onOpenTicket={(user) => {
-          setDetailOpen(false);
           setOpenTicket(true);
           setFocused(user.username);
         }}

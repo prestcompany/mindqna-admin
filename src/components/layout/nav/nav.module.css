@@ -35,5 +35,5 @@
 
 .menu > li > ul > li > a,
 .menu > li > ul > li > button {
-  @apply py-1.5 pl-10 pr-3 text-[13px] font-medium text-muted-foreground;
+  @apply py-1.5 pl-10 pr-3 text-sm font-medium text-muted-foreground;
 }

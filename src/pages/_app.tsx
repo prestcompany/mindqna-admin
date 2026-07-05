@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NextComponentType } from 'next';
 import { SessionProvider } from 'next-auth/react';
 import type { AppProps } from 'next/app';
+import { JetBrains_Mono } from 'next/font/google';
 import localFont from 'next/font/local';
 import Head from 'next/head';
 import { Toaster } from 'sonner';
@@ -15,6 +16,12 @@ const pretendard = localFont({
   src: '../fonts/PretendardVariable.woff2',
   weight: '45 920',
   variable: '--font-pretendard',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-jbmono',
 });
 
 const queryClient = new QueryClient({
@@ -45,7 +52,9 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
       <QueryClientProvider client={queryClient}>
         <SessionProvider session={session}>
           <AuthProvider>
-            <main className={`${pretendard.variable} font-sans`}>{getLayout(Component, pageProps)}</main>
+            <main className={`${pretendard.variable} ${jetbrainsMono.variable} font-sans`}>
+              {getLayout(Component, pageProps)}
+            </main>
           </AuthProvider>
         </SessionProvider>
       </QueryClientProvider>

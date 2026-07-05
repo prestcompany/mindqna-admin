@@ -39,10 +39,10 @@ function SpaceCardsTab({ spaceId, active }: { spaceId: string; active: boolean }
                 <div className='text-sm font-medium text-slate-900'>
                   #{card.order} · 템플릿 {card.templateId}
                 </div>
-                <div className='text-xs text-slate-500'>{dayjs(card.createdAt).format('YY.MM.DD HH:mm')}</div>
+                <div className='text-xs text-slate-600'>{dayjs(card.createdAt).format('YY.MM.DD HH:mm')}</div>
               </div>
               <div className='flex shrink-0 items-center gap-3'>
-                <span className='text-xs tabular-nums text-slate-500'>
+                <span className='text-xs tabular-nums text-slate-600'>
                   답변 {card.replyCount} · 댓글 {card.commentCount}
                 </span>
                 <ChevronDown className={cn('h-4 w-4 text-slate-400 transition-transform', expanded && 'rotate-180')} />

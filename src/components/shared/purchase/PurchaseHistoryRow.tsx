@@ -10,7 +10,7 @@ function PurchaseHistoryRow({ row }: { row: UserPurchaseRow }) {
       </Badge>
       <div className='min-w-0 flex-1'>
         <div className='truncate text-sm font-medium text-slate-900'>{row.productId}</div>
-        <div className='truncate text-[11px] text-slate-500'>
+        <div className='truncate text-xs text-slate-600'>
           {row.isSubscribe ? '구독' : '단건'} · {dayjs(row.createdAt).format('YYYY.MM.DD HH:mm')}
         </div>
       </div>

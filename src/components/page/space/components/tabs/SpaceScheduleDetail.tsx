@@ -22,12 +22,12 @@ function SpaceScheduleDetail({ spaceId, scheduleId }: { spaceId: string; schedul
     <div className='space-y-3 text-sm'>
       {data.memo ? (
         <div>
-          <div className='text-xs font-medium text-slate-500'>메모</div>
+          <div className='text-xs font-medium text-slate-600'>메모</div>
           <p className='mt-0.5 whitespace-pre-wrap break-words text-slate-600'>{data.memo}</p>
         </div>
       ) : null}
       <div>
-        <div className='mb-1 text-xs font-medium text-slate-500'>일정 날짜 ({data.items.length})</div>
+        <div className='mb-1 text-xs font-medium text-slate-600'>일정 날짜 ({data.items.length})</div>
         {data.items.length ? (
           <div className='flex flex-wrap gap-1.5'>
             {data.items.map((it) => (
@@ -37,11 +37,11 @@ function SpaceScheduleDetail({ spaceId, scheduleId }: { spaceId: string; schedul
             ))}
           </div>
         ) : (
-          <div className='text-xs text-slate-500'>등록된 날짜 없음</div>
+          <div className='text-xs text-slate-600'>등록된 날짜 없음</div>
         )}
       </div>
       <div>
-        <div className='mb-1 text-xs font-medium text-slate-500'>참여 멤버 ({data.memberMetas.length})</div>
+        <div className='mb-1 text-xs font-medium text-slate-600'>참여 멤버 ({data.memberMetas.length})</div>
         {data.memberMetas.length ? (
           <div className='flex flex-wrap gap-1.5'>
             {data.memberMetas.map((m) => (
@@ -51,7 +51,7 @@ function SpaceScheduleDetail({ spaceId, scheduleId }: { spaceId: string; schedul
             ))}
           </div>
         ) : (
-          <div className='text-xs text-slate-500'>참여 멤버 없음</div>
+          <div className='text-xs text-slate-600'>참여 멤버 없음</div>
         )}
       </div>
     </div>

@@ -5,7 +5,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ChevronDown, LogOut, PanelLeftOpen } from 'lucide-react';
+import { openCommandPalette } from '@/components/shared/command-palette/CommandPalette';
+import { ChevronDown, LogOut, PanelLeftOpen, Search } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import React, { useCallback } from 'react';
 import Breadcrumb from './breadcrumb';
@@ -39,6 +40,16 @@ const Header = ({ isShowSidebar, showSidebar }: IHeaderProps) => {
           <Breadcrumb />
         </div>
         <div className='flex items-center gap-2'>
+          <button
+            type='button'
+            onClick={openCommandPalette}
+            aria-label='커맨드 팔레트 열기'
+            className='hidden h-8 items-center gap-2 rounded-md border border-border/70 bg-background px-2.5 text-sm text-muted-foreground shadow-sm transition-colors duration-fast hover:bg-accent hover:text-accent-foreground sm:flex'
+          >
+            <Search className='h-3.5 w-3.5' />
+            <span>검색 · 이동</span>
+            <kbd className='ml-1 rounded border border-border/70 bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground'>⌘K</kbd>
+          </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button

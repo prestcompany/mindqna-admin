@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-export const FILTER_CONTROL_CLASS = 'h-8 text-[13px]';
+export const FILTER_CONTROL_CLASS = 'h-8 text-sm';
 
 export interface FilterChipItem {
   key: string;

@@ -61,7 +61,7 @@ function SpacePetInteriorTab({ spaceId, active }: { spaceId: string; active: boo
           )}
           {data.customs.length ? (
             <div className='mt-3 border-t border-slate-100 pt-3'>
-              <div className='mb-2 text-xs font-medium text-slate-500'>
+              <div className='mb-2 text-xs font-medium text-slate-600'>
                 커스텀 {data.customs.length} · 장착 {equippedCustoms.length}
               </div>
               <div className='flex flex-wrap gap-1.5'>
@@ -104,7 +104,7 @@ function SpacePetInteriorTab({ spaceId, active }: { spaceId: string; active: boo
                       <Badge variant='softNeutral'>{INTERIOR_TYPE_LABEL[item.template.type] ?? item.template.type}</Badge>
                     ) : null}
                     {item.template?.category ? (
-                      <span className='text-xs text-slate-500'>{item.template.category}</span>
+                      <span className='text-xs text-slate-600'>{item.template.category}</span>
                     ) : null}
                   </div>
                 </div>

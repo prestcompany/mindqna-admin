@@ -20,9 +20,14 @@ module.exports = {
   			'굴림',
   			'Helvetica',
   			'Arial',
-  			'sans-serif'
+  			'Hiragino Sans',
+  			'Yu Gothic',
+  			'sans-serif',
+  			'Apple Color Emoji',
+  			'Segoe UI Emoji'
   		],
   		mono: [
+  			'var(--font-jbmono)',
   			'ui-monospace',
   			'Consolas',
   			'SFMono-Regular',
@@ -35,8 +40,7 @@ module.exports = {
   			'나눔고딕',
   			'Malgun Gothic',
   			'맑은고딕',
-  			'monospace',
-  			'NerdFontsSymbols Nerd Font'
+  			'monospace'
   		]
   	},
   	extend: {

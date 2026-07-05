@@ -16,6 +16,12 @@ import { Building2, User } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 
+const OPEN_EVENT = 'command-palette:open';
+
+export function openCommandPalette() {
+  window.dispatchEvent(new Event(OPEN_EVENT));
+}
+
 type MenuEntry = { id: string; name: string; path: string; group: string };
 
 function flattenMenus(): MenuEntry[] {
@@ -47,8 +53,13 @@ function CommandPalette() {
         setOpen((prev) => !prev);
       }
     };
+    const openFromEvent = () => setOpen(true);
     document.addEventListener('keydown', down);
-    return () => document.removeEventListener('keydown', down);
+    window.addEventListener(OPEN_EVENT, openFromEvent);
+    return () => {
+      document.removeEventListener('keydown', down);
+      window.removeEventListener(OPEN_EVENT, openFromEvent);
+    };
   }, []);
 
   const menuEntries = useMemo(flattenMenus, []);
@@ -92,7 +103,7 @@ function CommandPalette() {
     <CommandDialog open={open} onOpenChange={setOpen} shouldFilter={false}>
       <CommandInput value={query} onValueChange={setQuery} placeholder='메뉴 이동 · 유저/스페이스 검색 (2자 이상)' />
       <CommandList>
-        {isSearching ? <div className='px-3 py-2 text-xs text-slate-500'>검색 중…</div> : null}
+        {isSearching ? <div className='px-3 py-2 text-xs text-slate-600'>검색 중…</div> : null}
         {!isSearching ? <CommandEmpty>결과가 없습니다.</CommandEmpty> : null}
         {filteredMenus.length > 0 ? (
           <CommandGroup heading='메뉴'>

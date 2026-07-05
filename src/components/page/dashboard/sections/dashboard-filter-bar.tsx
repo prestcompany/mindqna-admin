@@ -119,7 +119,7 @@ function DashboardFilterBar({
                   <CalendarRange className='h-4 w-4 text-blue-600' />
                   기간
                 </div>
-                <p className='text-xs leading-5 text-slate-500'>
+                <p className='text-xs leading-5 text-slate-600'>
                   {granularity === 'day'
                     ? '아래 성장 KPI, 차트, 로케일 비교에만 적용되는 기준 날짜 범위를 선택하세요.'
                     : '아래 성장 KPI, 차트, 로케일 비교에만 적용되는 기준 월 범위를 선택하세요.'}
@@ -165,7 +165,7 @@ function DashboardFilterBar({
               ) : (
                 <div className='grid gap-3 sm:grid-cols-2'>
                   <div className='space-y-1.5'>
-                    <p className='text-xs font-medium text-slate-500'>시작 월</p>
+                    <p className='text-xs font-medium text-slate-600'>시작 월</p>
                     <Select
                       value={startedMonthValue}
                       onValueChange={(value) => {
@@ -186,7 +186,7 @@ function DashboardFilterBar({
                   </div>
 
                   <div className='space-y-1.5'>
-                    <p className='text-xs font-medium text-slate-500'>종료 월</p>
+                    <p className='text-xs font-medium text-slate-600'>종료 월</p>
                     <Select
                       value={endedMonthValue}
                       onValueChange={(value) => {
@@ -208,7 +208,7 @@ function DashboardFilterBar({
                 </div>
               )}
 
-              <p className='text-xs leading-5 text-slate-500'>
+              <p className='text-xs leading-5 text-slate-600'>
                 {granularity === 'day'
                   ? '대시보드 성장 지표는 종료일 기준 누적과 일별 증가 기준으로 집계되며, 선택한 기간 동안 얼마나 늘었는지 함께 보여줍니다.'
                   : '대시보드 성장 지표는 월말 누적과 월별 증가 기준으로 집계되며, 선택한 월 범위 동안 얼마나 늘었는지 함께 보여줍니다.'}
@@ -223,7 +223,7 @@ function DashboardFilterBar({
                   <Globe2 className='h-4 w-4 text-blue-600' />
                   국가 / 로케일
                 </div>
-                <p className='text-xs leading-5 text-slate-500'>
+                <p className='text-xs leading-5 text-slate-600'>
                   비교할 시장을 좁혀서 리더보드를 빠르게 읽을 수 있습니다.
                 </p>
               </div>

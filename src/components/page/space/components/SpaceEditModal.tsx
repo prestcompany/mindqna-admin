@@ -163,7 +163,7 @@ function SpaceEditModal({ open, detail, onOpenChange }: SpaceEditModalProps) {
 
         <div className='min-h-0 flex-1 space-y-6 overflow-y-auto py-1 pr-1'>
           <section className='space-y-3'>
-            <div className='text-xs font-semibold uppercase tracking-wide text-slate-500'>표시 정보</div>
+            <div className='text-xs font-semibold uppercase tracking-wide text-slate-600'>표시 정보</div>
             <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
               <div className='space-y-1.5'>
                 <Label htmlFor='space-name' className='text-xs text-slate-600'>
@@ -209,7 +209,7 @@ function SpaceEditModal({ open, detail, onOpenChange }: SpaceEditModalProps) {
           </section>
 
           <section className='space-y-3 border-t border-slate-100 pt-6'>
-            <div className='text-xs font-semibold uppercase tracking-wide text-slate-500'>동작 설정</div>
+            <div className='text-xs font-semibold uppercase tracking-wide text-slate-600'>동작 설정</div>
             <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
               <div className='space-y-1.5'>
                 <Label htmlFor='space-locale' className='text-xs text-slate-600'>
@@ -277,7 +277,7 @@ function SpaceEditModal({ open, detail, onOpenChange }: SpaceEditModalProps) {
                   </Button>
                 ) : null}
               </div>
-              <p className='text-xs text-slate-500'>날짜를 비우거나 &quot;예약 취소&quot;를 누르면 삭제 예약이 해제됩니다.</p>
+              <p className='text-xs text-slate-600'>날짜를 비우거나 &quot;예약 취소&quot;를 누르면 삭제 예약이 해제됩니다.</p>
             </div>
           </section>
         </div>

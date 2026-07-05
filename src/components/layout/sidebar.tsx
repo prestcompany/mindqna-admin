@@ -24,7 +24,7 @@ const Sidebar = ({ isShowSidebar, hideSidebar }: ISidebarProps) => {
               </div>
               <div className='leading-tight'>
                 <div className='font-semibold text-foreground'>mindBridge</div>
-                <div className='text-[11px] text-muted-foreground'>Admin Console</div>
+                <div className='text-xs text-muted-foreground'>Admin Console</div>
               </div>
             </Link>
             <button

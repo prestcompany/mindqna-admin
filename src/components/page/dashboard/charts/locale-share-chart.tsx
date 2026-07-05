@@ -215,7 +215,7 @@ function LocaleShareChart({
                 </div>
                 <div className='text-right'>
                   <p className='text-sm font-semibold text-slate-950'>{value.toLocaleString('ko-KR')}</p>
-                  <p className='text-xs text-slate-500'>{share.toFixed(1)}%</p>
+                  <p className='text-xs text-slate-600'>{share.toFixed(1)}%</p>
                 </div>
               </div>
             );

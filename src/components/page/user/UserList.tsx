@@ -94,7 +94,6 @@ function UserList() {
   };
 
   const handleOpenTicket = (user: UserSummary) => {
-    closeDetail();
     openTicket(user);
   };
 

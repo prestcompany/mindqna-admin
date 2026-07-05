@@ -32,8 +32,8 @@ function SpaceDiaryStats({ spaceId, active }: { spaceId: string; active: boolean
   return (
     <div className='rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm'>
       <div className='mb-3 flex items-center gap-2'>
-        <span className='text-xs font-medium text-slate-500'>감정 분포</span>
-        <span className='text-xs text-slate-500'>총 {data.total.toLocaleString()}건</span>
+        <span className='text-xs font-medium text-slate-600'>감정 분포</span>
+        <span className='text-xs text-slate-600'>총 {data.total.toLocaleString()}건</span>
       </div>
       <div className='space-y-2'>
         {data.byEmotion.map((e) => (
@@ -42,7 +42,7 @@ function SpaceDiaryStats({ spaceId, active }: { spaceId: string; active: boolean
             <div className='h-2 flex-1 overflow-hidden rounded-full bg-slate-100'>
               <div className='h-full rounded-full bg-slate-400' style={{ width: `${(e.count / max) * 100}%` }} />
             </div>
-            <span className='w-16 shrink-0 text-right text-xs tabular-nums text-slate-500'>
+            <span className='w-16 shrink-0 text-right text-xs tabular-nums text-slate-600'>
               {e.count} ({Math.round((e.count / data.total) * 100)}%)
             </span>
           </div>

@@ -8,7 +8,7 @@ function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div className='rounded-lg bg-slate-50 px-3 py-2 text-center'>
       <div className='text-sm font-semibold tabular-nums text-slate-900'>{value.toLocaleString()}</div>
-      <div className='text-[11px] text-slate-500'>{label}</div>
+      <div className='text-xs text-slate-600'>{label}</div>
     </div>
   );
 }
@@ -37,13 +37,13 @@ function SpaceMemberDetail({ spaceId, profileId }: { spaceId: string; profileId:
         <Stat label='일기 댓글' value={data.counts.diaryCommentCount} />
       </div>
       <div className='flex items-center gap-2 text-sm'>
-        <span className='text-xs text-slate-500'>재화</span>
+        <span className='text-xs text-slate-600'>재화</span>
         <span className='tabular-nums text-emerald-600'>지급 {data.coin.given.toLocaleString()}</span>
         <span className='text-slate-300'>·</span>
         <span className='tabular-nums text-rose-600'>사용 {data.coin.used.toLocaleString()}</span>
       </div>
       <div>
-        <div className='mb-1 text-xs font-medium text-slate-500'>프리미엄 티켓 ({data.premiumTickets.length})</div>
+        <div className='mb-1 text-xs font-medium text-slate-600'>프리미엄 티켓 ({data.premiumTickets.length})</div>
         {data.premiumTickets.length ? (
           <div className='space-y-1'>
             {data.premiumTickets.map((t) => (
@@ -59,7 +59,7 @@ function SpaceMemberDetail({ spaceId, profileId }: { spaceId: string; profileId:
             ))}
           </div>
         ) : (
-          <div className='text-xs text-slate-500'>프리미엄 티켓 없음</div>
+          <div className='text-xs text-slate-600'>프리미엄 티켓 없음</div>
         )}
       </div>
     </div>

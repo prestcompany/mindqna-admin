@@ -179,7 +179,7 @@ function UserEditModal({ open, user, onOpenChange }: UserEditModalProps) {
                   </Button>
                 ) : null}
               </div>
-              <p className='text-xs text-slate-500'>날짜를 비우거나 &quot;예약 취소&quot;를 누르면 탈퇴 예약이 해제됩니다.</p>
+              <p className='text-xs text-slate-600'>날짜를 비우거나 &quot;예약 취소&quot;를 누르면 탈퇴 예약이 해제됩니다.</p>
             </div>
           </section>
         </div>

@@ -43,7 +43,7 @@ function ReceiptViewer({ title, raw }: { title: string; raw: string }) {
           {title}
           {pretty === null ? <span className='ml-1 font-normal text-slate-500'>(원문)</span> : null}
         </button>
-        <Button variant='ghost' size='sm' className='px-2 text-xs text-slate-500' onClick={copyRaw}>
+        <Button variant='ghost' size='sm' className='px-2 text-xs text-slate-600' onClick={copyRaw}>
           <Copy className='mr-1 h-3 w-3' />
           복사
         </Button>

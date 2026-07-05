@@ -39,7 +39,7 @@ function SpaceIdentityStrip({ detail, copyId, onEdit }: SpaceIdentityStripProps)
           </button>
         ) : null}
       </div>
-      <div className='mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500'>
+      <div className='mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600'>
         <button
           type='button'
           onClick={() => copyId(detail.id)}

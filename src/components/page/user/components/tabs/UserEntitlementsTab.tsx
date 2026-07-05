@@ -12,7 +12,7 @@ function Section({ title, count, children }: { title: string; count: number; chi
   if (count === 0) return null;
   return (
     <section className='space-y-2'>
-      <h4 className='text-xs font-semibold text-slate-500'>
+      <h4 className='text-xs font-semibold text-slate-600'>
         {title} <span className='tabular-nums text-slate-400'>{count}</span>
       </h4>
       <div className='space-y-3'>{children}</div>
@@ -82,7 +82,7 @@ function UserEntitlementsTab({ username, active }: { username: string; active: b
             </Badge>
             <div className='min-w-0 flex-1'>
               <div className='truncate text-sm font-medium text-slate-900'>{s.productId}</div>
-              <div className='truncate text-[11px] text-slate-500'>
+              <div className='truncate text-xs text-slate-600'>
                 {s.platform.toUpperCase()} · {dayjs(s.createdAt).format('YYYY.MM.DD')}
               </div>
             </div>
