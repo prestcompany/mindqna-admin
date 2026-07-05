@@ -44,7 +44,7 @@ function DetailField({
         <Icon className='h-4 w-4' />
       </span>
       <div className='min-w-0'>
-        <div className='text-xs text-slate-500'>{label}</div>
+        <div className='text-xs text-slate-600'>{label}</div>
         <div className={cn('mt-0.5 break-words text-sm font-medium text-slate-900', valueClassName)}>{value}</div>
       </div>
     </div>
@@ -129,12 +129,12 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
                       {profile.disabled ? <Badge variant='softNeutral'>비활성</Badge> : null}
                       {profile.removed ? <Badge variant='softDanger'>탈퇴</Badge> : null}
                     </div>
-                    <div className='truncate text-xs text-slate-500'>
+                    <div className='truncate text-xs text-slate-600'>
                       @{profile.user?.username ?? '-'}
                       {userCode ? ` · #${userCode}` : ''}
                     </div>
                     {showAccessLine ? (
-                      <div className='flex flex-wrap gap-x-3 text-xs text-slate-500'>
+                      <div className='flex flex-wrap gap-x-3 text-xs text-slate-600'>
                         {latestAccessAt ? <span>최근 접속 {formatDate(latestAccessAt, 'YY.MM.DD HH:mm')}</span> : null}
                         {profile.removed && profile.removedAt ? <span>탈퇴 {formatDate(profile.removedAt, 'YY.MM.DD')}</span> : null}
                       </div>
@@ -167,7 +167,7 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
                   </Badge>
                   <div className='min-w-0 flex-1'>
                     <div className='truncate text-sm font-medium text-slate-900'>{actorName}</div>
-                    <div className='truncate text-xs text-slate-500'>
+                    <div className='truncate text-xs text-slate-600'>
                       {isSpend ? '사용' : '지급'} · {meta.description || '사유 없음'}
                     </div>
                   </div>
@@ -175,7 +175,7 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
                     <div className={cn('text-sm font-bold tabular-nums', isSpend ? 'text-rose-600' : 'text-emerald-600')}>
                       {buildCoinMetaLabel(meta)}
                     </div>
-                    <div className='text-[11px] text-slate-500'>{formatDate(meta.createdAt, 'MM.DD HH:mm')}</div>
+                    <div className='text-xs text-slate-600'>{formatDate(meta.createdAt, 'MM.DD HH:mm')}</div>
                   </div>
                 </div>
               );

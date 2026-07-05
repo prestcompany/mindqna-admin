@@ -29,7 +29,7 @@ function DashboardMetricCard({ metric }: DashboardMetricCardProps) {
           </div>
           <Badge
             variant='outline'
-            className={cn('rounded-full px-2 py-1 text-[11px] font-medium', toneClassName[metric.tone])}
+            className={cn('rounded-full px-2 py-1 text-xs font-medium', toneClassName[metric.tone])}
           >
             {metric.accentLabel}
           </Badge>

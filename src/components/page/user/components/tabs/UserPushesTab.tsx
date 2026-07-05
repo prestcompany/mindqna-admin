@@ -30,8 +30,8 @@ function UserPushesTab({ username, active }: { username: string; active: boolean
         >
           <div className='min-w-0 flex-1'>
             <div className='truncate text-sm font-medium text-slate-900'>{row.title}</div>
-            {row.desc ? <div className='truncate text-xs text-slate-500'>{row.desc}</div> : null}
-            <div className='text-[11px] text-slate-500'>{dayjs(row.createdAt).format('YYYY.MM.DD HH:mm')}</div>
+            {row.desc ? <div className='truncate text-xs text-slate-600'>{row.desc}</div> : null}
+            <div className='text-xs text-slate-600'>{dayjs(row.createdAt).format('YYYY.MM.DD HH:mm')}</div>
           </div>
           <Badge variant={row.isChecked ? 'softSuccess' : 'softNeutral'} className='shrink-0'>
             {row.isChecked ? '확인' : '미확인'}

@@ -103,7 +103,7 @@ function CommandPalette() {
     <CommandDialog open={open} onOpenChange={setOpen} shouldFilter={false}>
       <CommandInput value={query} onValueChange={setQuery} placeholder='메뉴 이동 · 유저/스페이스 검색 (2자 이상)' />
       <CommandList>
-        {isSearching ? <div className='px-3 py-2 text-xs text-slate-500'>검색 중…</div> : null}
+        {isSearching ? <div className='px-3 py-2 text-xs text-slate-600'>검색 중…</div> : null}
         {!isSearching ? <CommandEmpty>결과가 없습니다.</CommandEmpty> : null}
         {filteredMenus.length > 0 ? (
           <CommandGroup heading='메뉴'>

@@ -270,7 +270,7 @@ function SpaceSearch() {
         return (
           <div className='space-y-1'>
             <Badge variant={getRecencyVariant(diffFromNow)}>D+{diffFromNow}</Badge>
-            <div className='text-xs text-slate-500'>{day.format('MM.DD')}</div>
+            <div className='text-xs text-slate-600'>{day.format('MM.DD')}</div>
           </div>
         );
       },

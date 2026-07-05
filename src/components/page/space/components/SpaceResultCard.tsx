@@ -38,7 +38,7 @@ function SpaceResultCard({ space, onOpenDetail, onOpenCoin, copyId }: SpaceResul
           <Badge variant='softNeutral'>{space.spaceInfo?.locale?.toUpperCase() ?? '-'}</Badge>
           <SpaceStatusDot active={space.isActive} />
         </div>
-        <div className='mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500'>
+        <div className='mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-600'>
           <button
             type='button'
             onClick={(event) => {

@@ -30,7 +30,7 @@ function StatTile({ label, value, sub, accent }: { label: string; value: ReactNo
     <div className='rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm'>
       <div className='text-sm font-medium text-slate-600'>{label}</div>
       <div className={cn('mt-1 text-2xl font-semibold tracking-tight tabular-nums', accent ?? 'text-slate-950')}>{value}</div>
-      {sub ? <div className='mt-0.5 text-xs text-slate-500'>{sub}</div> : null}
+      {sub ? <div className='mt-0.5 text-xs text-slate-600'>{sub}</div> : null}
     </div>
   );
 }
@@ -52,7 +52,7 @@ function DetailField({
         <Icon className='h-4 w-4' />
       </span>
       <div className='min-w-0'>
-        <div className='text-xs text-slate-500'>{label}</div>
+        <div className='text-xs text-slate-600'>{label}</div>
         <div className={cn('mt-0.5 break-words text-sm font-medium text-slate-900', valueClassName)}>{value}</div>
       </div>
     </div>
@@ -104,7 +104,7 @@ function UserDetailContent({ user, copyId, onOpenTicket, onRemove, onEdit }: Use
                 <Badge variant={provider.variant}>{provider.text}</Badge>
                 <Badge variant='softNeutral'>{getLocaleLabel(locale)}</Badge>
               </div>
-              <div className='mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500'>
+              <div className='mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600'>
                 <button
                   type='button'
                   onClick={() => copyId(id)}

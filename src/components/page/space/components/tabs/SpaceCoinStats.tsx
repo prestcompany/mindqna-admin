@@ -7,7 +7,7 @@ import { ArrowDownRight, ArrowUpRight, Loader2, Minus } from 'lucide-react';
 function ChangeRate({ rate }: { rate: number | null }) {
   if (rate === null) {
     return (
-      <span className='inline-flex items-center gap-0.5 text-xs text-slate-500'>
+      <span className='inline-flex items-center gap-0.5 text-xs text-slate-600'>
         <Minus className='h-3 w-3' />
         직전 0
       </span>
@@ -35,7 +35,7 @@ function StatCard({ label, window }: { label: string; window: CoinStatWindow }) 
         {netUp ? '+' : ''}
         {window.current.net.toLocaleString()}
       </div>
-      <div className='mt-1 flex items-center gap-2 text-xs tabular-nums text-slate-500'>
+      <div className='mt-1 flex items-center gap-2 text-xs tabular-nums text-slate-600'>
         <span className='text-emerald-600'>지급 {window.current.given.toLocaleString()}</span>
         <span className='text-slate-300'>·</span>
         <span className='text-rose-600'>사용 {window.current.used.toLocaleString()}</span>

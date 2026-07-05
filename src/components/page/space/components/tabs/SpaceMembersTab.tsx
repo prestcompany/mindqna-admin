@@ -28,7 +28,7 @@ function SpaceMembersTab({ spaceId, active }: { spaceId: string; active: boolean
     <section className='space-y-2'>
       <div className='flex items-center gap-2'>
         <h3 className='text-base font-semibold text-slate-900'>멤버 {data.profiles.length}</h3>
-        <span className='text-xs text-slate-500'>활성 {activeCount}명</span>
+        <span className='text-xs text-slate-600'>활성 {activeCount}명</span>
       </div>
       <div className='space-y-2'>
         {data.profiles.map((p) => {
@@ -55,8 +55,8 @@ function SpaceMembersTab({ spaceId, active }: { spaceId: string; active: boolean
                     {p.disabled ? <Badge variant='softNeutral'>비활성</Badge> : null}
                     {p.removed ? <Badge variant='softDanger'>탈퇴</Badge> : null}
                   </div>
-                  <div className='truncate text-xs text-slate-500'>@{p.user?.username ?? '-'}</div>
-                  <div className='flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-slate-500'>
+                  <div className='truncate text-xs text-slate-600'>@{p.user?.username ?? '-'}</div>
+                  <div className='flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-slate-600'>
                     <span>가입 {dayjs(p.createdAt).format('YY.MM.DD')}</span>
                     {p.removed && p.removedAt ? <span>탈퇴 {dayjs(p.removedAt).format('YY.MM.DD')}</span> : null}
                   </div>

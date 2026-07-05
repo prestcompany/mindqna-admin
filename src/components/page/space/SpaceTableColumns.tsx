@@ -94,7 +94,7 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
       return (
         <div className='space-y-1 whitespace-nowrap'>
           <Badge variant='softNeutral'>카드 {row.original.cardOrder || 0}</Badge>
-          <div className='text-xs text-slate-500'>
+          <div className='text-xs text-slate-600'>
             {latestCardIssuedAt ? dayjs(latestCardIssuedAt).format('YY.MM.DD HH:mm') : '발급 기록 없음'}
           </div>
         </div>
@@ -176,7 +176,7 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
       return (
         <div className='whitespace-nowrap'>
           <Badge variant={isUrgent ? 'softDanger' : 'softWarning'}>{gap}만에 삭제</Badge>
-          <div className='text-xs text-slate-500'>{day.format('YY.MM.DD HH:mm:ss')}</div>
+          <div className='text-xs text-slate-600'>{day.format('YY.MM.DD HH:mm:ss')}</div>
         </div>
       );
     },

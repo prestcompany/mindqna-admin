@@ -49,7 +49,7 @@ function UserProfilesTab({ username, active }: { username: string; active: boole
               {profile.isGoldClub ? <Badge variant='softWarning'>GOLD CLUB</Badge> : null}
               {profile.disabled || profile.removed ? <Badge variant='softNeutral'>비활성</Badge> : null}
             </div>
-            <div className='truncate text-xs text-slate-500'>
+            <div className='truncate text-xs text-slate-600'>
               {profile.nickname} · 가입 {dayjs(profile.createdAt).format('YYYY.MM.DD')}
             </div>
           </div>

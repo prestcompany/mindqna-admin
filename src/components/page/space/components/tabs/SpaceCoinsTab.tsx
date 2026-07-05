@@ -40,7 +40,7 @@ function SpaceCoinsTab({ spaceId, active }: { spaceId: string; active: boolean }
             </Badge>
             <div className='min-w-0 flex-1'>
               <div className='truncate text-sm font-medium text-slate-900'>{actor}</div>
-              <div className='truncate text-xs text-slate-500'>
+              <div className='truncate text-xs text-slate-600'>
                 {isSpend ? '사용' : '지급'} · {meta.description || '사유 없음'}
               </div>
             </div>
@@ -49,7 +49,7 @@ function SpaceCoinsTab({ spaceId, active }: { spaceId: string; active: boolean }
                 {isSpend ? '-' : '+'}
                 {Math.abs(meta.amount)}
               </div>
-              <div className='text-[11px] text-slate-500'>{dayjs(meta.createdAt).format('MM.DD HH:mm')}</div>
+              <div className='text-xs text-slate-600'>{dayjs(meta.createdAt).format('MM.DD HH:mm')}</div>
             </div>
           </div>
         );

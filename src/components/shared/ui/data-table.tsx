@@ -215,7 +215,7 @@ function DataTable<TData, TValue>({
                     <TableHead
                       key={header.id}
                       className={cn(
-                        'h-9 overflow-hidden whitespace-nowrap text-ellipsis text-xs font-medium text-slate-500',
+                        'h-9 overflow-hidden whitespace-nowrap text-ellipsis text-xs font-medium text-slate-600',
                         getStickyColumnClassName(header.column.columnDef, 'head'),
                       )}
                       style={getColumnStyle(header.column.columnDef.size)}

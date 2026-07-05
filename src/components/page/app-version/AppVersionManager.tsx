@@ -72,7 +72,7 @@ function PlatformCard({ platform, label }: { platform: AppPlatform; label: strin
       </div>
       <div className='grid grid-cols-2 gap-4'>
         <div className='space-y-1.5'>
-          <Label className='text-xs text-slate-500'>최소 버전 코드</Label>
+          <Label className='text-xs text-slate-600'>최소 버전 코드</Label>
           <Input
             type='text'
             inputMode='numeric'
@@ -81,7 +81,7 @@ function PlatformCard({ platform, label }: { platform: AppPlatform; label: strin
           />
         </div>
         <div className='space-y-1.5'>
-          <Label className='text-xs text-slate-500'>최소 버전 이름 (표시용)</Label>
+          <Label className='text-xs text-slate-600'>최소 버전 이름 (표시용)</Label>
           <Input
             value={form.minVersionName}
             onChange={(e) => setForm((p) => ({ ...p, minVersionName: e.target.value }))}
@@ -90,7 +90,7 @@ function PlatformCard({ platform, label }: { platform: AppPlatform; label: strin
         </div>
       </div>
       <div className='rounded-lg bg-slate-50 p-3'>
-        <div className='mb-2 text-xs font-medium text-slate-500'>이렇게 동작합니다 (설치된 앱의 versionCode 기준)</div>
+        <div className='mb-2 text-xs font-medium text-slate-600'>이렇게 동작합니다 (설치된 앱의 versionCode 기준)</div>
         <ul className='space-y-1.5 text-xs text-slate-700'>
           <li className='flex items-center gap-2'>
             <span

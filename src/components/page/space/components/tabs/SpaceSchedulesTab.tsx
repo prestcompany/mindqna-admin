@@ -52,7 +52,7 @@ function SpaceSchedulesTab({ spaceId, active }: { spaceId: string; active: boole
                 />
                 <div className='min-w-0'>
                   <div className='truncate text-sm font-medium text-slate-900'>{schedule.title}</div>
-                  <div className='text-xs text-slate-500'>
+                  <div className='text-xs text-slate-600'>
                     {dayjs(schedule.startedAt).format('YY.MM.DD')} ~ {dayjs(schedule.endedAt).format('YY.MM.DD')}
                   </div>
                 </div>

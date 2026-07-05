@@ -20,7 +20,7 @@ function SpaceCardReplies({ spaceId, cardId }: { spaceId: string; cardId: number
   return (
     <div className='space-y-3'>
       <div className='rounded-lg bg-slate-50 px-3 py-2'>
-        <div className='text-[11px] font-medium text-slate-500'>질문</div>
+        <div className='text-xs font-medium text-slate-600'>질문</div>
         <div className='text-sm font-medium text-slate-900'>{data.templateName ?? `카드 #${data.order}`}</div>
       </div>
       {data.replies.length ? (
@@ -29,7 +29,7 @@ function SpaceCardReplies({ spaceId, cardId }: { spaceId: string; cardId: number
             <div key={reply.id} className='rounded-lg border border-slate-200/80 bg-white px-3 py-2'>
               <div className='flex items-center justify-between gap-2'>
                 <span className='text-sm font-medium text-slate-900'>{reply.profile?.nickname ?? '-'}</span>
-                <span className='text-[11px] text-slate-500'>{dayjs(reply.createdAt).format('YY.MM.DD HH:mm')}</span>
+                <span className='text-xs text-slate-600'>{dayjs(reply.createdAt).format('YY.MM.DD HH:mm')}</span>
               </div>
               <p className='mt-1 whitespace-pre-wrap break-words text-sm text-slate-600'>{reply.content}</p>
             </div>

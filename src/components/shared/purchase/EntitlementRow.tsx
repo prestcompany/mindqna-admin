@@ -18,7 +18,7 @@ function EntitlementRow({ label, t }: { label: string; t: UserEntitlementTicket 
       </Badge>
       <div className='min-w-0 flex-1'>
         <div className='truncate text-sm font-medium text-slate-900'>{t.productId}</div>
-        <div className='truncate text-[11px] text-slate-500'>
+        <div className='truncate text-xs text-slate-600'>
           {t.platform.toUpperCase()} · {t.dueAt ? `만료 ${dayjs(t.dueAt).format('YYYY.MM.DD')}` : '만료 없음'}
         </div>
       </div>

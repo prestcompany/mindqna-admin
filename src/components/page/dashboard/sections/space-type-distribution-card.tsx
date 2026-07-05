@@ -28,7 +28,7 @@ function SpaceTypeDistributionCard({ rows }: SpaceTypeDistributionCardProps) {
                 <div className='mb-4 flex flex-wrap items-center justify-between gap-2'>
                   <div>
                     <p className='font-semibold text-slate-950'>{row.label}</p>
-                    <p className='text-xs text-slate-500'>{row.locale}</p>
+                    <p className='text-xs text-slate-600'>{row.locale}</p>
                   </div>
                   <div className='rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600'>
                     총 {row.total.toLocaleString('ko-KR')}개

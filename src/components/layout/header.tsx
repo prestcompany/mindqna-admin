@@ -44,11 +44,11 @@ const Header = ({ isShowSidebar, showSidebar }: IHeaderProps) => {
             type='button'
             onClick={openCommandPalette}
             aria-label='커맨드 팔레트 열기'
-            className='hidden h-8 items-center gap-2 rounded-md border border-border/70 bg-background px-2.5 text-[13px] text-muted-foreground shadow-sm transition-colors duration-fast hover:bg-accent hover:text-accent-foreground sm:flex'
+            className='hidden h-8 items-center gap-2 rounded-md border border-border/70 bg-background px-2.5 text-sm text-muted-foreground shadow-sm transition-colors duration-fast hover:bg-accent hover:text-accent-foreground sm:flex'
           >
             <Search className='h-3.5 w-3.5' />
             <span>검색 · 이동</span>
-            <kbd className='ml-1 rounded border border-border/70 bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground'>⌘K</kbd>
+            <kbd className='ml-1 rounded border border-border/70 bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground'>⌘K</kbd>
           </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
