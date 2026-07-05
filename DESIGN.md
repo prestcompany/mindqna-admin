@@ -78,10 +78,15 @@ analytics 대시보드 기준. 카드/시트 내부의 표면·텍스트 위계�
 
 ## 3. 타이포그래피
 - 폰트: **Pretendard**(`var(--font-pretendard)`), 한국어 폴백 체인. 코드/ID는 `font-mono`.
-- 기본 본문 `15px`(html). 위계는 weight·size로:
+- **타입 스케일 (고정 5단)**: `text-xs`(12) / `text-sm`(14) / 기본 15(html) / `text-base`(16) / `text-2xl`+(24+ 수치). 스케일 밖 임의값(`text-[Npx]`) 사용 금지.
+- **플로어(최소 크기)**: 데이터 값·본문 텍스트 14px(`text-sm`) 미만 금지. 보조/캡션/라벨 12px(`text-xs`) 미만 금지 — 11px·10px 전면 폐지.
+- **작은 크기 × 낮은 대비 중첩 금지**: `text-xs`에는 `text-slate-600` 이상을 쓴다(`text-xs` + `text-slate-500` 조합 금지). `text-slate-500`은 14px 이상에서만.
+- **한글 보정 원칙**: 라틴 기반 레퍼런스(Linear/Stripe 등)의 px를 그대로 이식하지 않는다 — 한글은 글리프 밀도가 높아 같은 px에서 체감 가독성이 한 단계 낮으므로, 벤치마크 대비 한 단계 큰 스케일을 적용한다.
+- 위계는 크기가 아니라 **weight(500/600)와 명도(slate-900 vs slate-600)**로 만든다:
   - 큰 수치: `text-2xl`~`text-3xl font-semibold tracking-tight`
   - 섹션 제목: `text-base font-semibold text-slate-900`
   - 레이블: `text-sm font-medium text-slate-600`
+  - 캡션/메타: `text-xs text-slate-600`
 - **숫자는 항상 `tabular-nums`** (정렬·점프 방지). 수치 자체는 **중립색** 원칙(색은 의미 신호에만).
 
 ---
