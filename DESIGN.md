@@ -77,7 +77,10 @@ analytics 대시보드 기준. 카드/시트 내부의 표면·텍스트 위계�
 ---
 
 ## 3. 타이포그래피
-- 폰트: **Pretendard**(`var(--font-pretendard)`), 한국어 폴백 체인. 코드/ID는 `font-mono`.
+- **폰트 정책**:
+  - 한글·영문 모두 **Pretendard 단일**(`var(--font-pretendard)`, next/font/local). 라틴 전용 폰트를 추가로 섞지 않는다(Pretendard 라틴은 Inter 기반 — 별도 영문 폰트는 베이스라인 미스매치만 유발).
+  - 코드·ID·트랜잭션·JSON은 `font-mono` = **JetBrains Mono**(`var(--font-jbmono)`, next/font/google 셀프호스팅) — `0/O`·`1/l` 구분이 필요한 대조 작업 전용. 시스템 mono 체인은 폴백.
+  - UGC(유저명·공간명·카드 내용)의 일본어는 `Hiragino Sans`/`Yu Gothic` 폴백, 이모지는 체인 말미 `Apple Color Emoji`/`Segoe UI Emoji`로 렌더 — UI 자체에는 이모지 사용 금지(기존 원칙 유지).
 - **타입 스케일 (고정 5단)**: `text-xs`(12) / `text-sm`(14) / 기본 15(html) / `text-base`(16) / `text-2xl`+(24+ 수치). 스케일 밖 임의값(`text-[Npx]`) 사용 금지.
 - **플로어(최소 크기)**: 데이터 값·본문 텍스트 14px(`text-sm`) 미만 금지. 보조/캡션/라벨 12px(`text-xs`) 미만 금지 — 11px·10px 전면 폐지.
 - **작은 크기 × 낮은 대비 중첩 금지**: `text-xs`에는 `text-slate-600` 이상을 쓴다(`text-xs` + `text-slate-500` 조합 금지). `text-slate-500`은 14px 이상에서만.
