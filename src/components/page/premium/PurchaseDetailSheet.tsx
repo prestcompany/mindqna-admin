@@ -33,9 +33,9 @@ const PLATFORM_LABEL: Record<string, string> = { IOS: 'iOS', AOS: 'Android', EVE
 
 function SummaryField({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className='space-y-0.5'>
+    <div className='space-y-1'>
       <div className='text-[11px] font-medium text-slate-500'>{label}</div>
-      <div className='text-sm text-slate-900'>{children}</div>
+      <div className='flex min-h-6 items-center text-sm text-slate-900'>{children}</div>
     </div>
   );
 }
@@ -47,7 +47,7 @@ function CopyableValue({ value, label }: { value: string; label: string }) {
       <Button
         variant='ghost'
         size='sm'
-        className='h-7 w-7 shrink-0 p-0'
+        className='h-6 w-6 shrink-0 p-0 hover:bg-slate-100'
         aria-label={`${label} 복사`}
         onClick={() => {
           navigator.clipboard.writeText(value);
@@ -62,7 +62,7 @@ function CopyableValue({ value, label }: { value: string; label: string }) {
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className='space-y-2'>
+    <section className='space-y-2 border-t border-slate-100 pt-4'>
       <h4 className='text-xs font-semibold text-slate-500'>{title}</h4>
       {children}
     </section>
@@ -128,13 +128,17 @@ function UserContextSections({ username }: { username: string }) {
         )}
       </Section>
 
-      <div className='flex flex-wrap gap-2 border-t border-slate-100 pt-4'>
-        <Button variant='outline' onClick={() => router.push(`/user/list?username=${encodeURIComponent(username)}`)}>
-          <ExternalLink className='mr-1.5 h-3.5 w-3.5' />
+      <div className='sticky bottom-0 -mx-5 -mb-4 flex flex-wrap justify-end gap-2 border-t border-slate-100 bg-background/95 px-5 py-3 backdrop-blur'>
+        <Button
+          variant='outline'
+          className='h-9'
+          onClick={() => router.push(`/user/list?username=${encodeURIComponent(username)}`)}
+        >
+          <ExternalLink className='mr-1.5 h-4 w-4' />
           유저 상세 열기
         </Button>
-        <Button variant='outline' onClick={() => setTicketOpen(true)}>
-          <Ticket className='mr-1.5 h-3.5 w-3.5' />
+        <Button variant='outline' className='h-9' onClick={() => setTicketOpen(true)}>
+          <Ticket className='mr-1.5 h-4 w-4' />
           티켓 지급/회수
         </Button>
       </div>

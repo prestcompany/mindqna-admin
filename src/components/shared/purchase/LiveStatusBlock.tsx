@@ -35,8 +35,8 @@ function LiveStatusBlock({ username }: { username: string }) {
         <Button
           type='button'
           variant='outline'
-          size='default'
-          className='w-full sm:w-auto'
+          size='sm'
+          className='h-8 w-full sm:w-auto'
           onClick={() => live.refetch()}
           disabled={live.isFetching}
         >
