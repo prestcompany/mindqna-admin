@@ -16,6 +16,12 @@ import { Building2, User } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 
+const OPEN_EVENT = 'command-palette:open';
+
+export function openCommandPalette() {
+  window.dispatchEvent(new Event(OPEN_EVENT));
+}
+
 type MenuEntry = { id: string; name: string; path: string; group: string };
 
 function flattenMenus(): MenuEntry[] {
@@ -47,8 +53,13 @@ function CommandPalette() {
         setOpen((prev) => !prev);
       }
     };
+    const openFromEvent = () => setOpen(true);
     document.addEventListener('keydown', down);
-    return () => document.removeEventListener('keydown', down);
+    window.addEventListener(OPEN_EVENT, openFromEvent);
+    return () => {
+      document.removeEventListener('keydown', down);
+      window.removeEventListener(OPEN_EVENT, openFromEvent);
+    };
   }, []);
 
   const menuEntries = useMemo(flattenMenus, []);
