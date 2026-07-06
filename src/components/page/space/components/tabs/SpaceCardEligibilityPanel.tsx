@@ -79,7 +79,7 @@ function SpaceCardEligibilityPanel({
 
   if (isFetching && !data) {
     return (
-      <div className='flex min-h-[120px] items-center justify-center rounded-xl border border-slate-200/80 bg-white shadow-sm'>
+      <div className='flex min-h-[120px] items-center justify-center rounded-lg border border-slate-200/80 bg-white shadow-sm'>
         <Loader2 className='h-5 w-5 animate-spin text-muted-foreground' />
       </div>
     );
@@ -139,7 +139,7 @@ function SpaceCardEligibilityPanel({
 
       <div className='grid gap-4 lg:grid-cols-2'>
         {/* 카드 현황 — 상세 정보에 흩어져 있던 카드 항목을 취합 */}
-        <div className='rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm'>
+        <div className='rounded-lg border border-slate-200/80 bg-white p-4 shadow-sm'>
           <div className='mb-3 text-xs font-medium text-slate-600'>카드 현황</div>
           <div className='grid grid-cols-2 gap-x-4 gap-y-3'>
             <Metric label='현재 카드' value={`#${data.cardOrder}`} />
@@ -152,7 +152,7 @@ function SpaceCardEligibilityPanel({
         </div>
 
         {/* 발급 조건 — 차단 사유 + 게이트 체크리스트 */}
-        <div className='rounded-xl border border-slate-200/80 bg-white shadow-sm'>
+        <div className='rounded-lg border border-slate-200/80 bg-white shadow-sm'>
           <div className='px-4 pt-3 text-xs font-medium text-slate-600'>발급 조건</div>
           {blockedReasons.length ? (
             <div className='mx-4 mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2'>

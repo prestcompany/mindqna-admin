@@ -33,11 +33,11 @@ function SpaceDiariesTab({ spaceId, active }: { spaceId: string; active: boolean
       {items.map((diary) => {
         const expanded = expandedId === diary.id;
         return (
-          <div key={diary.id} className='overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm'>
+          <div key={diary.id} className='overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-sm'>
             <button
               type='button'
               onClick={() => setExpandedId(expanded ? null : diary.id)}
-              className='flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50'
+              className='flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition-colors hover:bg-slate-50'
             >
               <div className='flex min-w-0 items-center gap-2'>
                 <Badge variant='softNeutral'>{diary.emotion}</Badge>

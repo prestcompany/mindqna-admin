@@ -420,7 +420,7 @@ function SpaceList() {
             </div>
 
             {bulkResult?.status === 'partial' ? (
-              <div className='rounded-xl border border-amber-200 bg-amber-50 p-4'>
+              <div className='rounded-lg border border-amber-200 bg-amber-50 p-4'>
                 <div className='flex items-start justify-between gap-3'>
                   <div className='space-y-1'>
                     <p className='text-sm font-semibold text-amber-900'>부분 실패</p>
@@ -455,7 +455,7 @@ function SpaceList() {
             ) : null}
 
             {bulkResult?.status === 'error' ? (
-              <div className='rounded-xl border border-destructive/20 bg-red-50 p-4'>
+              <div className='rounded-lg border border-destructive/20 bg-red-50 p-4'>
                 <p className='text-sm font-semibold text-destructive'>처리 실패</p>
                 <p className='mt-1 break-words text-sm text-destructive/80'>{bulkResult.message}</p>
               </div>

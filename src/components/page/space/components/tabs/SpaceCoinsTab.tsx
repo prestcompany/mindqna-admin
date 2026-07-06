@@ -33,7 +33,7 @@ function SpaceCoinsTab({ spaceId, active }: { spaceId: string; active: boolean }
         return (
           <div
             key={meta.id}
-            className='flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm'
+            className='flex items-center gap-3 rounded-lg border border-slate-200/80 bg-white px-3 py-2.5 shadow-sm'
           >
             <Badge variant={meta.isPaid ? 'softWarning' : 'softDanger'} className='w-11 shrink-0 justify-center'>
               {meta.isPaid ? '스타' : '하트'}

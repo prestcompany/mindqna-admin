@@ -38,11 +38,11 @@ function SpaceMembersTab({ spaceId, active }: { spaceId: string; active: boolean
           const expanded = expandedId === p.id;
           const status = getMemberStatus(p);
           return (
-            <div key={p.id} className='overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm'>
+            <div key={p.id} className='overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-sm'>
               <button
                 type='button'
                 onClick={() => setExpandedId(expanded ? null : p.id)}
-                className='flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50'
+                className='flex w-full items-start gap-3 px-3 py-2.5 text-left transition-colors hover:bg-slate-50'
               >
                 <Avatar className='h-9 w-9 shrink-0'>
                   {p.img?.uri ? <AvatarImage src={p.img.uri} alt={p.nickname} className='object-cover' /> : null}
