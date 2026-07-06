@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { Loader2 } from 'lucide-react';
+import { getMemberStatus } from '../../utils/space-display';
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
@@ -27,8 +28,20 @@ function SpaceMemberDetail({ spaceId, profileId }: { spaceId: string; profileId:
     );
   }
   if (!data) return null;
+  const status = getMemberStatus(data.profile);
   return (
     <div className='space-y-3'>
+      {status.badgeVariant ? (
+        <div className='flex flex-wrap items-center gap-2'>
+          <span className='truncate text-sm font-medium text-slate-900'>{data.profile.nickname}</span>
+          <Badge variant={status.badgeVariant}>{status.label}</Badge>
+          {status.date ? (
+            <span className='text-xs text-slate-600'>
+              {status.label} {dayjs(status.date).format('YY.MM.DD')}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
       <div className='grid grid-cols-3 gap-2 sm:grid-cols-5'>
         <Stat label='답변' value={data.counts.replyCount} />
         <Stat label='일기' value={data.counts.diaryCount} />

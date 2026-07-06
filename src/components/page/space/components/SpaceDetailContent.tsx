@@ -9,6 +9,7 @@ import {
   buildRoomCategorySummary,
   formatDate,
   formatDueRemovedAt,
+  getMemberStatus,
   getMetricAccent,
   getPetTypeLabel,
 } from '../utils/space-display';
@@ -112,7 +113,8 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
               const initial = (profile.nickname ?? '?').trim().charAt(0).toUpperCase() || '?';
               const userCode = profile.user?.code;
               const latestAccessAt = profile.user?.latestAccessAt;
-              const showAccessLine = Boolean(latestAccessAt) || (profile.removed && Boolean(profile.removedAt));
+              const status = getMemberStatus(profile);
+              const showAccessLine = Boolean(latestAccessAt) || Boolean(status.date);
               return (
                 <div key={profile.id} className='flex items-start gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm'>
                   <Avatar className='h-9 w-9 shrink-0'>
@@ -126,8 +128,7 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
                       {profile.isPremium ? <Badge variant='softSuccess'>PREMIUM</Badge> : null}
                       {profile.isGoldClub ? <Badge variant='softWarning'>GOLD CLUB</Badge> : null}
                       {profile.isAccepted === false ? <Badge variant='softWarning'>수락대기</Badge> : null}
-                      {profile.disabled ? <Badge variant='softNeutral'>비활성</Badge> : null}
-                      {profile.removed ? <Badge variant='softDanger'>탈퇴</Badge> : null}
+                      {status.badgeVariant ? <Badge variant={status.badgeVariant}>{status.label}</Badge> : null}
                     </div>
                     <div className='truncate text-xs text-slate-600'>
                       @{profile.user?.username ?? '-'}
@@ -136,7 +137,7 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
                     {showAccessLine ? (
                       <div className='flex flex-wrap gap-x-3 text-xs text-slate-600'>
                         {latestAccessAt ? <span>최근 접속 {formatDate(latestAccessAt, 'YY.MM.DD HH:mm')}</span> : null}
-                        {profile.removed && profile.removedAt ? <span>탈퇴 {formatDate(profile.removedAt, 'YY.MM.DD')}</span> : null}
+                        {status.date ? <span>{status.label} {formatDate(status.date, 'YY.MM.DD')}</span> : null}
                       </div>
                     ) : null}
                   </div>

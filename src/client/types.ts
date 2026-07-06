@@ -541,6 +541,7 @@ export type SpaceMemberRow = {
   disabled: boolean;
   removed: boolean;
   removedAt: string | null;
+  renew?: boolean;
   createdAt: string;
   user?: { id: string; username: string };
   img?: { uri: string } | null;
@@ -568,6 +569,7 @@ export type SpaceMemberDetail = {
     disabled: boolean;
     removed: boolean;
     removedAt: string | null;
+    renew?: boolean;
     isPremium: boolean;
     isGoldClub: boolean;
     user?: { id: string; username: string };

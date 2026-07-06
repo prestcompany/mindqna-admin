@@ -3,6 +3,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import dayjs from 'dayjs';
+import { getMemberStatus } from '../utils/space-display';
 
 interface SpaceProfileModalProps {
   open: boolean;
@@ -26,6 +28,7 @@ function SpaceProfileModal({ open, space, onClose, onRefresh, onRemoveProfile, c
           {space.profiles.map((profile) => {
             const { isPremium, isGoldClub, userId } = profile;
             const isOwner = userId === space.spaceInfo.ownerId;
+            const status = getMemberStatus(profile);
 
             return (
               <Card key={profile.id} className='bg-[#fefefe]'>
@@ -39,13 +42,19 @@ function SpaceProfileModal({ open, space, onClose, onRefresh, onRemoveProfile, c
                       className='rounded object-cover'
                     />
                     <div className='flex-1'>
-                      <div className='flex gap-2 items-center mb-2'>
+                      <div className='flex flex-wrap gap-2 items-center mb-2'>
                         <span className='font-medium'>{profile.nickname}</span>
-                        {isOwner && <Badge variant='default'>OWNER</Badge>}
-                        {isPremium && <Badge variant='success'>PREMIUM</Badge>}
-                        {isGoldClub && <Badge variant='warning'>STAR CLUB</Badge>}
+                        {isOwner && <Badge variant='softNeutral'>OWNER</Badge>}
+                        {isPremium && <Badge variant='softSuccess'>PREMIUM</Badge>}
+                        {isGoldClub && <Badge variant='softWarning'>STAR CLUB</Badge>}
+                        {status.badgeVariant ? <Badge variant={status.badgeVariant}>{status.label}</Badge> : null}
                       </div>
-                      <div className='mb-2 text-xs text-gray-500'>ID: {profile.id}</div>
+                      {status.date ? (
+                        <div className='mb-2 text-xs text-slate-600'>
+                          {status.label} {dayjs(status.date).format('YY.MM.DD')}
+                        </div>
+                      ) : null}
+                      <div className='mb-2 text-xs text-slate-600'>ID: {profile.id}</div>
                       <div className='flex gap-2'>
                         <Button size='sm' onClick={() => copyId(profile.user.username)}>
                           {profile.user.username}

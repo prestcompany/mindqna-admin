@@ -46,6 +46,20 @@ export function getRecencyVariant(diffDays: number) {
   return 'softNeutral' as const;
 }
 
+export type SpaceMemberStatusKey = 'removed' | 'renewPending' | 'left' | 'active';
+
+export function getMemberStatus(p: {
+  disabled: boolean;
+  removed: boolean;
+  renew?: boolean;
+  removedAt?: string | null;
+}): { key: SpaceMemberStatusKey; label: string; badgeVariant: 'dotDanger' | 'dotWarning' | 'dotNeutral' | null; date: string | null } {
+  if (p.removed) return { key: 'removed', label: '삭제 대기', badgeVariant: 'dotDanger', date: p.removedAt ?? null };
+  if (p.disabled && p.renew) return { key: 'renewPending', label: '재가입 대기', badgeVariant: 'dotWarning', date: null };
+  if (p.disabled) return { key: 'left', label: '나감', badgeVariant: 'dotNeutral', date: p.removedAt ?? null };
+  return { key: 'active', label: '활성', badgeVariant: null, date: null };
+}
+
 export function formatDate(value?: string | null, format = 'YY.MM.DD HH:mm:ss') {
   if (!value) return '-';
   return dayjs(value).format(format);
