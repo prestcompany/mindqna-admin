@@ -3,8 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import dayjs from 'dayjs';
-import { getMemberStatus } from '../utils/space-display';
+import { formatDate, getMemberStatus } from '../utils/space-display';
 
 interface SpaceProfileModalProps {
   open: boolean;
@@ -51,7 +50,7 @@ function SpaceProfileModal({ open, space, onClose, onRefresh, onRemoveProfile, c
                       </div>
                       {status.date ? (
                         <div className='mb-2 text-xs text-slate-600'>
-                          {status.label} {dayjs(status.date).format('YY.MM.DD')}
+                          {status.label} {formatDate(status.date, 'YY.MM.DD')}
                         </div>
                       ) : null}
                       <div className='mb-2 text-xs text-slate-600'>ID: {profile.id}</div>

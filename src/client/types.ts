@@ -737,10 +737,10 @@ export type Profile = {
   isAccepted: boolean;
   isPremium: boolean;
   isGoldClub: boolean;
-  disabled: boolean;
-  removed: boolean;
+  disabled?: boolean;
+  removed?: boolean;
   removedAt?: string;
-  renew: boolean;
+  renew?: boolean;
   createdAt: string;
   updatedAt: string;
   user: User;

@@ -49,8 +49,8 @@ export function getRecencyVariant(diffDays: number) {
 export type SpaceMemberStatusKey = 'removed' | 'renewPending' | 'left' | 'active';
 
 export function getMemberStatus(p: {
-  disabled: boolean;
-  removed: boolean;
+  disabled?: boolean;
+  removed?: boolean;
   renew?: boolean;
   removedAt?: string | null;
 }): { key: SpaceMemberStatusKey; label: string; badgeVariant: 'dotDanger' | 'dotWarning' | 'dotNeutral' | null; date: string | null } {
