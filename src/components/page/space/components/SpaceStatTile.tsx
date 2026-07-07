@@ -11,7 +11,7 @@ interface SpaceStatTileProps {
 
 function SpaceStatTile({ label, value, sub, accent }: SpaceStatTileProps) {
   return (
-    <div className='rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm'>
+    <div className='rounded-lg border border-slate-200/80 bg-white p-4 shadow-sm'>
       <div className='text-sm font-medium text-slate-600'>{label}</div>
       <div className={cn('mt-1 text-2xl font-semibold tracking-tight tabular-nums', accent ?? 'text-slate-950')}>
         {value}

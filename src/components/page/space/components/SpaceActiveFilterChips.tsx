@@ -1,5 +1,5 @@
 import { SearchSpacesParams } from '@/client/space';
-import { X } from 'lucide-react';
+import { FilterChips } from '@/components/shared/ui/filter-bar';
 
 interface ActiveChip {
   key: 'type' | 'locale' | 'date';
@@ -29,24 +29,10 @@ function SpaceActiveFilterChips({ params, onRemove }: SpaceActiveFilterChipsProp
   if (!chips.length) return null;
 
   return (
-    <div className='flex flex-wrap items-center gap-2'>
-      {chips.map((chip) => (
-        <span
-          key={chip.key}
-          className='inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white py-1 pl-3 pr-1.5 text-xs font-medium text-slate-600'
-        >
-          {chip.label}
-          <button
-            type='button'
-            aria-label={`${chip.label} 필터 제거`}
-            onClick={() => onRemove(chip.key)}
-            className='inline-flex h-4 w-4 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700'
-          >
-            <X className='h-3 w-3' />
-          </button>
-        </span>
-      ))}
-    </div>
+    <FilterChips
+      chips={chips.map((chip) => ({ key: chip.key, label: chip.label }))}
+      onRemove={(key) => onRemove(key as ActiveChip['key'])}
+    />
   );
 }
 

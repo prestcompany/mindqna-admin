@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { ChevronDown, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { getMemberStatus } from '../../utils/space-display';
 import SpaceMemberDetail from './SpaceMemberDetail';
 
 function SpaceMembersTab({ spaceId, active }: { spaceId: string; active: boolean }) {
@@ -35,12 +36,13 @@ function SpaceMembersTab({ spaceId, active }: { spaceId: string; active: boolean
           const initial = (p.nickname ?? '?').trim().charAt(0).toUpperCase() || '?';
           const isOwner = p.userId === data.ownerId;
           const expanded = expandedId === p.id;
+          const status = getMemberStatus(p);
           return (
-            <div key={p.id} className='overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm'>
+            <div key={p.id} className='overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-sm'>
               <button
                 type='button'
                 onClick={() => setExpandedId(expanded ? null : p.id)}
-                className='flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50'
+                className='flex w-full items-start gap-3 px-3 py-2.5 text-left transition-colors hover:bg-slate-50'
               >
                 <Avatar className='h-9 w-9 shrink-0'>
                   {p.img?.uri ? <AvatarImage src={p.img.uri} alt={p.nickname} className='object-cover' /> : null}
@@ -52,13 +54,12 @@ function SpaceMembersTab({ spaceId, active }: { spaceId: string; active: boolean
                     {isOwner ? <Badge variant='softNeutral'>OWNER</Badge> : null}
                     {p.isPremium ? <Badge variant='softSuccess'>PREMIUM</Badge> : null}
                     {p.isGoldClub ? <Badge variant='softWarning'>GOLD CLUB</Badge> : null}
-                    {p.disabled ? <Badge variant='softNeutral'>비활성</Badge> : null}
-                    {p.removed ? <Badge variant='softDanger'>탈퇴</Badge> : null}
+                    {status.badgeVariant ? <Badge variant={status.badgeVariant}>{status.label}</Badge> : null}
                   </div>
                   <div className='truncate text-xs text-slate-600'>@{p.user?.username ?? '-'}</div>
                   <div className='flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-slate-600'>
                     <span>가입 {dayjs(p.createdAt).format('YY.MM.DD')}</span>
-                    {p.removed && p.removedAt ? <span>탈퇴 {dayjs(p.removedAt).format('YY.MM.DD')}</span> : null}
+                    {status.date ? <span>{status.label} {dayjs(status.date).format('YY.MM.DD')}</span> : null}
                   </div>
                 </div>
                 <ChevronDown
