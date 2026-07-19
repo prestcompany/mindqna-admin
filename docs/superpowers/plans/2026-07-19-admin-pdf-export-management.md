@@ -132,11 +132,15 @@ git commit -m "refactor(card-export): extract computeStatus to shared file"
 
 - [ ] **Step 1: Add the interface types**
 
-Append to `src/admin/pdf-export/pdf-export.interface.ts`:
+First add this import at the **top** of `src/admin/pdf-export/pdf-export.interface.ts` (imports must not sit mid-file):
 
 ```ts
 import { PdfExportStatus } from 'src/card/export/card-export.dto';
+```
 
+Then append the interfaces below the existing two (`.cursor/rules` says "one export per file", but the existing file already aggregates multiple type exports — follow that de-facto convention; do NOT split this file):
+
+```ts
 export interface AdminPdfExportHistoryQuery {
   page: number;
   space?: string;
@@ -725,7 +729,7 @@ export type UpdatePdfExportRecordParams = {
 
 - [ ] **Step 2: Create the client**
 
-Create `src/client/pdf-export.ts`:
+Create `src/client/pdf-export.ts` (note `PdfExportRecord` is in the import list — it types the `updatePdfExportRecord` response):
 
 ```ts
 import client from './@base';
@@ -734,6 +738,7 @@ import {
   PdfExportHistoryParams,
   PdfExportHistoryResult,
   PdfExportPolicy,
+  PdfExportRecord,
   UpdatePdfExportPolicyParams,
   UpdatePdfExportRecordParams,
 } from './types';
@@ -773,20 +778,6 @@ export async function updatePdfExportRecord(id: number, body: UpdatePdfExportRec
 
   return res.data;
 }
-```
-
-Add `PdfExportRecord` to the import list at the top of the file (used as the `patch` response type):
-
-```ts
-import {
-  PdfExportDownloadResult,
-  PdfExportHistoryParams,
-  PdfExportHistoryResult,
-  PdfExportPolicy,
-  PdfExportRecord,
-  UpdatePdfExportPolicyParams,
-  UpdatePdfExportRecordParams,
-} from './types';
 ```
 
 - [ ] **Step 3: Typecheck**
@@ -1500,3 +1491,11 @@ git commit -m "feat(pdf-export): add history row actions (view, adjust, delete)"
 - **Spec coverage:** §2 policy config → Task 7; §3.1 endpoints → Tasks 2–4; §3.2 services → Tasks 2–4; §3.3 shared status → Task 1; §3.4 query/joins → Task 2; §3.5 validation → Tasks 2–3; §4 frontend structure → Tasks 5–9; §4.3 search/columns/actions → Tasks 8–9; §4.4 nav → Task 6; §5 error handling → Tasks 7–9 (toast + confirm dialogs); §6 testing → backend Jest (Tasks 1–4), frontend typecheck/build/manual (Tasks 5–9); §7 order → backend Tasks 1–4 then frontend Tasks 5–9.
 - **Verify-before-write reminders:** shadcn export names (`Tabs`, `Table*`, `Dialog*`, `AlertDialog*`) and `Button` `variant`/`size` support are called out in Tasks 6/8/9 to confirm against this repo's `src/components/ui/*` before writing, since these are copied-in components that can diverge.
 - **Type consistency:** `AdminPdfExportRecordDto` (backend) mirrors `PdfExportRecord` (frontend) field-for-field; pagination shape `{ items, totalCount, pageInfo: { totalPage } }` is identical on both sides; `updatePdfExportRecord` returns `PdfExportRecord`.
+
+## Review Outcomes (critic pass, 2026-07-19)
+
+Verdict: ready to execute as-is. Verified against source: AwsService signatures (`getPresignedGetUrl(key, sec)`, `deleteS3Object(uri, isNew)`), Prisma relations/nullability, MySQL provider (so omitting `mode: 'insensitive'` is correct — MySQL default collation is case-insensitive and `mode` would not type-check), nestia numeric coercion, frontend pagination/type parity, react-query v5 `keepPreviousData`, and all shadcn export names. Applied fixes: Task 2 import moved to file top; Task 5 client import includes `PdfExportRecord`. Acknowledged, intentionally-in-scope tradeoffs:
+- **S3 orphan on delete failure:** `AwsService.deleteS3Object` swallows errors internally, so `deleteRecord` deletes the DB row even if S3 deletion fails. This exactly matches the existing user-facing `deleteExport` — consistent, out of scope to change here.
+- **Hand-rolled 이전/다음 pagination (Task 8):** simple and sufficient; a shared pagination component exists (see `SpaceCoinsTab`) and may be swapped in later if desired. Not required.
+- **No route/guard integration test:** the security-relevant "admin download does not touch `downloadCount`" is asserted at the service layer (correct level); `AdminGuard` gating is inherited from the existing controller. Acceptable.
+- **No admin action audit log:** explicitly out of scope per spec; single admin identity (`admin.guard.ts`).
