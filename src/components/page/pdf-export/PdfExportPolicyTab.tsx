@@ -15,9 +15,9 @@ const EMPTY: UpdatePdfExportPolicyParams = {
 };
 
 const FIELDS: { key: keyof UpdatePdfExportPolicyParams; label: string; hint: string }[] = [
-  { key: 'coinPerQuestion', label: '질문당 코인', hint: '답변 1개당 차감되는 유료 코인(별)' },
-  { key: 'maxDownloadCount', label: '최대 다운로드 횟수', hint: '발급 후 재다운로드 허용 횟수' },
-  { key: 'expiryDays', label: '만료일(일)', hint: '발급 후 유효 기간' },
+  { key: 'coinPerQuestion', label: '카드당 코인(스타)', hint: '답변이 있는 카드 1장당 차감되는 스타 코인' },
+  { key: 'maxDownloadCount', label: '최대 다운로드 횟수', hint: '발급 후 다시 받을 수 있는 최대 횟수' },
+  { key: 'expiryDays', label: '유효 기간(일)', hint: '발급일로부터 다운로드 가능한 기간' },
 ];
 
 function PdfExportPolicyTab() {
@@ -53,26 +53,24 @@ function PdfExportPolicyTab() {
   };
 
   return (
-    <div className='max-w-xl space-y-4 rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm'>
+    <div className='max-w-xl space-y-6 rounded-lg border border-slate-200/80 bg-white p-6 shadow-sm'>
       <div className='flex items-center justify-between'>
         <h3 className='text-base font-semibold text-slate-900'>PDF 내보내기 정책</h3>
-        <span className='text-xs text-slate-500'>
+        <span className='text-xs text-slate-600'>
           {data?.updatedAt ? `수정: ${new Date(data.updatedAt).toLocaleString('ko-KR')}` : '기본값 적용 중'}
         </span>
       </div>
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
         {FIELDS.map((field) => (
-          <div key={field.key} className='space-y-1.5'>
-            <Label className='text-xs text-slate-600'>{field.label}</Label>
+          <div key={field.key} className='space-y-2'>
+            <Label className='text-sm font-medium text-slate-600'>{field.label}</Label>
             <Input
               type='text'
               inputMode='numeric'
               value={form[field.key] || ''}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, [field.key]: Number(e.target.value.replace(/[^\d]/g, '')) }))
-              }
+              onChange={(e) => setForm((p) => ({ ...p, [field.key]: Number(e.target.value.replace(/[^\d]/g, '')) }))}
             />
-            <p className='text-[11px] text-slate-400'>{field.hint}</p>
+            <p className='text-xs text-slate-600'>{field.hint}</p>
           </div>
         ))}
       </div>
