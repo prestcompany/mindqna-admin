@@ -1,6 +1,7 @@
 import {
   BookOpen,
   Component,
+  FileDown,
   Folders,
   Gamepad2Icon,
   LucideLayoutGrid,
@@ -117,6 +118,12 @@ const systemMenu: IMenu[] = [
     name: '앱 버전 관리',
     icon: <Smartphone className='w-4 h-4' />,
     link: { path: '/app-version' },
+  },
+  {
+    id: 'pdf-export',
+    name: 'PDF 내보내기 관리',
+    icon: <FileDown className='w-4 h-4' />,
+    link: { path: '/pdf-export' },
   },
 ];
 

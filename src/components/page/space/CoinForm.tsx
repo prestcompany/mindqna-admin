@@ -1,4 +1,5 @@
 import { giveCoin } from '@/client/premium';
+import BulkMessageKeywords from './components/BulkMessageKeywords';
 import FormGroup from '@/components/shared/form/ui/form-group';
 import FormSection from '@/components/shared/form/ui/form-section';
 import { Button } from '@/components/ui/button';
@@ -234,6 +235,14 @@ function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
                         rows={3}
                       />
                     </FormControl>
+                    <BulkMessageKeywords
+                      onPick={(keyword) => {
+                        const current = form.getValues('meta') ?? '';
+                        form.setValue('meta', current.trim() ? `${current} ${keyword}` : keyword, {
+                          shouldDirty: true,
+                        });
+                      }}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}

@@ -892,3 +892,59 @@ export type UpdateUserParams = {
   spaceMaxCount?: number;
   reserveUnregisterAt?: string | null;
 };
+
+export type PdfExportPolicy = {
+  id: number;
+  coinPerQuestion: number;
+  maxDownloadCount: number;
+  expiryDays: number;
+  updatedAt: string | null;
+};
+
+export type UpdatePdfExportPolicyParams = {
+  coinPerQuestion?: number;
+  maxDownloadCount?: number;
+  expiryDays?: number;
+};
+
+export type PdfExportStatus = 'available' | 'expired_period' | 'expired_count';
+
+export type PdfExportRecord = {
+  id: number;
+  spaceId: string;
+  spaceName: string;
+  profileId: string;
+  nickname: string;
+  username: string;
+  fileName: string;
+  startOrder: number;
+  endOrder: number;
+  count: number;
+  cost: number;
+  coinPerQuestion: number;
+  downloadCount: number;
+  maxDownloadCount: number;
+  status: PdfExportStatus;
+  createdAt: string;
+  expiresAt: string;
+};
+
+export type PdfExportHistoryParams = {
+  page: number;
+  space?: string;
+  user?: string;
+};
+
+export type PdfExportHistoryResult = QueryResultWithPagination<PdfExportRecord> & {
+  totalCount: number;
+};
+
+export type PdfExportDownloadResult = {
+  url: string;
+  urlExpiresAt: string;
+};
+
+export type UpdatePdfExportRecordParams = {
+  downloadCount?: number;
+  expiresAt?: string;
+};
