@@ -1,26 +1,39 @@
-import { getPdfExportHistory } from '@/client/pdf-export';
+import { deletePdfExportRecord, getPdfExportAdminDownloadUrl, getPdfExportHistory } from '@/client/pdf-export';
+import type { PdfExportRecord } from '@/client/types';
+import DataTable from '@/components/shared/ui/data-table';
+import { FILTER_CONTROL_CLASS, FilterBar, type FilterChipItem } from '@/components/shared/ui/filter-bar';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { Search } from 'lucide-react';
 import { useState } from 'react';
-import PdfExportRowActions from './PdfExportRowActions';
-import PdfExportStatusBadge from './PdfExportStatusBadge';
+import { toast } from 'sonner';
+import PdfExportAdjustDialog from './PdfExportAdjustDialog';
+import { createPdfExportHistoryColumns } from './PdfExportHistoryColumns';
+
+const PAGE_SIZE = 20;
 
 function PdfExportHistoryTab() {
   const [space, setSpace] = useState('');
   const [user, setUser] = useState('');
   const [applied, setApplied] = useState<{ space: string; user: string }>({ space: '', user: '' });
   const [page, setPage] = useState(1);
+  const [deleteTarget, setDeleteTarget] = useState<PdfExportRecord | null>(null);
+  const [adjustTarget, setAdjustTarget] = useState<PdfExportRecord | null>(null);
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ['pdf-export-history', page, applied.space, applied.user],
-    queryFn: () =>
-      getPdfExportHistory({
-        page,
-        space: applied.space || undefined,
-        user: applied.user || undefined,
-      }),
+    queryFn: () => getPdfExportHistory({ page, space: applied.space || undefined, user: applied.user || undefined }),
     placeholderData: keepPreviousData,
   });
 
@@ -29,121 +42,106 @@ function PdfExportHistoryTab() {
     setApplied({ space: space.trim(), user: user.trim() });
   };
 
-  const items = data?.items ?? [];
-  const totalPage = data?.pageInfo.totalPage ?? 0;
+  const removeChip = (key: string) => {
+    if (key === 'space') {
+      setSpace('');
+      setApplied((prev) => ({ ...prev, space: '' }));
+    } else {
+      setUser('');
+      setApplied((prev) => ({ ...prev, user: '' }));
+    }
+    setPage(1);
+  };
+
+  const openDownload = async (record: PdfExportRecord) => {
+    try {
+      const { url } = await getPdfExportAdminDownloadUrl(record.id);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      toast.error(`${err}`);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deletePdfExportRecord(deleteTarget.id);
+      await refetch();
+      toast.success('발급 기록을 삭제했습니다.');
+    } catch (err) {
+      toast.error(`${err}`);
+    }
+    setDeleteTarget(null);
+  };
+
+  const columns = createPdfExportHistoryColumns({
+    onDownload: openDownload,
+    onAdjust: setAdjustTarget,
+    onDelete: setDeleteTarget,
+  });
+
+  const chips: FilterChipItem[] = [
+    ...(applied.space ? [{ key: 'space', label: `공간: ${applied.space}` }] : []),
+    ...(applied.user ? [{ key: 'user', label: `유저: ${applied.user}` }] : []),
+  ];
 
   return (
-    <div className='space-y-4'>
-      <div className='flex flex-wrap items-end gap-2'>
-        <div className='space-y-1'>
-          <label className='block text-xs text-slate-500'>공간 검색</label>
-          <Input
-            value={space}
-            onChange={(e) => setSpace(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && search()}
-            placeholder='공간 이름 또는 spaceId'
-            className='w-56'
-          />
-        </div>
-        <div className='space-y-1'>
-          <label className='block text-xs text-slate-500'>유저 검색</label>
-          <Input
-            value={user}
-            onChange={(e) => setUser(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && search()}
-            placeholder='닉네임 · username · profileId'
-            className='w-56'
-          />
-        </div>
-        <Button type='button' onClick={search} disabled={isFetching}>
+    <>
+      <FilterBar chips={chips} onRemoveChip={removeChip}>
+        <Input
+          value={space}
+          onChange={(e) => setSpace(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && search()}
+          placeholder='공간 이름 또는 공간 ID'
+          className={`w-56 ${FILTER_CONTROL_CLASS}`}
+        />
+        <Input
+          value={user}
+          onChange={(e) => setUser(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && search()}
+          placeholder='닉네임 · 계정 · 프로필 ID'
+          className={`w-56 ${FILTER_CONTROL_CLASS}`}
+        />
+        <Button onClick={search} disabled={isFetching} className={`${FILTER_CONTROL_CLASS} [&_svg]:size-3.5`}>
+          <Search className='h-3.5 w-3.5' />
           검색
         </Button>
-      </div>
+      </FilterBar>
 
-      <div className='rounded-xl border border-slate-200/80 bg-white'>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>공간</TableHead>
-              <TableHead>발급자</TableHead>
-              <TableHead>파일명</TableHead>
-              <TableHead className='text-right'>범위</TableHead>
-              <TableHead className='text-right'>카드수</TableHead>
-              <TableHead className='text-right'>비용</TableHead>
-              <TableHead className='text-right'>다운로드</TableHead>
-              <TableHead>상태</TableHead>
-              <TableHead>발급일</TableHead>
-              <TableHead>만료일</TableHead>
-              <TableHead className='text-right'>액션</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={11} className='py-10 text-center text-sm text-slate-400'>
-                  {applied.space || applied.user ? '검색 결과가 없습니다.' : '발급 이력이 없습니다.'}
-                </TableCell>
-              </TableRow>
-            ) : (
-              items.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell>
-                    <div className='font-medium text-slate-900'>{row.spaceName || '(이름 없음)'}</div>
-                    <div className='text-[11px] text-slate-400'>{row.spaceId}</div>
-                  </TableCell>
-                  <TableCell>
-                    <div className='text-slate-900'>{row.nickname}</div>
-                    <div className='text-[11px] text-slate-400'>{row.username}</div>
-                  </TableCell>
-                  <TableCell className='max-w-[220px] truncate' title={row.fileName}>
-                    {row.fileName}
-                  </TableCell>
-                  <TableCell className='text-right tabular-nums'>
-                    {row.startOrder}–{row.endOrder}
-                  </TableCell>
-                  <TableCell className='text-right tabular-nums'>{row.count}</TableCell>
-                  <TableCell className='text-right tabular-nums'>{row.cost}</TableCell>
-                  <TableCell className='text-right tabular-nums'>
-                    {row.downloadCount}/{row.maxDownloadCount}
-                  </TableCell>
-                  <TableCell>
-                    <PdfExportStatusBadge status={row.status} />
-                  </TableCell>
-                  <TableCell className='text-xs text-slate-500'>
-                    {new Date(row.createdAt).toLocaleDateString('ko-KR')}
-                  </TableCell>
-                  <TableCell className='text-xs text-slate-500'>
-                    {new Date(row.expiresAt).toLocaleDateString('ko-KR')}
-                  </TableCell>
-                  <TableCell className='text-right'>
-                    <PdfExportRowActions record={row} onChanged={() => refetch()} />
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <DataTable
+        columns={columns}
+        data={data?.items ?? []}
+        loading={isFetching}
+        pagination={{
+          total: data?.totalCount ?? 0,
+          page,
+          pageSize: PAGE_SIZE,
+          onChange: (next) => setPage(next),
+        }}
+      />
 
-      {totalPage > 1 ? (
-        <div className='flex items-center justify-center gap-3 text-sm'>
-          <Button variant='outline' size='sm' onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>
-            이전
-          </Button>
-          <span className='tabular-nums text-slate-600'>
-            {page} / {totalPage}
-          </span>
-          <Button
-            variant='outline'
-            size='sm'
-            onClick={() => setPage((p) => Math.min(totalPage, p + 1))}
-            disabled={page >= totalPage}
-          >
-            다음
-          </Button>
-        </div>
-      ) : null}
-    </div>
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>이 PDF 발급 기록을 삭제할까요?</AlertDialogTitle>
+            <AlertDialogDescription>
+              저장된 PDF 파일과 발급 기록이 함께 삭제되며 되돌릴 수 없습니다.
+              {deleteTarget ? ` (${deleteTarget.fileName})` : ''}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>삭제</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <PdfExportAdjustDialog
+        record={adjustTarget}
+        onClose={() => setAdjustTarget(null)}
+        onChanged={() => refetch()}
+      />
+    </>
   );
 }
 
