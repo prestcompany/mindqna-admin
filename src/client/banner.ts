@@ -25,11 +25,13 @@ export type BannerLocation = {
   registered: boolean;
 };
 
-export async function getBannerLocations() {
-  // Backend wraps the array as `{ items }` (admin.controller.ts) — unwrap to the array.
-  const res = await client.get<{ items: BannerLocation[] }>('/banner/locations');
+export async function getBannerLocations(): Promise<BannerLocation[]> {
+  // Backend currently wraps the array as `{ items }` (admin.controller.ts), but tolerate a bare
+  // array too so the dropdown survives either response shape.
+  const res = await client.get<{ items: BannerLocation[] } | BannerLocation[]>('/banner/locations');
+  const data = res.data as { items?: BannerLocation[] } | BannerLocation[];
 
-  return res.data.items;
+  return Array.isArray(data) ? data : (data.items ?? []);
 }
 
 export async function createBanner(params: CreateBannerParams) {
