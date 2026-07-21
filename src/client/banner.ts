@@ -26,9 +26,10 @@ export type BannerLocation = {
 };
 
 export async function getBannerLocations() {
-  const res = await client.get<BannerLocation[]>('/banner/locations');
+  // Backend wraps the array as `{ items }` (admin.controller.ts) — unwrap to the array.
+  const res = await client.get<{ items: BannerLocation[] }>('/banner/locations');
 
-  return res.data;
+  return res.data.items;
 }
 
 export async function createBanner(params: CreateBannerParams) {
