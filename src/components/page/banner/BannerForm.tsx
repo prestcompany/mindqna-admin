@@ -15,17 +15,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import AssetsDrawer from '../assets/AssetsDrawer';
-
-export const locationOptions = [
-  { label: '홈-우체통-하단', value: 'main_bottom' },
-  { label: '홈-네비게이터-하단', value: 'main_right_small' },
-  { label: '알림-헤더-하단', value: 'push_top' },
-  { label: '지갑-무료충전소-상단', value: 'wallet_charge_top' },
-  { label: '지갑-무료충전소-하단', value: 'wallet_charge' },
-  { label: '홈-메인-팝업', value: 'main_popup' },
-  { label: '광장-라이브러리-상단', value: 'square_library_top' },
-  { label: '제휴 충전소', value: 'partner_charge' },
-];
+import { useBannerLocations } from './useBannerLocations';
 
 type Props = {
   init?: Banner;
@@ -52,6 +42,7 @@ type BannerFormValues = z.infer<typeof bannerSchema>;
 function BannerForm({ init, reload, close }: Props) {
   const [isLoading, setLoading] = useState(false);
   const [imageUri, setImageUri] = useState<string>('');
+  const locationOptions = useBannerLocations();
   const focusedId = init?.id;
 
   const form = useForm<BannerFormValues>({

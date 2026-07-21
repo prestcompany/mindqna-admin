@@ -1,11 +1,10 @@
 import { getBanners } from '@/client/banner';
-import { BannerLocationType } from '@/client/types';
 import { useQuery } from '@tanstack/react-query';
 
 type Props = {
   page: number;
   locale?: string[];
-  location?: BannerLocationType[];
+  location?: string[];
   search?: string;
 };
 

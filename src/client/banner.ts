@@ -1,10 +1,10 @@
 import client from './@base';
-import { BannerLocationType, Locale, QueryResultWithPagination } from './types';
+import { Locale, QueryResultWithPagination } from './types';
 
 export type GetBannersParams = {
   page: number;
   locale?: string[];
-  location?: BannerLocationType[];
+  location?: string[];
   search?: string;
 };
 
@@ -12,6 +12,21 @@ export async function getBanners({ page, locale, location, search }: GetBannersP
   const res = await client.get<QueryResultWithPagination<Banner>>('/banner', {
     params: { page, locale, location, search: search?.trim() || undefined },
   });
+
+  return res.data;
+}
+
+// Backend-driven exposure-location registry (registry ∪ in-use DB locations).
+// Source of truth for the admin banner location dropdown/labels — see banner-location.const.ts.
+export type BannerLocation = {
+  key: string;
+  label: string;
+  description?: string;
+  registered: boolean;
+};
+
+export async function getBannerLocations() {
+  const res = await client.get<BannerLocation[]>('/banner/locations');
 
   return res.data;
 }

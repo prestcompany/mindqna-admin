@@ -235,16 +235,6 @@ export type CreateBubbleParams = {
 };
 
 export type BubbleType = 'general' | 'day' | 'night' | 'custom';
-export type BannerLocationType =
-  | 'main_bottom'
-  | 'main_right_small'
-  | 'push_top'
-  | 'wallet_charge_top'
-  | 'wallet_charge'
-  | 'main_popup'
-  | 'square_library_top'
-  | 'partner_charge';
-
 export type GetBubblesResult = {
   pageInfo: TotalPageInfo;
   items: PetBubble[];

@@ -1,5 +1,4 @@
 import { Banner, removeBanner } from '@/client/banner';
-import { BannerLocationType } from '@/client/types';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
 import DataTable from '@/components/shared/ui/data-table';
@@ -26,11 +25,13 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import BannerForm, { locationOptions } from './BannerForm';
+import BannerForm from './BannerForm';
+import { useBannerLocations } from './useBannerLocations';
 
 function BannerList() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [filter, setFilter] = useState<{ location?: BannerLocationType[]; locale?: string[] }>({});
+  const locationOptions = useBannerLocations();
+  const [filter, setFilter] = useState<{ location?: string[]; locale?: string[] }>({});
   const [searchInput, setSearchInput] = useState('');
   const debouncedSearch = useDebouncedValue(searchInput, 500);
   const trimmedSearch = debouncedSearch.trim();
@@ -217,7 +218,7 @@ function BannerList() {
           <Select
             value={(filter.location ?? [])?.[0] ?? '__all__'}
             onValueChange={(v: string) => {
-              setFilter((prev) => ({ ...prev, location: v === '__all__' ? undefined : [v as BannerLocationType] }));
+              setFilter((prev) => ({ ...prev, location: v === '__all__' ? undefined : [v] }));
             }}
           >
             <SelectTrigger className='w-[180px]'>
