@@ -8,7 +8,8 @@ export type BannerLocationOption = { value: string; label: string };
 // React Query dedupes by key, so multiple consumers share one request.
 export function useBannerLocations(): BannerLocationOption[] {
   const { data } = useQuery({ queryKey: ['banner-locations'], queryFn: getBannerLocations });
-  // Guard against a non-array response so a contract drift degrades to an empty dropdown, not a crash.
+  // Guard against a non-array/absent response so a transient failure degrades to an empty
+  // dropdown instead of crashing; a healthy backend always returns the location list.
   if (!Array.isArray(data)) return [];
 
   return data.map((location) => ({ value: location.key, label: location.label }));
