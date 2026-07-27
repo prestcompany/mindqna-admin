@@ -24,7 +24,7 @@ const badgeVariants = cva(
         muted:
           "border-transparent bg-muted text-muted-foreground",
         softNeutral:
-          "border-slate-200 bg-slate-50 text-slate-600 font-medium",
+          "border-border bg-slate-50 text-slate-600 font-medium",
         softSuccess:
           "border-emerald-200 bg-emerald-50 text-emerald-700 font-medium",
         softWarning:

@@ -74,9 +74,9 @@ function DashboardFilterBar({
   const presetOptions = granularity === 'day' ? dayPresetOptions : monthPresetOptions;
 
   return (
-    <Card className='sticky top-0 z-30 border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85'>
+    <Card className='sticky top-0 z-30 border-border bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85'>
       <CardContent className='space-y-4 p-4'>
-        <section className='rounded-2xl border border-slate-200 bg-white p-4'>
+        <section className='rounded-2xl border border-border bg-white p-4'>
           <div className='flex flex-wrap items-center gap-2'>
             <Button
               type='button'
@@ -87,7 +87,7 @@ function DashboardFilterBar({
                 'h-10 rounded-full px-4 text-sm transition-all',
                 granularity === 'month'
                   ? 'bg-slate-900 text-white hover:bg-slate-800'
-                  : 'border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700',
+                  : 'border-border bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700',
               )}
               onClick={() => onGranularityChange('month')}
             >
@@ -102,7 +102,7 @@ function DashboardFilterBar({
                 'h-10 rounded-full px-4 text-sm transition-all',
                 granularity === 'day'
                   ? 'bg-slate-900 text-white hover:bg-slate-800'
-                  : 'border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700',
+                  : 'border-border bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700',
               )}
               onClick={() => onGranularityChange('day')}
             >
@@ -112,7 +112,7 @@ function DashboardFilterBar({
         </section>
 
         <div className='grid gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]'>
-          <section className='rounded-2xl border border-slate-200 bg-slate-50/80 p-4'>
+          <section className='rounded-2xl border border-border bg-slate-50/80 p-4'>
             <div className='flex flex-wrap items-start justify-between gap-3'>
               <div className='space-y-1'>
                 <div className='flex items-center gap-2 text-sm font-semibold text-slate-900'>
@@ -125,7 +125,7 @@ function DashboardFilterBar({
                     : '아래 성장 KPI, 차트, 로케일 비교에만 적용되는 기준 월 범위를 선택하세요.'}
                 </p>
               </div>
-              <div className='rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600'>
+              <div className='rounded-full border border-border bg-white px-3 py-1 text-xs font-medium text-slate-600'>
                 {granularity === 'day' ? '일 단위 집계' : '월 단위 집계'}
               </div>
             </div>
@@ -145,7 +145,7 @@ function DashboardFilterBar({
                         'h-10 rounded-full px-4 text-sm transition-all',
                         active
                           ? 'bg-blue-600 text-white hover:bg-blue-700'
-                          : 'border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700',
+                          : 'border-border bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700',
                       )}
                       onClick={() => onPresetChange(option.value)}
                     >
@@ -172,7 +172,7 @@ function DashboardFilterBar({
                         setStartedAt(dayjs(value).startOf('month'));
                       }}
                     >
-                      <SelectTrigger className='h-10 w-full border-slate-200 bg-white text-sm text-slate-700'>
+                      <SelectTrigger className='h-10 w-full border-border bg-white text-sm text-slate-700'>
                         <SelectValue placeholder='시작 월 선택' />
                       </SelectTrigger>
                       <SelectContent>
@@ -193,7 +193,7 @@ function DashboardFilterBar({
                         setEndedAt(dayjs(value).endOf('month'));
                       }}
                     >
-                      <SelectTrigger className='h-10 w-full border-slate-200 bg-white text-sm text-slate-700'>
+                      <SelectTrigger className='h-10 w-full border-border bg-white text-sm text-slate-700'>
                         <SelectValue placeholder='종료 월 선택' />
                       </SelectTrigger>
                       <SelectContent>
@@ -216,7 +216,7 @@ function DashboardFilterBar({
             </div>
           </section>
 
-          <section className='rounded-2xl border border-slate-200 bg-white p-4'>
+          <section className='rounded-2xl border border-border bg-white p-4'>
             <div className='flex flex-wrap items-start justify-between gap-3'>
               <div className='space-y-1'>
                 <div className='flex items-center gap-2 text-sm font-semibold text-slate-900'>
@@ -242,7 +242,7 @@ function DashboardFilterBar({
                   'h-10 rounded-full border px-4 text-sm transition-all',
                   allSelected
                     ? 'border-slate-900 bg-slate-900 text-white hover:bg-slate-800'
-                    : 'border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700',
+                    : 'border-border bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700',
                 )}
                 onClick={onSelectAllLocales}
               >
@@ -263,7 +263,7 @@ function DashboardFilterBar({
                       'h-10 rounded-full border px-4 text-sm transition-all',
                       active
                         ? 'border-blue-600 bg-blue-50 text-blue-700 hover:bg-blue-100'
-                        : 'border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700',
+                        : 'border-border bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700',
                     )}
                     onClick={() => onToggleLocale(locale)}
                   >

@@ -71,7 +71,7 @@ const LoginForm = () => {
                 <FormControl>
                   <Input
                     placeholder='admin@example.com'
-                    className='h-11 border-slate-200 bg-slate-50 text-base focus-visible:ring-slate-900'
+                    className='h-11 border-border bg-slate-50 text-base focus-visible:ring-slate-900'
                     {...field}
                   />
                 </FormControl>
@@ -89,7 +89,7 @@ const LoginForm = () => {
                   <Input
                     placeholder='비밀번호'
                     type='password'
-                    className='h-11 border-slate-200 bg-slate-50 text-base focus-visible:ring-slate-900'
+                    className='h-11 border-border bg-slate-50 text-base focus-visible:ring-slate-900'
                     {...field}
                   />
                 </FormControl>

@@ -56,7 +56,7 @@ function PlatformCard({ platform, label }: { platform: AppPlatform; label: strin
   };
 
   return (
-    <div className='space-y-4 rounded-lg border border-slate-200 bg-white p-5'>
+    <div className='space-y-4 rounded-lg border border-border bg-white p-5'>
       <div className='flex items-center justify-between'>
         <h3 className='text-base font-semibold text-slate-900'>{label}</h3>
         <div className='flex items-center gap-2'>

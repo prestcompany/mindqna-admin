@@ -27,7 +27,7 @@ function UserAccessTab({ username, active }: { username: string; active: boolean
       {items.map((row) => (
         <div
           key={row.id}
-          className='flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3'
+          className='flex items-center gap-3 rounded-lg border border-border bg-white px-4 py-3'
         >
           <div className='min-w-0 flex-1'>
             <div className='truncate text-sm font-medium text-slate-900'>{row.spaceName ?? row.spaceId}</div>

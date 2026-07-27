@@ -56,12 +56,12 @@ function DashboardCoreStats({ users, profiles, removedProfiles, spaces, isLoadin
             이 영역은 서비스 전체 스냅샷으로, 아래 기간과 국가 설정의 영향을 받지 않습니다.
           </p>
         </div>
-        <div className='rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600'>기간 영향 없음</div>
+        <div className='rounded-full border border-border bg-white px-3 py-1 text-xs font-medium text-slate-600'>기간 영향 없음</div>
       </div>
 
       <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-4'>
         {statItems.map((item) => (
-          <Card key={item.key} className='border-slate-200 bg-white'>
+          <Card key={item.key} className='border-border bg-white'>
             <CardHeader className='pb-3'>
               <CardTitle className='text-base text-slate-950'>{item.title}</CardTitle>
               <CardDescription>{item.description}</CardDescription>

@@ -57,7 +57,7 @@ function UserEntitlementsTab({ username, active }: { username: string; active: b
     <div className='space-y-4'>
       <LiveStatusBlock username={username} />
 
-      <div className='border-t border-slate-100' />
+      <div className='border-t border-border' />
 
       <Section title='프리미엄' count={tickets.length}>
         {tickets.map((t) => (
@@ -75,7 +75,7 @@ function UserEntitlementsTab({ username, active }: { username: string; active: b
         {subs.map((s) => (
           <div
             key={`s-${s.id}`}
-            className='flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3'
+            className='flex items-center gap-3 rounded-lg border border-border bg-white px-4 py-3'
           >
             <Badge variant='softNeutral' className='w-16 shrink-0 justify-center'>
               구독

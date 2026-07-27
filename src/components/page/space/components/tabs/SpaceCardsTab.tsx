@@ -29,7 +29,7 @@ function SpaceCardsTab({ spaceId, active }: { spaceId: string; active: boolean }
       {items.map((card) => {
         const expanded = expandedId === card.id;
         return (
-          <div key={card.id} className='overflow-hidden rounded-lg border border-slate-200 bg-white'>
+          <div key={card.id} className='overflow-hidden rounded-lg border border-border bg-white'>
             <button
               type='button'
               onClick={() => setExpandedId(expanded ? null : card.id)}
@@ -49,7 +49,7 @@ function SpaceCardsTab({ spaceId, active }: { spaceId: string; active: boolean }
               </div>
             </button>
             {expanded ? (
-              <div className='border-t border-slate-100 bg-slate-50/40 px-4 py-3'>
+              <div className='border-t border-border bg-slate-50/40 px-4 py-3'>
                 <SpaceCardReplies spaceId={spaceId} cardId={card.id} />
               </div>
             ) : null}

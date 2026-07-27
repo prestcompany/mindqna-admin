@@ -43,7 +43,7 @@ function BulkMessageKeywords({ onPick }: BulkMessageKeywordsProps) {
   const remove = (word: string) => persist(keywords.filter((k) => k !== word));
 
   const chipBase =
-    'inline-flex items-center rounded-full border border-slate-200 bg-white text-xs font-medium text-slate-600';
+    'inline-flex items-center rounded-full border border-border bg-white text-xs font-medium text-slate-600';
 
   return (
     <div className='flex flex-wrap items-center gap-1.5'>

@@ -11,7 +11,7 @@ function SpaceActivitySummary({ spaceId, active }: { spaceId: string; active: bo
   });
   if (isFetching && !data) {
     return (
-      <div className='flex min-h-[80px] items-center justify-center rounded-lg border border-slate-200 bg-white'>
+      <div className='flex min-h-[80px] items-center justify-center rounded-lg border border-border bg-white'>
         <Loader2 className='h-5 w-5 animate-spin text-muted-foreground' />
       </div>
     );

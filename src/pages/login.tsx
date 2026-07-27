@@ -4,7 +4,7 @@ import { ShieldCheck } from 'lucide-react';
 const LoginPage = () => {
   return (
     <div className='grid min-h-screen w-full bg-white lg:grid-cols-2'>
-      <aside className='relative hidden overflow-hidden border-r border-slate-200 bg-slate-950 lg:block'>
+      <aside className='relative hidden overflow-hidden border-r border-border bg-slate-950 lg:block'>
         <div className='absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.14),transparent_42%)]' />
         <div className='absolute inset-0 bg-[linear-gradient(to_bottom,transparent,rgba(0,0,0,0.52))]' />
         <div className='relative flex h-full flex-col justify-start p-10 text-slate-100'>
@@ -16,7 +16,7 @@ const LoginPage = () => {
       </aside>
 
       <main className='flex items-center justify-center px-5 py-10 sm:px-8'>
-        <section className='w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 sm:p-8'>
+        <section className='w-full max-w-md rounded-2xl border border-border bg-white p-6 sm:p-8'>
           <div className='mb-8 space-y-2'>
             <p className='text-sm font-medium text-slate-500'>mindBridge</p>
             <h2 className='text-3xl font-semibold tracking-tight text-slate-900'>Admin Login</h2>

@@ -143,7 +143,7 @@ function UserEditModal({ open, user, onOpenChange }: UserEditModalProps) {
             </Select>
           </div>
 
-          <section className='space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3'>
+          <section className='space-y-3 rounded-lg border border-border bg-slate-50 p-3'>
             <div className='flex items-center gap-1.5'>
               <span className='h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500' aria-hidden />
               <span className='text-xs font-semibold text-slate-700'>운영 — 계정에 영향</span>
@@ -184,7 +184,7 @@ function UserEditModal({ open, user, onOpenChange }: UserEditModalProps) {
           </section>
         </div>
 
-        <div className='flex shrink-0 justify-end gap-2 border-t border-slate-100 pt-4'>
+        <div className='flex shrink-0 justify-end gap-2 border-t border-border pt-4'>
           <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
             취소
           </Button>

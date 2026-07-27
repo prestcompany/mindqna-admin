@@ -32,7 +32,7 @@ function ReceiptViewer({ title, raw }: { title: string; raw: string }) {
   };
 
   return (
-    <div className='rounded-lg border border-slate-200'>
+    <div className='rounded-lg border border-border'>
       <div className='flex items-center justify-between px-3 py-2'>
         <button
           type='button'
@@ -49,7 +49,7 @@ function ReceiptViewer({ title, raw }: { title: string; raw: string }) {
         </Button>
       </div>
       {open ? (
-        <pre className='max-h-80 overflow-auto whitespace-pre-wrap border-t border-slate-100 bg-slate-50 p-3 text-xs text-slate-700'>
+        <pre className='max-h-80 overflow-auto whitespace-pre-wrap border-t border-border bg-slate-50 p-3 text-xs text-slate-700'>
           {pretty ?? raw}
         </pre>
       ) : null}

@@ -5,7 +5,7 @@ import { DashboardMetricCardValue } from '../types/growth';
 import AnimatedMetricValue from './animated-metric-value';
 
 const toneClassName: Record<DashboardMetricCardValue['tone'], string> = {
-  slate: 'border-slate-200 bg-slate-50/70 text-slate-700',
+  slate: 'border-border bg-slate-50/70 text-slate-700',
   emerald: 'border-emerald-200 bg-emerald-50 text-emerald-700',
   sky: 'border-sky-200 bg-sky-50 text-sky-700',
   amber: 'border-amber-200 bg-amber-50 text-amber-700',
@@ -17,7 +17,7 @@ interface DashboardMetricCardProps {
 
 function DashboardMetricCard({ metric }: DashboardMetricCardProps) {
   return (
-    <Card className='border-slate-200 bg-white'>
+    <Card className='border-border bg-white'>
       <CardContent className='flex flex-col gap-4 p-5'>
         <div className='flex items-start justify-between gap-3'>
           <div className='space-y-1'>

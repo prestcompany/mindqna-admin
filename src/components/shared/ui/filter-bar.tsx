@@ -16,7 +16,7 @@ export function FilterChips({ chips, onRemove }: { chips: FilterChipItem[]; onRe
       {chips.map((chip) => (
         <span
           key={chip.key}
-          className='inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white py-0.5 pl-2.5 pr-1 text-xs font-medium text-slate-600'
+          className='inline-flex items-center gap-1 rounded-full border border-border bg-white py-0.5 pl-2.5 pr-1 text-xs font-medium text-slate-600'
         >
           {chip.label}
           <button

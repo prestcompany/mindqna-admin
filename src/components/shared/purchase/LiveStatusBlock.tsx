@@ -27,7 +27,7 @@ function LiveStatusBlock({ username }: { username: string }) {
   });
 
   return (
-    <div className='space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3'>
+    <div className='space-y-3 rounded-lg border border-border bg-slate-50 p-3'>
       <div className='space-y-2'>
         <div className='text-xs text-slate-600'>
           평상시 값은 5분 주기 동기화입니다. 현재 스토어 상태를 확인하려면 아래 버튼을 누르세요.

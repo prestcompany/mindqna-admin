@@ -26,7 +26,7 @@ function ChangeRate({ rate }: { rate: number | null }) {
 function StatCard({ label, window }: { label: string; window: CoinStatWindow }) {
   const netUp = window.current.net >= 0;
   return (
-    <div className='rounded-lg border border-slate-200 bg-white p-4'>
+    <div className='rounded-lg border border-border bg-white p-4'>
       <div className='flex items-center justify-between'>
         <span className='text-xs font-medium text-slate-600'>{label}</span>
         <ChangeRate rate={window.changeRate} />
@@ -52,7 +52,7 @@ function SpaceCoinStats({ spaceId, active }: { spaceId: string; active: boolean 
   });
   if (isFetching && !data) {
     return (
-      <div className='flex min-h-[96px] items-center justify-center rounded-lg border border-slate-200 bg-white'>
+      <div className='flex min-h-[96px] items-center justify-center rounded-lg border border-border bg-white'>
         <Loader2 className='h-5 w-5 animate-spin text-muted-foreground' />
       </div>
     );

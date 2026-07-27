@@ -46,7 +46,7 @@ const IndexPage: IDefaultLayoutPage = () => {
 
   return (
     <div className='space-y-6'>
-      <Card className='border-slate-200 bg-white'>
+      <Card className='border-border bg-white'>
         <CardHeader>
           <CardTitle className='text-xl text-slate-900'>빠른 이동</CardTitle>
           <CardDescription className='text-slate-500'>자주 사용하는 운영 메뉴를 바로 열 수 있습니다.</CardDescription>
@@ -59,10 +59,10 @@ const IndexPage: IDefaultLayoutPage = () => {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className='group rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:border-slate-300 hover:bg-slate-50'
+                  className='group rounded-lg border border-border bg-white p-4 transition-colors hover:border-slate-300 hover:bg-slate-50'
                 >
                   <div className='flex items-center justify-between'>
-                    <div className='rounded-md border border-slate-200 bg-slate-50 p-2 text-slate-700'>
+                    <div className='rounded-md border border-border bg-slate-50 p-2 text-slate-700'>
                       <Icon className='h-4 w-4' />
                     </div>
                     <ArrowRight className='h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-0.5' />

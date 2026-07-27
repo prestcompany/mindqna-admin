@@ -15,7 +15,7 @@ const typeColors: Record<string, string> = {
 
 function SpaceTypeDistributionCard({ rows }: SpaceTypeDistributionCardProps) {
   return (
-    <Card className='border-slate-200 bg-white'>
+    <Card className='border-border bg-white'>
       <CardHeader>
         <CardTitle className='text-base text-slate-950'>언어별 공간 유형 분포</CardTitle>
         <CardDescription>종료일 기준 누적 공간을 언어와 공간 유형별 개수/비율로 비교합니다.</CardDescription>
@@ -24,20 +24,20 @@ function SpaceTypeDistributionCard({ rows }: SpaceTypeDistributionCardProps) {
         {rows.length ? (
           <div className='grid gap-4 xl:grid-cols-2'>
             {rows.map((row) => (
-              <div key={row.locale} className='rounded-2xl border border-slate-200 bg-slate-50/70 p-4'>
+              <div key={row.locale} className='rounded-2xl border border-border bg-slate-50/70 p-4'>
                 <div className='mb-4 flex flex-wrap items-center justify-between gap-2'>
                   <div>
                     <p className='font-semibold text-slate-950'>{row.label}</p>
                     <p className='text-xs text-slate-600'>{row.locale}</p>
                   </div>
-                  <div className='rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600'>
+                  <div className='rounded-full border border-border bg-white px-3 py-1 text-xs font-medium text-slate-600'>
                     총 {row.total.toLocaleString('ko-KR')}개
                   </div>
                 </div>
 
                 <div className='grid gap-3 sm:grid-cols-2'>
                   {row.types.map((type) => (
-                    <div key={type.type} className='rounded-lg border border-slate-200 bg-white p-3'>
+                    <div key={type.type} className='rounded-lg border border-border bg-white p-3'>
                       <div className='mb-2 flex items-center justify-between gap-2 text-sm'>
                         <span className='font-medium text-slate-900'>{type.label}</span>
                         <span className='text-xs font-semibold text-slate-600'>
@@ -57,7 +57,7 @@ function SpaceTypeDistributionCard({ rows }: SpaceTypeDistributionCardProps) {
             ))}
           </div>
         ) : (
-          <div className='flex h-[180px] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 text-sm text-slate-500'>
+          <div className='flex h-[180px] items-center justify-center rounded-2xl border border-dashed border-border bg-slate-50/70 text-sm text-slate-500'>
             표시할 공간 유형 분포가 없습니다.
           </div>
         )}

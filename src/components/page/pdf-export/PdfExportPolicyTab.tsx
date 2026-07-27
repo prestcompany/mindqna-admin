@@ -53,7 +53,7 @@ function PdfExportPolicyTab() {
   };
 
   return (
-    <div className='max-w-xl space-y-6 rounded-lg border border-slate-200 bg-white p-6'>
+    <div className='max-w-xl space-y-6 rounded-lg border border-border bg-white p-6'>
       <div className='flex items-center justify-between'>
         <h3 className='text-base font-semibold text-slate-900'>PDF 내보내기 정책</h3>
         <span className='text-xs text-slate-600'>

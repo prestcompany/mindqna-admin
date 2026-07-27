@@ -29,7 +29,7 @@ function SpaceActivityTab({ spaceId, active }: { spaceId: string; active: boolea
           {items.map((row) => (
             <div
               key={row.id}
-              className='flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm'
+              className='flex items-center justify-between gap-3 rounded-lg border border-border bg-white px-3 py-2.5 text-sm'
             >
               <div className='min-w-0'>
                 <div className='truncate font-medium text-slate-900'>@{row.user?.username ?? '알 수 없음'}</div>
@@ -50,7 +50,7 @@ function SpaceActivityTab({ spaceId, active }: { spaceId: string; active: boolea
             {recentAds.map((ad) => (
               <div
                 key={ad.id}
-                className='flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm'
+                className='flex items-center justify-between rounded-lg border border-border bg-white px-3 py-2.5 text-sm'
               >
                 <div className='min-w-0'>
                   <div className='truncate font-medium text-slate-900'>@{ad.user?.username ?? '알 수 없음'}</div>

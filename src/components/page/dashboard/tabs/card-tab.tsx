@@ -113,17 +113,17 @@ function CardTab() {
     if (spaceType === 'family') return 'bg-indigo-500';
     if (spaceType === 'friends') return 'bg-green-500';
     if (spaceType === 'alone') return 'bg-amber-500';
-    return 'bg-gray-500';
+    return 'bg-slate-500';
   };
 
   if (isLoading) {
-    return <div className='rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500'>로딩 중...</div>;
+    return <div className='rounded-2xl border border-border bg-white p-8 text-center text-sm text-slate-500'>로딩 중...</div>;
   }
 
   return (
     <div className='space-y-6'>
       <div className='grid gap-4 md:grid-cols-3'>
-        <Card className='border-slate-200 bg-white'>
+        <Card className='border-border bg-white'>
           <CardHeader className='pb-3'>
             <CardTitle className='text-base text-slate-950'>활성 로케일</CardTitle>
           </CardHeader>
@@ -132,7 +132,7 @@ function CardTab() {
             <p className='mt-1 text-sm text-slate-500'>현재 카드 발급 현황을 추적 중인 로케일 수</p>
           </CardContent>
         </Card>
-        <Card className='border-slate-200 bg-white'>
+        <Card className='border-border bg-white'>
           <CardHeader className='pb-3'>
             <CardTitle className='text-base text-slate-950'>전체 관리자 목표</CardTitle>
           </CardHeader>
@@ -143,7 +143,7 @@ function CardTab() {
             <p className='mt-1 text-sm text-slate-500'>로케일별 카드 목표치 합계</p>
           </CardContent>
         </Card>
-        <Card className='border-slate-200 bg-white'>
+        <Card className='border-border bg-white'>
           <CardHeader className='pb-3'>
             <CardTitle className='text-base text-slate-950'>전체 사용자 발급</CardTitle>
           </CardHeader>
@@ -156,7 +156,7 @@ function CardTab() {
         </Card>
       </div>
 
-      <Card className='border-slate-200 bg-white'>
+      <Card className='border-border bg-white'>
         <CardHeader>
           <CardTitle className='text-base text-slate-950'>질문 운영 현황</CardTitle>
           <CardDescription>언어별 카드 목표 대비 발급 현황을 같은 시각 체계로 정리했습니다.</CardDescription>
@@ -164,7 +164,7 @@ function CardTab() {
         <CardContent>
           <div className='space-y-8'>
             {displayData.map((country) => (
-              <div key={country.code} className='border-b border-slate-200 pb-6 last:border-0'>
+              <div key={country.code} className='border-b border-border pb-6 last:border-0'>
                 <div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
                   <div className='flex items-center gap-2'>
                     <span className='text-lg font-medium text-slate-950'>
