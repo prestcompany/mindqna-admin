@@ -17,7 +17,7 @@ interface DashboardMetricCardProps {
 
 function DashboardMetricCard({ metric }: DashboardMetricCardProps) {
   return (
-    <Card className='border-slate-200/80 bg-white shadow-sm'>
+    <Card className='border-slate-200 bg-white'>
       <CardContent className='flex flex-col gap-4 p-5'>
         <div className='flex items-start justify-between gap-3'>
           <div className='space-y-1'>

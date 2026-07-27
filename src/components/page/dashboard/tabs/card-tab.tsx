@@ -123,7 +123,7 @@ function CardTab() {
   return (
     <div className='space-y-6'>
       <div className='grid gap-4 md:grid-cols-3'>
-        <Card className='border-slate-200/80 bg-white shadow-sm'>
+        <Card className='border-slate-200 bg-white'>
           <CardHeader className='pb-3'>
             <CardTitle className='text-base text-slate-950'>활성 로케일</CardTitle>
           </CardHeader>
@@ -132,7 +132,7 @@ function CardTab() {
             <p className='mt-1 text-sm text-slate-500'>현재 카드 발급 현황을 추적 중인 로케일 수</p>
           </CardContent>
         </Card>
-        <Card className='border-slate-200/80 bg-white shadow-sm'>
+        <Card className='border-slate-200 bg-white'>
           <CardHeader className='pb-3'>
             <CardTitle className='text-base text-slate-950'>전체 관리자 목표</CardTitle>
           </CardHeader>
@@ -143,7 +143,7 @@ function CardTab() {
             <p className='mt-1 text-sm text-slate-500'>로케일별 카드 목표치 합계</p>
           </CardContent>
         </Card>
-        <Card className='border-slate-200/80 bg-white shadow-sm'>
+        <Card className='border-slate-200 bg-white'>
           <CardHeader className='pb-3'>
             <CardTitle className='text-base text-slate-950'>전체 사용자 발급</CardTitle>
           </CardHeader>
@@ -156,7 +156,7 @@ function CardTab() {
         </Card>
       </div>
 
-      <Card className='border-slate-200/80 bg-white shadow-sm'>
+      <Card className='border-slate-200 bg-white'>
         <CardHeader>
           <CardTitle className='text-base text-slate-950'>질문 운영 현황</CardTitle>
           <CardDescription>언어별 카드 목표 대비 발급 현황을 같은 시각 체계로 정리했습니다.</CardDescription>
@@ -213,7 +213,7 @@ function CardTab() {
                   const typeStat = country.types[spaceTypeKey];
                   return typeStat && needsCardTypeWarning(typeStat.userCount, typeStat.adminTarget);
                 }) && (
-                  <div className='mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900'>
+                  <div className='mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900'>
                     <AlertCircle className='mr-1 inline h-4 w-4' />
                     일부 카드 타입이 목표치의 80% 이상 소진되었습니다. 추가 질문 등록을 검토해주세요.
                   </div>

@@ -120,21 +120,23 @@ function DataTable<TData, TValue>({
   const getStickyColumnClassName = (columnDef: ColumnDef<TData, TValue>, variant: 'head' | 'cell') => {
     const stickyPosition = getStickyColumnPosition(columnDef);
 
+    // 스크롤 오버플로를 알리는 엣지 그림자는 §4.3의 깊이 규칙과 별개인 기능적 어포던스입니다.
+    // 색은 중립(rgba(0,0,0,...))으로 유지합니다.
     if (stickyPosition === 'right') {
       return cn(
-        'sticky right-0 border-l border-border/70 bg-background',
+        'sticky right-0 border-l border-border bg-card',
         variant === 'head'
-          ? 'z-30 shadow-[-10px_0_18px_-18px_rgba(15,23,42,0.35)]'
-          : 'z-20 group-hover:bg-muted/50 group-data-[state=selected]:bg-muted shadow-[-10px_0_18px_-18px_rgba(15,23,42,0.18)]',
+          ? 'z-30 shadow-[-10px_0_18px_-18px_rgba(0,0,0,0.35)]'
+          : 'z-20 group-hover:bg-slate-50 group-data-[state=selected]:bg-muted shadow-[-10px_0_18px_-18px_rgba(0,0,0,0.18)]',
       );
     }
 
     if (stickyPosition === 'left') {
       return cn(
-        'sticky left-0 border-r border-border/70 bg-background',
+        'sticky left-0 border-r border-border bg-card',
         variant === 'head'
-          ? 'z-30 shadow-[10px_0_18px_-18px_rgba(15,23,42,0.35)]'
-          : 'z-20 group-hover:bg-muted/50 group-data-[state=selected]:bg-muted shadow-[10px_0_18px_-18px_rgba(15,23,42,0.18)]',
+          ? 'z-30 shadow-[10px_0_18px_-18px_rgba(0,0,0,0.35)]'
+          : 'z-20 group-hover:bg-slate-50 group-data-[state=selected]:bg-muted shadow-[10px_0_18px_-18px_rgba(0,0,0,0.18)]',
       );
     }
 
@@ -206,7 +208,8 @@ function DataTable<TData, TValue>({
         <div className='text-sm font-medium text-slate-600'>{numeral(countLabel).format('0,0')}건</div>
       )}
       <TooltipProvider delayDuration={150}>
-        <div className='overflow-hidden rounded-xl border border-slate-200/80 shadow-sm'>
+        {/* Geist: 흰 카드 + 헤어라인. 캔버스(#fafafa)와의 명도 차가 분리를 만들므로 그림자 없음 */}
+        <div className='overflow-hidden rounded-lg border border-border bg-card'>
           <Table className={hasSizedColumn ? 'table-fixed' : undefined}>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (

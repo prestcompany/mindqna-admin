@@ -485,7 +485,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ isOpen, init, reload, clos
                 />
                 {formData.image && (
                   <div>
-                    <div className='relative inline-flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border/60 bg-transparent p-2'>
+                    <div className='relative inline-flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border bg-transparent p-2'>
                       <img src={formData.image.uri} alt='custom-thumbnail' className='h-full w-full object-contain' />
                       <Button
                         variant='ghost'

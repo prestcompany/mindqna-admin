@@ -208,7 +208,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
             <FormGroup title='대표 이미지*'>
               <div className='flex flex-col items-start gap-2'>
                 {image && (
-                  <div className='flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border/60 bg-transparent p-2'>
+                  <div className='flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border bg-transparent p-2'>
                     <img src={image.uri} alt='interior-preview' className='h-full w-full object-contain' />
                   </div>
                 )}
@@ -443,7 +443,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
           </FormSection>
 
           <FormSection title='배치 가능 좌표' description='클릭한 좌표는 배치 가능 영역으로 처리됩니다.'>
-            <div className='overflow-auto rounded-lg border border-border/70 bg-muted/20 p-3'>
+            <div className='overflow-auto rounded-lg border border-border bg-muted/20 p-3'>
               <div className='flex min-w-[720px]'>
                 <div className='mr-3 mt-[46px] flex flex-col gap-1'>
                   {Array(13)

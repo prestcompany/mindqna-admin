@@ -22,7 +22,7 @@ function SpaceDiaryStats({ spaceId, active }: { spaceId: string; active: boolean
   });
   if (isFetching && !data) {
     return (
-      <div className='flex min-h-[96px] items-center justify-center rounded-lg border border-slate-200/80 bg-white shadow-sm'>
+      <div className='flex min-h-[96px] items-center justify-center rounded-lg border border-slate-200 bg-white'>
         <Loader2 className='h-5 w-5 animate-spin text-muted-foreground' />
       </div>
     );
@@ -30,7 +30,7 @@ function SpaceDiaryStats({ spaceId, active }: { spaceId: string; active: boolean
   if (!data || data.total === 0) return null;
   const max = Math.max(...data.byEmotion.map((e) => e.count), 1);
   return (
-    <div className='rounded-lg border border-slate-200/80 bg-white p-4 shadow-sm'>
+    <div className='rounded-lg border border-slate-200 bg-white p-4'>
       <div className='mb-3 flex items-center gap-2'>
         <span className='text-xs font-medium text-slate-600'>감정 분포</span>
         <span className='text-xs text-slate-600'>총 {data.total.toLocaleString()}건</span>

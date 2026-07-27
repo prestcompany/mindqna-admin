@@ -15,7 +15,7 @@ const typeColors: Record<string, string> = {
 
 function SpaceTypeDistributionCard({ rows }: SpaceTypeDistributionCardProps) {
   return (
-    <Card className='border-slate-200/80 bg-white shadow-sm'>
+    <Card className='border-slate-200 bg-white'>
       <CardHeader>
         <CardTitle className='text-base text-slate-950'>언어별 공간 유형 분포</CardTitle>
         <CardDescription>종료일 기준 누적 공간을 언어와 공간 유형별 개수/비율로 비교합니다.</CardDescription>
@@ -37,7 +37,7 @@ function SpaceTypeDistributionCard({ rows }: SpaceTypeDistributionCardProps) {
 
                 <div className='grid gap-3 sm:grid-cols-2'>
                   {row.types.map((type) => (
-                    <div key={type.type} className='rounded-xl border border-slate-200 bg-white p-3'>
+                    <div key={type.type} className='rounded-lg border border-slate-200 bg-white p-3'>
                       <div className='mb-2 flex items-center justify-between gap-2 text-sm'>
                         <span className='font-medium text-slate-900'>{type.label}</span>
                         <span className='text-xs font-semibold text-slate-600'>

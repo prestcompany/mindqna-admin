@@ -87,7 +87,7 @@ interface GrowthComboChartProps {
 function GrowthComboChart({ series }: GrowthComboChartProps) {
   if (!series.labels.length) {
     return (
-      <Card className='border-slate-200/80 bg-white shadow-sm'>
+      <Card className='border-slate-200 bg-white'>
         <CardHeader className='space-y-2'>
           <CardTitle className='text-base text-slate-950'>{series.title}</CardTitle>
           <CardDescription>{series.description}</CardDescription>
@@ -182,7 +182,7 @@ function GrowthComboChart({ series }: GrowthComboChartProps) {
   };
 
   return (
-    <Card className='border-slate-200/80 bg-white shadow-sm'>
+    <Card className='border-slate-200 bg-white'>
       <CardHeader className='space-y-2'>
         <CardTitle className='text-base text-slate-950'>{series.title}</CardTitle>
         <CardDescription>{series.description}</CardDescription>

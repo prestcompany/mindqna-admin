@@ -25,7 +25,7 @@ function Thumb({ uri, alt }: { uri?: string | null; alt: string }) {
   }
   // 인테리어/커스텀 템플릿 이미지는 서버 업로드(public)라 직접 표시한다.
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={uri} alt={alt} className='h-12 w-12 shrink-0 rounded-lg border border-slate-200/80 object-cover' />;
+  return <img src={uri} alt={alt} className='h-12 w-12 shrink-0 rounded-lg border border-slate-200 object-cover' />;
 }
 
 function SpacePetInteriorTab({ spaceId, active }: { spaceId: string; active: boolean }) {
@@ -49,7 +49,7 @@ function SpacePetInteriorTab({ spaceId, active }: { spaceId: string; active: boo
       {/* 펫 */}
       <section className='space-y-2'>
         <h3 className='text-base font-semibold text-slate-900'>펫</h3>
-        <div className='rounded-lg border border-slate-200/80 bg-white p-4 shadow-sm'>
+        <div className='rounded-lg border border-slate-200 bg-white p-4'>
           {data.pet ? (
             <div className='flex flex-wrap items-center gap-x-3 gap-y-1'>
               <span className='font-medium text-slate-900'>{getPetTypeLabel(data.pet.type) ?? '-'}</span>
@@ -92,7 +92,7 @@ function SpacePetInteriorTab({ spaceId, active }: { spaceId: string; active: boo
             {data.interiorItems.map((item) => (
               <div
                 key={item.id}
-                className='flex items-center gap-3 rounded-lg border border-slate-200/80 bg-white px-3 py-2.5 shadow-sm'
+                className='flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5'
               >
                 <Thumb uri={item.template?.img?.uri} alt={item.template?.name ?? '인테리어'} />
                 <div className='min-w-0 flex-1'>
@@ -126,7 +126,7 @@ function SpacePetInteriorTab({ spaceId, active }: { spaceId: string; active: boo
             {data.rooms.map((room) => (
               <div
                 key={room.id}
-                className='flex items-center justify-between rounded-lg border border-slate-200/80 bg-white px-3 py-2.5 text-sm shadow-sm'
+                className='flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm'
               >
                 <span className='font-medium text-slate-900'>{room.name}</span>
                 <Badge variant='softNeutral'>{ROOM_CATEGORY_LABEL[room.category] ?? room.category}</Badge>

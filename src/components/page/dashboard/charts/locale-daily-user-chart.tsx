@@ -21,7 +21,7 @@ interface LocaleDailyUserChartProps {
 function LocaleDailyUserChart({ series }: LocaleDailyUserChartProps) {
   if (!series.labels.length || !series.datasets.length) {
     return (
-      <Card className='border-slate-200/80 bg-white shadow-sm'>
+      <Card className='border-slate-200 bg-white'>
         <CardHeader className='space-y-2'>
           <CardTitle className='text-base text-slate-950'>{series.title}</CardTitle>
           <CardDescription>{series.description}</CardDescription>
@@ -98,7 +98,7 @@ function LocaleDailyUserChart({ series }: LocaleDailyUserChartProps) {
   };
 
   return (
-    <Card className='border-slate-200/80 bg-white shadow-sm'>
+    <Card className='border-slate-200 bg-white'>
       <CardHeader className='space-y-2'>
         <CardTitle className='text-base text-slate-950'>{series.title}</CardTitle>
         <CardDescription>{series.description}</CardDescription>

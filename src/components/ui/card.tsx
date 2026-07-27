@@ -9,7 +9,8 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-xl border bg-card text-card-foreground shadow",
+      // Geist: 정적 표면은 헤어라인만. 그림자를 더하지 마세요 (DESIGN.md §4.3).
+      "rounded-lg border bg-card text-card-foreground",
       className
     )}
     {...props}

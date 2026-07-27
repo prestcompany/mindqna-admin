@@ -44,7 +44,7 @@ function AssetsForm() {
   };
 
   return (
-    <div className='p-6 bg-white rounded-xl border border-gray-200 shadow-sm'>
+    <div className='p-6 bg-white rounded-lg border border-gray-200'>
       <div className='mb-6'>
         <div className='flex gap-3 items-center mb-2'>
           <div className='p-2 bg-blue-100 rounded-lg'>

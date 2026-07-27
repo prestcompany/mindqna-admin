@@ -49,7 +49,7 @@ function UserResultCard({ user, onOpenDetail, copyId }: UserResultCardProps) {
           onOpenDetail(user);
         }
       }}
-      className='flex cursor-pointer items-center gap-4 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300'
+      className='flex cursor-pointer items-center gap-4 rounded-lg border border-slate-200 bg-white px-4 py-3 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300'
     >
       <div className='min-w-0 flex-1'>
         <div className='flex flex-wrap items-center gap-2'>
@@ -248,7 +248,7 @@ function UserSearch() {
       ) : null}
 
       {!data && !isLoading && isFetched && (
-        <Card className='border-slate-200/80 bg-white py-8 text-center shadow-sm'>
+        <Card className='border-slate-200 bg-white py-8 text-center'>
           <CardContent>
             <div className='text-slate-500'>
               <p>{error ? '검색을 완료하지 못했습니다' : '검색 결과가 없습니다'}</p>

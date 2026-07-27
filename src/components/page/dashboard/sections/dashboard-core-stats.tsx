@@ -61,7 +61,7 @@ function DashboardCoreStats({ users, profiles, removedProfiles, spaces, isLoadin
 
       <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-4'>
         {statItems.map((item) => (
-          <Card key={item.key} className='border-slate-200/80 bg-white shadow-sm'>
+          <Card key={item.key} className='border-slate-200 bg-white'>
             <CardHeader className='pb-3'>
               <CardTitle className='text-base text-slate-950'>{item.title}</CardTitle>
               <CardDescription>{item.description}</CardDescription>

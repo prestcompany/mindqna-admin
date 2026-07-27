@@ -9,7 +9,7 @@ const DefaultTableBtn = ({ children, className }: PropsWithChildren<IDefaultTabl
   return (
     <div
       className={cn(
-        'mb-4 flex w-full flex-wrap items-center gap-3 rounded-lg border border-border/70 bg-card p-4 shadow-sm',
+        'mb-4 flex w-full flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-4',
         className,
       )}
     >

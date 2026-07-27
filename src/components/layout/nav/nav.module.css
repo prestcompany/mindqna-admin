@@ -18,7 +18,7 @@
 
 .menu a:global(.active),
 .menu button:global(.active) {
-  @apply bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20;
+  @apply bg-primary/10 text-primary ring-1 ring-primary/20;
 }
 
 .menu :global(.active-check) {

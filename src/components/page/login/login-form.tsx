@@ -67,11 +67,11 @@ const LoginForm = () => {
             name='email'
             render={({ field }) => (
               <FormItem>
-                <Label className='text-sm font-medium text-zinc-700'>이메일</Label>
+                <Label className='text-sm font-medium text-slate-700'>이메일</Label>
                 <FormControl>
                   <Input
                     placeholder='admin@example.com'
-                    className='h-11 border-zinc-200 bg-zinc-50 text-base focus-visible:ring-zinc-900'
+                    className='h-11 border-slate-200 bg-slate-50 text-base focus-visible:ring-slate-900'
                     {...field}
                   />
                 </FormControl>
@@ -84,12 +84,12 @@ const LoginForm = () => {
             name='password'
             render={({ field }) => (
               <FormItem>
-                <Label className='text-sm font-medium text-zinc-700'>비밀번호</Label>
+                <Label className='text-sm font-medium text-slate-700'>비밀번호</Label>
                 <FormControl>
                   <Input
                     placeholder='비밀번호'
                     type='password'
-                    className='h-11 border-zinc-200 bg-zinc-50 text-base focus-visible:ring-zinc-900'
+                    className='h-11 border-slate-200 bg-slate-50 text-base focus-visible:ring-slate-900'
                     {...field}
                   />
                 </FormControl>
@@ -101,7 +101,7 @@ const LoginForm = () => {
           <Button
             type='submit'
             size='lg'
-            className='h-11 w-full bg-zinc-900 text-white hover:bg-zinc-800'
+            className='h-11 w-full bg-slate-900 text-white hover:bg-slate-800'
             disabled={isLoading}
           >
             {isLoading ? '로그인 중...' : '로그인'}
@@ -109,7 +109,7 @@ const LoginForm = () => {
 
           <button
             type='button'
-            className='inline-block text-sm text-zinc-500 transition-colors hover:text-zinc-900'
+            className='inline-block text-sm text-slate-500 transition-colors hover:text-slate-900'
             onClick={() => setShowPasswordModal(true)}
           >
             비밀번호 찾기
@@ -123,8 +123,8 @@ const LoginForm = () => {
         handleHide={() => setShowPasswordModal(false)}
         className='max-w-md'
       >
-        <div className='text-sm text-zinc-700'>
-          임시 로그인 정보는 <code className='rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-800'>admin / admin</code> 입니다.
+        <div className='text-sm text-slate-700'>
+          임시 로그인 정보는 <code className='rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-800'>admin / admin</code> 입니다.
         </div>
       </DefaultModal>
     </>

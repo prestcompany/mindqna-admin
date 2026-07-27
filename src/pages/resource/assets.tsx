@@ -19,7 +19,7 @@ function AssetsPage() {
         </div>
 
         {/* 에셋 리스트 */}
-        <div className='bg-white border border-gray-200 shadow-sm rounded-xl'>
+        <div className='bg-white border border-gray-200 rounded-lg'>
           <div className='p-6 border-b border-gray-200'>
             <h2 className='text-xl font-semibold text-gray-800'>업로드된 이미지</h2>
             <p className='mt-1 text-sm text-gray-600'>업로드된 모든 이미지를 확인하고 관리할 수 있습니다.</p>

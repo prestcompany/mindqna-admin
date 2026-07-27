@@ -33,7 +33,7 @@ function SpaceDiariesTab({ spaceId, active }: { spaceId: string; active: boolean
       {items.map((diary) => {
         const expanded = expandedId === diary.id;
         return (
-          <div key={diary.id} className='overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-sm'>
+          <div key={diary.id} className='overflow-hidden rounded-lg border border-slate-200 bg-white'>
             <button
               type='button'
               onClick={() => setExpandedId(expanded ? null : diary.id)}

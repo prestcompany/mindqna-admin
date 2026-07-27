@@ -26,7 +26,7 @@ function SpaceCardReplies({ spaceId, cardId }: { spaceId: string; cardId: number
       {data.replies.length ? (
         <div className='space-y-2'>
           {data.replies.map((reply) => (
-            <div key={reply.id} className='rounded-lg border border-slate-200/80 bg-white px-3 py-2'>
+            <div key={reply.id} className='rounded-lg border border-slate-200 bg-white px-3 py-2'>
               <div className='flex items-center justify-between gap-2'>
                 <span className='text-sm font-medium text-slate-900'>{reply.profile?.nickname ?? '-'}</span>
                 <span className='text-xs text-slate-600'>{dayjs(reply.createdAt).format('YY.MM.DD HH:mm')}</span>
