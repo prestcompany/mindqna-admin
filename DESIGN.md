@@ -1,339 +1,299 @@
-# DESIGN.md — mindqna-admin 디자인 스타일 가이드
+# DESIGN.md — mindqna-admin
 
-> 이 문서는 `mindqna-admin`의 **디자인 단일 출처(Source of Truth)** 입니다.
-> 모든 UI/UX 작업(컴포넌트 신규/수정, 색·타이포·간격 결정, 리뷰)은 이 문서를 우선 기준으로 합니다.
-> 제품 디자인 방향이 바뀌면 **코드보다 이 문서를 먼저 갱신**합니다.
->
-> **디자인 언어: Vercel Geist.** 기준 화면(canonical reference)은 `/dashboard/analytics`와 `space`(공간) 목록/상세입니다.
+## Overview
 
----
+The admin is an exercise in subtraction. The page is a near-white sheet (`{colors.canvas}` — #fafafa) carrying near-black ink (`{colors.ink}` — #171717), and almost nothing else competes. Headings, body copy, primary buttons, and the thin 1px borders that define every card all draw from the same ink-and-grey ladder. Every grey is chromatically neutral — saturation zero. There is no blue-tinted slate anywhere.
 
-## 0. 원칙 — 뺄셈의 설계
+Typography does the heavy lifting. Display type is tightly tracked at weight 600; hierarchy comes from weight and lightness (`{colors.ink}` vs `{colors.body}`), never from color. Numbers are always tabular so columns don't jitter. Color exists only as a signal — a status dot, a currency direction, a category tag — never as chrome.
 
-Geist는 **덜어내기의 훈련**입니다. 페이지는 거의 흰 종이(`canvas` #fafafa)이고 그 위에 거의 검은 잉크(`ink` #171717)가 얹힙니다. 제목, 본문, 1차 버튼, 모든 카드를 정의하는 1px 헤어라인이 **같은 잉크-회색 사다리**에서 나옵니다. 나머지는 절제입니다.
+Surfaces barely lift. White cards sit on the #fafafa canvas separated by a 1px hairline (`{colors.hairline}` — #ebebeb) and **no shadow at all**; the lightness step between canvas and card does the separating. Shadow is reserved for things that genuinely float — menus, modals, tooltips. Buttons, inputs, badges, and checkboxes are flat. The page reads like a spec sheet that happens to be an application — engineered, exact, dense, and confident enough to let a hairline carry the structure.
 
-- **무채색이 규율이다**: 회색은 채도 0. 파란 기가 도는 회색을 섞지 않는다.
-- **위계는 색이 아니라 weight·명도·여백으로**: 큰 수치는 중립, 색은 의미 신호에만.
-- **깊이는 헤어라인이 먼저**: 1px 보더로 분리하고, 그림자는 "떠 있는 것"에만.
-- **정보 밀도 + 빠른 스캔**: 한 화면에서 많은 데이터를 읽되 위계가 분명해야 함.
-- **예측 가능한 상호작용**: 액션 위치·상태 라벨·행 액션을 일관되게.
-
-### 0.1 원본 스펙 대비 조정 사항 (의도적 이탈)
-
-Geist 원안은 **마케팅 사이트** 시스템입니다. 어드민에 옮기며 다음 4가지를 조정했습니다.
-
-| 원안 | 이 프로젝트 | 사유 |
-|---|---|---|
-| Geist Sans | **Pretendard 유지** | Geist Sans에 한글 글리프 없음. 대체 불가 |
-| success = link 블루 | **success = 녹색 유지** | 지급/차감·성공/실패를 색으로 구분해야 하는 데이터 요구 (§2.5) |
-| `mute` #8f8f8f 를 캡션에 사용 | **텍스트 최저선은 #737373** | #8f8f8f는 캔버스 위 3.1:1로 WCAG AA 미달 (§7) |
-| 히어로 메시 그라디언트 · 마케팅 알약 CTA · 로고 스트립 · 푸터 밴드 | **제외** | 어드민에 대응 화면 없음. 알약 형태는 필터 칩에만 잔존 (§5.3) |
+**Key Characteristics:**
+- A single near-black ink (`{colors.ink}`) carries headings, body, primary actions, and borders on a near-white canvas (`{colors.canvas}`) — near-zero chromatic chrome.
+- All greys are pure neutral (saturation 0). Blue-tinted greys are forbidden.
+- Static surfaces get a 1px hairline and **zero shadow**; only floating surfaces (menu, modal, tooltip) carry elevation.
+- Two radii by context: tight 6px squares (`{rounded.control}`) for buttons/inputs/badges, 12px (`{rounded.card}`) for cards and tables. Pills are for filter chips only.
+- Tightly-tracked display type (`{typography.display}` at -1.28px); weight is binary — 600 headings, 500 labels/buttons, 400 everything else.
+- Color is a signal, not a surface: status uses a dot + label, categories use soft 50/700 pairs, currency direction uses rose/emerald.
+- Numbers are always `tabular-nums` and chromatically neutral.
 
 ---
 
-## 1. 코드 레퍼런스
+## Colors
 
-| 대상 | 위치 |
-|---|---|
-| 토큰 정의 | `src/styles/globals.css` (`:root`) |
-| 팔레트·반경·그림자 매핑 | `tailwind.config.js` |
-| 테마 적용 | `src/lib/design-system/theme-provider.tsx` (`data-admin-theme="vercel"` 고정) |
-| 뱃지 | `src/components/ui/badge.tsx` |
-| 테이블 | `src/components/shared/ui/data-table.tsx` |
-| 필터 툴바 | `src/components/shared/ui/filter-bar.tsx` |
-| 시트 | `src/components/shared/ui/admin-side-sheet-content.tsx` |
-| 데이터 의미색 헬퍼 | `src/components/page/space/utils/space-display.ts` |
+### Brand & Accent
+- **Ink** (`{colors.primary}` / `{colors.ink}` — #171717): the defining near-black. Headings, primary button fill, and the darkest text tier. Paired with `{colors.on-primary}` (#ffffff).
+- **Link Blue** (`{colors.link}` — #0070f3): links, focus rings, and the info signal. Press tone `{colors.link-deep}` (#0761d1), pale wash `{colors.link-soft}` (#d3e5ff).
+- **Violet** (`{colors.violet}` — #7928ca), **Cyan** (`{colors.cyan}` — #50e3c2), **Pink** (`{colors.pink}` — #ff0080), **Magenta** (`{colors.magenta}` — #eb367f): the chromatic family. Charts and illustration accents only — never chrome fills.
+
+### Surface
+- **Canvas** (`{colors.canvas}` — #fafafa): the page background. Every white card floats on this.
+- **Elevated** (`{colors.canvas-elevated}` — #ffffff): cards, tables, inputs, code blocks.
+- **Hairline-Soft** (`{colors.hairline-soft}` — #f2f2f2): inset wells, muted fills, alternating panels.
+
+### Text
+- **Ink** (`{colors.ink}` — #171717): headings, primary values, high-emphasis text. 16.9:1 on canvas.
+- **Body** (`{colors.body}` — #4d4d4d): paragraphs, secondary copy, labels, nav. 8.1:1.
+- **Caption** (`{colors.caption}` — #737373): captions and metadata. 4.54:1 — **the floor for any text**.
+- **Mute** (`{colors.mute}` — #8f8f8f): 3.1:1 — icons, dividers, decoration. **Never text.**
+- **Faint** (`{colors.faint}` — #a1a1a1): placeholders and disabled labels only.
+
+### Borders
+- **Hairline** (`{colors.hairline}` — #ebebeb): the 1px border on every card, table, input, and divider — the structural workhorse. Single value; no opacity variants.
+
+### Semantic
+- **Error** (`{colors.error}` — #ee0000): destructive actions and validation, with press tier `{colors.error-deep}` (#c50000).
+- **Success** (`{colors.success}` — emerald): positive state. *Diverges from Vercel, which maps success to link blue — this product must distinguish grant from charge by hue.*
+- **Warning** (`{colors.warning}` — #f5a623): caution states.
+- **Info** (`{colors.info}`) maps to `{colors.link}` (#0070f3).
+
+### Data Semantics
+Color carrying meaning about the data itself, not the chrome:
+- **Currency direction**: spend/deduct = rose-600, grant/earn = emerald-600. Always paired with a `+`/`−` sign.
+- **Currency kind**: heart = rose family, star = amber family.
+- **Recency**: within 7 days = success tone, within 30 days = warning tone, older = neutral.
+- **Zero and empty values are neutral** (`{colors.caption}`) — never red.
+
+### Brand Gradient
+Three two-stop gradients, for charts and illustration washes only:
+- **Develop**: `{colors.gradient-develop-start}` (#007cf0) → `{colors.gradient-develop-end}` (#00dfd8)
+- **Preview**: `{colors.gradient-preview-start}` (#7928ca) → `{colors.gradient-preview-end}` (#ff0080)
+- **Ship**: `{colors.gradient-ship-start}` (#ff4d4d) → `{colors.gradient-ship-end}` (#f9cb28)
 
 ---
 
-## 2. 색 (Color)
+## Typography
 
-라이트 단독 운영(`color-scheme: light`). 다크는 비활성입니다.
+### Font Family
+**Pretendard** sets all UI and prose — Latin and Korean alike. Geist Sans is the reference family for this system but carries no Korean glyphs, so Pretendard stands in; keep the tracking and weight rules below and the result reads the same. **JetBrains Mono** sets code, IDs, transaction hashes, and uppercase section eyebrows (Geist Mono is an equivalent substitute). No third face. No italic.
 
-### 2.1 Surface
+### Hierarchy
 
-| 역할 | 토큰 | 값 | 용도 |
-|---|---|---|---|
-| 캔버스 | `--canvas` / `bg-background` | `#fafafa` | 페이지 바탕. 카드가 떠 보이게 하는 기준면 |
-| 상승 표면 | `--canvas-elevated` / `bg-white`·`bg-card` | `#ffffff` | 카드·입력·코드블록 |
-| 옅은 표면 | `--hairline-soft` / `bg-muted` | `#f2f2f2` | 인셋 웰·교차 패널 |
-
-> **핵심**: 캔버스가 #fafafa이므로 흰 카드는 **그림자 없이도** 뜹니다. 이것이 Geist가 그림자를 안 쓰는 이유입니다. 카드에 `shadow`를 더하지 마세요.
-
-### 2.2 Ink ladder (텍스트 4단)
-
-| 역할 | 토큰 | 값 | 대비(캔버스 위) | 용도 |
+| Token | Size | Weight | Letter Spacing | Use |
 |---|---|---|---|---|
-| 잉크 | `text-foreground` / `text-ink` / `text-slate-900` | `#171717` | 16.9:1 | 제목·1차 텍스트·수치 |
-| 본문 | `text-muted-foreground` / `text-body` / `text-slate-600` | `#4d4d4d` | 8.1:1 | 본문·보조 텍스트·레이블·네비 |
-| 캡션 | `text-slate-500` | `#737373` | 4.54:1 | **본문 텍스트 최저선** |
-| 뮤트 | `text-mute` / `text-slate-400` | `#8f8f8f` | 3.1:1 | **텍스트 금지** — 아이콘·구분점·데코 전용 |
-| 페인트 | `text-faint` | `#a1a1a1` | 2.9:1 | placeholder·disabled 라벨 전용 |
+| `{typography.display}` | 24px | 600 | -1.28px | Page titles, large KPI values |
+| `{typography.heading}` | 16px | 600 | -0.4px | Section and card headings |
+| `{typography.label}` | 14px | 500 | -0.28px | Field labels, nav emphasis, button text |
+| `{typography.body}` | 15px | 400 | 0 | Default body (root size) |
+| `{typography.body-sm}` | 14px | 400 | 0 | Table cells, dense body |
+| `{typography.caption}` | 12px | 400 | 0 | Captions, metadata, table headers |
+| `{typography.mono-eyebrow}` | 12px | 500 | wide, uppercase | Section eyebrow labels (mono) |
+| `{typography.code}` | 14px | 400 | 0 | Code, IDs, transaction values (mono) |
 
-> **텍스트 대비 규칙**: 본문·데이터 값은 `slate-500`(#737373) 이상. `text-mute`/`slate-400` 이하는 텍스트에 쓰지 않습니다.
-> **작은 크기 × 낮은 대비 중첩 금지**: `text-xs`에는 `slate-600` 이상을 씁니다.
+### Principles
+- Display type is defined by tight negative tracking — the larger the heading, the tighter. Body type sits at neutral spacing.
+- Weight is binary: 600 for headings, 500 for buttons and labels, 400 for everything else. No light, no black, no italic.
+- The scale is fixed at five steps — 12 / 14 / 15 / 16 / 24+. Arbitrary sizes (`text-[Npx]`) are forbidden.
+- **Floors**: data values and body never below 14px; captions and labels never below 12px.
+- **Never stack small size with low contrast**: 12px text requires `{colors.body}` or darker.
+- Mono has two roles only: code/IDs, and the uppercase eyebrow that opens a section.
+- Numbers are always `tabular-nums` and chromatically neutral.
+- Korean glyphs are denser than Latin at the same pixel size — apply one step larger than a Latin-based reference would suggest.
 
-### 2.3 Border
+---
 
-| 역할 | 토큰 | 값 | 용도 |
-|---|---|---|---|
-| 헤어라인 | `border-border` / `border-hairline` / `border-slate-200` | `#ebebeb` | 모든 카드·입력·구분선의 1px. 시스템의 구조적 일꾼 |
+## Layout
 
-불투명도 변형(`border-border/70` 등)은 쓰지 않습니다 — 헤어라인은 단일 값입니다.
+### Spacing System
+- **Base unit**: 4px. Scale: 4 → 8 → 12 → 16 → 24 → 32 → 40 → 64 → 96 → 128px.
+- **Tokens**: `{spacing.xxs}` 4 · `{spacing.xs}` 8 · `{spacing.sm}` 12 · `{spacing.md}` 16 · `{spacing.lg}` 24 · `{spacing.xl}` 32 · `{spacing.2xl}` 40 · `{spacing.3xl}` 64 · `{spacing.4xl}` 96 · `{spacing.section}` 128.
+- **Card interiors** run `{spacing.md}`–`{spacing.lg}` (16–24px); dense tables use 8px row padding for a ~36px row.
+- **20px is off-scale** — never use it.
 
-### 2.4 Accent
+### Grid & Container
+- Centered max-width container at 1600px with `{spacing.md}` gutters (`{spacing.xl}` at desktop).
+- KPI grids expand stepwise with viewport (2-up → 3-up → 6-up). Never overcrowd a narrow column.
+- Detail views open in a right-side sheet rather than a page transition.
 
-색이 허용되는 유일한 자리입니다. **넓은 면을 칠하지 마세요.**
+### Responsive
 
-| 역할 | 토큰 | 값 | 용도 |
-|---|---|---|---|
-| 링크 | `text-link` / `--ring` | `#0070f3` | 인라인 링크, 포커스 링 |
-| 링크(press) | `text-link-deep` | `#0761d1` | 눌림 상태 |
-| 링크(wash) | `bg-link-soft` | `#d3e5ff` | 옅은 하이라이트 배경 |
-| 크로매틱 | `violet` `cyan` `pink` `magenta` | `#7928ca` `#50e3c2` `#ff0080` `#eb367f` | 차트·일러스트 액센트 전용 |
-
-**브랜드 그라디언트** (`--gradient-*`): develop(블루→시안) / preview(바이올렛→핑크) / ship(레드→앰버). 차트나 일러스트 워시에만 쓰고, UI 크롬에는 쓰지 않습니다.
-
-### 2.5 데이터 의미색 레이어 (어드민 전용)
-
-Geist 원안에 없는, 이 프로젝트가 추가로 관리하는 층입니다. **크롬이 아니라 데이터의 의미**를 나타냅니다.
-
-- **재화 방향**: 사용/차감 = `rose-600`, 지급/획득 = `emerald-600`
-- **재화 종류**: 하트 = rose 계열, 스타 = amber 계열
-- **신선도(생성 경과)**: 7일내 `softSuccess`, 30일내 `softWarning`, 그 외 `softNeutral` (`getRecencyVariant`)
-- **0/빈 값은 색을 빼고 중립(`slate-500`)** — 0을 빨강으로 칠해 경고처럼 보이게 하지 않습니다.
-- 공유 헬퍼: `space/utils/space-display.ts` (`getSpaceTypeConfig`, `getRecencyVariant`, `getMetricAccent`)
-
-### 2.6 Semantic
-
-| 토큰 | 값 | 용도 |
+| Name | Width | Key Changes |
 |---|---|---|
-| `--destructive` | `#ee0000` | 위험/삭제 (press: `--destructive-deep` `#c50000`) |
-| `--success` | 녹색 | 성공/긍정 — **원안의 블루 매핑을 따르지 않음** (§0.1) |
-| `--warning` | `#f5a623` | 경고 |
-| `--info` | `#0070f3` | 정보 (= link) |
+| Mobile | ≤ 640px | Single-column stacks; sidebar → menu trigger; filter controls wrap full-width |
+| Tablet | 768px | 2-up card grids; condensed toolbar |
+| Laptop | 1024px | 3-up grids; full toolbar row |
+| Desktop | 1600px | Centered max-width container, full multi-column grids |
+
+Wide tables scroll horizontally inside their own container with sticky action columns; the page body never scrolls sideways.
 
 ---
 
-## 3. 타이포그래피
+## Elevation & Depth
 
-### 3.1 폰트
-
-- **한글·영문 모두 Pretendard 단일** (`var(--font-pretendard)`). Geist Sans는 한글 글리프가 없어 채택 불가입니다. 라틴 전용 폰트를 추가로 섞지 않습니다.
-- **코드·ID·트랜잭션·JSON은 `font-mono`** = JetBrains Mono (`var(--font-jbmono)`). `0/O`·`1/l` 구분이 필요한 대조 작업 전용.
-  - Geist Mono로 교체하려면 `_app.tsx`의 `JetBrains_Mono` import만 바꾸면 됩니다(mono는 라틴 전용이라 한글 제약 없음). 현재는 이미 셀프호스팅 중인 JetBrains Mono를 유지합니다.
-- UGC(유저명·공간명·카드 내용)의 일본어는 `Hiragino Sans`/`Yu Gothic` 폴백. **UI에 이모지 사용 금지.**
-
-### 3.2 스케일 (고정 5단)
-
-`text-xs`(12) / `text-sm`(14) / 기본 15(html) / `text-base`(16) / `text-2xl`+(24+)
-
-스케일 밖 임의값(`text-[Npx]`) 사용 금지. `text-lg`·`text-xl`·`text-3xl`은 신규 사용하지 않습니다.
-
-**플로어**: 데이터 값·본문은 14px(`text-sm`) 미만 금지. 캡션·라벨은 12px(`text-xs`) 미만 금지.
-
-### 3.3 위계
-
-| 역할 | 사양 |
-|---|---|
-| 페이지 타이틀 | `text-2xl font-semibold tracking-display text-foreground` |
-| 큰 수치(KPI) | `text-2xl font-semibold tracking-display tabular-nums` |
-| 섹션 제목 | `text-base font-semibold tracking-heading text-foreground` |
-| 레이블 | `text-sm font-medium tracking-label text-muted-foreground` |
-| 캡션/메타 | `text-xs text-slate-600` |
-| mono 아이브로우 | `.eyebrow` (`font-mono text-xs font-medium uppercase tracking-wide`) |
-
-### 3.4 원칙
-
-- **디스플레이 타입은 음수 자간으로 정의됩니다.** 클수록 더 조입니다 — `tracking-display`(-1.28px) → `tracking-heading`(-0.4px) → `tracking-label`(-0.28px). 본문은 중립 자간.
-- **weight는 이분법**: 제목 600, 버튼·라벨 500, 나머지 400. light/black 없음, 이탤릭 없음.
-- **mono는 두 역할뿐**: 코드/ID, 그리고 섹션을 여는 대문자 아이브로우 라벨.
-- **숫자는 항상 `tabular-nums`** (정렬·점프 방지). 수치 자체는 중립색.
-- **한글 보정**: 라틴 기준 레퍼런스의 px를 그대로 이식하지 않습니다. 한글은 글리프 밀도가 높아 같은 px에서 체감 가독성이 한 단계 낮으므로, 벤치마크 대비 한 단계 큰 스케일을 적용합니다. (원안의 48px 디스플레이를 24px로 낮춘 이유이기도 합니다 — 어드민은 마케팅 히어로가 없습니다.)
-
----
-
-## 4. 간격 · 그리드 · 반경 · 깊이
-
-### 4.1 간격 (4px 베이스)
-
-허용 스텝: **4 / 8 / 12 / 16 / 24 / 32 / 40 / 64 / 96 / 128px**
-→ `gap-1/2/3/4/6/8/10/16/24/32`, `p-1/2/3/4/6/8`
-
-**20px(`p-5`·`gap-5`)은 스케일 밖입니다** — 쓰지 마세요.
-
-- 카드 내부: 24–32px (`p-6`~`p-8`), 밀집 화면은 16px(`p-4`) 허용
-- 섹션 간 수직 리듬: 32–64px (`space-y-8`~`space-y-16`)
-- KPI 그리드는 화면폭에 따라 단계적 확장(예: `grid-cols-2 sm:grid-cols-3 xl:grid-cols-6`), 좁은 폭에서 과밀 금지
-
-컨테이너: 중앙 정렬 `max-w-[1600px]`, 좌우 거터 `px-4 sm:px-8`.
-
-### 4.2 반경 (Geist 스케일)
-
-| Tailwind | 값 | 용도 |
+| Level | Treatment | Use |
 |---|---|---|
-| `rounded-sm` | 4px | 체크박스 등 마이크로 컨트롤 |
-| `rounded-md` | **6px** | 버튼·입력·뱃지·셀렉트 — 기능적 크롬 |
-| `rounded-lg` | **12px** | 카드·테이블 컨테이너·코드블록 |
-| `rounded-2xl` | 16px | 큰 패널·시트 |
-| `rounded-pill` | 100px | 필터 칩·카테고리 탭 |
-| `rounded-full` | 9999px | 아바타·원형 아이콘 버튼 |
+| **0 — Flat** | 1px hairline (`{colors.hairline}`), **no shadow** | **The default.** Cards, tables, inputs, buttons, badges, toolbars, dividers |
+| 1 — Whisper | `0 1px 1px rgba(0,0,0,0.04)` | Switch knob, active tab |
+| 2 — Floating | `0 2px 2px rgba(0,0,0,0.04), 0 8px 16px -4px rgba(0,0,0,0.06)` | Menus, modals, sheets, tooltips, toasts |
 
-> 반경 언어는 **이분법**입니다: 기능적 크롬은 타이트한 6px, 콘텐츠 카드는 12px.
-> `rounded-xl`은 카드 값(12px)으로 흡수한 **레거시 별칭**입니다 — 신규 코드는 `rounded-lg`를 쓰세요.
+Depth is deliberately minimal. **Never put a visible border and a drop shadow on the same static surface** — the canvas-to-card lightness step plus a hairline is the separation. There is no 5-step shadow scale; anything heavier than Level 2 does not exist.
 
-### 4.3 깊이 (2단)
+A functional exception: horizontally scrolled tables use a low-alpha neutral edge shadow on sticky columns to signal overflow. That is an affordance, not elevation.
 
-| 레벨 | 처리 | 용도 |
+---
+
+## Shapes
+
+### Border Radius Scale
+
+| Token | Value | Use |
 |---|---|---|
-| **0 — Flat** | 1px 헤어라인, 그림자 없음 | **기본값.** 카드·테이블·입력·구분선 |
-| 1 — Whisper | 헤어라인 + `shadow-whisper` (`0 1px 1px rgba(0,0,0,.04)`) | 살짝 들린 카드 |
-| 2 — Floating | `shadow-floating` (레이어드 저알파) | 드롭다운·모달·툴팁·토스트 |
+| `{rounded.micro}` | 4px | Checkboxes, micro controls |
+| `{rounded.control}` | 6px | Buttons, inputs, selects, badges |
+| `{rounded.card}` | 12px | Cards, table containers, code blocks |
+| `{rounded.panel}` | 16px | Large panels, sheets |
+| `{rounded.pill}` | 100px | Filter chips, category tabs |
+| `{rounded.full}` | 9999px | Avatars, circular icon buttons |
 
-**정적 표면에 보더와 그림자를 함께 걸지 마세요.** 이것이 이 시스템에서 가장 흔한 실수이며, 화면을 낡아 보이게 하는 1순위 원인입니다.
+The radius language is bimodal: tight 6px squares for functional chrome, 12px for content surfaces. Pills are reserved for removable filter chips — this product has no marketing CTA, so it has no pill buttons.
 
-`shadow-md/lg/xl/2xl`은 전부 `floating` 한 단계로 접혔습니다. 5단 그림자 스케일은 존재하지 않습니다.
+### Geometry
+Cards and tables are rectangles at 12px. Controls are 6px squares. Avatars and status dots are circular. Iconography is line-weight vector (lucide) in ink or mute — **never emoji**.
 
-### 4.4 모션
+---
 
-| 토큰 | 값 | 용도 |
+## Motion
+
+| Token | Value | Use |
 |---|---|---|
-| `duration-fast` | 120ms | hover/press 색·불투명도, 행 hover |
-| `duration-base` | 160ms | 팝오버/드롭다운/툴팁 fade+scale |
-| `duration-slow` | 200ms | 시트/모달 진입 (퇴장 ≈140ms) |
+| `{motion.fast}` | 120ms | Hover and press color/opacity, table row hover |
+| `{motion.base}` | 160ms | Popover, dropdown, tooltip fade + scale |
+| `{motion.slow}` | 200ms | Sheet and modal enter |
+| `{motion.exit}` | 140ms | Sheet and modal exit — always shorter than enter |
 
-easing: enter `ease-out`, exit `ease-in`. `prefers-reduced-motion` 전역 존중. **임의 duration 금지.**
-
----
-
-## 5. 컴포넌트 규약
-
-### 5.1 Card / Surface
-흰 카드(`bg-white`) + `border border-border` + `rounded-lg` + **그림자 없음**. 내부 패딩 `p-4`(밀집) ~ `p-6`(여유).
-
-### 5.2 Table — `DataTable` (canonical)
-- 리스트는 `DataTable`을 씁니다. 원시 `<table>`·레거시 테이블 신규 사용 금지.
-- 컨테이너: `rounded-lg border border-border`, 그림자 없음.
-- 컬럼 `size` 명시로 고정폭. 긴 텍스트 `truncate`(+tooltip).
-- 헤더: `h-9`, `text-xs font-medium text-slate-600`, 대문자 변환 금지.
-- 행 패딩 `py-2`(행높이 ≈36px). 셀 숫자는 중립 `tabular-nums`.
-- 행 액션은 `TableRowActions`(드롭다운)로 통일. Row expand는 특별 요구 없으면 미사용.
-
-### 5.3 Button
-- **모든 버튼은 6px 사각(`rounded-md`)** 입니다. 어드민에는 마케팅 CTA가 없으므로 알약 버튼을 쓰지 않습니다.
-- 1차 액션: `bg-primary`(#171717) + 흰 텍스트. 2차: 흰 배경 + 헤어라인.
-- 높이: 툴바/인라인 컨트롤 `h-8`, 주요 액션 `h-9`. `size='lg'`는 쓰지 않습니다.
-- 알약(`rounded-pill`)은 **필터 칩과 카테고리 탭에만** 허용됩니다.
-
-### 5.4 Badge
-shadcn `Badge` 사용. 데이터 화면은 soft 톤 기본.
-
-| 종류 | 변형 | 규칙 |
-|---|---|---|
-| **상태값** (활성/만료/성공/실패) | `dotSuccess` `dotDanger` `dotWarning` `dotNeutral` `dotInfo` | 색 점 + 중립 텍스트. 배경칠 없음 |
-| **카테고리** (플랫폼·타입·재화 종류) | `softNeutral` `softSuccess` `softWarning` `softDanger` `softInfo` `tonePink` | 50/700 페어 |
-| 강한 강조 | `default` `destructive` `success` `warning` `info` `secondary` | 폼·버튼 맥락에서만 |
-
-> **soft vs dot**: 카테고리는 soft, **상태값은 dot**. dot은 항상 텍스트 라벨을 병행합니다(색 단독 금지).
-
-### 5.5 Filter / Toolbar
-- 목록 상단 필터는 `FilterBar`를 씁니다 — **카드로 감싸지 않은 평면 툴바**(`py-3`).
-- 컨트롤 높이는 `FILTER_CONTROL_CLASS`(`h-8`)로 통일.
-- 활성 필터는 `FilterChips`(`rounded-pill`)로 노출하고 개별 제거를 지원합니다.
-- 검색은 디바운스 자동검색을 기본으로 합니다.
-
-### 5.6 Sheet / Modal
-- 우측 패널은 `AdminSideSheetContent`. 헤더 고정 + 본문 스크롤 + 하단 액션 sticky.
-- 긴 폼 모달은 `max-h` + `overflow-y-auto` 필수.
-- 확인 대화는 `AlertDialog`로 통일합니다.
-
-### 5.7 Form
-- `FormSection` + `FormGroup` 조합. 검증은 **`react-hook-form` + `zod`** 로 통일.
-- 라디오/체크는 칩형(라벨 카드) 우선. 주요 액션 우측 정렬·하단 고정.
-
-### 5.8 KPI 타일 / 타임라인 행
-- KPI 타일: 흰 카드, 레이블 `text-sm text-muted-foreground`, 값 `text-2xl font-semibold tracking-display tabular-nums`(중립).
-- 타임라인(재화 내역): 좌측 **종류 칩(색)** · 중앙 행위자+사유 · 우측 **부호 금액(방향색)+압축 날짜**.
+Easing: enter `ease-out`, exit `ease-in`. `prefers-reduced-motion` is respected globally. Arbitrary durations are forbidden. Avoid scale-on-hover that shifts layout.
 
 ---
 
-## 6. 페이지 리듬
+## Components
 
-어드민 페이지의 표준 구성:
+### Navigation
 
-```
-PageHeader (타이틀 + 설명 + 액션)
-  ↓
-FilterBar (평면 툴바 + 활성 칩)
-  ↓
-DataTable (헤어라인 카드, 그림자 없음)
-  ↓
-Pagination
-```
+**`sidebar`** — persistent left navigation
+- Background `{colors.canvas}`, right hairline, links at `{typography.body-sm}` in `{colors.body}`. Active item takes a tinted primary wash with a ring, no shadow.
 
-상세는 우측 `Sheet`로 엽니다. 페이지 전환보다 시트를 우선합니다.
+**`header`** — sticky top bar
+- Background `{colors.canvas}` with blur, bottom hairline, height 64px. Holds breadcrumb, command-palette trigger, and account menu.
+
+**`page-header`** — title block
+- White card, hairline, `{rounded.card}`, padding `{spacing.lg} {spacing.md}`, **no shadow**. Title at `{typography.display}`; optional description at `{typography.body-sm}` in `{colors.body}`; actions right-aligned.
+
+### Buttons
+
+All buttons are 6px squares (`{rounded.control}`) and **flat** — no shadow, ever.
+
+**`button-primary`** — the ink action ("추가", "저장")
+- Background `{colors.primary}`, text `{colors.on-primary}`, `{typography.label}`, height 32px in toolbars / 36px for standalone primary actions.
+
+**`button-secondary`** — white outline action
+- Background `{colors.canvas-elevated}`, 1px hairline, text `{colors.ink}`, same metrics as primary.
+
+**`button-ghost`** — transparent utility action
+- No border or fill until hover, which takes the `{colors.hairline-soft}` wash.
+
+**`button-destructive`** — irreversible action
+- Background `{colors.error}`, text `{colors.on-primary}`. Always behind a confirm dialog.
+
+### Inputs & Forms
+
+**`text-input`** — default field
+- Background `{colors.canvas-elevated}`, 1px hairline, ink text, `{rounded.control}`, height 36px (32px in toolbars), no shadow. Focus shows a `{colors.link}` ring.
+
+**`select`** — dropdown trigger
+- Same chrome as `text-input`. The menu is a Level-2 floating surface.
+
+**`form-section`** — grouped field block
+- White card, hairline, `{rounded.card}`, no shadow. Optional header row separated by a hairline; padding `{spacing.lg} {spacing.md}`.
+
+Validation is schema-driven; errors render below the field in `{colors.error}` with text, never color alone.
+
+### Data Display
+
+**`data-table`** — the canonical list surface
+- White card, 1px hairline, `{rounded.card}`, **no shadow**. Header row 36px with `{typography.caption}` labels in `{colors.body}`, lowercase preserved. Body rows ~36px with 8px vertical padding, cells at `{typography.body-sm}` with `tabular-nums`. Long text truncates with a tooltip. Row hover takes `{colors.canvas}`. Action column sticks right.
+
+**`filter-bar`** — the list toolbar
+- **Flat, not a card** — no border, no fill, vertical padding `{spacing.sm}`. All controls 32px tall. Primary action right-aligned via a flex spacer. Active filters render below as removable chips.
+
+**`filter-chip`** — active filter token
+- White fill, hairline, `{rounded.pill}`, `{typography.caption}` in `{colors.body}`, with a 24px circular remove button.
+
+**`kpi-tile`** — metric card
+- White card, hairline, no shadow. Label at `{typography.label}` in `{colors.body}`; value at `{typography.display}` with `tabular-nums`, chromatically neutral unless the metric itself carries meaning.
+
+**`badge`** — status and category token
+- `{rounded.control}`, `{typography.caption}`, flat. Three families:
+  - **Status** → dot variants: a colored 6px dot plus neutral text, no fill. Always paired with a text label.
+  - **Category** → soft variants: 50-tint fill with 700-tone text and a matching border.
+  - **Emphasis** → solid fill. Reserved for form and button contexts, not data cells.
+
+**`timeline-row`** — ledger entry
+- Left: category chip (color). Center: actor and reason. Right: signed amount in the direction color plus a compact date.
+
+### Overlays
+
+**`side-sheet`** — right detail panel
+- Level-2 floating. Sticky header with blur, scrolling body at `{spacing.lg}` horizontal padding, sticky footer actions. Widths are tokenized (sm 520 / md 600 / lg 720 / xl 1200 / full 95vw).
+
+**`modal`** — centered dialog
+- Level-2 floating, `{rounded.card}`, max-height with internal scroll so it never escapes a small viewport.
+
+**`confirm-dialog`** — destructive confirmation
+- Always used for irreversible actions. States the target by name. Confirm button takes `{colors.error}`.
+
+**`dropdown-menu`** — row and account actions
+- Level-2 floating, `{rounded.control}`, items at `{typography.body-sm}`. Row actions live here rather than as inline buttons.
+
+**`toast`** — transient feedback
+- Level-2 floating, bottom-anchored. Success and error carry an icon plus text, never color alone.
 
 ---
 
-## 7. 접근성 (필수)
+## Accessibility
 
-- **대비**: 본문/보조 텍스트 최소 `slate-500`(#737373, 4.54:1). `text-mute`/`slate-400` 이하 텍스트 금지.
-- **색 단독 금지**: 색 + 라벨/부호/아이콘 병행(예: 사용/지급은 색 + `+/-` + 텍스트).
-- **히트영역(데스크톱 포인터)**: 툴바/필터/인라인 컨트롤 최소 32px(`h-8`), 주요 액션 36px(`h-9`). 터치 44px 규칙은 터치 지원 화면 한정. 칩 내부 제거(X) 버튼 등 마이크로 컨트롤은 24px(`h-6`)까지 허용하되 여백으로 히트영역을 보강합니다.
-- **포커스**: 키보드 포커스 링 가시화. 링 색은 `--ring`(link 블루)입니다.
-- **모션**: §4.4의 3단 토큰만 사용. 레이아웃 시프트를 유발하는 scale hover 지양.
+- **Contrast**: text never below `{colors.caption}` (#737373, 4.54:1). `{colors.mute}` and lighter are decoration only.
+- **Never color alone**: pair every color signal with a label, sign, or icon.
+- **Hit areas** (desktop pointer): toolbar and inline controls minimum 32px; standalone primary actions 36px. Micro controls such as a chip's remove button may go to 24px with surrounding padding. Touch surfaces use 44px.
+- **Focus**: a visible `{colors.link}` ring on every interactive element. Clickable table rows are keyboard-operable.
+- **Motion**: only the four tokens above; `prefers-reduced-motion` disables animation globally.
 
 ---
 
-## 8. Do / Don't
+## Do's and Don'ts
 
 ### Do
-- 캔버스는 #fafafa, 잉크는 #171717 — 흑백 듀엣으로 끌고 간다
-- 카드·입력은 **1px 헤어라인 먼저**, 그림자는 마지막 수단
-- 회색은 채도 0. 잉크 사다리를 단계적으로 밟는다(`ink → body → slate-500`)
-- 버튼은 6px 사각, 알약은 필터 칩·카테고리 탭에만
-- 디스플레이 타입에 음수 자간(`tracking-display`)을 건다
-- 상태값은 dot 뱃지, 카테고리는 soft 뱃지
-- 숫자는 `tabular-nums`, 수치 자체는 중립색
-- 이모지 대신 SVG 아이콘(lucide)
+- Keep the canvas near-white (`{colors.canvas}`) and let near-black ink carry headings, actions, and borders.
+- Define every static surface with a 1px hairline and nothing else.
+- Keep every grey at saturation 0.
+- Step the text ladder deliberately: `{colors.ink}` → `{colors.body}` → `{colors.caption}`.
+- Use 6px squares for controls and 12px for content surfaces.
+- Set display type at weight 600 with tight negative tracking.
+- Render status as a dot plus label, categories as soft tags.
+- Set every number in `tabular-nums` and leave it neutral.
+- Reach for the existing component before inventing a pattern.
 
 ### Don't
-- 정적 표면에 보더 + 그림자를 함께 걸지 않는다 — **가장 흔한 실수**
-- 넓은 면을 액센트 색으로 칠하지 않는다 (violet/cyan/pink는 차트·일러스트용)
-- 본문을 순수 검정(`#000`)으로 두지 않는다 — 잉크는 #171717
-- 회색 스케일에 파란 기가 도는 톤을 섞지 않는다
-- 한 맥락에서 버튼 형태를 섞지 않는다
-- 그림자를 쌓아 올리지 않는다 — 깊이는 헤어라인 + 저알파 1단
-- 0 값을 빨강으로 강조하지 않는다
-- 임의값(`text-[Npx]`, `duration-[Nms]`, `p-5`)을 쓰지 않는다
-- 두 번째 장식 체계를 추가하지 않는다 — 잉크와 헤어라인이 전부다
+- Don't put a border and a shadow on the same static surface — the single most damaging mistake in this system.
+- Don't fill large surfaces with accent color; violet, cyan, and pink live in charts and illustration.
+- Don't set body copy in pure black — the ink is #171717.
+- Don't mix blue-tinted greys into the neutral ramp.
+- Don't use pill buttons; pills are for filter chips only.
+- Don't stack shadows or invent elevation levels.
+- Don't paint a zero or empty value red.
+- Don't use arbitrary values — no `text-[Npx]`, no `duration-[Nms]`, no 20px spacing.
+- Don't use emoji in the interface; use line icons.
+- Don't add a second decorative system — ink and hairline are the whole vocabulary.
 
 ---
 
-## 9. 마이그레이션 현황
+## Agent Prompt Guide
 
-### 완료
+When generating or modifying UI in this repository:
 
-| 항목 | 규모 | 결과 |
-|---|---|---|
-| 토큰 레이어 Geist 전환 | — | `globals.css` / `tailwind.config.js` |
-| `slate`·`gray` 팔레트 무채색화 | 팔레트 재정의 | 청회색 160곳이 파일 수정 없이 정합 |
-| 정적 표면 `shadow-sm` 제거 | 83곳 → **0** | 보더+그림자 이중 적용 전량 해소 |
-| 컨트롤 그림자 제거 | 버튼·입력·뱃지·셀렉트·체크박스·라디오·스위치 | Geist 평면 규칙 적용 |
-| `rounded-xl` → `rounded-lg` | 19곳 → **0** | |
-| 보더 불투명도 변형 제거 | 77곳 → **0**(login 제외) | 헤어라인 단일값화 |
-| 임의 duration 토큰화 | 1곳 → **0** | `duration-exit` 추가 |
-| `zinc-*` → `slate-*` | 26곳 → **0** | |
-| 툴바 `DefaultTableBtn` → `FilterBar` | 14개 모듈 + `UserFilterBar` | 툴바 세대 통일. `default-table-btn.tsx` 삭제 |
-| 툴바 컨트롤 높이 통일 | — | 전 모듈 `FILTER_CONTROL_CLASS`(h-8), 추가 버튼 `size='lg'` 제거 |
-
-### 남은 작업
-
-| 항목 | 규모 | 조치 |
-|---|---|---|
-| solid 뱃지 → dot/soft 재분류 | 41곳 | §5.4 |
-| `assets` 모듈 편입 | 4파일 | 자체 페이지 헤더·`bg-gray-50` 캔버스·`blue-500` 액센트·정적 `shadow-md/lg` 제거, `DataTable` 채택 |
-| `text-gray-*` → `text-slate-*` | 41곳 | 팔레트 재정의로 **색은 이미 동일**. 명명 통일만 남음 |
-| `border-slate-*` → `border-border` | — | 값 동일. 시맨틱 토큰으로 점진 이전 |
-
-> `pages/login.tsx`는 의도적으로 어두운 표면을 쓰는 예외 화면입니다(`slate-900` 배경 위 `slate-400` 텍스트 — 어두운 배경에서는 대비를 충족).
+1. **Start flat.** A new surface gets `background: elevated`, a 1px hairline, `{rounded.card}`, and no shadow. Add elevation only if the element genuinely floats above the page.
+2. **Reach for the existing component first.** The canonical list surface is `data-table`, the canonical toolbar is `filter-bar`, the canonical detail view is `side-sheet`, the canonical row action is `dropdown-menu`. Introducing a new pattern requires justification.
+3. **Resolve color through the token layer**, not raw palette values. If a semantic token exists for the role, use it.
+4. **Ask what the color means before applying it.** Chrome is neutral. Status takes a dot. A category takes a soft tag. Currency direction takes rose or emerald with a sign. If the color carries no meaning, remove it.
+5. **Check contrast against the text ladder** before using any grey on text. Below `{colors.caption}` is decoration only.
+6. **Keep to the scales.** Five type sizes, the 4px spacing scale, five radii, three elevation levels, four motion durations. If a value isn't on a scale, it's wrong.
+7. **When this document and the code disagree, this document wins** — update the code, or update this document first if the design direction genuinely changed.

@@ -93,12 +93,43 @@ export default ExampleListPage;
 
 ## 4. UI/UX & 컴포넌트 규약 (요약 — 상세는 DESIGN.md)
 
-- **Sheet**: 우측 패널은 `AdminSideSheetContent`. 헤더 고정 + 본문 스크롤 + 하단 액션 sticky. 생성/수정은 동일 폭 토큰(`sm|md|lg|xl|full`).
-- **Modal**: 긴 폼은 `max-h` + `overflow-y-auto`, 작은 뷰포트 이탈 금지.
-- **Form**: `FormSection` + `FormGroup` + `react-hook-form`/`zod`. 라디오/체크는 칩형 우선, 주요 액션 우측·하단 고정.
-- **Table**: `DataTable`(canonical, 레거시 `DefaultTable` 신규 사용 금지). 컬럼 `size` 명시, 긴 텍스트 `truncate`, 행 액션 `TableRowActions`.
+**색·타이포·간격·깊이·접근성은 [DESIGN.md](./DESIGN.md)가 단일 기준입니다.** 아래는 이 레포의 구현체 매핑입니다.
+
+| DESIGN.md 컴포넌트 | 구현체 |
+|---|---|
+| `data-table` | `shared/ui/data-table.tsx` (canonical) |
+| `filter-bar` / `filter-chip` | `shared/ui/filter-bar.tsx` (`FilterBar`, `FilterChips`, `FILTER_CONTROL_CLASS`) |
+| `side-sheet` | `shared/ui/admin-side-sheet-content.tsx` |
+| `form-section` | `shared/form/ui/form-section.tsx` + `form-group.tsx` |
+| `dropdown-menu`(행 액션) | `shared/ui/table-row-actions.tsx` |
+| `badge` | `ui/badge.tsx` (`dot*` 상태 / `soft*` 카테고리) |
+| 데이터 의미색 헬퍼 | `page/space/utils/space-display.ts` |
+
+- **토큰 정의**: `src/styles/globals.css` (`:root`) — `tailwind.config.js`가 팔레트·반경·그림자·자간으로 매핑.
+- **테마**: `lib/design-system/theme-provider.tsx`가 `data-admin-theme="vercel"`을 고정 적용(다크 비활성).
+- **중립 회색 램프**: Tailwind 기본 `slate`/`gray`를 채도 0 램프로 재정의했습니다. `slate-500`(#737373)이 텍스트 최저선, `slate-400` 이하는 아이콘/데코 전용.
+- **Table**: 컬럼 `size` 명시, 긴 텍스트 `truncate`, 행 액션은 `TableRowActions`. 원시 `<table>` 신규 사용 금지.
+- **Form**: `react-hook-form` + `zod`. 라디오/체크는 칩형 우선, 주요 액션 우측·하단 고정.
 - **이미지/미디어**: 테이블 미리보기 `ClickableImagePreview`, 썸네일 투명 배경 + `object-contain`, 리스트 대표 미리보기 `120px` 기준.
-- **색·타이포·간격·접근성**: → **[DESIGN.md](./DESIGN.md)** 를 단일 기준으로 따른다.
+
+### 4.1 DESIGN.md 원안(Vercel Geist) 대비 조정
+
+| 원안 | 이 레포 | 사유 |
+|---|---|---|
+| Geist Sans | Pretendard | Geist Sans에 한글 글리프 없음 |
+| success = link 블루 | success = 녹색 | 지급/차감을 색으로 구분해야 함 |
+| 캡션에 mute(#8f8f8f) | 텍스트 최저선 #737373 | #8f8f8f는 캔버스 위 3.1:1로 AA 미달 |
+| 히어로 메시 그라디언트 · 마케팅 알약 CTA · 로고 스트립 · 푸터 | 제외 | 어드민에 대응 화면 없음. 알약은 필터 칩에만 잔존 |
+
+### 4.2 디자인 시스템 적용 현황
+
+**완료** — Geist 토큰 전환, `slate`/`gray` 무채색화, 정적 표면 그림자 전량 제거(83곳), 컨트롤 평면화(버튼·입력·뱃지·셀렉트·체크박스·라디오·스위치), 곡률/보더/`zinc` 정규화, 툴바 19개 모듈 `FilterBar` 통일(`DefaultTableBtn` 삭제).
+
+**남은 작업**
+- solid 뱃지 → `dot`/`soft` 재분류 (약 41곳)
+- `assets` 모듈 편입 (4파일: 자체 페이지 헤더·gray 캔버스·blue 액센트·정적 그림자 제거, `DataTable` 채택)
+- `text-gray-*` → `text-slate-*` 명명 통일 (약 41곳, 색은 이미 동일)
+- `border-slate-*` → `border-border` 시맨틱 토큰 이전
 
 ---
 
