@@ -122,7 +122,7 @@ function BannerList() {
       cell: ({ row }) => {
         const value = row.original.location;
         const label = locationOptions.find((item) => item.value === value)?.label ?? value;
-        return <Badge variant='info'>{label}</Badge>;
+        return <Badge variant='softInfo'>{label}</Badge>;
       },
     },
     {
@@ -149,7 +149,7 @@ function BannerList() {
       size: 96,
       cell: ({ row }) => {
         const value = row.original.isActive;
-        return <Badge variant={value ? 'success' : 'muted'}>{value ? '활성화' : '비활성화'}</Badge>;
+        return <Badge variant={value ? 'dotSuccess' : 'dotNeutral'}>{value ? '활성화' : '비활성화'}</Badge>;
       },
     },
     {

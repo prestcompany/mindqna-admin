@@ -169,7 +169,7 @@ function CardList() {
       header: '상태',
       cell: ({ row }) => {
         const value = row.original.isPublished;
-        return <Badge variant={value ? 'success' : 'muted'}>{value ? '활성' : '비활성'}</Badge>;
+        return <Badge variant={value ? 'dotSuccess' : 'dotNeutral'}>{value ? '활성' : '비활성'}</Badge>;
       },
     },
     {

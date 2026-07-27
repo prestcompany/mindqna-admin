@@ -144,7 +144,7 @@ function InteriorList() {
       size: 100,
       cell: ({ row }) => {
         const value = row.original.isPaid;
-        return <Badge variant={value ? 'warning' : 'destructive'}>{value ? '스타' : '하트'}</Badge>;
+        return <Badge variant={value ? 'softWarning' : 'softDanger'}>{value ? '스타' : '하트'}</Badge>;
       },
     },
     {
@@ -153,7 +153,7 @@ function InteriorList() {
       size: 90,
       cell: ({ row }) => {
         const value = row.original.isActive;
-        return <Badge variant={value ? 'success' : 'destructive'}>{value ? '활성' : '비활성'}</Badge>;
+        return <Badge variant={value ? 'dotSuccess' : 'dotNeutral'}>{value ? '활성' : '비활성'}</Badge>;
       },
     },
     {

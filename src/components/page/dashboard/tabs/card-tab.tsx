@@ -171,10 +171,7 @@ function CardTab() {
                       {country.name} ({country.code})
                     </span>
                     {needsOverallWarning(country) && (
-                      <Badge variant='warning' className='gap-1 rounded-full px-2 py-1'>
-                        <AlertCircle className='h-3 w-3' />
-                        주의 필요
-                      </Badge>
+                      <Badge variant='dotWarning'>주의 필요</Badge>
                     )}
                   </div>
                   <div className='text-sm text-slate-500'>

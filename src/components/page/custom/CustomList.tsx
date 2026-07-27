@@ -117,7 +117,7 @@ function CustomList() {
       size: 96,
       cell: ({ row }) => {
         const label = PetCustomTypeOptions.find((item) => item.value === row.original.type)?.label;
-        return <Badge variant='info'>{label}</Badge>;
+        return <Badge variant='softInfo'>{label}</Badge>;
       },
     },
     {
@@ -126,7 +126,7 @@ function CustomList() {
       size: 96,
       cell: ({ row }) => {
         const label = petTypeOptions.find((item) => item.value === row.original.petType)?.label;
-        return <Badge variant='info'>{label}</Badge>;
+        return <Badge variant='softNeutral'>{label}</Badge>;
       },
     },
     {
@@ -134,7 +134,7 @@ function CustomList() {
       header: '펫 레벨',
       size: 88,
       cell: ({ row }) => {
-        return <Badge variant='secondary'>{row.original.petLevel}</Badge>;
+        return row.original.petLevel;
       },
     },
     {
@@ -143,7 +143,7 @@ function CustomList() {
       size: 96,
       cell: ({ row }) => {
         const value = row.original.isPaid;
-        return <Badge variant={value ? 'warning' : 'destructive'}>{value ? '스타' : '하트'}</Badge>;
+        return <Badge variant={value ? 'softWarning' : 'softDanger'}>{value ? '스타' : '하트'}</Badge>;
       },
     },
     {
@@ -151,7 +151,7 @@ function CustomList() {
       header: '가격',
       size: 96,
       cell: ({ row }) => {
-        return <Badge variant='success'>{row.original.price}</Badge>;
+        return row.original.price;
       },
     },
     {
@@ -160,7 +160,7 @@ function CustomList() {
       size: 92,
       cell: ({ row }) => {
         const value = row.original.isActive;
-        return <Badge variant={value ? 'success' : 'destructive'}>{value ? '활성' : '비활성'}</Badge>;
+        return <Badge variant={value ? 'dotSuccess' : 'dotNeutral'}>{value ? '활성' : '비활성'}</Badge>;
       },
     },
     {

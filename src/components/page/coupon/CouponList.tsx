@@ -84,7 +84,7 @@ function CouponList() {
       header: '히트',
       size: 90,
       cell: ({ row }) => {
-        return <Badge variant='destructive'>{row.original.heart}</Badge>;
+        return <Badge variant='softDanger'>{row.original.heart}</Badge>;
       },
     },
     {
@@ -92,7 +92,7 @@ function CouponList() {
       header: '스타',
       size: 90,
       cell: ({ row }) => {
-        return <Badge variant='warning'>{row.original.star}</Badge>;
+        return <Badge variant='softWarning'>{row.original.star}</Badge>;
       },
     },
     {
@@ -100,7 +100,7 @@ function CouponList() {
       header: '티켓 수',
       size: 96,
       cell: ({ row }) => {
-        return <Badge variant='default'>{row.original.ticketCount}</Badge>;
+        return row.original.ticketCount;
       },
     },
     {
@@ -108,7 +108,7 @@ function CouponList() {
       header: '티켓 혜택 일',
       size: 120,
       cell: ({ row }) => {
-        return <Badge variant='default'>{row.original.ticketDueDayNum}</Badge>;
+        return row.original.ticketDueDayNum;
       },
     },
     {

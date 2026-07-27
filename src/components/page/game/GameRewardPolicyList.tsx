@@ -55,7 +55,7 @@ function GameRewardPolicyList() {
       size: 80,
       cell: ({ row }) => {
         const isActive = row.original.isActive;
-        return <Badge variant={isActive ? 'success' : 'destructive'}>{isActive ? '활성' : '비활성'}</Badge>;
+        return <Badge variant={isActive ? 'dotSuccess' : 'dotNeutral'}>{isActive ? '활성' : '비활성'}</Badge>;
       },
     },
   ];

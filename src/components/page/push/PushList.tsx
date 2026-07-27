@@ -38,8 +38,8 @@ function PushList() {
       header: '상태',
       cell: ({ row }) => {
         const value = row.original.isActive;
-        if (value) return <Badge variant='success'>활성</Badge>;
-        if (!value) return <Badge variant='destructive'>비활성</Badge>;
+        if (value) return <Badge variant='dotSuccess'>활성</Badge>;
+        if (!value) return <Badge variant='dotNeutral'>비활성</Badge>;
       },
     },
   ];

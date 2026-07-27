@@ -40,7 +40,7 @@ function GameRankingList() {
       size: 80,
       cell: ({ row }) => {
         const rank = row.original.rank;
-        return <Badge variant={rank <= 5 ? 'warning' : 'secondary'}>{rank}</Badge>;
+        return <Badge variant={rank <= 5 ? 'softWarning' : 'softNeutral'}>{rank}</Badge>;
       },
     },
     {
@@ -57,7 +57,7 @@ function GameRankingList() {
       header: '연도',
       size: 80,
       cell: ({ row }) => {
-        return <Badge variant='secondary'>{row.original.year}년</Badge>;
+        return `${row.original.year}년`;
       },
     },
     {
@@ -65,7 +65,7 @@ function GameRankingList() {
       header: '월',
       size: 80,
       cell: ({ row }) => {
-        return <Badge variant='secondary'>{row.original.month}월</Badge>;
+        return `${row.original.month}월`;
       },
     },
     {
@@ -73,7 +73,7 @@ function GameRankingList() {
       header: '주차',
       size: 80,
       cell: ({ row }) => {
-        return <Badge variant='secondary'>{row.original.week}주차</Badge>;
+        return `${row.original.week}주차`;
       },
     },
     {
@@ -82,11 +82,7 @@ function GameRankingList() {
       size: 150,
       cell: ({ row }) => {
         const profile = row.original.profile as Profile;
-        return (
-          <div style={{ display: 'flex', flexDirection: 'row', gap: '4px' }}>
-            <Badge variant='default'>{profile.nickname}</Badge>
-          </div>
-        );
+        return profile.nickname;
       },
     },
     {
@@ -95,7 +91,7 @@ function GameRankingList() {
       size: 150,
       cell: ({ row }) => {
         const score = (row.original as GameRanking & { bestScore?: number }).bestScore ?? row.original.score;
-        return <Badge variant='success'>{score.toLocaleString()} P</Badge>;
+        return `${score.toLocaleString()} P`;
       },
     },
     {
@@ -104,7 +100,7 @@ function GameRankingList() {
       size: 150,
       cell: ({ row }) => {
         const space = row.original.space as Space;
-        return <Badge variant='secondary'>{space.id}</Badge>;
+        return <span className='font-mono text-slate-700'>{space.id}</span>;
       },
     },
   ];

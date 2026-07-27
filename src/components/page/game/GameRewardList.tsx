@@ -77,11 +77,7 @@ function GameRewardList() {
       size: 200,
       cell: ({ row }) => {
         const profile = row.original.profile as Profile;
-        return (
-          <div style={{ display: 'flex', flexDirection: 'row', gap: '4px' }}>
-            <Badge variant='default'>{profile.nickname}</Badge>
-          </div>
-        );
+        return profile.nickname;
       },
     },
     {
@@ -90,7 +86,7 @@ function GameRewardList() {
       header: '월',
       size: 50,
       cell: ({ row }) => {
-        return <Badge variant='secondary'>{row.original.month}월</Badge>;
+        return `${row.original.month}월`;
       },
     },
     {
@@ -99,7 +95,7 @@ function GameRewardList() {
       header: '주차',
       size: 50,
       cell: ({ row }) => {
-        return <Badge variant='secondary'>{row.original.week}주차</Badge>;
+        return `${row.original.week}주차`;
       },
     },
     {
@@ -108,7 +104,7 @@ function GameRewardList() {
       size: 50,
       cell: ({ row }) => {
         const condition = row.original.condition as GameRewardCondition;
-        return <Badge variant='secondary'>{getRewardRankLabel(condition)}</Badge>;
+        return <Badge variant='softNeutral'>{getRewardRankLabel(condition)}</Badge>;
       },
     },
     {
@@ -117,7 +113,7 @@ function GameRewardList() {
       size: 120,
       cell: ({ row }) => {
         const condition = row.original.condition as GameRewardCondition;
-        return <Badge variant='secondary'>{getRewardScoreLabel(condition)}</Badge>;
+        return <Badge variant='softNeutral'>{getRewardScoreLabel(condition)}</Badge>;
       },
     },
     {
@@ -125,7 +121,7 @@ function GameRewardList() {
       header: '획득 보상',
       size: 120,
       cell: ({ row }) => {
-        return <Badge variant='destructive'>{row.original.heartsEarned} 하트</Badge>;
+        return <Badge variant='softDanger'>{row.original.heartsEarned} 하트</Badge>;
       },
     },
     {
@@ -134,7 +130,7 @@ function GameRewardList() {
       size: 120,
       cell: ({ row }) => {
         const isRead = Boolean(row.original.isRead);
-        return <Badge variant={isRead ? 'success' : 'destructive'}>{isRead ? '확인' : '미확인'}</Badge>;
+        return <Badge variant={isRead ? 'dotSuccess' : 'dotNeutral'}>{isRead ? '확인' : '미확인'}</Badge>;
       },
     },
     {
@@ -142,7 +138,7 @@ function GameRewardList() {
       header: '공간 ID',
       cell: ({ row }) => {
         const space = row.original.space as Space;
-        return <Badge variant='secondary'>{space.id}</Badge>;
+        return <span className='font-mono text-slate-700'>{space.id}</span>;
       },
     },
   ];
