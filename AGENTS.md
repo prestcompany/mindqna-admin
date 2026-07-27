@@ -123,13 +123,27 @@ export default ExampleListPage;
 
 ### 4.2 디자인 시스템 적용 현황
 
-**완료** — Geist 토큰 전환, `slate`/`gray` 무채색화, 정적 표면 그림자 전량 제거(83곳), 컨트롤 평면화(버튼·입력·뱃지·셀렉트·체크박스·라디오·스위치), 곡률/보더/`zinc` 정규화, 툴바 19개 모듈 `FilterBar` 통일(`DefaultTableBtn` 삭제).
+Geist 전환은 완료 상태입니다.
 
-**남은 작업**
-- solid 뱃지 → `dot`/`soft` 재분류 (약 41곳)
-- `assets` 모듈 편입 (4파일: 자체 페이지 헤더·gray 캔버스·blue 액센트·정적 그림자 제거, `DataTable` 채택)
-- `text-gray-*` → `text-slate-*` 명명 통일 (약 41곳, 색은 이미 동일)
-- `border-slate-*` → `border-border` 시맨틱 토큰 이전
+- 토큰 레이어(`globals.css` / `tailwind.config.js`) Geist 값으로 전환
+- Tailwind `slate`/`gray` 팔레트를 채도 0 램프로 재정의
+- 정적 표면의 border+shadow 이중 적용 83곳 제거, 컨트롤 전면 평면화
+- 곡률·보더 불투명도·`zinc`·임의 duration 정규화
+- 툴바 19개 모듈 `FilterBar` 통일 (`DefaultTableBtn` 삭제)
+- solid 뱃지 재분류: 상태→`dot`, 카테고리→`soft`, 단순 값→중립 텍스트
+- `assets` 모듈 편입 (자체 헤더·gray/blue 팔레트·전체 새로고침 제거)
+- `gray-*`→`slate-*`, `border-slate-200/100`→`border-border`
+
+**의도적으로 남긴 것**
+
+| 항목 | 사유 |
+|---|---|
+| `assets`의 이미지 그리드 + 무한 스크롤 | 썸네일 브라우징에는 `DataTable`보다 그리드가 맞음 |
+| `GamePlayList`·`GameRankingList`의 인라인 색 뱃지 | 게임별 `primaryKeyColor` 기반 데이터 색 |
+| `border-slate-300` / `-400` | hover·focus 어포던스(헤어라인 아님) |
+| `border-slate-700` / `-900`, `pages/login.tsx`의 `text-slate-400` | 로그인 화면은 다크 표면 예외 |
+
+**남은 정리 대상** — `text-lg`/`rounded-2xl` 등 스케일 밖 값이 대시보드 일부에 잔존.
 
 ---
 
