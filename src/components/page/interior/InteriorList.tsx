@@ -3,7 +3,7 @@ import { ImgItem, InteriorTemplate, InteriorTemplateType } from '@/client/types'
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
 import DataTable from '@/components/shared/ui/data-table';
-import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import { FILTER_CONTROL_CLASS, FilterBar } from '@/components/shared/ui/filter-bar';
 import TableRowActions from '@/components/shared/ui/table-row-actions';
 import {
   AlertDialog,
@@ -201,65 +201,64 @@ function InteriorList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <DefaultTableBtn className='justify-between'>
-        <div className='flex flex-wrap items-center gap-2 py-4'>
-          <div className='relative min-w-[240px]'>
-            <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
-            <Input
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder='이름/카테고리 검색 (2자 이상)'
-              className='pl-9'
-            />
-          </div>
-          <Select
-            value={filter.room ?? '__all__'}
-            onValueChange={(value) => setFilter((prev) => ({ ...prev, room: value === '__all__' ? undefined : value }))}
-          >
-            <SelectTrigger className='w-[160px]'>
-              <SelectValue placeholder='방 타입' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='__all__'>전체 방</SelectItem>
-              {roomItems.map((item) => (
-                <SelectItem key={item.type} value={item.type}>
-                  {item.type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={(filter.type ?? [])?.[0] ?? '__all__'}
-            onValueChange={(value) =>
-              setFilter((prev) => ({
-                ...prev,
-                type: value === '__all__' ? undefined : [value as InteriorTemplateType],
-              }))
-            }
-          >
-            <SelectTrigger className='w-[150px]'>
-              <SelectValue placeholder='타입' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='__all__'>전체 타입</SelectItem>
-              <SelectItem value='item'>아이템</SelectItem>
-              <SelectItem value='wall'>벽지</SelectItem>
-              <SelectItem value='floor'>바닥</SelectItem>
-              <SelectItem value='todayFrame'>오늘 프레임</SelectItem>
-              <SelectItem value='event'>이벤트</SelectItem>
-            </SelectContent>
-          </Select>
+      <FilterBar>
+        <div className='relative min-w-[240px]'>
+          <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+          <Input
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder='이름/카테고리 검색 (2자 이상)'
+            className={`pl-9 ${FILTER_CONTROL_CLASS}`}
+          />
         </div>
+        <Select
+          value={filter.room ?? '__all__'}
+          onValueChange={(value) => setFilter((prev) => ({ ...prev, room: value === '__all__' ? undefined : value }))}
+        >
+          <SelectTrigger className={`w-[160px] ${FILTER_CONTROL_CLASS}`}>
+            <SelectValue placeholder='방 타입' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='__all__'>전체 방</SelectItem>
+            {roomItems.map((item) => (
+              <SelectItem key={item.type} value={item.type}>
+                {item.type}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={(filter.type ?? [])?.[0] ?? '__all__'}
+          onValueChange={(value) =>
+            setFilter((prev) => ({
+              ...prev,
+              type: value === '__all__' ? undefined : [value as InteriorTemplateType],
+            }))
+          }
+        >
+          <SelectTrigger className={`w-[150px] ${FILTER_CONTROL_CLASS}`}>
+            <SelectValue placeholder='타입' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='__all__'>전체 타입</SelectItem>
+            <SelectItem value='item'>아이템</SelectItem>
+            <SelectItem value='wall'>벽지</SelectItem>
+            <SelectItem value='floor'>바닥</SelectItem>
+            <SelectItem value='todayFrame'>오늘 프레임</SelectItem>
+            <SelectItem value='event'>이벤트</SelectItem>
+          </SelectContent>
+        </Select>
+        <div className='flex-1' />
         <Button
           onClick={() => {
             setFocused(undefined);
             setOpenCreate(true);
           }}
-          size='lg'
+          className={FILTER_CONTROL_CLASS}
         >
           추가
         </Button>
-      </DefaultTableBtn>
+      </FilterBar>
       <DataTable
         columns={columns}
         data={templates ?? []}

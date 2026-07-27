@@ -2,7 +2,7 @@ import { removeCustomTemplate } from '@/client/custom';
 import { ImgItem, PetCustomTemplate } from '@/client/types';
 import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
 import DataTable from '@/components/shared/ui/data-table';
-import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import { FILTER_CONTROL_CLASS, FilterBar } from '@/components/shared/ui/filter-bar';
 import TableRowActions from '@/components/shared/ui/table-row-actions';
 import {
   AlertDialog,
@@ -213,26 +213,27 @@ function CustomList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <DefaultTableBtn className='justify-between'>
-        <div className='relative min-w-[260px] py-4'>
+      <FilterBar>
+        <div className='relative min-w-[260px]'>
           <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder='이름 / 파일 키 검색 (2자 이상)'
-            className='pl-9'
+            className={`pl-9 ${FILTER_CONTROL_CLASS}`}
           />
         </div>
+        <div className='flex-1' />
         <Button
           onClick={() => {
             setFocused(undefined);
             setOpenCreate(true);
           }}
-          size='lg'
+          className={FILTER_CONTROL_CLASS}
         >
           펫 커스텀 추가
         </Button>
-      </DefaultTableBtn>
+      </FilterBar>
       <DataTable
         columns={columns}
         data={templates ?? []}

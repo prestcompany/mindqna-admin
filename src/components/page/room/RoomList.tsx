@@ -1,7 +1,7 @@
 import { RoomCategory, RoomTemplate, removeRoom } from '@/client/room';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import DataTable from '@/components/shared/ui/data-table';
-import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import { FILTER_CONTROL_CLASS, FilterBar } from '@/components/shared/ui/filter-bar';
 import TableRowActions from '@/components/shared/ui/table-row-actions';
 import {
   AlertDialog,
@@ -126,17 +126,18 @@ function RoomList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <DefaultTableBtn className='justify-end'>
+      <FilterBar>
+        <div className='flex-1' />
         <Button
           onClick={() => {
             setFocused(undefined);
             setOpenCreate(true);
           }}
-          size='lg'
+          className={FILTER_CONTROL_CLASS}
         >
           추가
         </Button>
-      </DefaultTableBtn>
+      </FilterBar>
 
       <DataTable
         columns={columns}

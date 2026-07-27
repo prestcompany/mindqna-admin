@@ -324,12 +324,13 @@ Pagination
 | 보더 불투명도 변형 제거 | 77곳 → **0**(login 제외) | 헤어라인 단일값화 |
 | 임의 duration 토큰화 | 1곳 → **0** | `duration-exit` 추가 |
 | `zinc-*` → `slate-*` | 26곳 → **0** | |
+| 툴바 `DefaultTableBtn` → `FilterBar` | 14개 모듈 + `UserFilterBar` | 툴바 세대 통일. `default-table-btn.tsx` 삭제 |
+| 툴바 컨트롤 높이 통일 | — | 전 모듈 `FILTER_CONTROL_CLASS`(h-8), 추가 버튼 `size='lg'` 제거 |
 
 ### 남은 작업
 
 | 항목 | 규모 | 조치 |
 |---|---|---|
-| 툴바 `DefaultTableBtn` → `FilterBar` | 14개 모듈 | §5.5 — 세대 통일. 체감 효과 가장 큼 |
 | solid 뱃지 → dot/soft 재분류 | 41곳 | §5.4 |
 | `assets` 모듈 편입 | 4파일 | 자체 페이지 헤더·`bg-gray-50` 캔버스·`blue-500` 액센트·정적 `shadow-md/lg` 제거, `DataTable` 채택 |
 | `text-gray-*` → `text-slate-*` | 41곳 | 팔레트 재정의로 **색은 이미 동일**. 명명 통일만 남음 |

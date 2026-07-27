@@ -1,6 +1,6 @@
 import { AdminPush } from '@/client/push';
 import DataTable from '@/components/shared/ui/data-table';
-import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import { FILTER_CONTROL_CLASS, FilterBar } from '@/components/shared/ui/filter-bar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import usePushes from '@/hooks/usePushes';
@@ -45,36 +45,31 @@ function PushList() {
   ];
   return (
     <>
-      <DefaultTableBtn className='justify-between'>
-        <div>
-          <div className='flex items-center gap-2 py-6 '>
-            <Select
-              value={(filter.locale ?? [])?.[0] ?? ''}
-              onValueChange={(v: string) => {
-                setFilter((prev) => ({ ...prev, locale: v ? [v] : undefined }));
-              }}
-            >
-              <SelectTrigger className='w-[120px]'>
-                <SelectValue placeholder='언어' />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='ko'>ko</SelectItem>
-                <SelectItem value='en'>en</SelectItem>
-                <SelectItem value='ja'>ja</SelectItem>
-                <SelectItem value='zh'>zh</SelectItem>
-                <SelectItem value='zhTw'>zhTw</SelectItem>
-                <SelectItem value='es'>es</SelectItem>
-                <SelectItem value='id'>id</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div className='flex-item-list'>
-          <Button onClick={() => router.push('/marketing/push/new')}>
-            푸시 등록
-          </Button>
-        </div>
-      </DefaultTableBtn>
+      <FilterBar>
+        <Select
+          value={(filter.locale ?? [])?.[0] ?? ''}
+          onValueChange={(v: string) => {
+            setFilter((prev) => ({ ...prev, locale: v ? [v] : undefined }));
+          }}
+        >
+          <SelectTrigger className={`w-[120px] ${FILTER_CONTROL_CLASS}`}>
+            <SelectValue placeholder='언어' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='ko'>ko</SelectItem>
+            <SelectItem value='en'>en</SelectItem>
+            <SelectItem value='ja'>ja</SelectItem>
+            <SelectItem value='zh'>zh</SelectItem>
+            <SelectItem value='zhTw'>zhTw</SelectItem>
+            <SelectItem value='es'>es</SelectItem>
+            <SelectItem value='id'>id</SelectItem>
+          </SelectContent>
+        </Select>
+        <div className='flex-1' />
+        <Button onClick={() => router.push('/marketing/push/new')} className={FILTER_CONTROL_CLASS}>
+          푸시 등록
+        </Button>
+      </FilterBar>
 
       <DataTable
         columns={columns}

@@ -2,7 +2,7 @@ import { publishCardTemplates, removeCardTemplate, unpublishedCardTemplates } fr
 import { CardTemplate, CardTemplateType, GetCardTemplatesResult, SpaceType } from '@/client/types';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import DataTable from '@/components/shared/ui/data-table';
-import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import { FILTER_CONTROL_CLASS, FilterBar } from '@/components/shared/ui/filter-bar';
 import TableRowActions from '@/components/shared/ui/table-row-actions';
 import {
   AlertDialog,
@@ -197,76 +197,73 @@ function CardList() {
 
   return (
     <div>
-      <DefaultTableBtn className='justify-between'>
-        <div className='flex gap-2 items-center py-4'>
-          <ShadSelect
-            value={(filter.locale ?? [])?.[0] ?? '__all__'}
-            onValueChange={(v: string) => {
-              setFilter((prev) => ({ ...prev, locale: v === '__all__' ? undefined : [v] }));
-            }}
-          >
-            <SelectTrigger className='w-[120px]'>
-              <SelectValue placeholder='언어' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='__all__'>전체</SelectItem>
-              <SelectItem value='ko'>ko</SelectItem>
-              <SelectItem value='en'>en</SelectItem>
-              <SelectItem value='ja'>ja</SelectItem>
-              <SelectItem value='zh'>zh</SelectItem>
-              <SelectItem value='zhTw'>zhTw</SelectItem>
-              <SelectItem value='es'>es</SelectItem>
-              <SelectItem value='id'>id</SelectItem>
-            </SelectContent>
-          </ShadSelect>
-          <ShadSelect
-            value={(filter.type ?? [])?.[0] ?? '__all__'}
-            onValueChange={(v: string) => {
-              setFilter((prev) => ({ ...prev, type: v === '__all__' ? undefined : [v as CardTemplateType] }));
-            }}
-          >
-            <SelectTrigger className='w-[120px]'>
-              <SelectValue placeholder='질문타입' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='__all__'>전체</SelectItem>
-              <SelectItem value='basic'>basic</SelectItem>
-              <SelectItem value='bonus'>bonus</SelectItem>
-            </SelectContent>
-          </ShadSelect>
-          <ShadSelect
-            value={(filter.spaceType ?? [])?.[0] ?? '__all__'}
-            onValueChange={(v: string) => {
-              setFilter((prev) => ({ ...prev, spaceType: v === '__all__' ? undefined : [v as SpaceType] }));
-            }}
-          >
-            <SelectTrigger className='w-[120px]'>
-              <SelectValue placeholder='공간타입' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='__all__'>전체</SelectItem>
-              <SelectItem value='alone'>혼자</SelectItem>
-              <SelectItem value='couple'>커플</SelectItem>
-              <SelectItem value='family'>가족</SelectItem>
-              <SelectItem value='friends'>친구</SelectItem>
-            </SelectContent>
-          </ShadSelect>
-        </div>
-        <div className='flex gap-4 items-center'>
-          <Button variant='outline' size='lg' onClick={handleBulkUpload}>
-            카드 템플릿 엑셀 업로드
-          </Button>
-          <Button
-            onClick={() => {
-              setFocused(undefined);
-              setOpenCreate(true);
-            }}
-            size='lg'
-          >
-            카드 템플릿 추가
-          </Button>
-        </div>
-      </DefaultTableBtn>
+      <FilterBar>
+        <ShadSelect
+          value={(filter.locale ?? [])?.[0] ?? '__all__'}
+          onValueChange={(v: string) => {
+            setFilter((prev) => ({ ...prev, locale: v === '__all__' ? undefined : [v] }));
+          }}
+        >
+          <SelectTrigger className={`w-[120px] ${FILTER_CONTROL_CLASS}`}>
+            <SelectValue placeholder='언어' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='__all__'>전체</SelectItem>
+            <SelectItem value='ko'>ko</SelectItem>
+            <SelectItem value='en'>en</SelectItem>
+            <SelectItem value='ja'>ja</SelectItem>
+            <SelectItem value='zh'>zh</SelectItem>
+            <SelectItem value='zhTw'>zhTw</SelectItem>
+            <SelectItem value='es'>es</SelectItem>
+            <SelectItem value='id'>id</SelectItem>
+          </SelectContent>
+        </ShadSelect>
+        <ShadSelect
+          value={(filter.type ?? [])?.[0] ?? '__all__'}
+          onValueChange={(v: string) => {
+            setFilter((prev) => ({ ...prev, type: v === '__all__' ? undefined : [v as CardTemplateType] }));
+          }}
+        >
+          <SelectTrigger className={`w-[120px] ${FILTER_CONTROL_CLASS}`}>
+            <SelectValue placeholder='질문타입' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='__all__'>전체</SelectItem>
+            <SelectItem value='basic'>basic</SelectItem>
+            <SelectItem value='bonus'>bonus</SelectItem>
+          </SelectContent>
+        </ShadSelect>
+        <ShadSelect
+          value={(filter.spaceType ?? [])?.[0] ?? '__all__'}
+          onValueChange={(v: string) => {
+            setFilter((prev) => ({ ...prev, spaceType: v === '__all__' ? undefined : [v as SpaceType] }));
+          }}
+        >
+          <SelectTrigger className={`w-[120px] ${FILTER_CONTROL_CLASS}`}>
+            <SelectValue placeholder='공간타입' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='__all__'>전체</SelectItem>
+            <SelectItem value='alone'>혼자</SelectItem>
+            <SelectItem value='couple'>커플</SelectItem>
+            <SelectItem value='family'>가족</SelectItem>
+            <SelectItem value='friends'>친구</SelectItem>
+          </SelectContent>
+        </ShadSelect>
+        <div className='flex-1' />
+        <Button variant='outline' onClick={handleBulkUpload} className={FILTER_CONTROL_CLASS}>
+          카드 템플릿 엑셀 업로드
+        </Button>
+        <Button
+          onClick={() => {
+            setFocused(undefined);
+            setOpenCreate(true);
+          }}
+          className={FILTER_CONTROL_CLASS}
+        >
+          카드 템플릿 추가
+        </Button>
+      </FilterBar>
 
       <DataTable
         columns={columns}
