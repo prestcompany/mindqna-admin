@@ -3,7 +3,7 @@ import { ImgItem, Snack } from '@/client/types';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
 import DataTable from '@/components/shared/ui/data-table';
-import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import { FILTER_CONTROL_CLASS, FilterBar } from '@/components/shared/ui/filter-bar';
 import TableRowActions from '@/components/shared/ui/table-row-actions';
 import {
   AlertDialog,
@@ -111,7 +111,7 @@ function SnackList() {
       header: '스타/하트',
       cell: ({ row }) => {
         const value = row.original.isPaid;
-        return <Badge variant={value ? 'warning' : 'destructive'}>{value ? '스타' : '하트'}</Badge>;
+        return <Badge variant={value ? 'softWarning' : 'softDanger'}>{value ? '스타' : '하트'}</Badge>;
       },
     },
     {
@@ -119,7 +119,7 @@ function SnackList() {
       header: '활성화',
       cell: ({ row }) => {
         const value = row.original.isActive;
-        return <Badge variant={value ? 'success' : 'muted'}>{value ? '활성화' : '비활성화'}</Badge>;
+        return <Badge variant={value ? 'dotSuccess' : 'dotNeutral'}>{value ? '활성화' : '비활성화'}</Badge>;
       },
     },
     {
@@ -156,17 +156,18 @@ function SnackList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <DefaultTableBtn className='justify-end'>
+      <FilterBar>
+        <div className='flex-1' />
         <Button
           onClick={() => {
             setFocused(undefined);
             setOpenCreate(true);
           }}
-          size='lg'
+          className={FILTER_CONTROL_CLASS}
         >
           추가
         </Button>
-      </DefaultTableBtn>
+      </FilterBar>
       <DataTable
         columns={columns}
         data={items ?? []}

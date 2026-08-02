@@ -129,7 +129,7 @@ function BannerForm({ init, reload, close }: Props) {
             <FormGroup title='대표 이미지*' description='권장 비율을 유지하면 리스트/상세에서 안정적으로 노출됩니다.'>
               <div className='flex flex-col items-start gap-2'>
                 {imageUri && (
-                  <div className='flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border/60 bg-transparent p-2'>
+                  <div className='flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border bg-transparent p-2'>
                     <img src={imageUri} alt='banner-preview' className='h-full w-full object-contain' />
                   </div>
                 )}
@@ -220,7 +220,7 @@ function BannerForm({ init, reload, close }: Props) {
                   <FormItem>
                     <FormControl>
                       <div className='flex items-center gap-3'>
-                        <div className='flex w-full max-w-[220px] items-center rounded-lg border border-border bg-background shadow-sm'>
+                        <div className='flex w-full max-w-[220px] items-center rounded-lg border border-border bg-background'>
                           <Button
                             type='button'
                             variant='ghost'

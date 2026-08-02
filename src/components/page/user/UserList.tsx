@@ -180,7 +180,7 @@ function UserList() {
                   <p>
                     <strong>{confirmTarget?.username}</strong> 사용자를 삭제하시겠습니까?
                   </p>
-                  <div className='mt-2 text-sm text-gray-600'>
+                  <div className='mt-2 text-sm text-slate-600'>
                     <p>• 이메일: {confirmTarget?.socialAccount.email}</p>
                     <p>• 가입일: {confirmTarget ? new Date(confirmTarget.createdAt).toLocaleDateString() : ''}</p>
                     <p>• 공간 수: {confirmTarget?._count.profiles}개</p>

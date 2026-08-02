@@ -65,10 +65,10 @@ const DefaultLayout = ({ Page, ...props }: IDefaultLayoutProps) => {
       <Sidebar isShowSidebar={isShowSidebar} hideSidebar={hideSidebar} />
 
       {/* mobile navigation */}
-      <div className='border-b border-border/70 bg-background/95 backdrop-blur sm:hidden'>
+      <div className='border-b border-border bg-background/95 backdrop-blur sm:hidden'>
         <div className='z-40 flex h-14 items-center justify-between px-4'>
           <div className='flex items-center gap-2.5'>
-            <div className='flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-sm'>
+            <div className='flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground'>
               M
             </div>
             <span className='text-sm font-semibold text-foreground'>mindBridge</span>
@@ -86,7 +86,7 @@ const DefaultLayout = ({ Page, ...props }: IDefaultLayoutProps) => {
           closed: { opacity: 0, y: '-10px', transitionEnd: { display: 'none' } },
         }}
         transition={{ duration: 0.15 }}
-        className='fixed inset-x-0 z-30 border-b border-border/70 bg-background/95 p-4 shadow-lg backdrop-blur sm:hidden'
+        className='fixed inset-x-0 z-30 border-b border-border bg-background/95 p-4 shadow-lg backdrop-blur sm:hidden'
         style={{ top: '3.5rem', maxHeight: 'calc(100vh - 3.5rem)' }}
       >
         <MainMenu />

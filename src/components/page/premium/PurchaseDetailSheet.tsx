@@ -62,7 +62,7 @@ function CopyableValue({ value, label }: { value: string; label: string }) {
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className='space-y-2 border-t border-slate-100 pt-4'>
+    <section className='space-y-2 border-t border-border pt-4'>
       <h4 className='text-xs font-semibold text-slate-600'>{title}</h4>
       {children}
     </section>
@@ -128,7 +128,7 @@ function UserContextSections({ username }: { username: string }) {
         )}
       </Section>
 
-      <div className='sticky bottom-0 -mx-5 -mb-4 flex flex-wrap justify-end gap-2 border-t border-slate-100 bg-background/95 px-5 py-3 backdrop-blur'>
+      <div className='sticky bottom-0 -mx-5 -mb-4 flex flex-wrap justify-end gap-2 border-t border-border bg-background/95 px-5 py-3 backdrop-blur'>
         <Button
           variant='outline'
           className='h-9'
@@ -274,7 +274,7 @@ function PurchaseDetailSheet({ open, context, onClose }: PurchaseDetailSheetProp
           ) : username ? (
             <UserContextSections username={username} />
           ) : (
-            <div className='rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600'>
+            <div className='rounded-lg border border-border bg-slate-50 p-3 text-xs text-slate-600'>
               탈퇴한 유저입니다. 이용권/이력 조회를 사용할 수 없습니다.
             </div>
           )}
@@ -290,7 +290,7 @@ function PurchaseUserSections({ purchaseId }: { purchaseId: number }) {
   if (!detail.data) return null;
   if (!detail.data.username) {
     return (
-      <div className='rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600'>
+      <div className='rounded-lg border border-border bg-slate-50 p-3 text-xs text-slate-600'>
         탈퇴한 유저입니다. 이용권/이력 조회를 사용할 수 없습니다.
       </div>
     );

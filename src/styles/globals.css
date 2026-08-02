@@ -8,65 +8,112 @@
     font-size: 15px;
     color-scheme: light;
   }
+
+  /*
+   * Geist(Vercel) 토큰 — DESIGN.md가 단일 출처입니다.
+   * `:root`가 곧 vercel 테마입니다. theme-provider가 `data-admin-theme="vercel"`을
+   * 강제로 설정하지만 대체 테마가 없으므로 별도 블록을 두지 않습니다(중복 출처 제거).
+   *
+   * 회색은 전부 채도 0(순수 무채색)입니다. 파란 기가 도는 톤을 섞지 마세요.
+   */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 72.2% 50.6%;
-    --destructive-foreground: 0 0% 98%;
-    --success: 142.1 64% 42%;
+    /* --- Surface ------------------------------------------------------ */
+    --canvas: 0 0% 98%; /* #fafafa — 페이지 캔버스 */
+    --canvas-elevated: 0 0% 100%; /* #ffffff — 카드/입력/코드블록 */
+    --hairline-soft: 0 0% 94.9%; /* #f2f2f2 — 옅은 인셋/교차 패널 */
+
+    --background: var(--canvas);
+    --card: var(--canvas-elevated);
+    --popover: var(--canvas-elevated);
+
+    /* --- Ink ladder (4단) --------------------------------------------- */
+    --ink: 0 0% 9%; /* #171717 — 제목/1차 텍스트 */
+    --body: 0 0% 30.2%; /* #4d4d4d — 본문/보조 텍스트 (8.1:1) */
+    --mute: 0 0% 56.1%; /* #8f8f8f — 3.1:1, 텍스트 금지·아이콘/데코 전용 */
+    --faint: 0 0% 63.1%; /* #a1a1a1 — placeholder/disabled 전용 */
+
+    --foreground: var(--ink);
+    --card-foreground: var(--ink);
+    --popover-foreground: var(--ink);
+    --muted-foreground: var(--body);
+
+    /* --- Border ------------------------------------------------------- */
+    --hairline: 0 0% 92.2%; /* #ebebeb — 모든 카드/입력/구분선의 1px */
+    --border: var(--hairline);
+    --input: var(--hairline);
+
+    /* --- Primary / chrome --------------------------------------------- */
+    --primary: var(--ink);
+    --primary-foreground: 0 0% 100%;
+    --secondary: var(--hairline-soft);
+    --secondary-foreground: var(--ink);
+    --muted: var(--hairline-soft);
+    --accent: var(--hairline-soft);
+    --accent-foreground: var(--ink);
+
+    /* --- Accent / link ------------------------------------------------ */
+    --link: 212 100% 47.6%; /* #0070f3 */
+    --link-deep: 213 94% 42%; /* #0761d1 — press */
+    --link-soft: 216 100% 91.4%; /* #d3e5ff — wash */
+    --ring: var(--link);
+
+    /* --- Chromatic family (일러스트/그라디언트 스톱 전용) --------------- */
+    --violet: 270 67% 47.5%; /* #7928ca */
+    --cyan: 166 72% 60.2%; /* #50e3c2 */
+    --pink: 330 100% 50%; /* #ff0080 */
+    --magenta: 336 82% 56.7%; /* #eb367f */
+
+    /* --- Brand gradient (develop / preview / ship) --------------------- */
+    --gradient-develop-start: 209 100% 47.1%; /* #007cf0 */
+    --gradient-develop-end: 178 100% 43.7%; /* #00dfd8 */
+    --gradient-preview-start: 270 67% 47.5%; /* #7928ca */
+    --gradient-preview-end: 330 100% 50%; /* #ff0080 */
+    --gradient-ship-start: 0 100% 65.1%; /* #ff4d4d */
+    --gradient-ship-end: 47 95% 56.7%; /* #f9cb28 */
+
+    /* --- Semantic ------------------------------------------------------
+     * Geist 원안은 success를 link 블루에 매핑하지만, 어드민은 지급/차감·
+     * 성공/실패를 색으로 구분해야 하므로 success는 녹색을 유지합니다.
+     * (DESIGN.md §2.5 — 데이터 의미색 레이어)
+     */
+    --destructive: 0 100% 46.7%; /* #ee0000 */
+    --destructive-foreground: 0 0% 100%;
+    --destructive-deep: 0 100% 38.6%; /* #c50000 */
+    --success: 142 64% 42%;
     --success-foreground: 138 76% 97%;
-    --warning: 37 96% 58%;
-    --warning-foreground: 26 83.3% 14.1%;
-    --info: 212 92% 58%;
-    --info-foreground: 210 40% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 9%;
-    --chart-1: 0 0% 9%;
+    --warning: 37 91% 54.9%; /* #f5a623 */
+    --warning-foreground: 26 83% 14.1%;
+    --info: var(--link);
+    --info-foreground: 0 0% 100%;
+
+    /* --- Chart -------------------------------------------------------- */
+    --chart-1: var(--ink);
     --chart-2: 0 0% 35%;
-    --chart-3: 212 92% 58%;
-    --chart-4: 142.1 64% 42%;
-    --chart-5: 37 96% 58%;
-    --radius: 0.625rem;
+    --chart-3: var(--link);
+    --chart-4: 142 64% 42%;
+    --chart-5: 37 91% 54.9%;
+
+    /* --- Radius (Geist: 6 / 12 / 16 / pill) ---------------------------- */
+    --radius-micro: 4px; /* 체크박스 등 마이크로 컨트롤 */
+    --radius-control: 6px; /* 버튼·입력·뱃지·셀렉트 */
+    --radius-card: 12px; /* 카드·테이블 컨테이너·코드블록 */
+    --radius-panel: 16px; /* 큰 패널·시트 */
+    --radius-pill: 100px; /* 필터 칩·카테고리 탭 */
+
+    /* shadcn 호환 별칭 — 신규 코드는 위 역할 토큰을 쓰세요. */
+    --radius: var(--radius-card);
+
+    /* --- Elevation (2단) ----------------------------------------------
+     * Level 0(정적 표면)은 그림자 없음 — 헤어라인만으로 분리합니다.
+     */
+    --shadow-whisper: 0 1px 1px rgba(0, 0, 0, 0.04);
+    --shadow-floating: 0 2px 2px rgba(0, 0, 0, 0.04), 0 8px 16px -4px rgba(0, 0, 0, 0.06);
   }
-  [data-admin-theme="vercel"] {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 9%;
-    --info: 212 92% 58%;
-    --info-foreground: 210 40% 98%;
-    --chart-1: 0 0% 9%;
-    --chart-2: 0 0% 35%;
-    --chart-3: 212 92% 58%;
-    --chart-4: 142.1 64% 42%;
-    --chart-5: 37 96% 58%;
-  }
+
+  /*
+   * 다크 모드는 현재 비활성입니다(theme-provider가 `dark` 클래스를 제거하고
+   * color-scheme을 light로 고정). 정의만 남겨둡니다.
+   */
   .dark,
   html.dark {
     --background: 0 0% 4%;
@@ -83,36 +130,36 @@
     --muted-foreground: 0 0% 64%;
     --accent: 0 0% 14%;
     --accent-foreground: 0 0% 96%;
-    --destructive: 0 72.2% 50.6%;
+    --destructive: 0 100% 46.7%;
     --destructive-foreground: 0 0% 98%;
-    --success: 142.1 64% 42%;
+    --success: 142 64% 42%;
     --success-foreground: 138 76% 97%;
-    --warning: 37 96% 58%;
+    --warning: 37 91% 54.9%;
     --warning-foreground: 20 14.3% 4.1%;
-    --info: 212 92% 58%;
-    --info-foreground: 210 40% 98%;
+    --info: 212 100% 47.6%;
+    --info-foreground: 0 0% 98%;
     --border: 0 0% 18%;
     --input: 0 0% 18%;
     --ring: 0 0% 72%;
     --chart-1: 0 0% 96%;
     --chart-2: 0 0% 74%;
-    --chart-3: 212 92% 58%;
-    --chart-4: 142.1 64% 42%;
-    --chart-5: 37 96% 58%;
+    --chart-3: 212 100% 47.6%;
+    --chart-4: 142 64% 42%;
+    --chart-5: 37 91% 54.9%;
   }
 }
 
 @layer components {
   h2.title {
-    @apply my-5 text-xl;
+    @apply my-6 text-lg font-semibold tracking-tight;
   }
 
   h3.title {
-    @apply my-5 text-lg;
+    @apply my-4 text-base font-semibold tracking-tight;
   }
 
   .enable-transition {
-    @apply transition-all duration-300;
+    @apply transition-all duration-base;
   }
 
   .link-with-icon {
@@ -132,7 +179,7 @@
   }
 
   .btn {
-    @apply border border-border rounded-lg cursor-pointer enable-transition hover:border-primary;
+    @apply border border-border rounded-md cursor-pointer enable-transition hover:border-primary;
   }
 
   .cols-2 {
@@ -145,6 +192,11 @@
 
   .ellipsis-text {
     @apply overflow-hidden whitespace-nowrap overflow-ellipsis;
+  }
+
+  /* Geist §Typography — 섹션 상단 mono 아이브로우 라벨 */
+  .eyebrow {
+    @apply font-mono text-xs font-medium uppercase tracking-wide text-body;
   }
 }
 
@@ -160,7 +212,7 @@
   }
 }
 
-/* 모션 민감 사용자: 전역 모션 최소화 (DESIGN.md §4.1) */
+/* 모션 민감 사용자: 전역 모션 최소화 (DESIGN.md §6.1) */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

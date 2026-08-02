@@ -19,6 +19,7 @@ export const ROUTE_LABELS: Record<string, string> = {
   'iap-product': '인앱 상품',
   coupon: '쿠폰',
   game: '게임',
+  play: '게임 플레이',
   ranking: '랭킹',
   reward: '보상',
   'reward-policy': '보상 정책',
@@ -32,6 +33,7 @@ export const ROUTE_LABELS: Record<string, string> = {
   info: '소식',
   article: '아티클',
   'app-version': '앱 버전 관리',
+  'pdf-export': 'PDF 내보내기 관리',
 };
 
 const COMPOSITE_LAST_SEGMENTS = new Set(['list', 'new']);

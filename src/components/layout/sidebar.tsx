@@ -11,15 +11,15 @@ interface ISidebarProps {
 const Sidebar = ({ isShowSidebar, hideSidebar }: ISidebarProps) => {
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-40 hidden w-72 flex-col border-r border-border/70 bg-background/95 backdrop-blur ${
+      className={`fixed inset-y-0 left-0 z-40 hidden w-72 flex-col border-r border-border bg-background/95 backdrop-blur ${
         isShowSidebar ? 'sm:flex' : 'sm:hidden'
       }`}
     >
       <div className='flex h-full flex-col'>
-        <div className='border-b border-border/60 px-4 pb-3 pt-4'>
+        <div className='border-b border-border px-4 pb-3 pt-4'>
           <div className='flex items-center justify-between'>
             <Link href='/' className='flex items-center gap-3 group'>
-              <div className='flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-sm'>
+              <div className='flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground'>
                 M
               </div>
               <div className='leading-tight'>
@@ -40,7 +40,7 @@ const Sidebar = ({ isShowSidebar, hideSidebar }: ISidebarProps) => {
         <div className='grow overflow-auto px-2 py-3'>
           <MainMenu />
         </div>
-        <div className='border-t border-border/60 px-4 py-3 text-xs text-muted-foreground'>
+        <div className='border-t border-border px-4 py-3 text-xs text-muted-foreground'>
           Workspace: mindBridge Admin
         </div>
       </div>

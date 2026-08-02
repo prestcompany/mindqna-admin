@@ -1,8 +1,10 @@
 import { ImgItem } from '@/client/types';
+import { FILTER_CONTROL_CLASS, FilterBar } from '@/components/shared/ui/filter-bar';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import useAssets from '@/hooks/useAssets';
+import { cn } from '@/lib/utils';
 import { Check, ImageIcon, Loader2, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
@@ -29,10 +31,6 @@ function AssetsDrawer({ onClick, selectedImage }: AssetsDrawerProps) {
     return imgs.filter((img) => img.id.toString().includes(searchQuery) || img.uri.includes(searchQuery.toLowerCase()));
   }, [imgs, searchQuery]);
 
-  const showModal = () => {
-    setIsModalOpen(true);
-  };
-
   const handleCancel = () => {
     setIsModalOpen(false);
     setSearchQuery('');
@@ -45,47 +43,41 @@ function AssetsDrawer({ onClick, selectedImage }: AssetsDrawerProps) {
 
   return (
     <>
-      <Button type='button' onClick={showModal} className='flex gap-2 items-center'>
-        <ImageIcon size={16} />
+      <Button type='button' variant='outline' onClick={() => setIsModalOpen(true)}>
+        <ImageIcon size={16} aria-hidden='true' />
         이미지 선택
       </Button>
 
       <Dialog open={isModalOpen} onOpenChange={(open) => !open && handleCancel()}>
-        <DialogContent className='max-w-[1200px] p-0'>
-          <DialogHeader className='p-6 pb-0'>
-            <DialogTitle>
-              <div className='flex gap-3 items-center'>
-                <div className='p-2 bg-blue-100 rounded-lg'>
-                  <ImageIcon size={20} className='text-blue-600' />
-                </div>
-                <div>
-                  <div className='font-semibold'>이미지 선택</div>
-                  <div className='text-sm font-normal text-gray-500'>
-                    사용할 이미지를 선택해주세요. [현재 {filteredImgs.length}개]
-                  </div>
-                </div>
-              </div>
-            </DialogTitle>
+        <DialogContent className='max-w-[1200px] gap-0 p-0'>
+          <DialogHeader className='border-b border-border px-6 py-4 text-left'>
+            <DialogTitle className='text-base font-semibold tracking-heading'>이미지 선택</DialogTitle>
+            <DialogDescription className='text-sm'>
+              사용할 이미지를 고르세요. 현재 <span className='tabular-nums'>{filteredImgs.length}</span>개
+            </DialogDescription>
           </DialogHeader>
-          <div className='flex flex-col' style={{ height: '80vh' }}>
-            <div className='flex-shrink-0 p-6 bg-gray-50 border-b border-gray-200'>
-              <div className='relative'>
-                <Search size={16} className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400' />
-                <Input
-                  placeholder='이미지 ID나 파일명으로 검색...'
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className='pl-10 h-10'
-                />
-              </div>
+
+          <div className='flex max-h-[80vh] flex-col'>
+            <div className='shrink-0 border-b border-border px-6'>
+              <FilterBar>
+                <div className='relative min-w-[260px]'>
+                  <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+                  <Input
+                    placeholder='이미지 ID 또는 파일명 검색'
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className={`pl-9 ${FILTER_CONTROL_CLASS}`}
+                  />
+                </div>
+              </FilterBar>
             </div>
 
-            <div className='overflow-y-auto flex-1 p-6'>
+            <div className='flex-1 overflow-y-auto p-6'>
               {filteredImgs.length === 0 && !isLoading ? (
-                <div className='flex flex-col justify-center items-center py-16 text-gray-500'>
-                  <ImageIcon size={48} className='mb-4 text-gray-300' />
-                  <p className='text-lg font-medium'>검색 결과가 없습니다</p>
-                  <p className='text-sm'>다른 검색어를 시도해보세요</p>
+                <div className='flex flex-col items-center justify-center gap-2 py-16'>
+                  <ImageIcon size={32} className='text-mute' aria-hidden='true' />
+                  <p className='text-sm font-medium text-foreground'>검색 결과가 없습니다</p>
+                  <p className='text-xs text-muted-foreground'>다른 검색어를 시도해 보세요</p>
                 </div>
               ) : (
                 <div className='grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4'>
@@ -96,50 +88,41 @@ function AssetsDrawer({ onClick, selectedImage }: AssetsDrawerProps) {
                     const isSelected = selectedImage?.id === item.id;
 
                     return (
-                      <div
+                      <button
+                        type='button'
                         key={item.id}
-                        className={`
-                          relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-200
-                          ${
-                            isSelected
-                              ? 'border-blue-500 ring-2 ring-blue-200 shadow-lg'
-                              : 'border-gray-200 hover:border-blue-300 hover:shadow-md'
-                          }
-                        `}
+                        aria-pressed={isSelected}
                         onClick={() => handleImageSelect(item)}
+                        className={cn(
+                          'group relative overflow-hidden rounded-lg border bg-card text-left transition-colors duration-fast focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+                          isSelected ? 'border-primary ring-1 ring-primary' : 'border-border hover:border-slate-300',
+                        )}
                       >
                         {isSelected && (
-                          <div className='absolute top-2 right-2 z-10 p-1 text-white bg-blue-500 rounded-full'>
-                            <Check size={12} />
+                          <div className='absolute right-2 top-2 z-10 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground'>
+                            <Check size={12} aria-hidden='true' />
                           </div>
                         )}
 
-                        <div className='relative aspect-square overflow-hidden bg-transparent'>
-                          <img
-                            src={item.uri}
-                            alt='asset'
-                            className='h-full w-full object-contain'
-                            loading='lazy'
-                          />
-
-                          <div className='absolute inset-0 bg-black bg-opacity-0 transition-all duration-200 group-hover:bg-opacity-20' />
+                        <div className='relative aspect-square overflow-hidden'>
+                          <img src={item.uri} alt={`${displayName} 이미지`} className='h-full w-full object-contain' loading='lazy' />
                         </div>
 
-                        <div className='p-2 bg-white'>
-                          <div className='text-xs text-gray-600 truncate' title={displayName}>
-                            {displayName.length > 12 ? `${displayName.substring(0, 12)}...` : displayName}
+                        <div className='border-t border-border px-3 py-2'>
+                          <div className='truncate text-xs text-body' title={displayName}>
+                            {displayName}
                           </div>
-                          <div className='text-xs text-gray-400'>ID: {item.id}</div>
+                          <div className='mt-0.5 font-mono text-xs tabular-nums text-muted-foreground'>ID {item.id}</div>
                         </div>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
               )}
 
               {(hasNextPage || isLoading) && (
-                <div ref={sentryRef} className='flex justify-center items-center py-8'>
-                  <Loader2 className='h-8 w-8 animate-spin' />
+                <div ref={sentryRef} className='flex items-center justify-center py-8'>
+                  <Loader2 className='h-5 w-5 animate-spin text-muted-foreground' aria-hidden='true' />
                 </div>
               )}
             </div>

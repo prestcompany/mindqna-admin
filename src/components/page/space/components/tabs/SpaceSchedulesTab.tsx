@@ -38,7 +38,7 @@ function SpaceSchedulesTab({ spaceId, active }: { spaceId: string; active: boole
       {items.map((schedule) => {
         const expanded = expandedId === schedule.id;
         return (
-          <div key={schedule.id} className='overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-sm'>
+          <div key={schedule.id} className='overflow-hidden rounded-lg border border-border bg-white'>
             <button
               type='button'
               onClick={() => setExpandedId(expanded ? null : schedule.id)}
@@ -63,7 +63,7 @@ function SpaceSchedulesTab({ spaceId, active }: { spaceId: string; active: boole
               </div>
             </button>
             {expanded ? (
-              <div className='border-t border-slate-100 bg-slate-50/40 px-4 py-3'>
+              <div className='border-t border-border bg-slate-50/40 px-4 py-3'>
                 <SpaceScheduleDetail spaceId={spaceId} scheduleId={schedule.id} />
               </div>
             ) : null}

@@ -85,7 +85,7 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
       {/* 3. 상세 정보 — 아이콘 기반 필드 그리드 */}
       <section>
         <SectionTitle>상세 정보</SectionTitle>
-        <div className='grid grid-cols-1 gap-x-6 gap-y-6 rounded-lg border border-slate-200/80 bg-white p-6 shadow-sm sm:grid-cols-2 xl:grid-cols-3'>
+        <div className='grid grid-cols-1 gap-x-6 gap-y-6 rounded-lg border border-border bg-white p-6 sm:grid-cols-2 xl:grid-cols-3'>
           <DetailField icon={Cat} label='펫 이름 / 종류' value={petNameValue} />
           <DetailField
             icon={Flag}
@@ -116,7 +116,7 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
               const status = getMemberStatus(profile);
               const showAccessLine = Boolean(latestAccessAt) || Boolean(status.date);
               return (
-                <div key={profile.id} className='flex items-start gap-3 rounded-lg border border-slate-200/80 bg-white px-3 py-2.5 shadow-sm'>
+                <div key={profile.id} className='flex items-start gap-3 rounded-lg border border-border bg-white px-3 py-2.5'>
                   <Avatar className='h-9 w-9 shrink-0'>
                     {profile.img?.uri ? <AvatarImage src={profile.img.uri} alt={profile.nickname} className='object-cover' /> : null}
                     <AvatarFallback className='bg-slate-100 text-sm font-semibold text-slate-500'>{initial}</AvatarFallback>
@@ -149,7 +149,7 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
             })}
           </div>
         ) : (
-          <div className='rounded-lg border border-slate-200/80 bg-white px-4 py-6 text-center text-sm text-slate-500 shadow-sm'>멤버 정보가 없습니다.</div>
+          <div className='rounded-lg border border-border bg-white px-4 py-6 text-center text-sm text-slate-500'>멤버 정보가 없습니다.</div>
         )}
       </section>
 
@@ -157,7 +157,7 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
       <section>
         <SectionTitle>최근 재화 이용 내역</SectionTitle>
         {detail.recentCoinMetas?.length ? (
-          <div className='max-h-[420px] divide-y divide-slate-100 overflow-y-auto rounded-lg border border-slate-200/80 bg-white px-4 shadow-sm'>
+          <div className='max-h-[420px] divide-y divide-slate-100 overflow-y-auto rounded-lg border border-border bg-white px-4'>
             {detail.recentCoinMetas.map((meta) => {
               const actorName = meta.profile?.nickname ?? meta.profile?.user?.username ?? '-';
               const isSpend = meta.isUse || meta.amount < 0;
@@ -183,7 +183,7 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
             })}
           </div>
         ) : (
-          <div className='rounded-lg border border-slate-200/80 bg-white px-4 py-6 text-center text-sm text-slate-500 shadow-sm'>최근 재화 이용 내역이 없습니다.</div>
+          <div className='rounded-lg border border-border bg-white px-4 py-6 text-center text-sm text-slate-500'>최근 재화 이용 내역이 없습니다.</div>
         )}
       </section>
     </div>

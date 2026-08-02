@@ -13,7 +13,7 @@ function Section({ title, count, children }: { title: string; count: number; chi
   return (
     <section className='space-y-2'>
       <h4 className='text-xs font-semibold text-slate-600'>
-        {title} <span className='tabular-nums text-slate-400'>{count}</span>
+        {title} <span className='tabular-nums text-slate-500'>{count}</span>
       </h4>
       <div className='space-y-3'>{children}</div>
     </section>
@@ -57,7 +57,7 @@ function UserEntitlementsTab({ username, active }: { username: string; active: b
     <div className='space-y-4'>
       <LiveStatusBlock username={username} />
 
-      <div className='border-t border-slate-100' />
+      <div className='border-t border-border' />
 
       <Section title='프리미엄' count={tickets.length}>
         {tickets.map((t) => (
@@ -75,7 +75,7 @@ function UserEntitlementsTab({ username, active }: { username: string; active: b
         {subs.map((s) => (
           <div
             key={`s-${s.id}`}
-            className='flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm'
+            className='flex items-center gap-3 rounded-lg border border-border bg-white px-4 py-3'
           >
             <Badge variant='softNeutral' className='w-16 shrink-0 justify-center'>
               구독

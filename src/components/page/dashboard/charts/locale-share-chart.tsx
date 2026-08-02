@@ -67,13 +67,13 @@ function LocaleShareChart({
 
   if (!rankedRows.length || total <= 0) {
     return (
-      <Card className='border-slate-200/80 bg-white shadow-sm'>
+      <Card className='border-border bg-white'>
         <CardHeader className='space-y-2'>
           <CardTitle className='text-base text-slate-950'>{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className='flex h-[320px] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 text-sm text-slate-500'>
+          <div className='flex h-[320px] items-center justify-center rounded-2xl border border-dashed border-border bg-slate-50/70 text-sm text-slate-500'>
             표시할 로케일 비중이 없습니다.
           </div>
         </CardContent>
@@ -175,7 +175,7 @@ function LocaleShareChart({
   };
 
   return (
-    <Card className='border-slate-200/80 bg-white shadow-sm'>
+    <Card className='border-border bg-white'>
       <CardHeader className='space-y-2'>
         <CardTitle className='text-base text-slate-950'>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
@@ -204,7 +204,7 @@ function LocaleShareChart({
             return (
               <div
                 key={row.locale}
-                className='flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2'
+                className='flex items-center justify-between rounded-lg border border-border bg-slate-50/70 px-3 py-2'
               >
                 <div className='flex items-center gap-2'>
                   <span

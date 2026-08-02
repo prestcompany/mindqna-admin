@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 
 function PurchaseHistoryRow({ row }: { row: UserPurchaseRow }) {
   return (
-    <div className='flex items-center gap-3 rounded-lg border border-slate-200/80 bg-white px-3 py-2.5 shadow-sm'>
+    <div className='flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2.5'>
       <Badge variant='softNeutral' className='w-16 shrink-0 justify-center uppercase'>
         {row.platform}
       </Badge>

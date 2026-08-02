@@ -56,7 +56,7 @@ export const CardUploader = ({ setFile, accept }: CardUploaderProps) => {
           <p>업로드할 파일을 드래그하거나 해당 영역을 클릭하세요!</p>
           <p className='text-xs text-muted-foreground'>지원 형식: {accept.replaceAll(',', ', ')}</p>
           {fileMeta ? (
-            <div className='mt-2 w-full max-w-sm rounded-md border border-border/70 bg-muted/40 px-3 py-2 text-center'>
+            <div className='mt-2 w-full max-w-sm rounded-md border border-border bg-muted/40 px-3 py-2 text-center'>
               <p className='truncate text-sm font-medium text-foreground'>{fileMeta.name}</p>
               <p className='text-xs text-muted-foreground'>{fileMeta.sizeText}</p>
             </div>

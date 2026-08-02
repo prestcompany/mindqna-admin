@@ -32,11 +32,7 @@ function GamePlayList() {
       size: 200,
       cell: ({ row }) => {
         const profile = row.original.profile as Profile;
-        return (
-          <div style={{ display: 'flex', flexDirection: 'row', gap: '4px' }}>
-            <Badge variant='default'>{profile.nickname}</Badge>
-          </div>
-        );
+        return profile.nickname;
       },
     },
     {
@@ -44,8 +40,8 @@ function GamePlayList() {
       header: '획득 점수',
       size: 200,
       cell: ({ row }) => {
-        if (!row.original.endedAt) return <Badge variant='warning'>-</Badge>;
-        return <Badge variant='success'>{row.original.score} P</Badge>;
+        if (!row.original.endedAt) return '-';
+        return `${row.original.score} P`;
       },
     },
     {
@@ -54,7 +50,7 @@ function GamePlayList() {
       size: 200,
       cell: ({ row }) => {
         const day = dayjs(row.original.createdAt);
-        return <Badge variant='secondary'>{day.format('YYYY-MM-DD HH:mm')}</Badge>;
+        return day.format('YYYY-MM-DD HH:mm');
       },
     },
     {
@@ -63,9 +59,8 @@ function GamePlayList() {
       size: 200,
       cell: ({ row }) => {
         const endedAt = row.original.endedAt;
-        if (!endedAt) return <Badge variant='warning'>-</Badge>;
-        const day = dayjs(endedAt);
-        return <Badge variant='secondary'>{day.format('YYYY-MM-DD HH:mm')}</Badge>;
+        if (!endedAt) return '-';
+        return dayjs(endedAt).format('YYYY-MM-DD HH:mm');
       },
     },
     {
@@ -73,7 +68,7 @@ function GamePlayList() {
       header: '공간 ID',
       cell: ({ row }) => {
         const space = row.original.space as Space;
-        return <Badge variant='secondary'>{space.id}</Badge>;
+        return <span className='font-mono text-slate-700'>{space.id}</span>;
       },
     },
   ];

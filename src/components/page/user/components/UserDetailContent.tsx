@@ -27,7 +27,7 @@ interface UserDetailContentProps {
 
 function StatTile({ label, value, sub, accent }: { label: string; value: ReactNode; sub?: ReactNode; accent?: string }) {
   return (
-    <div className='rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm'>
+    <div className='rounded-lg border border-border bg-white p-4'>
       <div className='text-sm font-medium text-slate-600'>{label}</div>
       <div className={cn('mt-1 text-2xl font-semibold tracking-tight tabular-nums', accent ?? 'text-slate-950')}>{value}</div>
       {sub ? <div className='mt-0.5 text-xs text-slate-600'>{sub}</div> : null}
@@ -91,10 +91,10 @@ function UserDetailContent({ user, copyId, onOpenTicket, onRemove, onEdit }: Use
   return (
     <div className='space-y-6'>
       {/* 1. Identity strip — 아바타/유저코드/상태/로그인/언어/ID/이메일 통합 */}
-      <div className='rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm'>
+      <div className='rounded-lg border border-border bg-white p-4'>
         <div className='flex items-start justify-between gap-3'>
           <div className='flex min-w-0 items-center gap-3'>
-            <Avatar className='h-11 w-11 border border-slate-200/80'>
+            <Avatar className='h-11 w-11 border border-border'>
               <AvatarFallback className='bg-slate-100 text-sm font-semibold uppercase text-slate-600'>{username.slice(0, 2)}</AvatarFallback>
             </Avatar>
             <div className='min-w-0'>
@@ -160,7 +160,7 @@ function UserDetailContent({ user, copyId, onOpenTicket, onRemove, onEdit }: Use
       {/* 3. 상세 정보 */}
       <section>
         <SectionTitle>상세 정보</SectionTitle>
-        <div className='grid grid-cols-1 gap-x-6 gap-y-6 rounded-xl border border-slate-200/80 bg-white p-6 shadow-sm sm:grid-cols-2 xl:grid-cols-3'>
+        <div className='grid grid-cols-1 gap-x-6 gap-y-6 rounded-lg border border-border bg-white p-6 sm:grid-cols-2 xl:grid-cols-3'>
           <DetailField icon={UserIcon} label='닉네임' value={representativeNickname?.trim() || '-'} />
           <DetailField icon={Mail} label='이메일' value={socialAccount?.email || '미등록'} />
           <DetailField icon={LogIn} label='로그인 수단' value={provider.text} />

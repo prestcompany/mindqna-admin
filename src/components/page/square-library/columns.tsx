@@ -49,7 +49,7 @@ export const createColumns = ({
     header: '타입',
     cell: ({ row }) => {
       const value = row.original.subCategory;
-      return <Badge variant='success'>{LibraryMap[value]}</Badge>;
+      return <Badge variant='softNeutral'>{LibraryMap[value]}</Badge>;
     },
   },
   {
@@ -115,7 +115,7 @@ export const createColumns = ({
     header: '활성화',
     cell: ({ row }) => {
       const value = row.original.isActive;
-      return <Badge variant={value ? 'success' : 'muted'}>{value ? '활성화' : '비활성화'}</Badge>;
+      return <Badge variant={value ? 'dotSuccess' : 'dotNeutral'}>{value ? '활성화' : '비활성화'}</Badge>;
     },
   },
   {
@@ -123,7 +123,7 @@ export const createColumns = ({
     header: '고정',
     cell: ({ row }) => {
       const value = row.original.isFixed;
-      return <Badge variant={value ? 'success' : 'muted'}>{value ? '고정됨' : '고정 안됨'}</Badge>;
+      return <Badge variant={value ? 'dotSuccess' : 'dotNeutral'}>{value ? '고정됨' : '고정 안됨'}</Badge>;
     },
   },
   {

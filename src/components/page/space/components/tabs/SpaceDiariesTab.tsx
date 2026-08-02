@@ -33,7 +33,7 @@ function SpaceDiariesTab({ spaceId, active }: { spaceId: string; active: boolean
       {items.map((diary) => {
         const expanded = expandedId === diary.id;
         return (
-          <div key={diary.id} className='overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-sm'>
+          <div key={diary.id} className='overflow-hidden rounded-lg border border-border bg-white'>
             <button
               type='button'
               onClick={() => setExpandedId(expanded ? null : diary.id)}
@@ -52,7 +52,7 @@ function SpaceDiariesTab({ spaceId, active }: { spaceId: string; active: boolean
               </div>
             </button>
             {expanded ? (
-              <div className='border-t border-slate-100 bg-slate-50/40 px-4 py-3'>
+              <div className='border-t border-border bg-slate-50/40 px-4 py-3'>
                 <SpaceDiaryDetail spaceId={spaceId} diaryId={diary.id} />
                 <div className='mt-2 text-xs text-slate-600'>{dayjs(diary.createdAt).format('YY.MM.DD HH:mm')}</div>
               </div>

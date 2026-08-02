@@ -24,12 +24,12 @@ const Header = ({ isShowSidebar, showSidebar }: IHeaderProps) => {
   }, []);
 
   return (
-    <header className='sticky top-0 z-20 border-b border-border/70 bg-background/85 backdrop-blur-xl'>
+    <header className='sticky top-0 z-20 border-b border-border bg-background/85 backdrop-blur-xl'>
       <div className='mx-auto flex h-16 w-full max-w-[1600px] items-center justify-between px-4 sm:px-8'>
         <div className='flex min-w-0 items-center gap-3'>
           {!isShowSidebar && (
             <button
-              className='flex h-8 w-8 items-center justify-center rounded-md border border-border/70 bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground'
+              className='flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground'
               onClick={showSidebar}
               aria-label='사이드바 열기'
               type='button'
@@ -44,16 +44,16 @@ const Header = ({ isShowSidebar, showSidebar }: IHeaderProps) => {
             type='button'
             onClick={openCommandPalette}
             aria-label='커맨드 팔레트 열기'
-            className='hidden h-8 items-center gap-2 rounded-md border border-border/70 bg-background px-2.5 text-sm text-muted-foreground shadow-sm transition-colors duration-fast hover:bg-accent hover:text-accent-foreground sm:flex'
+            className='hidden h-8 items-center gap-2 rounded-md border border-border bg-card px-2.5 text-sm text-muted-foreground transition-colors duration-fast hover:bg-accent hover:text-accent-foreground sm:flex'
           >
             <Search className='h-3.5 w-3.5' />
             <span>검색 · 이동</span>
-            <kbd className='ml-1 rounded border border-border/70 bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground'>⌘K</kbd>
+            <kbd className='ml-1 rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground'>⌘K</kbd>
           </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                className='flex items-center gap-2 rounded-lg border border-border/70 bg-background px-2.5 py-1.5 text-sm text-foreground shadow-sm transition-colors hover:bg-accent'
+                className='flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-sm text-foreground transition-colors hover:bg-accent'
                 aria-label='계정 메뉴 열기'
                 type='button'
               >

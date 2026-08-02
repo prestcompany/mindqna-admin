@@ -18,7 +18,7 @@ function SpaceIdentityStrip({ detail, copyId, onEdit }: SpaceIdentityStripProps)
   const typeConfig = getSpaceTypeConfig(detail.spaceInfo?.type);
 
   return (
-    <div className='rounded-lg border border-slate-200/80 bg-white p-4 shadow-sm'>
+    <div className='rounded-lg border border-border bg-white p-4'>
       <div className='flex items-start justify-between gap-2'>
         <div className='flex flex-wrap items-center gap-x-2 gap-y-1.5'>
           <span className='truncate text-lg font-semibold text-slate-900'>{detail.spaceInfo?.name ?? '공간 상세'}</span>
@@ -32,7 +32,7 @@ function SpaceIdentityStrip({ detail, copyId, onEdit }: SpaceIdentityStripProps)
           <button
             type='button'
             onClick={onEdit}
-            className='inline-flex shrink-0 items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-xs text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900'
+            className='inline-flex shrink-0 items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900'
           >
             <Pencil className='h-3 w-3' />
             수정

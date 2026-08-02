@@ -108,15 +108,15 @@ function UserMigrationModal({ open, onClose, onSuccess }: UserMigrationModalProp
                       </FormItem>
                     )}
                   />
-                  <div className='text-sm text-gray-600 mt-2'>
+                  <div className='text-sm text-slate-600 mt-2'>
                     이 계정의 모든 데이터는 유지되며, 로그인 수단만 교체됩니다.
                   </div>
                 </CardContent>
               </Card>
 
               <div className='mb-4 text-center'>
-                <ArrowDownUp className='w-6 h-6 mx-auto text-gray-400' />
-                <div className='text-sm text-gray-500'>로그인 수단 교체</div>
+                <ArrowDownUp className='w-6 h-6 mx-auto text-slate-400' />
+                <div className='text-sm text-slate-500'>로그인 수단 교체</div>
               </div>
 
               <Card className='mb-4'>
@@ -137,7 +137,7 @@ function UserMigrationModal({ open, onClose, onSuccess }: UserMigrationModalProp
                       </FormItem>
                     )}
                   />
-                  <div className='text-sm text-gray-600 mt-2'>이 계정의 로그인 정보가 기존 계정으로 이동합니다.</div>
+                  <div className='text-sm text-slate-600 mt-2'>이 계정의 로그인 정보가 기존 계정으로 이동합니다.</div>
                 </CardContent>
               </Card>
 

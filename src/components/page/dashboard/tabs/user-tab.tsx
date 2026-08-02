@@ -26,7 +26,7 @@ function UserTab({ dashboard }: UserTabProps) {
       </div>
 
       <div className='grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.9fr)]'>
-        <Card className='border-slate-200/80 bg-white shadow-sm'>
+        <Card className='border-border bg-white'>
           <CardHeader>
             <CardTitle className='text-base text-slate-950'>선택 기간 가입자 성장</CardTitle>
             <CardDescription>날짜 필터가 적용되는 가입자 증가와 일평균만 분리해서 비교합니다.</CardDescription>

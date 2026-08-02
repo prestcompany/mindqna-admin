@@ -39,28 +39,28 @@ function GameList() {
       header: '게임 타입',
       cell: ({ row }) => {
         const type = row.original.type;
-        return <Badge variant='default'>{gameTypeMap[type] || type}</Badge>;
+        return <Badge variant='softNeutral'>{gameTypeMap[type] || type}</Badge>;
       },
     },
     {
       accessorKey: 'playLimitLife',
       header: '라이프',
       cell: ({ row }) => {
-        return <Badge variant='secondary'>{row.original.playLimitLife} 개</Badge>;
+        return `${row.original.playLimitLife} 개`;
       },
     },
     {
       accessorKey: 'timeLimitSecond',
       header: '제한시간',
       cell: ({ row }) => {
-        return <Badge variant='secondary'>{row.original.timeLimitSecond} 초</Badge>;
+        return `${row.original.timeLimitSecond} 초`;
       },
     },
     {
       accessorKey: 'dailyPlayLimit',
       header: '일일 플레이 제한',
       cell: ({ row }) => {
-        return <Badge variant='info'>{row.original.dailyPlayLimit} 회</Badge>;
+        return `${row.original.dailyPlayLimit} 회`;
       },
     },
     {
@@ -68,8 +68,8 @@ function GameList() {
       header: '상태',
       cell: ({ row }) => {
         const value = row.original.isActive;
-        if (value) return <Badge variant='success'>활성</Badge>;
-        if (!value) return <Badge variant='destructive'>비활성</Badge>;
+        if (value) return <Badge variant='dotSuccess'>활성</Badge>;
+        if (!value) return <Badge variant='dotNeutral'>비활성</Badge>;
       },
     },
     {

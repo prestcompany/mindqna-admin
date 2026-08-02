@@ -147,7 +147,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
             <FormGroup title='대표 이미지*' description='리스트와 상세 화면에 노출됩니다.'>
               <div className='flex flex-col gap-2 items-start'>
                 {image && (
-                  <div className='flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border/60 bg-transparent p-2'>
+                  <div className='flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border bg-transparent p-2'>
                     <img src={image.uri} alt='img' className='h-full w-full object-contain' />
                   </div>
                 )}

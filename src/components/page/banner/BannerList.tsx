@@ -2,7 +2,7 @@ import { Banner, removeBanner } from '@/client/banner';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
 import DataTable from '@/components/shared/ui/data-table';
-import DefaultTableBtn from '@/components/shared/ui/default-table-btn';
+import { FILTER_CONTROL_CLASS, FilterBar } from '@/components/shared/ui/filter-bar';
 import TableRowActions from '@/components/shared/ui/table-row-actions';
 import {
   AlertDialog,
@@ -122,7 +122,7 @@ function BannerList() {
       cell: ({ row }) => {
         const value = row.original.location;
         const label = locationOptions.find((item) => item.value === value)?.label ?? value;
-        return <Badge variant='info'>{label}</Badge>;
+        return <Badge variant='softInfo'>{label}</Badge>;
       },
     },
     {
@@ -149,7 +149,7 @@ function BannerList() {
       size: 96,
       cell: ({ row }) => {
         const value = row.original.isActive;
-        return <Badge variant={value ? 'success' : 'muted'}>{value ? '활성화' : '비활성화'}</Badge>;
+        return <Badge variant={value ? 'dotSuccess' : 'dotNeutral'}>{value ? '활성화' : '비활성화'}</Badge>;
       },
     },
     {
@@ -186,64 +186,63 @@ function BannerList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <DefaultTableBtn className='justify-between'>
-        <div className='flex flex-wrap items-center gap-2 py-4'>
-          <div className='relative min-w-[260px]'>
-            <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
-            <Input
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder='배너명 / 링크 / 문구 검색 (2자 이상)'
-              className='pl-9'
-            />
-          </div>
-          <Select
-            value={(filter.locale ?? [])?.[0] ?? '__all__'}
-            onValueChange={(v: string) => {
-              setFilter((prev) => ({ ...prev, locale: v === '__all__' ? undefined : [v] }));
-            }}
-          >
-            <SelectTrigger className='w-[120px]'>
-              <SelectValue placeholder='언어' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='__all__'>전체 언어</SelectItem>
-              {LOCALE_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={(filter.location ?? [])?.[0] ?? '__all__'}
-            onValueChange={(v: string) => {
-              setFilter((prev) => ({ ...prev, location: v === '__all__' ? undefined : [v] }));
-            }}
-          >
-            <SelectTrigger className='w-[180px]'>
-              <SelectValue placeholder='위치' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='__all__'>전체 위치</SelectItem>
-              {locationOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <FilterBar>
+        <div className='relative min-w-[260px]'>
+          <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+          <Input
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder='배너명 / 링크 / 문구 검색 (2자 이상)'
+            className={`pl-9 ${FILTER_CONTROL_CLASS}`}
+          />
         </div>
+        <Select
+          value={(filter.locale ?? [])?.[0] ?? '__all__'}
+          onValueChange={(v: string) => {
+            setFilter((prev) => ({ ...prev, locale: v === '__all__' ? undefined : [v] }));
+          }}
+        >
+          <SelectTrigger className={`w-[120px] ${FILTER_CONTROL_CLASS}`}>
+            <SelectValue placeholder='언어' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='__all__'>전체 언어</SelectItem>
+            {LOCALE_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={(filter.location ?? [])?.[0] ?? '__all__'}
+          onValueChange={(v: string) => {
+            setFilter((prev) => ({ ...prev, location: v === '__all__' ? undefined : [v] }));
+          }}
+        >
+          <SelectTrigger className={`w-[180px] ${FILTER_CONTROL_CLASS}`}>
+            <SelectValue placeholder='위치' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='__all__'>전체 위치</SelectItem>
+            {locationOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div className='flex-1' />
         <Button
           onClick={() => {
             setFocused(undefined);
             setOpenCreate(true);
           }}
-          size='lg'
+          className={FILTER_CONTROL_CLASS}
         >
           추가
         </Button>
-      </DefaultTableBtn>
+      </FilterBar>
 
       <DataTable
         columns={columns}

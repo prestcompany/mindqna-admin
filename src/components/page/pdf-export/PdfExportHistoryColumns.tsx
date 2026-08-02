@@ -34,12 +34,6 @@ export const createPdfExportHistoryColumns = (actions: PdfExportHistoryActionsPr
     ),
   },
   {
-    accessorKey: 'fileName',
-    header: '파일명',
-    size: 200,
-    cell: ({ row }) => row.original.fileName,
-  },
-  {
     id: 'range',
     header: '카드 범위',
     size: 108,
@@ -92,6 +86,12 @@ export const createPdfExportHistoryColumns = (actions: PdfExportHistoryActionsPr
     cell: ({ row }) => (
       <span className='text-sm text-slate-500'>{dayjs(row.original.expiresAt).format('YY.MM.DD')}</span>
     ),
+  },
+  {
+    accessorKey: 'fileName',
+    header: '파일명',
+    size: 200,
+    cell: ({ row }) => row.original.fileName,
   },
   {
     id: 'actions',

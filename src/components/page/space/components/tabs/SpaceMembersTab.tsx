@@ -38,7 +38,7 @@ function SpaceMembersTab({ spaceId, active }: { spaceId: string; active: boolean
           const expanded = expandedId === p.id;
           const status = getMemberStatus(p);
           return (
-            <div key={p.id} className='overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-sm'>
+            <div key={p.id} className='overflow-hidden rounded-lg border border-border bg-white'>
               <button
                 type='button'
                 onClick={() => setExpandedId(expanded ? null : p.id)}
@@ -67,7 +67,7 @@ function SpaceMembersTab({ spaceId, active }: { spaceId: string; active: boolean
                 />
               </button>
               {expanded ? (
-                <div className='border-t border-slate-100 bg-slate-50/40 px-4 py-3'>
+                <div className='border-t border-border bg-slate-50/40 px-4 py-3'>
                   <SpaceMemberDetail spaceId={spaceId} profileId={p.id} />
                 </div>
               ) : null}

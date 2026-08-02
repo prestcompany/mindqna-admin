@@ -57,7 +57,7 @@ function ClickableImagePreview({
           />
         </button>
       </DialogTrigger>
-      <DialogContent className='max-h-[92vh] max-w-5xl border-border/70 bg-background/95 p-4 sm:p-5'>
+      <DialogContent className='max-h-[92vh] max-w-5xl border-border bg-background/95 p-4 sm:p-5'>
         <DialogTitle className='sr-only'>{alt}</DialogTitle>
         <div className='flex max-h-[80vh] items-center justify-center overflow-auto rounded-lg bg-muted/20 p-2'>
           <img

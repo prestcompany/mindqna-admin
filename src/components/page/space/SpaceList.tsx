@@ -350,7 +350,7 @@ function SpaceList() {
 
       <Dialog open={isBulkCoinOpen} onOpenChange={(open) => !open && handleCloseBulkCoin()}>
         <DialogContent className='max-w-[560px] border-border bg-background p-0 shadow-2xl'>
-          <DialogHeader className='border-b border-border/70 px-6 py-5'>
+          <DialogHeader className='border-b border-border px-6 py-5'>
             <DialogTitle>단체 코인 지급/회수</DialogTitle>
             <DialogDescription>
               처리 실패한 공간이 있으면 이 팝업 안에서 바로 확인할 수 있습니다.
@@ -462,7 +462,7 @@ function SpaceList() {
             ) : null}
           </div>
 
-          <DialogFooter className='border-t border-border/70 px-6 py-4'>
+          <DialogFooter className='border-t border-border px-6 py-4'>
             <Button type='button' variant='outline' onClick={handleCloseBulkCoin} disabled={isFetching}>
               닫기
             </Button>

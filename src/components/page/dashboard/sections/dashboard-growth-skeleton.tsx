@@ -5,7 +5,7 @@ interface DashboardGrowthSkeletonProps {
 }
 
 function SkeletonCard({ className = '' }: { className?: string }) {
-  return <div className={`animate-pulse rounded-2xl border border-slate-200 bg-white ${className}`.trim()} />;
+  return <div className={`animate-pulse rounded-2xl border border-border bg-white ${className}`.trim()} />;
 }
 
 function DashboardGrowthSkeleton({ tab }: DashboardGrowthSkeletonProps) {

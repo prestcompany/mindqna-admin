@@ -27,7 +27,7 @@ function LiveStatusBlock({ username }: { username: string }) {
   });
 
   return (
-    <div className='space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3'>
+    <div className='space-y-3 rounded-lg border border-border bg-slate-50 p-3'>
       <div className='space-y-2'>
         <div className='text-xs text-slate-600'>
           평상시 값은 5분 주기 동기화입니다. 현재 스토어 상태를 확인하려면 아래 버튼을 누르세요.
@@ -65,7 +65,7 @@ function LiveStatusBlock({ username }: { username: string }) {
               return (
                 <div
                   key={`${row.platform}-${row.id}`}
-                  className='flex items-center gap-3 rounded-lg border border-slate-200/80 bg-white px-3 py-2.5 shadow-sm'
+                  className='flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2.5'
                 >
                   <Badge variant='softNeutral' className='w-12 shrink-0 justify-center uppercase'>
                     {row.platform}

@@ -200,7 +200,7 @@ function Dashboard() {
                 기간과 국가 설정을 기준으로 가입자와 공간 성장, 로케일별 분포를 비교하는 영역입니다.
               </p>
             </div>
-            <div className='w-fit rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600'>
+            <div className='w-fit rounded-full border border-border bg-white px-3 py-1 text-xs font-medium text-slate-600'>
               기간 / 국가 설정 적용
             </div>
           </div>
@@ -222,7 +222,7 @@ function Dashboard() {
         />
 
         <Tabs value={activeTab} className='space-y-4' onValueChange={handleTabChange}>
-          <TabsList className='w-fit rounded-2xl border border-slate-200 bg-white p-1 shadow-sm'>
+          <TabsList className='w-fit rounded-2xl border border-border bg-white p-1'>
             <TabsTrigger value='overview'>개요</TabsTrigger>
             <TabsTrigger value='users'>가입자</TabsTrigger>
             <TabsTrigger value='spaces'>공간</TabsTrigger>
@@ -235,7 +235,7 @@ function Dashboard() {
               <div className='relative'>
                 {isGrowthRefreshing && (
                   <div className='absolute inset-0 z-10 flex items-center justify-center rounded-3xl bg-white/70 backdrop-blur-[1px]'>
-                    <div className='flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm'>
+                    <div className='flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-slate-700'>
                       <Loader2 className='h-4 w-4 animate-spin text-blue-600' />
                       데이터를 업데이트하는 중입니다.
                     </div>
@@ -253,7 +253,7 @@ function Dashboard() {
               <div className='relative'>
                 {isGrowthRefreshing && (
                   <div className='absolute inset-0 z-10 flex items-center justify-center rounded-3xl bg-white/70 backdrop-blur-[1px]'>
-                    <div className='flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm'>
+                    <div className='flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-slate-700'>
                       <Loader2 className='h-4 w-4 animate-spin text-blue-600' />
                       데이터를 업데이트하는 중입니다.
                     </div>
@@ -271,7 +271,7 @@ function Dashboard() {
               <div className='relative'>
                 {isGrowthRefreshing && (
                   <div className='absolute inset-0 z-10 flex items-center justify-center rounded-3xl bg-white/70 backdrop-blur-[1px]'>
-                    <div className='flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm'>
+                    <div className='flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-slate-700'>
                       <Loader2 className='h-4 w-4 animate-spin text-blue-600' />
                       데이터를 업데이트하는 중입니다.
                     </div>

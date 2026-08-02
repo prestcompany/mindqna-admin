@@ -34,18 +34,18 @@ function AdminSideSheetContent({
     <SheetContent
       side='right'
       className={cn(
-        'overflow-y-auto border-l bg-background p-0 shadow-xl',
+        'overflow-y-auto border-l bg-card p-0 shadow-floating',
         ADMIN_SIDE_SHEET_SIZE_CLASS[size],
         className,
       )}
       {...props}
     >
       <div className='flex min-h-full flex-col'>
-        <SheetHeader className='sticky top-0 z-20 border-b bg-background/95 px-5 py-3 text-left backdrop-blur supports-[backdrop-filter]:bg-background/80'>
-          <SheetTitle className='pr-8 text-sm font-semibold tracking-tight'>{title}</SheetTitle>
+        <SheetHeader className='sticky top-0 z-20 border-b bg-card/95 px-6 py-3 text-left backdrop-blur supports-[backdrop-filter]:bg-card/80'>
+          <SheetTitle className='pr-8 text-sm font-semibold tracking-heading'>{title}</SheetTitle>
           {description ? <SheetDescription className='pr-8 text-xs'>{description}</SheetDescription> : null}
         </SheetHeader>
-        <div className={cn('flex-1 px-5 py-4', bodyClassName)}>{children}</div>
+        <div className={cn('flex-1 px-6 py-4', bodyClassName)}>{children}</div>
       </div>
     </SheetContent>
   );
