@@ -1492,8 +1492,28 @@ describe('removeCouponBatch', () => {
 
     const result = await service.removeCouponBatch('b-1');
 
-    expect(prisma.coupon.deleteMany).toHaveBeenCalledWith({ where: { id: { in: [1, 3] } } });
+    expect(prisma.coupon.deleteMany).toHaveBeenCalledWith({
+      where: { id: { in: [1, 3] }, useCount: 0 },
+    });
     expect(result).toEqual({ deleted: 2, kept: 1 });
+  });
+
+  // The id list is a snapshot; the delete re-checks useCount, so a code redeemed
+  // in between is skipped by the database and must be accounted as kept.
+  it('reports a code redeemed mid-delete as kept, not deleted', async () => {
+    prisma.coupon.findMany.mockResolvedValue([
+      { id: 1, useCount: 0 },
+      { id: 2, useCount: 0 },
+      { id: 3, useCount: 1 },
+    ]);
+    prisma.coupon.deleteMany.mockResolvedValue({ count: 1 });
+
+    const result = await service.removeCouponBatch('b-1');
+
+    expect(prisma.coupon.deleteMany).toHaveBeenCalledWith({
+      where: { id: { in: [1, 2] }, useCount: 0 },
+    });
+    expect(result).toEqual({ deleted: 1, kept: 2 });
   });
 
   it('deletes nothing when every code has been redeemed', async () => {
@@ -1551,12 +1571,20 @@ In `src/admin/product/product.service.ts`, delete `removeCoupon` and add:
     if (codes.length === 0) throw NotFoundException();
 
     const removable = codes.filter((row) => row.useCount === 0).map((row) => row.id);
-    const kept = codes.length - removable.length;
 
-    if (removable.length === 0) return { deleted: 0, kept };
+    if (removable.length === 0) return { deleted: 0, kept: codes.length };
 
-    const result = await this.prisma.coupon.deleteMany({ where: { id: { in: removable } } });
-    return { deleted: result.count, kept };
+    // `useCount: 0` is re-asserted at delete time: the id list is a snapshot, and
+    // a redemption landing between the two statements would otherwise delete a row
+    // that now has a CouponMeta, orphaning it. Not fully atomic without a
+    // transaction, but it closes the was-unredeemed-a-moment-ago window for free.
+    const result = await this.prisma.coupon.deleteMany({
+      where: { id: { in: removable }, useCount: 0 },
+    });
+
+    // Derived from what actually happened, not from the snapshot — a code redeemed
+    // mid-flight must land in `kept` rather than vanishing from both counts.
+    return { deleted: result.count, kept: codes.length - result.count };
   }
 
   async stopCouponBatch(batchId: string): Promise<void> {
