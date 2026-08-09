@@ -120,8 +120,12 @@ function CouponForm({ init, reload, close }: Props) {
   const save = async (input: CouponFormValues) => {
     setLoading(true);
     try {
-      const heart = input.isPaid ? 0 : input.reward;
-      const star = input.isPaid ? input.reward : 0;
+      // A dual-currency coupon cannot be represented by the radio, so its rewards are
+      // locked above. Send the stored values back unchanged: deriving them from the
+      // radio would zero one currency, which `updateCouponBatch` rejects as a reward
+      // change, leaving the coupon uneditable even for its name or dates.
+      const heart = hasBothCurrencies ? init!.heart : input.isPaid ? 0 : input.reward;
+      const star = hasBothCurrencies ? init!.star : input.isPaid ? input.reward : 0;
 
       if (init) {
         await updateCouponBatch({
