@@ -89,6 +89,7 @@ function DataTable<TData, TValue>({
     columns,
     getCoreRowModel: getCoreRowModel(),
     ...(expandable && {
+      getRowCanExpand: () => true,
       getExpandedRowModel: getExpandedRowModel(),
       onExpandedChange: setExpanded,
       state: { expanded },
