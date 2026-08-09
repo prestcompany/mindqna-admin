@@ -1033,9 +1033,10 @@ Append:
 ```ts
 describe('getCouponBatchCodes', () => {
   it('returns one row per code for an individual batch, with null username when unused', async () => {
+    prisma.coupon.findFirst.mockResolvedValue({ issueMode: 'INDIVIDUAL' });
     prisma.coupon.findMany.mockResolvedValue([
-      { id: 1, code: 'A8KD0ZQ1PX', issueMode: 'INDIVIDUAL' },
-      { id: 2, code: 'B2MN7YRT4W', issueMode: 'INDIVIDUAL' },
+      { id: 1, code: 'A8KD0ZQ1PX' },
+      { id: 2, code: 'B2MN7YRT4W' },
     ]);
     prisma.couponMeta.findMany.mockResolvedValue([
       { couponId: 1, username: 'hanjune', createdAt: new Date('2026-06-03T14:22:00.000Z') },
@@ -1050,8 +1051,22 @@ describe('getCouponBatchCodes', () => {
     ]);
   });
 
+  it('paginates the codes for an individual batch', async () => {
+    prisma.coupon.findFirst.mockResolvedValue({ issueMode: 'INDIVIDUAL' });
+    prisma.coupon.findMany.mockResolvedValue([]);
+    prisma.couponMeta.findMany.mockResolvedValue([]);
+    prisma.coupon.count.mockResolvedValue(45);
+
+    const result = await service.getCouponBatchCodes({ batchId: 'b-1', page: 2 });
+
+    expect(prisma.coupon.findMany.mock.calls[0][0]).toMatchObject({ skip: 20, take: 20 });
+    expect(prisma.couponMeta.findMany.mock.calls[0][0].skip).toBeUndefined();
+    expect(result.pageInfo.totalPage).toBe(3);
+  });
+
   it('returns one row per redemption for a shared batch', async () => {
-    prisma.coupon.findMany.mockResolvedValue([{ id: 9, code: 'SUMMER2026', issueMode: 'SHARED' }]);
+    prisma.coupon.findFirst.mockResolvedValue({ issueMode: 'SHARED' });
+    prisma.coupon.findMany.mockResolvedValue([{ id: 9, code: 'SUMMER2026' }]);
     prisma.couponMeta.findMany.mockResolvedValue([
       { couponId: 9, username: 'hanjune', createdAt: new Date('2026-08-02T09:00:00.000Z') },
       { couponId: 9, username: 'minsu', createdAt: new Date('2026-08-03T09:00:00.000Z') },
@@ -1065,8 +1080,27 @@ describe('getCouponBatchCodes', () => {
     expect(result.items.map((item: any) => item.username)).toEqual(['hanjune', 'minsu']);
   });
 
+  // A shared batch holds ONE code redeemed many times, so the page must be taken
+  // over the redemptions. Paginating the codes would return nothing past page 1.
+  it('paginates the redemptions, not the codes, for a shared batch', async () => {
+    prisma.coupon.findFirst.mockResolvedValue({ issueMode: 'SHARED' });
+    prisma.coupon.findMany.mockResolvedValue([{ id: 9, code: 'SUMMER2026' }]);
+    prisma.couponMeta.findMany.mockResolvedValue([
+      { couponId: 9, username: 'later', createdAt: new Date('2026-08-20T09:00:00.000Z') },
+    ]);
+    prisma.couponMeta.count.mockResolvedValue(45);
+
+    const result = await service.getCouponBatchCodes({ batchId: 'b-2', page: 2 });
+
+    expect(prisma.couponMeta.findMany.mock.calls[0][0]).toMatchObject({ skip: 20, take: 20 });
+    expect(prisma.coupon.findMany.mock.calls[0][0].skip).toBeUndefined();
+    expect(result.items).toHaveLength(1);
+    expect(result.pageInfo.totalPage).toBe(3);
+  });
+
   it('returns every code without pagination when all is set', async () => {
-    prisma.coupon.findMany.mockResolvedValue([{ id: 1, code: 'A8KD0ZQ1PX', issueMode: 'INDIVIDUAL' }]);
+    prisma.coupon.findFirst.mockResolvedValue({ issueMode: 'INDIVIDUAL' });
+    prisma.coupon.findMany.mockResolvedValue([{ id: 1, code: 'A8KD0ZQ1PX' }]);
     prisma.couponMeta.findMany.mockResolvedValue([]);
     prisma.coupon.count.mockResolvedValue(1);
 
@@ -1075,6 +1109,12 @@ describe('getCouponBatchCodes', () => {
     const args = prisma.coupon.findMany.mock.calls[0][0];
     expect(args.take).toBeUndefined();
     expect(args.skip).toBeUndefined();
+  });
+
+  it('rejects an unknown batch', async () => {
+    prisma.coupon.findFirst.mockResolvedValue(null);
+
+    await expect(service.getCouponBatchCodes({ batchId: 'nope', page: 1 })).rejects.toThrow();
   });
 });
 ```
@@ -1102,6 +1142,12 @@ export type CouponCodeItem = {
 Add to `src/admin/product/product.service.ts`:
 
 ```ts
+  /**
+   * One response shape serves both modes, but the page is taken over different
+   * things. An individual batch is many single-use codes, so a page is a page of
+   * codes. A shared batch is ONE code redeemed many times, so a page is a page of
+   * redemptions — paginating its codes would return nothing past page 1.
+   */
   async getCouponBatchCodes(params: {
     batchId: string;
     page: number;
@@ -1109,17 +1155,48 @@ Add to `src/admin/product/product.service.ts`:
   }): Promise<{ items: CouponCodeItem[]; pageInfo: PageInfo }> {
     const { batchId, page, all } = params;
     const offset = 20;
-
     const pageArgs = all ? {} : { skip: (page - 1) * offset, take: offset };
+
+    const head = await this.prisma.coupon.findFirst({
+      where: { batchId },
+      select: { issueMode: true },
+    });
+    if (!head) throw NotFoundException();
+
+    if (head.issueMode === 'SHARED') {
+      const codes = await this.prisma.coupon.findMany({
+        where: { batchId },
+        select: { id: true, code: true },
+      });
+      const codeById = new Map(codes.map((row) => [row.id, row.code]));
+      const couponIds = codes.map((row) => row.id);
+
+      const metas = await this.prisma.couponMeta.findMany({
+        where: { couponId: { in: couponIds } },
+        orderBy: { createdAt: 'asc' },
+        select: { couponId: true, username: true, createdAt: true },
+        ...pageArgs,
+      });
+
+      const totals = await this.prisma.couponMeta.count({ where: { couponId: { in: couponIds } } });
+      const totalPage = all ? 1 : Math.ceil(totals / offset);
+
+      const items: CouponCodeItem[] = metas.map((meta) => ({
+        codeId: meta.couponId,
+        code: codeById.get(meta.couponId) ?? '',
+        username: meta.username,
+        usedAt: meta.createdAt,
+      }));
+
+      return { items, pageInfo: { totalPage, hasNext: page < totalPage, endCursor: undefined } };
+    }
 
     const codes = await this.prisma.coupon.findMany({
       where: { batchId },
       orderBy: { id: 'asc' },
-      select: { id: true, code: true, issueMode: true },
+      select: { id: true, code: true },
       ...pageArgs,
     });
-
-    const isShared = codes[0]?.issueMode === 'SHARED';
 
     const metas = await this.prisma.couponMeta.findMany({
       where: { couponId: { in: codes.map((row) => row.id) } },
@@ -1127,31 +1204,18 @@ Add to `src/admin/product/product.service.ts`:
       select: { couponId: true, username: true, createdAt: true },
     });
 
-    // Shared batches hold one code redeemed many times, so the rows are the
-    // redemptions. Individual batches hold many single-use codes, so the rows
-    // are the codes. One response shape serves both.
-    const items: CouponCodeItem[] = isShared
-      ? metas.map((meta) => ({
-          codeId: meta.couponId,
-          code: codes.find((row) => row.id === meta.couponId)?.code ?? '',
-          username: meta.username,
-          usedAt: meta.createdAt,
-        }))
-      : codes.map((row) => {
-          const meta = metas.find((item) => item.couponId === row.id);
-          return {
-            codeId: row.id,
-            code: row.code,
-            username: meta?.username ?? null,
-            usedAt: meta?.createdAt ?? null,
-          };
-        });
-
-    const totals = isShared
-      ? await this.prisma.couponMeta.count({ where: { couponId: { in: codes.map((row) => row.id) } } })
-      : await this.prisma.coupon.count({ where: { batchId } });
-
+    const totals = await this.prisma.coupon.count({ where: { batchId } });
     const totalPage = all ? 1 : Math.ceil(totals / offset);
+
+    const items: CouponCodeItem[] = codes.map((row) => {
+      const meta = metas.find((item) => item.couponId === row.id);
+      return {
+        codeId: row.id,
+        code: row.code,
+        username: meta?.username ?? null,
+        usedAt: meta?.createdAt ?? null,
+      };
+    });
 
     return { items, pageInfo: { totalPage, hasNext: page < totalPage, endCursor: undefined } };
   }
