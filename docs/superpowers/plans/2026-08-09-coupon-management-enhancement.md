@@ -26,6 +26,7 @@
 - Frontend has no test runner. The verification cycle there is `npx tsc --noEmit` then `npm run lint`, plus the named manual check in each task. `next.config.js` sets `ignoreBuildErrors: true`, so `tsc` must be run directly.
 - Frontend UI must follow `DESIGN.md`: plain numeric values are neutral text and never wrapped in `soft*` badges, status uses `dot*` badges, numbers carry `tabular-nums`, no emoji, no arbitrary sizes/durations/20px spacing.
 - Commit messages: conventional commits, lowercase English subject.
+- **Two transitional states are intended, not defects.** (a) Task 1 keeps `createCoupon`'s sequential insert loop so the schema change ships without behaviour change; Task 3 replaces it with a single `createMany`. (b) Tasks 3, 6 and 7 change service signatures while the controller still calls the old ones, so `tsc` does not pass again until Task 8. Only Tasks 1 and 8 assert a clean `tsc` in Phase A; Tasks 3–7 gate on `jest` alone. Do not "fix" either state early — doing so pulls later tasks forward and skips their reviews.
 
 ---
 
