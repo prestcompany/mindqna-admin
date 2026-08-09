@@ -1845,7 +1845,21 @@ Expected: no new errors in the files touched by Tasks 1–10.
 
 Tell the operator to apply `docs/superpowers/specs/2026-08-09-coupon-management-enhancement.sql` **STEP 0 through STEP 5** to the **dev** database, and to hold STEP 6 until the backend is deployed. Confirm which database they applied it to before proceeding — never assume dev.
 
-- [ ] **Step 4: Concurrency check on dev (manual, after deploy)**
+- [ ] **Step 4: Search-matching check on dev (manual, after deploy)**
+
+The batch list query's `WHERE` clause is the one behaviour no unit test can prove — a mocked `$queryRaw` validates the bindings and the fragment's shape, never that MySQL selects the right rows. `coupon.sql.spec.ts` guards against a clause silently disappearing; this step is what proves the query actually works.
+
+Against dev, with at least two batches present and at least one coupon already redeemed:
+
+1. Search by **coupon name** → only batches whose name matches appear.
+2. Search by **code** → for a `SHARED` batch, its own code finds it; for an `INDIVIDUAL` batch, pasting one of its member codes returns **the whole batch**, not a single row.
+3. Search by **redeeming username** → the batch containing the coupon that user redeemed appears. This exercises the `LEFT JOIN CouponMeta`, which is the least-covered path in the feature.
+4. Search a term matching nothing → empty list, no error.
+5. Combine a search with each status filter → results are the intersection, and the status shown in the row matches the filter applied.
+
+If any of these fails, the failure is in `couponSearchFilter` or `couponBatchSubquery` in `coupon.sql.ts`, not in the frontend.
+
+- [ ] **Step 5: Concurrency check on dev (manual, after deploy)**
 
 Create a `SHARED` coupon with `maxUseCount = 1`, then fire two redemption requests simultaneously from two different users:
 
