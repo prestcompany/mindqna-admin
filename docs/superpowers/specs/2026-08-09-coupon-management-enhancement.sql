@@ -113,7 +113,14 @@ ALTER TABLE `CouponMeta`
 
 
 -- ============================================================
--- STEP 6 — RUN ONLY AFTER THE BACKEND IS DEPLOYED
+-- STEP 6 — RUN IMMEDIATELY AFTER THE BACKEND DEPLOY COMPLETES
+--
+-- "Immediately" is load-bearing, not a figure of speech. From the moment
+-- the new backend starts serving traffic until the re-backfill below runs,
+-- any legacy coupon that was redeemed during the migration window still
+-- carries useCount = 0 and can be redeemed a second time by a different
+-- user — granting coins and tickets twice. Have this block ready to paste
+-- before you start the deploy.
 -- Until the new backend ships, the temporary default lets the old
 -- code keep inserting. Once it is live, every INSERT supplies a
 -- batchId and the default must go, or a future bug could silently
