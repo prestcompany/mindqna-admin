@@ -4,6 +4,19 @@
 --
 -- Apply to dev first. Run STEP 0 and STEP 4-PREVIEW before committing to the change.
 -- STEP 6 runs ONLY AFTER the backend is deployed.
+--
+-- Order across environments:
+--   dev:  STEP 0 → 4-PREVIEW → 1..5 → deploy backend → STEP 6 → verify → deploy frontend
+--   prod: same sequence, and only after dev has been verified end to end.
+--
+-- BEFORE PRODUCTION — STEP 5 cannot be undone. Once one code has been redeemed
+-- by two different users, `couponId` can never be made unique again. Back up
+-- both tables first:
+--
+--   mysqldump -h "$DB_HOST" -u "$DB_USER" -p "$DB_NAME" \
+--     Coupon CouponMeta > coupon-backup-$(date +%Y%m%d-%H%M).sql
+--
+-- Keep that dump until the feature has run in production long enough to trust.
 
 
 -- ============================================================
