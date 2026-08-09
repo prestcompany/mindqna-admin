@@ -37,6 +37,7 @@ export type CreateCouponParams = {
   dueAt: string;
   count?: number;
   code?: string;
+  /** 0 means unlimited. */
   maxUseCount?: number;
   heart: number;
   star: number;
@@ -49,6 +50,7 @@ export type UpdateCouponBatchParams = {
   name: string;
   startAt: string;
   dueAt: string;
+  /** 0 means unlimited. */
   maxUseCount?: number;
   heart: number;
   star: number;

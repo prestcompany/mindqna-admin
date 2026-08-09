@@ -18,12 +18,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Sheet } from '@/components/ui/sheet';
 import useCoupons from '@/hooks/useCoupons';
 import useDebouncedValue from '@/hooks/useDebouncedValue';
+import { useQueryClient } from '@tanstack/react-query';
 import { Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import CouponCodeList from './CouponCodeList';
 import { createCouponColumns } from './CouponColumns';
 import CouponForm from './CouponForm';
+import { errorMessage } from './errorMessage';
 
 const STATUS_OPTIONS: { value: CouponStatus | 'ALL'; label: string }[] = [
   { value: 'ALL', label: '전체 상태' },
@@ -46,6 +48,7 @@ function CouponList() {
     effectiveSearch,
     status === 'ALL' ? undefined : status,
   );
+  const queryClient = useQueryClient();
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
@@ -61,14 +64,20 @@ function CouponList() {
     if (!confirmDelete) return;
     try {
       const result = await removeCouponBatch(confirmDelete.batchId);
-      await refetch();
+      await Promise.all([
+        refetch(),
+        // The code list lives under its own query key and survives a delete that
+        // still keeps the batch (kept > 0), so it never refetches on its own —
+        // invalidate it explicitly or an expanded row keeps showing deleted codes.
+        queryClient.invalidateQueries({ queryKey: ['coupon-batch-codes', confirmDelete.batchId] }),
+      ]);
       toast.success(
         result.kept > 0
           ? `미사용 ${result.deleted}장을 삭제했습니다. 사용된 ${result.kept}장은 이력 보존을 위해 남겼습니다.`
           : `${result.deleted}장을 삭제했습니다.`,
       );
     } catch (err) {
-      toast.error(`${err}`);
+      toast.error(errorMessage(err));
     }
     setConfirmDelete(undefined);
   };
@@ -80,7 +89,7 @@ function CouponList() {
       await refetch();
       toast.success('쿠폰 발급을 중단했습니다.');
     } catch (err) {
-      toast.error(`${err}`);
+      toast.error(errorMessage(err));
     }
     setConfirmStop(undefined);
   };

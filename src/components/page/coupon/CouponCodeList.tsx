@@ -5,11 +5,12 @@ import dayjs from 'dayjs';
 import { Copy, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { errorMessage } from './errorMessage';
 
 function CouponCodeList({ batch }: { batch: CouponBatch }) {
   const [page, setPage] = useState(1);
   const [copying, setCopying] = useState(false);
-  const { items, totalPage, isLoading } = useCouponBatchCodes(batch.batchId, page, true);
+  const { items, totalPage, isLoading, isError, refetch } = useCouponBatchCodes(batch.batchId, page, true);
 
   const copyAll = async () => {
     setCopying(true);
@@ -19,7 +20,7 @@ function CouponCodeList({ batch }: { batch: CouponBatch }) {
       await navigator.clipboard.writeText(text);
       toast.success('쿠폰 코드를 클립보드에 복사했습니다.');
     } catch (err) {
-      toast.error(`${err}`);
+      toast.error(errorMessage(err));
     }
     setCopying(false);
   };
@@ -32,18 +33,29 @@ function CouponCodeList({ batch }: { batch: CouponBatch }) {
     );
   }
 
+  // Distinguish a failed fetch from a genuinely empty batch — retry: 0 means a 500 or
+  // a dropped connection otherwise resolves to an empty list with no indication anything
+  // went wrong.
+  if (isError) {
+    return (
+      <div className='flex items-center justify-between gap-3 text-sm'>
+        <span className='text-slate-500'>코드를 불러오지 못했습니다.</span>
+        <Button variant='outline' size='sm' onClick={() => refetch()}>
+          다시 시도
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className='space-y-3'>
       <div className='space-y-1'>
         {items.length === 0 && <div className='text-sm text-slate-500'>표시할 코드가 없습니다.</div>}
         {items.map((item, index) => (
-          <div
-            key={`${item.codeId}-${item.usedAt ?? index}`}
-            className='flex items-center gap-3 text-sm'
-          >
+          <div key={`${item.codeId}-${index}`} className='flex items-center gap-3 text-sm'>
             <span className='w-36 truncate font-mono text-slate-900'>{item.code}</span>
-            <span className={item.username ? 'text-slate-700' : 'text-slate-500'}>
-              {item.username ? '사용' : '미사용'}
+            <span className={item.usedAt ? 'text-slate-700' : 'text-slate-500'}>
+              {item.usedAt ? '사용' : '미사용'}
             </span>
             {item.username && <span className='text-slate-700'>{item.username}</span>}
             {item.usedAt && (

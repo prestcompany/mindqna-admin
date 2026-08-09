@@ -25,7 +25,7 @@ export const createCouponColumns = (actions: CouponRowActions): ColumnDef<Coupon
         type='button'
         aria-label={row.getIsExpanded() ? '코드 접기' : '코드 펼치기'}
         onClick={row.getToggleExpandedHandler()}
-        className='inline-flex h-6 w-6 items-center justify-center rounded-md text-slate-500 transition-colors duration-fast hover:bg-slate-100 hover:text-slate-700'
+        className='inline-flex h-6 w-6 items-center justify-center rounded-md text-slate-500 transition-colors duration-fast hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
       >
         {row.getIsExpanded() ? <ChevronDown className='h-4 w-4' /> : <ChevronRight className='h-4 w-4' />}
       </button>
@@ -38,8 +38,12 @@ export const createCouponColumns = (actions: CouponRowActions): ColumnDef<Coupon
     cell: ({ row }) => (
       <div className='min-w-0'>
         <div className='truncate font-medium text-slate-900'>{row.original.name}</div>
-        <div className='truncate font-mono text-xs text-slate-600'>
-          {row.original.issueMode === 'SHARED' ? row.original.code : `코드 ${row.original.codeCount}개`}
+        <div className='truncate text-xs text-slate-600'>
+          {row.original.issueMode === 'SHARED' ? (
+            <span className='font-mono'>{row.original.code}</span>
+          ) : (
+            `코드 ${row.original.codeCount}개`
+          )}
         </div>
       </div>
     ),

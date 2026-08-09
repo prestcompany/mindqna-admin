@@ -11,11 +11,12 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { zodResolver } from '@hookform/resolvers/zod';
 import dayjs from 'dayjs';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import CouponSummaryCard from './CouponSummaryCard';
+import { errorMessage } from './errorMessage';
 
 type Props = {
   init?: CouponBatch;
@@ -41,41 +42,52 @@ const emptyCouponForm = (): CouponFormValues => ({
   ticketDueDayNum: 0,
 });
 
-const couponSchema = z
-  .object({
-    name: z.string().min(1, '이름을 입력해주세요.'),
-    issueMode: z.enum(['INDIVIDUAL', 'SHARED']),
-    count: z.coerce.number().int().min(1, '1 이상 입력해주세요.').max(MAX_ISSUE_COUNT),
-    code: z.string(),
-    maxUseCount: z.coerce.number().int().min(0),
-    isUnlimited: z.boolean(),
-    startAt: z.string().min(1, '시작일을 입력해주세요.'),
-    dueAt: z.string().min(1, '만료일을 입력해주세요.'),
-    isPaid: z.boolean(),
-    reward: z.coerce.number().int().min(0, '0 이상 입력해주세요.'),
-    ticketCount: z.coerce.number().int().min(0, '0 이상 입력해주세요.'),
-    ticketDueDayNum: z.coerce.number().int().min(0, '0 이상 입력해주세요.'),
-  })
-  .superRefine((values, ctx) => {
-    if (dayjs(values.startAt).isAfter(dayjs(values.dueAt))) {
-      ctx.addIssue({ code: 'custom', path: ['dueAt'], message: '만료일은 시작일보다 빠를 수 없습니다.' });
-    }
-
-    if (values.reward <= 0 && values.ticketCount <= 0) {
-      ctx.addIssue({ code: 'custom', path: ['reward'], message: '코인 또는 티켓 보상을 설정해주세요.' });
-    }
-
-    if (values.issueMode === 'SHARED') {
-      if (values.code.trim() && !CODE_PATTERN.test(values.code.trim())) {
-        ctx.addIssue({ code: 'custom', path: ['code'], message: '영문/숫자/-/_ 4~32자로 입력해주세요.' });
+// The upper bound only applies while creating. On edit, 발급 수량 is seeded from the
+// stored codeCount and the input is disabled — a migrated batch can carry more than
+// MAX_ISSUE_COUNT codes (see AGENTS.md history), and zodResolver validates the whole
+// schema on submit regardless of which fields are rendered. Gating the bound here by
+// `isEdit` (captured via closure, not a form field) keeps every other edit of that
+// batch — name, dates, capacity — submittable, while still bounding new issues.
+const makeCouponSchema = (isEdit: boolean) =>
+  z
+    .object({
+      name: z.string().min(1, '이름을 입력해주세요.'),
+      issueMode: z.enum(['INDIVIDUAL', 'SHARED']),
+      count: z.coerce.number().int().min(1, '1 이상 입력해주세요.'),
+      code: z.string(),
+      maxUseCount: z.coerce.number().int().min(0),
+      isUnlimited: z.boolean(),
+      startAt: z.string().min(1, '시작일을 입력해주세요.'),
+      dueAt: z.string().min(1, '만료일을 입력해주세요.'),
+      isPaid: z.boolean(),
+      reward: z.coerce.number().int().min(0, '0 이상 입력해주세요.'),
+      ticketCount: z.coerce.number().int().min(0, '0 이상 입력해주세요.'),
+      ticketDueDayNum: z.coerce.number().int().min(0, '0 이상 입력해주세요.'),
+    })
+    .superRefine((values, ctx) => {
+      if (!isEdit && values.count > MAX_ISSUE_COUNT) {
+        ctx.addIssue({ code: 'custom', path: ['count'], message: `${MAX_ISSUE_COUNT} 이하로 입력해주세요.` });
       }
-      if (!values.isUnlimited && values.maxUseCount < 1) {
-        ctx.addIssue({ code: 'custom', path: ['maxUseCount'], message: '1 이상 입력하거나 무제한을 선택해주세요.' });
-      }
-    }
-  });
 
-type CouponFormValues = z.infer<typeof couponSchema>;
+      if (dayjs(values.startAt).isAfter(dayjs(values.dueAt))) {
+        ctx.addIssue({ code: 'custom', path: ['dueAt'], message: '만료일은 시작일보다 빠를 수 없습니다.' });
+      }
+
+      if (values.reward <= 0 && values.ticketCount <= 0) {
+        ctx.addIssue({ code: 'custom', path: ['reward'], message: '코인 또는 티켓 보상을 설정해주세요.' });
+      }
+
+      if (values.issueMode === 'SHARED') {
+        if (values.code.trim() && !CODE_PATTERN.test(values.code.trim())) {
+          ctx.addIssue({ code: 'custom', path: ['code'], message: '영문/숫자/-/_ 4~32자로 입력해주세요.' });
+        }
+        if (!values.isUnlimited && values.maxUseCount < 1) {
+          ctx.addIssue({ code: 'custom', path: ['maxUseCount'], message: '1 이상 입력하거나 무제한을 선택해주세요.' });
+        }
+      }
+    });
+
+type CouponFormValues = z.infer<ReturnType<typeof makeCouponSchema>>;
 
 function CouponForm({ init, reload, close }: Props) {
   const [isLoading, setLoading] = useState(false);
@@ -85,6 +97,7 @@ function CouponForm({ init, reload, close }: Props) {
   // backend blocks that once redeemed, but not while usedCount is 0. Lock instead.
   const hasBothCurrencies = !!init && init.heart > 0 && init.star > 0;
   const isLocked = (!!init && init.usedCount > 0) || hasBothCurrencies;
+  const couponSchema = useMemo(() => makeCouponSchema(isEdit), [isEdit]);
 
   const form = useForm<CouponFormValues>({
     resolver: zodResolver(couponSchema),
@@ -177,7 +190,7 @@ function CouponForm({ init, reload, close }: Props) {
       await reload();
       close();
     } catch (err) {
-      toast.error(`${err}`);
+      toast.error(errorMessage(err));
     }
     setLoading(false);
   };

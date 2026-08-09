@@ -111,7 +111,7 @@ export default ExampleListPage;
 - **Table**: 컬럼 `size` 명시, 긴 텍스트 `truncate`, 행 액션은 `TableRowActions`. 원시 `<table>` 신규 사용 금지.
 - **Form**: `react-hook-form` + `zod`. 라디오/체크는 칩형 우선, 주요 액션 우측·하단 고정.
 - **이미지/미디어**: 테이블 미리보기 `ClickableImagePreview`, 썸네일 투명 배경 + `object-contain`, 리스트 대표 미리보기 `120px` 기준.
-- **Raw SQL**: 백엔드의 `src/admin/product/coupon.sql.ts`가 사용자 입력을 포함하는 유일한 raw SQL입니다. 모든 값은 `Prisma.sql` tagged template으로 바인딩되어야 하며, 문자열 보간은 금지됩니다.
+- **Raw SQL**: 백엔드(`mindqna-server`)의 `src/admin/product/coupon.sql.ts`가 사용자 입력을 포함하는 유일한 raw SQL입니다. 모든 값은 `Prisma.sql` tagged template으로 바인딩되어야 하며, 문자열 보간은 금지됩니다.
 
 ### 4.1 DESIGN.md 원안(Vercel Geist) 대비 조정
 

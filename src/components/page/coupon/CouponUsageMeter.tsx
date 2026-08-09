@@ -6,7 +6,8 @@ type Props = {
 
 function CouponUsageMeter({ used, capacity }: Props) {
   const isUnlimited = capacity === 0;
-  const ratio = isUnlimited ? 0 : Math.min(1, capacity > 0 ? used / capacity : 0);
+  // capacity is schema-bound to >= 0, so once isUnlimited is false, capacity > 0 always.
+  const ratio = isUnlimited ? 0 : Math.min(1, used / capacity);
 
   return (
     <div className='space-y-1'>
