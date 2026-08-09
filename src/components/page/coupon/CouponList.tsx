@@ -1,13 +1,7 @@
-import { Coupon, removeCoupon } from '@/client/coupon';
+import { removeCouponBatch, stopCouponBatch, type CouponBatch, type CouponStatus } from '@/client/coupon';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import DataTable from '@/components/shared/ui/data-table';
 import { FILTER_CONTROL_CLASS, FilterBar } from '@/components/shared/ui/filter-bar';
-import TableRowActions from '@/components/shared/ui/table-row-actions';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Sheet } from '@/components/ui/sheet';
-import useDebouncedValue from '@/hooks/useDebouncedValue';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,141 +12,102 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Sheet } from '@/components/ui/sheet';
 import useCoupons from '@/hooks/useCoupons';
-import { ColumnDef } from '@tanstack/react-table';
-import dayjs from 'dayjs';
+import useDebouncedValue from '@/hooks/useDebouncedValue';
 import { Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import CouponCodeList from './CouponCodeList';
+import { createCouponColumns } from './CouponColumns';
 import CouponForm from './CouponForm';
+
+const STATUS_OPTIONS: { value: CouponStatus | 'ALL'; label: string }[] = [
+  { value: 'ALL', label: '전체 상태' },
+  { value: 'ACTIVE', label: '진행중' },
+  { value: 'SCHEDULED', label: '예정' },
+  { value: 'EXHAUSTED', label: '소진' },
+  { value: 'EXPIRED', label: '만료' },
+];
 
 function CouponList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchInput, setSearchInput] = useState('');
+  const [status, setStatus] = useState<CouponStatus | 'ALL'>('ALL');
   const debouncedSearch = useDebouncedValue(searchInput, 500);
   const trimmedSearch = debouncedSearch.trim();
   const effectiveSearch = trimmedSearch.length >= 2 ? trimmedSearch : undefined;
-  const { items, isLoading, refetch, totalPage } = useCoupons(currentPage, effectiveSearch);
+
+  const { items, isLoading, refetch, totalPage } = useCoupons(
+    currentPage,
+    effectiveSearch,
+    status === 'ALL' ? undefined : status,
+  );
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
-  const [focused, setFocused] = useState<Coupon | undefined>(undefined);
-  const [confirmDelete, setConfirmDelete] = useState<Coupon | undefined>(undefined);
+  const [focused, setFocused] = useState<CouponBatch | undefined>(undefined);
+  const [confirmDelete, setConfirmDelete] = useState<CouponBatch | undefined>(undefined);
+  const [confirmStop, setConfirmStop] = useState<CouponBatch | undefined>(undefined);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [effectiveSearch]);
-
-  const handleEdit = (value: Coupon) => {
-    setFocused(value);
-    setOpenEdit(true);
-  };
-
-  const handleRemove = (value: Coupon) => {
-    setConfirmDelete(value);
-  };
+  }, [effectiveSearch, status]);
 
   const handleConfirmRemove = async () => {
     if (!confirmDelete) return;
     try {
-      await removeCoupon(confirmDelete.id);
+      const result = await removeCouponBatch(confirmDelete.batchId);
       await refetch();
+      toast.success(
+        result.kept > 0
+          ? `미사용 ${result.deleted}장을 삭제했습니다. 사용된 ${result.kept}장은 이력 보존을 위해 남겼습니다.`
+          : `${result.deleted}장을 삭제했습니다.`,
+      );
     } catch (err) {
       toast.error(`${err}`);
     }
     setConfirmDelete(undefined);
   };
 
-  const columns: ColumnDef<Coupon>[] = [
-    {
-      accessorKey: 'id',
-      header: '번호',
-      size: 72,
-    },
-    {
-      accessorKey: 'name',
-      header: '이름',
-      size: 180,
-    },
-    {
-      accessorKey: 'code',
-      header: 'code',
-      size: 180,
-    },
-    {
-      accessorKey: 'heart',
-      header: '히트',
-      size: 90,
-      cell: ({ row }) => {
-        return <Badge variant='softDanger'>{row.original.heart}</Badge>;
-      },
-    },
-    {
-      accessorKey: 'star',
-      header: '스타',
-      size: 90,
-      cell: ({ row }) => {
-        return <Badge variant='softWarning'>{row.original.star}</Badge>;
-      },
-    },
-    {
-      accessorKey: 'ticketCount',
-      header: '티켓 수',
-      size: 96,
-      cell: ({ row }) => {
-        return row.original.ticketCount;
-      },
-    },
-    {
-      accessorKey: 'ticketDueDayNum',
-      header: '티켓 혜택 일',
-      size: 120,
-      cell: ({ row }) => {
-        return row.original.ticketDueDayNum;
-      },
-    },
-    {
-      accessorKey: 'dueAt',
-      header: '만료일',
-      size: 140,
-      cell: ({ row }) => {
-        const value = row.original.dueAt;
-        const day = dayjs(value);
-        return <div>{value ? day.format('YY.MM.DD HH:mm') : ''}</div>;
-      },
-    },
-    {
-      accessorKey: 'username',
-      header: '사용',
-      size: 160,
-      cell: ({ row }) => {
-        return <div> {row.original.username || '미사용'}</div>;
-      },
-    },
-    {
-      id: 'actions',
-      header: '관리',
-      size: 92,
-      cell: ({ row }) => (
-        <TableRowActions
-          items={[
-            {
-              label: '수정',
-              onClick: () => handleEdit(row.original),
-            },
-            {
-              label: '삭제',
-              onClick: () => handleRemove(row.original),
-              destructive: true,
-            },
-          ]}
-        />
-      ),
-    },
-  ];
+  const handleConfirmStop = async () => {
+    if (!confirmStop) return;
+    try {
+      await stopCouponBatch(confirmStop.batchId);
+      await refetch();
+      toast.success('쿠폰 발급을 중단했습니다.');
+    } catch (err) {
+      toast.error(`${err}`);
+    }
+    setConfirmStop(undefined);
+  };
+
+  const columns = useMemo(
+    () =>
+      createCouponColumns({
+        onEdit: (batch) => {
+          setFocused(batch);
+          setOpenEdit(true);
+        },
+        onStop: (batch) => setConfirmStop(batch),
+        onDelete: (batch) => setConfirmDelete(batch),
+      }),
+    [],
+  );
+
   return (
     <>
-      <FilterBar>
+      <FilterBar
+        chips={
+          status === 'ALL'
+            ? []
+            : [{ key: 'status', label: STATUS_OPTIONS.find((o) => o.value === status)?.label ?? '상태' }]
+        }
+        onRemoveChip={() => setStatus('ALL')}
+      >
         <div className='relative min-w-[260px]'>
           <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
           <Input
@@ -162,6 +117,18 @@ function CouponList() {
             className={`pl-9 ${FILTER_CONTROL_CLASS}`}
           />
         </div>
+        <Select value={status} onValueChange={(value) => setStatus(value as CouponStatus | 'ALL')}>
+          <SelectTrigger className={`w-[140px] ${FILTER_CONTROL_CLASS}`}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUS_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <div className='flex-1' />
         <Button
           onClick={() => {
@@ -178,6 +145,8 @@ function CouponList() {
         columns={columns}
         data={items}
         loading={isLoading}
+        rowKey='batchId'
+        expandable={{ expandedRowRender: (batch) => <CouponCodeList batch={batch} /> }}
         pagination={{
           total: totalPage * 10,
           page: currentPage,
@@ -185,11 +154,13 @@ function CouponList() {
           onChange: (page) => setCurrentPage(page),
         }}
       />
+
       <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
-        <AdminSideSheetContent title='쿠폰 추가' size='md'>
+        <AdminSideSheetContent title='쿠폰 발급' size='md'>
           <CouponForm reload={refetch} close={() => setOpenCreate(false)} />
         </AdminSideSheetContent>
       </Sheet>
+
       <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
         <AdminSideSheetContent title='쿠폰 수정' size='md'>
           <CouponForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
@@ -201,12 +172,27 @@ function CouponList() {
           <AlertDialogHeader>
             <AlertDialogTitle>삭제 ({confirmDelete?.name})</AlertDialogTitle>
             <AlertDialogDescription>
-              이 쿠폰을 정말 삭제하시겠습니까?
+              아직 사용되지 않은 코드만 삭제됩니다. 이미 사용된 코드는 이력 보존을 위해 남습니다.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>취소</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmRemove}>확인</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!confirmStop} onOpenChange={(open) => !open && setConfirmStop(undefined)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>발급 중단 ({confirmStop?.name})</AlertDialogTitle>
+            <AlertDialogDescription>
+              만료일을 지금으로 변경해 더 이상 등록할 수 없게 합니다. 이미 지급된 보상은 회수되지 않습니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmStop}>확인</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
