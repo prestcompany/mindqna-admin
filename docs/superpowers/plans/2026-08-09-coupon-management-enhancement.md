@@ -2441,14 +2441,19 @@ function CouponRewardCell({ heart, star, ticketCount, ticketDueDayNum }: Props) 
 
   return (
     <div className='space-y-0.5'>
-      {hasCoin && (
+      {/* One row per non-zero currency. The form offers only one coin type, but the
+          backend accepts both independently, and a list that hides half a grant is
+          worse than a list with two rows. */}
+      {heart > 0 && (
         <div className='flex items-center gap-1.5'>
-          {heart > 0 ? (
-            <Heart className='h-3.5 w-3.5 text-rose-600' aria-label='하트' />
-          ) : (
-            <Star className='h-3.5 w-3.5 text-amber-600' aria-label='스타' />
-          )}
-          <span className='tabular-nums text-slate-900'>{heart > 0 ? heart : star}</span>
+          <Heart className='h-3.5 w-3.5 text-rose-600' aria-label='하트' />
+          <span className='tabular-nums text-slate-900'>{heart}</span>
+        </div>
+      )}
+      {star > 0 && (
+        <div className='flex items-center gap-1.5'>
+          <Star className='h-3.5 w-3.5 text-amber-600' aria-label='스타' />
+          <span className='tabular-nums text-slate-900'>{star}</span>
         </div>
       )}
       {ticketCount > 0 && (
