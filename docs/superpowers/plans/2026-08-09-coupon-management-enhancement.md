@@ -27,6 +27,7 @@
 - Frontend UI must follow `DESIGN.md`: plain numeric values are neutral text and never wrapped in `soft*` badges, status uses `dot*` badges, numbers carry `tabular-nums`, no emoji, no arbitrary sizes/durations/20px spacing.
 - Commit messages: conventional commits, lowercase English subject.
 - **Two transitional states are intended, not defects.** (a) Task 1 keeps `createCoupon`'s sequential insert loop so the schema change ships without behaviour change; Task 3 replaces it with a single `createMany`. (b) Tasks 3, 6 and 7 change service signatures while the controller still calls the old ones, so `tsc` does not pass again until Task 8. Only Tasks 1 and 8 assert a clean `tsc` in Phase A; Tasks 3–7 gate on `jest` alone. Do not "fix" either state early — doing so pulls later tasks forward and skips their reviews.
+- **The transitional `tsc` break is allowed only in files the spec does not transitively import.** `package.json` runs `ts-jest` with no `isolatedModules` and no `diagnostics: false`, so it type-checks every file it transforms. `product.service.spec.ts` imports `product.service.ts`, which imports `types/product.types.ts` — a compile error anywhere in that chain fails the whole suite to even start ("Test suite failed to run", 0 tests), taking every pre-existing test down with it. `admin.controller.ts` is never imported by a spec, so its break is harmless. **Practical consequence:** when a task changes a type that an as-yet-unreplaced service method still uses, add the new type beside the old one and let the task that replaces the method delete the old one. Never leave `product.service.ts` uncompilable at a task boundary.
 
 ---
 
@@ -1299,6 +1300,8 @@ Run: `npx jest src/admin/product/product.service.spec.ts -t updateCouponBatch`
 Expected: FAIL — `service.updateCouponBatch is not a function`.
 
 - [ ] **Step 3: Write the implementation**
+
+Task 3 kept `UpdateCouponParams` alive in `types/product.types.ts` because `updateCoupon` still referenced it and a broken type chain collapses the whole jest suite (see Global Constraints). This task removes the last reference, so **delete `UpdateCouponParams` from `types/product.types.ts` here**, along with its retention comment.
 
 In `src/admin/product/product.service.ts`, delete `updateCoupon` and add:
 
