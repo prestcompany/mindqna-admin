@@ -26,6 +26,21 @@ type Props = {
 const CODE_PATTERN = /^[A-Za-z0-9_-]{4,32}$/;
 const MAX_ISSUE_COUNT = 1000;
 
+const emptyCouponForm = (): CouponFormValues => ({
+  name: '',
+  issueMode: 'INDIVIDUAL',
+  count: 1,
+  code: '',
+  maxUseCount: 1,
+  isUnlimited: false,
+  startAt: dayjs().format('YYYY-MM-DD'),
+  dueAt: dayjs().add(30, 'day').format('YYYY-MM-DD'),
+  isPaid: false,
+  reward: 0,
+  ticketCount: 0,
+  ticketDueDayNum: 0,
+});
+
 const couponSchema = z
   .object({
     name: z.string().min(1, '이름을 입력해주세요.'),
@@ -73,26 +88,20 @@ function CouponForm({ init, reload, close }: Props) {
 
   const form = useForm<CouponFormValues>({
     resolver: zodResolver(couponSchema),
-    defaultValues: {
-      name: '',
-      issueMode: 'INDIVIDUAL',
-      count: 1,
-      code: '',
-      maxUseCount: 1,
-      isUnlimited: false,
-      startAt: dayjs().format('YYYY-MM-DD'),
-      dueAt: dayjs().add(30, 'day').format('YYYY-MM-DD'),
-      isPaid: false,
-      reward: 0,
-      ticketCount: 0,
-      ticketDueDayNum: 0,
-    },
+    defaultValues: emptyCouponForm(),
   });
 
   const values = form.watch();
 
+  // Reset in BOTH directions. An early return on the create branch would leave a
+  // reused instance holding the previously edited coupon's code and count — the
+  // two fields that decide what actually gets issued — and would make correctness
+  // depend on the parent mounting a fresh instance, which this file cannot see.
   useEffect(() => {
-    if (!init) return;
+    if (!init) {
+      form.reset(emptyCouponForm());
+      return;
+    }
 
     form.reset({
       name: init.name,
@@ -116,6 +125,14 @@ function CouponForm({ init, reload, close }: Props) {
     form.setValue('startAt', dayjs().format('YYYY-MM-DD'));
     form.setValue('dueAt', dayjs().add(days, 'day').format('YYYY-MM-DD'));
   };
+
+  // Carry the quantity across a mode switch on create. 발급 수량 and 최대 이용 횟수
+  // answer the same question — how many people this issuance serves — so silently
+  // dropping back to 1 discards an intent the admin already typed.
+  useEffect(() => {
+    if (isEdit) return;
+    form.setValue('maxUseCount', form.getValues('count'));
+  }, [values.issueMode, isEdit]);
 
   const save = async (input: CouponFormValues) => {
     setLoading(true);
