@@ -2942,6 +2942,21 @@ const couponSchema = z
 
 type CouponFormValues = z.infer<typeof couponSchema>;
 
+const emptyCouponForm = (): CouponFormValues => ({
+  name: '',
+  issueMode: 'INDIVIDUAL',
+  count: 1,
+  code: '',
+  maxUseCount: 1,
+  isUnlimited: false,
+  startAt: dayjs().format('YYYY-MM-DD'),
+  dueAt: dayjs().add(30, 'day').format('YYYY-MM-DD'),
+  isPaid: false,
+  reward: 0,
+  ticketCount: 0,
+  ticketDueDayNum: 0,
+});
+
 function CouponForm({ init, reload, close }: Props) {
   const [isLoading, setLoading] = useState(false);
   const isEdit = !!init;
@@ -2953,26 +2968,20 @@ function CouponForm({ init, reload, close }: Props) {
 
   const form = useForm<CouponFormValues>({
     resolver: zodResolver(couponSchema),
-    defaultValues: {
-      name: '',
-      issueMode: 'INDIVIDUAL',
-      count: 1,
-      code: '',
-      maxUseCount: 1,
-      isUnlimited: false,
-      startAt: dayjs().format('YYYY-MM-DD'),
-      dueAt: dayjs().add(30, 'day').format('YYYY-MM-DD'),
-      isPaid: false,
-      reward: 0,
-      ticketCount: 0,
-      ticketDueDayNum: 0,
-    },
+    defaultValues: emptyCouponForm(),
   });
 
   const values = form.watch();
 
+  // Reset in BOTH directions. An early return on the create branch would leave a
+  // reused instance holding the previously edited coupon's code and count — the
+  // two fields that decide what actually gets issued — and would make correctness
+  // depend on the parent mounting a fresh instance, which this file cannot see.
   useEffect(() => {
-    if (!init) return;
+    if (!init) {
+      form.reset(emptyCouponForm());
+      return;
+    }
 
     form.reset({
       name: init.name,
@@ -2991,6 +3000,14 @@ function CouponForm({ init, reload, close }: Props) {
       ticketDueDayNum: init.ticketDueDayNum,
     });
   }, [init]);
+
+  // Carry the quantity across a mode switch on create. 발급 수량 and 최대 이용 횟수
+  // answer the same question — how many people this issuance serves — so silently
+  // dropping back to 1 discards an intent the admin already typed.
+  useEffect(() => {
+    if (isEdit) return;
+    form.setValue('maxUseCount', form.getValues('count'));
+  }, [values.issueMode, isEdit]);
 
   const applyQuickRange = (days: number) => {
     form.setValue('startAt', dayjs().format('YYYY-MM-DD'));
