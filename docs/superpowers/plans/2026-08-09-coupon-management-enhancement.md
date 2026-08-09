@@ -2945,7 +2945,11 @@ type CouponFormValues = z.infer<typeof couponSchema>;
 function CouponForm({ init, reload, close }: Props) {
   const [isLoading, setLoading] = useState(false);
   const isEdit = !!init;
-  const isLocked = !!init && init.usedCount > 0;
+  // The form models one coin type, so it cannot represent a coupon granting both.
+  // Editing one would silently zero the currency the radio did not select — the
+  // backend blocks that once redeemed, but not while usedCount is 0. Lock instead.
+  const hasBothCurrencies = !!init && init.heart > 0 && init.star > 0;
+  const isLocked = (!!init && init.usedCount > 0) || hasBothCurrencies;
 
   const form = useForm<CouponFormValues>({
     resolver: zodResolver(couponSchema),
@@ -3241,7 +3245,13 @@ function CouponForm({ init, reload, close }: Props) {
 
           <FormSection
             title='보상'
-            description={isLocked ? `이미 ${init?.usedCount}명이 사용한 쿠폰입니다. 보상과 코드는 변경할 수 없습니다.` : undefined}
+            description={
+              hasBothCurrencies
+                ? '이 쿠폰은 하트와 스타를 함께 지급합니다. 이 화면은 코인을 한 종류만 다루므로 보상을 수정할 수 없습니다.'
+                : isLocked
+                  ? `이미 ${init?.usedCount}명이 사용한 쿠폰입니다. 보상과 코드는 변경할 수 없습니다.`
+                  : undefined
+            }
           >
             <FormGroup title='코인 종류 / 수량*'>
               <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
