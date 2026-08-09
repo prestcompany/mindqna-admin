@@ -25,6 +25,7 @@
 -- ============================================================
 
 SHOW INDEX FROM `CouponMeta`;
+SHOW CREATE TABLE `CouponMeta`;
 
 
 -- ============================================================
@@ -121,6 +122,13 @@ ALTER TABLE `CouponMeta`
 -- `startAt`'s default is permanent and matches Prisma @default(now()).
 -- ============================================================
 
+-- Re-run the useCount backfill. The old backend wrote CouponMeta without
+-- touching useCount, so any redemption between STEP 3 and this deploy left a
+-- legacy code with useCount = 0 — and therefore redeemable a second time by a
+-- different user. Idempotent: rows the new backend wrote already agree.
+UPDATE `Coupon` c
+   SET c.`useCount` = (SELECT COUNT(*) FROM `CouponMeta` m WHERE m.`couponId` = c.`id`);
+
 ALTER TABLE `Coupon` ALTER COLUMN `batchId` DROP DEFAULT;
 
 
@@ -128,6 +136,12 @@ ALTER TABLE `Coupon` ALTER COLUMN `batchId` DROP DEFAULT;
 -- VERIFY — after STEP 6
 -- Expect: zero rows with an empty batchId, and useCount matching
 -- the redemption history exactly.
+--
+-- If empty_batch_rows is non-zero, do NOT re-run STEP 4 as remediation: it
+-- regenerates a fresh UUID() for every row in the table and merges any two
+-- same-name batches created within the same minute. Remediate per row instead:
+--
+--   UPDATE `Coupon` SET `batchId` = (SELECT UUID()) WHERE `batchId` = '';
 -- ============================================================
 
 SELECT COUNT(*) AS empty_batch_rows FROM `Coupon` WHERE `batchId` = '';
