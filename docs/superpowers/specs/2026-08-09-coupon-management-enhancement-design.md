@@ -372,7 +372,9 @@ The `번호` (id) column is removed — an individual code's id is meaningless a
 
 ### 5.4 Expanded region
 
-Uses `DataTable`'s existing `expandable`. Lists codes per §4.2 with a **코드 전체 복사** button that writes every code newline-separated to the clipboard. Without it, issuing 100 individual codes leaves no way to retrieve them — the mode would be half-built.
+Uses `DataTable`'s `expandable` prop, which needs a one-line fix first: no module has ever used it, and TanStack resolves `row.getCanExpand()` from `subRows` when `getRowCanExpand` is absent, so the toggle handler is currently a no-op. `DataTable` must pass `getRowCanExpand: () => true` when `expandable` is supplied. The changed branch only activates for expandable tables, so the other 19 consumers are unaffected.
+
+Lists codes per §4.2 with a **코드 전체 복사** button that writes every code newline-separated to the clipboard. Without it, issuing 100 individual codes leaves no way to retrieve them — the mode would be half-built.
 
 ### 5.5 Side panel
 
