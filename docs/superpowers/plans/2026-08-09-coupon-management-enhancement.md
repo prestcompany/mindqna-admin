@@ -1798,7 +1798,158 @@ git commit -m "fix(premium): let grant helpers join a caller's transaction"
 **Interfaces:**
 - Consumes: `chargeCoin(params, tx)` and `createPremiumTickets(params, tx)` from Task 9.
 
-- [ ] **Step 1: Add the checks to `validateCoupon`**
+- [ ] **Step 1: Write the failing tests**
+
+This is the live redemption path, and it is the only task in Phase A that changes what real users experience. It gets tests.
+
+Append to `src/premium/premium.service.spec.ts`, following that file's existing idiom: an inline prisma mock per describe, `new PremiumService(prisma as any, {} as any, {} as any, {} as any)`, and `jest.spyOn(service as any, '<private>')` to reach private methods. The file already mocks `AlreadyException` and `NotFoundException` as `Error('Already')` / `Error('Not Found')`, which is what the assertions below match on.
+
+```ts
+describe('PremiumService.useCoupon', () => {
+  let service: PremiumService;
+  let prisma: any;
+  let tx: any;
+  let chargeCoin: jest.SpyInstance;
+  let createPremiumTickets: jest.SpyInstance;
+
+  const coupon = {
+    id: 7,
+    name: '여름 이벤트',
+    code: 'SUMMER2026',
+    startAt: new Date('2020-01-01T00:00:00.000Z'),
+    dueAt: new Date('2099-12-31T23:59:59.000Z'),
+    maxUseCount: 100,
+    useCount: 3,
+    heart: 100,
+    star: 0,
+    ticketCount: 1,
+    ticketDueDayNum: 30,
+  };
+
+  const params = { userId: 'u-1', username: 'hanjune', code: 'SUMMER2026', spaceId: 's-1' };
+
+  beforeEach(() => {
+    tx = {
+      $executeRaw: jest.fn().mockResolvedValue(1),
+      profile: { findUnique: jest.fn().mockResolvedValue({ id: 42 }) },
+      couponMeta: { create: jest.fn().mockResolvedValue(undefined) },
+    };
+    prisma = {
+      coupon: { findUnique: jest.fn().mockResolvedValue(coupon) },
+      couponMeta: { count: jest.fn().mockResolvedValue(0) },
+      $transaction: jest.fn().mockImplementation((cb: any) => cb(tx)),
+    };
+
+    service = new PremiumService(prisma as any, {} as any, {} as any, {} as any);
+    chargeCoin = jest.spyOn(service as any, 'chargeCoin').mockResolvedValue(undefined);
+    createPremiumTickets = jest.spyOn(service as any, 'createPremiumTickets').mockResolvedValue(undefined);
+  });
+
+  it('rejects a coupon that has not started yet', async () => {
+    prisma.coupon.findUnique.mockResolvedValue({ ...coupon, startAt: new Date('2099-01-01T00:00:00.000Z') });
+
+    await expect(service.useCoupon(params)).rejects.toThrow('Not Found');
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('rejects an expired coupon', async () => {
+    prisma.coupon.findUnique.mockResolvedValue({ ...coupon, dueAt: new Date('2020-01-01T00:00:00.000Z') });
+
+    await expect(service.useCoupon(params)).rejects.toThrow('Not Found');
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('rejects a second redemption by the same user', async () => {
+    prisma.couponMeta.count.mockResolvedValue(1);
+
+    await expect(service.useCoupon(params)).rejects.toThrow('Already');
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  // Zero affected rows means the batch filled up between the read and the write.
+  it('grants nothing when the capacity guard claims no slot', async () => {
+    tx.$executeRaw.mockResolvedValue(0);
+
+    await expect(service.useCoupon(params)).rejects.toThrow('Already');
+    expect(chargeCoin).not.toHaveBeenCalled();
+    expect(createPremiumTickets).not.toHaveBeenCalled();
+    expect(tx.couponMeta.create).not.toHaveBeenCalled();
+  });
+
+  it('claims the slot before granting anything', async () => {
+    await service.useCoupon(params);
+
+    expect(tx.$executeRaw).toHaveBeenCalledTimes(1);
+    expect(chargeCoin.mock.invocationCallOrder[0]).toBeGreaterThan(tx.$executeRaw.mock.invocationCallOrder[0]);
+  });
+
+  // This is what Task 9 exists for: the grants must join this transaction rather
+  // than opening their own, so a failed couponMeta.create rolls the coins back too.
+  it('opens exactly one transaction and hands it to every grant helper', async () => {
+    await service.useCoupon(params);
+
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(chargeCoin).toHaveBeenCalledWith(expect.anything(), tx);
+    expect(createPremiumTickets).toHaveBeenCalledWith(expect.anything(), tx);
+  });
+
+  it('records the redemption against the user', async () => {
+    await service.useCoupon(params);
+
+    expect(tx.couponMeta.create).toHaveBeenCalledWith({
+      data: { couponId: 7, userId: 'u-1', spaceId: 's-1', username: 'hanjune' },
+    });
+  });
+});
+
+describe('PremiumService.validateCoupon', () => {
+  let service: PremiumService;
+  let prisma: any;
+
+  const coupon = {
+    id: 7,
+    code: 'SUMMER2026',
+    startAt: new Date('2020-01-01T00:00:00.000Z'),
+    dueAt: new Date('2099-12-31T23:59:59.000Z'),
+    maxUseCount: 100,
+    useCount: 3,
+  };
+
+  beforeEach(() => {
+    prisma = { coupon: { findUnique: jest.fn().mockResolvedValue(coupon) } };
+    service = new PremiumService(prisma as any, {} as any, {} as any, {} as any);
+  });
+
+  it('returns the coupon when it is live and has room', async () => {
+    await expect(service.validateCoupon({ code: 'SUMMER2026' })).resolves.toEqual(coupon);
+  });
+
+  it('rejects a coupon that has not started yet', async () => {
+    prisma.coupon.findUnique.mockResolvedValue({ ...coupon, startAt: new Date('2099-01-01T00:00:00.000Z') });
+
+    await expect(service.validateCoupon({ code: 'SUMMER2026' })).rejects.toThrow('Not Found');
+  });
+
+  it('rejects a coupon whose capacity is full', async () => {
+    prisma.coupon.findUnique.mockResolvedValue({ ...coupon, useCount: 100 });
+
+    await expect(service.validateCoupon({ code: 'SUMMER2026' })).rejects.toThrow('Already');
+  });
+
+  it('accepts an unlimited coupon regardless of use count', async () => {
+    prisma.coupon.findUnique.mockResolvedValue({ ...coupon, maxUseCount: 0, useCount: 9999 });
+
+    await expect(service.validateCoupon({ code: 'SUMMER2026' })).resolves.toBeTruthy();
+  });
+});
+```
+
+- [ ] **Step 2: Run the tests to verify they fail**
+
+Run: `npx jest src/premium/premium.service.spec.ts -t Coupon`
+Expected: FAIL. The start-date and capacity cases fail because those checks do not exist yet; the transaction-count case fails because the grants still open their own transactions.
+
+- [ ] **Step 3: Add the checks to `validateCoupon`**
 
 ```ts
   async validateCoupon(params: ValidateCouponParams) {
@@ -1822,7 +1973,7 @@ git commit -m "fix(premium): let grant helpers join a caller's transaction"
 
 `validateCoupon` takes no user id, so it cannot check per-user reuse; that check stays in `useCoupon` where the user is known.
 
-- [ ] **Step 2: Rewrite `useCoupon` around the capacity guard**
+- [ ] **Step 4: Rewrite `useCoupon` around the capacity guard**
 
 ```ts
   async useCoupon(params: UseCouponParams) {
@@ -1916,20 +2067,25 @@ git commit -m "fix(premium): let grant helpers join a caller's transaction"
 
 Keep whatever the method returned before this change; only the body above is replaced.
 
-- [ ] **Step 3: Verify types compile**
+- [ ] **Step 5: Run the tests to verify they pass**
 
-Run: `npx tsc --noEmit`
-Expected: PASS.
-
-- [ ] **Step 4: Verify the suite still passes**
-
-Run: `npx jest`
+Run: `npx jest src/premium/premium.service.spec.ts -t Coupon`
 Expected: all PASS.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Verify types compile**
+
+Run: `npx tsc --noEmit`
+Expected: PASS, zero errors.
+
+- [ ] **Step 7: Verify the whole suite still passes**
+
+Run: `npx jest`
+Expected: all PASS. This touches a method six other flows call indirectly, so the full run matters here more than usual.
+
+- [ ] **Step 8: Commit**
 
 ```bash
-git add src/premium/premium.service.ts
+git add src/premium/premium.service.ts src/premium/premium.service.spec.ts
 git commit -m "feat(coupon): enforce start date and capacity when redeeming"
 ```
 
