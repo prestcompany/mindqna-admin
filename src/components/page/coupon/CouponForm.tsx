@@ -126,13 +126,11 @@ function CouponForm({ init, reload, close }: Props) {
     form.setValue('dueAt', dayjs().add(days, 'day').format('YYYY-MM-DD'));
   };
 
-  // Carry the quantity across a mode switch on create. 발급 수량 and 최대 이용 횟수
-  // answer the same question — how many people this issuance serves — so silently
-  // dropping back to 1 discards an intent the admin already typed.
-  useEffect(() => {
-    if (isEdit) return;
-    form.setValue('maxUseCount', form.getValues('count'));
-  }, [values.issueMode, isEdit]);
+  // Deliberately NO effect carrying 발급 수량 into 최대 이용 횟수 on a mode switch.
+  // An earlier revision added one and it fired on every mode change, so switching
+  // 공용 → 개별 → 공용 overwrote a maxUseCount the admin had typed with the hidden
+  // count field's stale value. The two fields are independent inputs; each mode
+  // shows its own and the admin fills it in.
 
   const save = async (input: CouponFormValues) => {
     setLoading(true);
