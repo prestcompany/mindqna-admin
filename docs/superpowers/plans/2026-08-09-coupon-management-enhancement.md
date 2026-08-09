@@ -1324,6 +1324,7 @@ describe('updateCouponBatch', () => {
     prisma.coupon.findMany.mockResolvedValue([{ ...existing, useCount: 30 }]);
 
     await expect(service.updateCouponBatch({ ...patch, maxUseCount: 20 })).rejects.toThrow();
+    expect(prisma.coupon.updateMany).not.toHaveBeenCalled();
   });
 
   it('allows raising maxUseCount above the current usage', async () => {
@@ -1342,18 +1343,31 @@ describe('updateCouponBatch', () => {
     expect(prisma.coupon.updateMany.mock.calls[0][0].data.maxUseCount).toBeUndefined();
   });
 
-  it('rejects moving startAt once the batch has already started', async () => {
+  it('rejects moving startAt once a started batch has been redeemed', async () => {
     prisma.coupon.findMany.mockResolvedValue([
-      { ...existing, startAt: new Date('2020-01-01T00:00:00.000Z') },
+      { ...existing, useCount: 12, startAt: new Date('2020-01-01T00:00:00.000Z') },
     ]);
 
     await expect(service.updateCouponBatch({ ...patch, startAt: '2030-01-01' })).rejects.toThrow();
+    expect(prisma.coupon.updateMany).not.toHaveBeenCalled();
+  });
+
+  // Zero redemptions means there is no history to rewrite, so a mistyped or
+  // delayed start date must still be fixable even after it has passed.
+  it('allows moving startAt on an already-started batch that nobody has redeemed', async () => {
+    prisma.coupon.findMany.mockResolvedValue([
+      { ...existing, useCount: 0, startAt: new Date('2020-01-01T00:00:00.000Z') },
+    ]);
+
+    await expect(service.updateCouponBatch({ ...patch, startAt: '2030-01-01' })).resolves.toBeUndefined();
+    expect(prisma.coupon.updateMany).toHaveBeenCalledTimes(1);
   });
 
   it('rejects an unknown batch', async () => {
     prisma.coupon.findMany.mockResolvedValue([]);
 
     await expect(service.updateCouponBatch(patch)).rejects.toThrow();
+    expect(prisma.coupon.updateMany).not.toHaveBeenCalled();
   });
 });
 ```
@@ -1399,7 +1413,9 @@ In `src/admin/product/product.service.ts`, delete `updateCoupon` and add:
     const nextStart = dayjs(startAt).startOf('day');
     const startChanged = nextStart.format('YYYY-MM-DD') !== dayjs(head.startAt).format('YYYY-MM-DD');
 
-    if (startChanged && dayjs().isAfter(dayjs(head.startAt))) {
+    // Gated on usedCount: with nobody redeemed there is no history to rewrite, so
+    // an admin must still be able to fix a mistyped or delayed start date.
+    if (startChanged && usedCount > 0 && dayjs().isAfter(dayjs(head.startAt))) {
       throw new BadRequestException('이미 시작된 쿠폰의 시작일은 변경할 수 없습니다.');
     }
 
