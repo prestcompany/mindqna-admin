@@ -12,7 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import dayjs from 'dayjs';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type FieldErrors } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import CouponSummaryCard from './CouponSummaryCard';
@@ -53,7 +53,7 @@ const makeCouponSchema = (isEdit: boolean) =>
     .object({
       name: z.string().min(1, '이름을 입력해주세요.'),
       issueMode: z.enum(['INDIVIDUAL', 'SHARED']),
-      count: z.coerce.number().int().min(1, '1 이상 입력해주세요.'),
+      count: z.coerce.number().int(),
       code: z.string(),
       maxUseCount: z.coerce.number().int().min(0),
       isUnlimited: z.boolean(),
@@ -65,8 +65,16 @@ const makeCouponSchema = (isEdit: boolean) =>
       ticketDueDayNum: z.coerce.number().int().min(0, '0 이상 입력해주세요.'),
     })
     .superRefine((values, ctx) => {
-      if (!isEdit && values.count > MAX_ISSUE_COUNT) {
-        ctx.addIssue({ code: 'custom', path: ['count'], message: `${MAX_ISSUE_COUNT} 이하로 입력해주세요.` });
+      // Gate on the mode too, not just `isEdit`. 발급 수량 is unmounted in SHARED mode, so
+      // an error on it has no FormMessage to render and no focusable ref — a value typed
+      // before switching modes would block submit with no toast, no field error, and no
+      // request, leaving the form permanently unsubmittable with nothing on screen to fix.
+      if (!isEdit && values.issueMode === 'INDIVIDUAL') {
+        if (values.count < 1) {
+          ctx.addIssue({ code: 'custom', path: ['count'], message: '1 이상 입력해주세요.' });
+        } else if (values.count > MAX_ISSUE_COUNT) {
+          ctx.addIssue({ code: 'custom', path: ['count'], message: `${MAX_ISSUE_COUNT} 이하로 입력해주세요.` });
+        }
       }
 
       if (dayjs(values.startAt).isAfter(dayjs(values.dueAt))) {
@@ -97,6 +105,10 @@ function CouponForm({ init, reload, close }: Props) {
   // backend blocks that once redeemed, but not while usedCount is 0. Lock instead.
   const hasBothCurrencies = !!init && init.heart > 0 && init.star > 0;
   const isLocked = (!!init && init.usedCount > 0) || hasBothCurrencies;
+  // 발급 중단 stores the instant of the stop, and the API keeps that instant unless the
+  // calendar DAY changes — so an unrelated edit can no longer re-open a closed coupon.
+  // The date input can only show the day, so say what saving will and will not do.
+  const isClosed = !!init && dayjs(init.dueAt).isBefore(dayjs());
   const couponSchema = useMemo(() => makeCouponSchema(isEdit), [isEdit]);
 
   const form = useForm<CouponFormValues>({
@@ -144,6 +156,15 @@ function CouponForm({ init, reload, close }: Props) {
   // 공용 → 개별 → 공용 overwrote a maxUseCount the admin had typed with the hidden
   // count field's stale value. The two fields are independent inputs; each mode
   // shows its own and the admin fills it in.
+
+  // Last-resort feedback. Every field that can hold an error renders a FormMessage, but
+  // a field the current mode has unmounted cannot render or focus one — and react-hook-form
+  // fails the submit silently in that case. Surfacing the first message guarantees the
+  // admin always learns why the button did nothing.
+  const onInvalid = (errors: FieldErrors<CouponFormValues>) => {
+    const first = Object.values(errors).find((error) => error?.message);
+    toast.error(first?.message ? String(first.message) : '입력값을 확인해주세요.');
+  };
 
   const save = async (input: CouponFormValues) => {
     setLoading(true);
@@ -203,7 +224,7 @@ function CouponForm({ init, reload, close }: Props) {
         </div>
       )}
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
+        <form onSubmit={form.handleSubmit(save, onInvalid)} className='space-y-4 pb-2'>
           <FormSection
             title='발급 방식'
             description={
@@ -352,7 +373,14 @@ function CouponForm({ init, reload, close }: Props) {
             )}
           </FormSection>
 
-          <FormSection title='사용 기간'>
+          <FormSection
+            title='사용 기간'
+            description={
+              isClosed
+                ? '이미 종료된 쿠폰입니다. 저장해도 종료 상태는 유지되며, 다시 사용하게 하려면 만료일을 오늘 이후 날짜로 변경해주세요.'
+                : undefined
+            }
+          >
             <FormGroup title='시작일 / 만료일*'>
               <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
                 <FormField
@@ -386,7 +414,7 @@ function CouponForm({ init, reload, close }: Props) {
                     key={days}
                     type='button'
                     onClick={() => applyQuickRange(days)}
-                    className='rounded-full border border-border bg-white px-2.5 py-0.5 text-xs font-medium text-slate-600 transition-colors duration-fast hover:bg-slate-100'
+                    className='inline-flex h-8 items-center rounded-full border border-border bg-white px-3 text-xs font-medium text-slate-600 transition-colors duration-fast hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
                   >
                     오늘부터 {days}일
                   </button>
@@ -485,6 +513,7 @@ function CouponForm({ init, reload, close }: Props) {
           </FormSection>
 
           <CouponSummaryCard
+            mode={isEdit ? 'edit' : 'create'}
             values={{
               name: values.name,
               issueMode: values.issueMode,
