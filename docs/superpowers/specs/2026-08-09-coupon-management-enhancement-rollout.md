@@ -76,6 +76,16 @@ Expect: the chip appears and dismisses, the page resets to 1 on every filter cha
 
 **9. Mode switch on create, twice around.** 개별 → 공용 → 개별 → 공용, typing a distinct 발급 수량 and 최대 이용 횟수 along the way.
 Expect neither field to clobber the other. The 이렇게 발급됩니다 card is the quickest way to read the result.
+Then type **5000** into 발급 수량, switch to 공용 코드, and press 쿠폰 발급. It must submit — 발급 수량 is not part of a shared coupon. (This used to fail silently with no toast and no request.)
+
+**10. 발급 중단 must survive an edit.** Stop an active batch, then open 수정, change only the 쿠폰 이름, and save.
+Expect the batch to stay 만료 — reopen 수정 and confirm the 사용 기간 section carries the "이미 종료된 쿠폰입니다" note. Then set 만료일 to a **later day** and save: only that explicit change may bring it back to 진행중.
+
+**11. 발급 중단 on a 예정 batch.** Create a coupon starting next week, then stop it from the row menu.
+Expect the 기간 column to read a non-inverted range and 수정 to save without retyping the dates.
+
+**12. Delete the last page.** With more than 20 batches, go to the final page and delete every batch on it.
+Expect the table to land on the new last page, not an empty one. Repeat inside an expanded batch's code list: page to the end, delete the batch, and the code list must show the retained (used) codes rather than "표시할 코드가 없습니다."
 
 ## Backend checks
 
@@ -110,6 +120,15 @@ Failures here are in `couponSearchFilter` or `couponBatchSubquery` in `coupon.sq
 
 **Shared-batch rendering.** Create a `SHARED` batch with `maxUseCount = 100`. The list row must show the code string and `0 / 100`; after one redemption, `1 / 100` and still 진행중. (This exercises the `MIN(CAST(issueMode AS CHAR))` projection, which no mocked test can reach.)
 
+## Behaviour change worth knowing (2026-08-10 review fixes)
+
+`updateCouponBatch` now compares `dueAt` on the calendar day, exactly as it already did
+for `startAt`. **When the day is unchanged it keeps the stored instant** instead of
+re-expanding to end of day. This is what stops an unrelated edit from silently undoing a
+발급 중단, and it has one visible consequence on migrated data: a legacy coupon whose
+`dueAt` sits mid-day (say 10:00) no longer gets extended to 23:59 as a side effect of
+editing its name. Moving the date to a different day still writes end of day as before.
+
 ## Known limitations, accepted
 
 - **The coin radio offers 하트 or 스타** while the API accepts both. Deliberate — granting both has no product use today, and the constraint sits in the UI so it can be relaxed without a server change. A dual-currency coupon arriving from the API is handled: the list shows both, and the form locks the rewards and echoes them back unchanged so the coupon stays editable for its name and dates.
@@ -129,5 +148,4 @@ None of these block merge. Listed so they are not rediscovered as surprises.
 | `?all=true` on a shared batch returns redemptions, not codes | The copy button is individual-only, so nothing reaches it. Endpoint contract reads broader than it behaves. |
 | `updateCouponBatch` reads `peakUseCount` without a lock | A redemption committing mid-update can leave `maxUseCount` one below true usage. Consequence is a batch that stops accepting redemptions — benign, no money moves. |
 | Accessibility: the usage meter's progressbar has no accessible name; heart vs star is conveyed by icon and colour alone | Real, and worth a dedicated pass rather than a patch here. |
-| A 발급 중단ed batch whose `startAt` was still in the future opens with `startAt > dueAt` failing validation | Recoverable by fixing the start date, but the admin has to discover it. |
 | `CouponForm` and five sibling forms carry a `react-hooks/exhaustive-deps` warning | Adding `form` to the deps of an effect that calls `form.reset` is the shape that causes reset loops. Fix repo-wide, separately. |
