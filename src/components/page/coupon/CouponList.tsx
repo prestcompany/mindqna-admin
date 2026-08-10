@@ -60,6 +60,16 @@ function CouponList() {
     setCurrentPage(1);
   }, [effectiveSearch, status]);
 
+  // Deleting every batch on the last page shrinks the list under the page the admin is
+  // standing on. The refetch then returns an empty array for a page that no longer exists,
+  // and the table shows its empty state as if the whole list were gone. Clamp instead of
+  // resetting to 1: a delete on page 3 of 5 should leave the admin on page 3.
+  useEffect(() => {
+    // Floor at 1 so emptying the list entirely (totalPage 0) lands on page 1, not page 0.
+    const lastPage = Math.max(1, totalPage);
+    if (!isLoading && currentPage > lastPage) setCurrentPage(lastPage);
+  }, [isLoading, currentPage, totalPage]);
+
   const handleConfirmRemove = async () => {
     if (!confirmDelete) return;
     try {
@@ -196,7 +206,9 @@ function CouponList() {
           <AlertDialogHeader>
             <AlertDialogTitle>발급 중단 ({confirmStop?.name})</AlertDialogTitle>
             <AlertDialogDescription>
-              만료일을 지금으로 변경해 더 이상 등록할 수 없게 합니다. 이미 지급된 보상은 회수되지 않습니다.
+              {confirmStop?.status === 'SCHEDULED'
+                ? '아직 시작되지 않은 쿠폰입니다. 시작 전에 종료 처리해 등록할 수 없게 합니다.'
+                : '만료일을 지금으로 변경해 더 이상 등록할 수 없게 합니다. 이미 지급된 보상은 회수되지 않습니다.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
