@@ -17,6 +17,11 @@ interface AdminSideSheetContentProps {
   description?: React.ReactNode;
   size?: AdminSideSheetSize;
   className?: string;
+  /**
+   * Pass `overflow-hidden p-0` when the child owns the scroll/footer split — a form's
+   * action bar depends on the form's own state (submitting, create vs edit), so it stays
+   * inside the form rather than being handed up to this shell.
+   */
   bodyClassName?: string;
   children?: React.ReactNode;
 }
@@ -33,19 +38,23 @@ function AdminSideSheetContent({
   return (
     <SheetContent
       side='right'
+      // The panel itself never scrolls — the body row does, so the header and the action
+      // bar stay put without `sticky` and without competing for the same scroll context.
       className={cn(
-        'overflow-y-auto border-l bg-card p-0 shadow-floating',
+        'overflow-hidden border-l bg-card p-0 shadow-floating',
         ADMIN_SIDE_SHEET_SIZE_CLASS[size],
         className,
       )}
       {...props}
     >
-      <div className='flex min-h-full flex-col'>
-        <SheetHeader className='sticky top-0 z-20 border-b bg-card/95 px-6 py-3 text-left backdrop-blur supports-[backdrop-filter]:bg-card/80'>
-          <SheetTitle className='pr-8 text-sm font-semibold tracking-heading'>{title}</SheetTitle>
+      <div className='grid h-full grid-rows-[auto_1fr]'>
+        <SheetHeader className='border-b bg-card px-6 py-3 text-left'>
+          <SheetTitle className='pr-8 text-base font-semibold tracking-heading'>{title}</SheetTitle>
           {description ? <SheetDescription className='pr-8 text-xs'>{description}</SheetDescription> : null}
         </SheetHeader>
-        <div className={cn('flex-1 px-6 py-4', bodyClassName)}>{children}</div>
+        {/* Canvas ground, per DESIGN.md §Surface: white cards float on #fafafa. On a white
+            body their only separation was the 1px hairline, which reads as stacked boxes. */}
+        <div className={cn('min-h-0 overflow-y-auto bg-canvas px-6 py-4', bodyClassName)}>{children}</div>
       </div>
     </SheetContent>
   );
