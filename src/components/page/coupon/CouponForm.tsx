@@ -1,6 +1,4 @@
 import { createCoupon, updateCouponBatch, type CouponBatch } from '@/client/coupon';
-import FormGroup from '@/components/shared/form/ui/form-group';
-import FormSection from '@/components/shared/form/ui/form-section';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -11,11 +9,11 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { zodResolver } from '@hookform/resolvers/zod';
 import dayjs from 'dayjs';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useForm, type FieldErrors } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import CouponSummaryCard from './CouponSummaryCard';
+import CouponSummaryLine from './CouponSummaryLine';
 import { errorMessage } from './errorMessage';
 
 type Props = {
@@ -45,9 +43,7 @@ const emptyCouponForm = (): CouponFormValues => ({
 // The upper bound only applies while creating. On edit, 발급 수량 is seeded from the
 // stored codeCount and the input is disabled — a migrated batch can carry more than
 // MAX_ISSUE_COUNT codes (see AGENTS.md history), and zodResolver validates the whole
-// schema on submit regardless of which fields are rendered. Gating the bound here by
-// `isEdit` (captured via closure, not a form field) keeps every other edit of that
-// batch — name, dates, capacity — submittable, while still bounding new issues.
+// schema on submit regardless of which fields are rendered.
 const makeCouponSchema = (isEdit: boolean) =>
   z
     .object({
@@ -67,8 +63,7 @@ const makeCouponSchema = (isEdit: boolean) =>
     .superRefine((values, ctx) => {
       // Gate on the mode too, not just `isEdit`. 발급 수량 is unmounted in SHARED mode, so
       // an error on it has no FormMessage to render and no focusable ref — a value typed
-      // before switching modes would block submit with no toast, no field error, and no
-      // request, leaving the form permanently unsubmittable with nothing on screen to fix.
+      // before switching modes would block submit with no toast and no request.
       if (!isEdit && values.issueMode === 'INDIVIDUAL') {
         if (values.count < 1) {
           ctx.addIssue({ code: 'custom', path: ['count'], message: '1 이상 입력해주세요.' });
@@ -97,6 +92,71 @@ const makeCouponSchema = (isEdit: boolean) =>
 
 type CouponFormValues = z.infer<ReturnType<typeof makeCouponSchema>>;
 
+/**
+ * A section is a label and its fields, divided by a hairline — no card, no header row.
+ * Four bordered cards stacked inside a 600px sheet read as boxes inside a box; the panel
+ * already is the container.
+ */
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className='border-b border-border py-5 first:pt-1 last:border-b-0 last:pb-1'>
+      <h3 className='mb-3 font-mono text-[11px] font-medium uppercase tracking-wider text-slate-500'>{title}</h3>
+      <div className='space-y-4'>{children}</div>
+    </section>
+  );
+}
+
+function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+  return (
+    <div className='space-y-1.5'>
+      <div className='flex flex-wrap items-baseline gap-x-2'>
+        <span className='text-sm font-medium text-slate-900'>{label}</span>
+        {hint && <span className='text-xs text-slate-500'>{hint}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/** Two or three choices on one track — smaller and calmer than a stack of option cards. */
+function Segmented<T extends string>({
+  name,
+  value,
+  onChange,
+  options,
+  disabled,
+  className,
+}: {
+  name: string;
+  value: T;
+  onChange: (value: T) => void;
+  options: { value: T; label: string }[];
+  disabled?: boolean;
+  className?: string;
+}) {
+  return (
+    <RadioGroup
+      value={value}
+      onValueChange={(next) => onChange(next as T)}
+      disabled={disabled}
+      className={`grid auto-cols-fr grid-flow-col gap-1 rounded-lg border border-border bg-muted/50 p-1 ${className ?? ''}`}
+    >
+      {options.map((option) => (
+        <div key={option.value}>
+          <RadioGroupItem value={option.value} id={`${name}-${option.value}`} className='peer sr-only' />
+          <Label
+            htmlFor={`${name}-${option.value}`}
+            // peer-* only reaches siblings of the input, so the checked style lives here.
+            className='flex h-8 cursor-pointer items-center justify-center rounded-md text-sm font-medium text-slate-600 transition-colors duration-fast peer-focus-visible:ring-1 peer-focus-visible:ring-ring peer-data-[state=checked]:bg-card peer-data-[state=checked]:text-slate-900'
+          >
+            {option.label}
+          </Label>
+        </div>
+      ))}
+    </RadioGroup>
+  );
+}
+
 function CouponForm({ init, reload, close }: Props) {
   const [isLoading, setLoading] = useState(false);
   const isEdit = !!init;
@@ -107,7 +167,6 @@ function CouponForm({ init, reload, close }: Props) {
   const isLocked = (!!init && init.usedCount > 0) || hasBothCurrencies;
   // 발급 중단 stores the instant of the stop, and the API keeps that instant unless the
   // calendar DAY changes — so an unrelated edit can no longer re-open a closed coupon.
-  // The date input can only show the day, so say what saving will and will not do.
   const isClosed = !!init && dayjs(init.dueAt).isBefore(dayjs());
   const couponSchema = useMemo(() => makeCouponSchema(isEdit), [isEdit]);
 
@@ -117,11 +176,11 @@ function CouponForm({ init, reload, close }: Props) {
   });
 
   const values = form.watch();
+  const isShared = values.issueMode === 'SHARED';
 
   // Reset in BOTH directions. An early return on the create branch would leave a
   // reused instance holding the previously edited coupon's code and count — the
-  // two fields that decide what actually gets issued — and would make correctness
-  // depend on the parent mounting a fresh instance, which this file cannot see.
+  // two fields that decide what actually gets issued.
   useEffect(() => {
     if (!init) {
       form.reset(emptyCouponForm());
@@ -153,14 +212,10 @@ function CouponForm({ init, reload, close }: Props) {
 
   // Deliberately NO effect carrying 발급 수량 into 최대 이용 횟수 on a mode switch.
   // An earlier revision added one and it fired on every mode change, so switching
-  // 공용 → 개별 → 공용 overwrote a maxUseCount the admin had typed with the hidden
-  // count field's stale value. The two fields are independent inputs; each mode
-  // shows its own and the admin fills it in.
+  // 공용 → 개별 → 공용 overwrote a maxUseCount the admin had typed.
 
-  // Last-resort feedback. Every field that can hold an error renders a FormMessage, but
-  // a field the current mode has unmounted cannot render or focus one — and react-hook-form
-  // fails the submit silently in that case. Surfacing the first message guarantees the
-  // admin always learns why the button did nothing.
+  // Last-resort feedback: a field the current mode has unmounted cannot render or focus a
+  // FormMessage, and react-hook-form fails the submit silently in that case.
   const onInvalid = (errors: FieldErrors<CouponFormValues>) => {
     const first = Object.values(errors).find((error) => error?.message);
     toast.error(first?.message ? String(first.message) : '입력값을 확인해주세요.');
@@ -222,17 +277,13 @@ function CouponForm({ init, reload, close }: Props) {
         </div>
       )}
       <Form {...form}>
-        {/* The sheet gives this its full height with no padding, so the form owns the split:
-            one scrolling column of sections, one pinned block holding the summary and the
-            actions. That replaces a `sticky bottom-0 -mx-6` bar that cancelled the body
-            padding by hand. */}
+        {/* The sheet gives this its full height with no padding, so the form owns the
+            split: one scrolling column, one pinned block with the summary and actions. */}
         <form onSubmit={form.handleSubmit(save, onInvalid)} className='flex h-full flex-col'>
-          <div className='min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4'>
-            <FormSection title='발급 방식' description={isEdit ? '발급 방식은 변경할 수 없습니다.' : undefined}>
+          <div className='min-h-0 flex-1 overflow-y-auto px-6'>
+            <Section title='타입'>
               {isEdit ? (
-                <Badge variant={values.issueMode === 'SHARED' ? 'softInfo' : 'softNeutral'}>
-                  {values.issueMode === 'SHARED' ? '공용 코드' : '개별 코드'}
-                </Badge>
+                <Badge variant={isShared ? 'softInfo' : 'softNeutral'}>{isShared ? '공용 코드' : '개별 코드'}</Badge>
               ) : (
                 <FormField
                   control={form.control}
@@ -240,246 +291,191 @@ function CouponForm({ init, reload, close }: Props) {
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <RadioGroup
+                        <Segmented
+                          name='mode'
                           value={field.value}
-                          onValueChange={field.onChange}
-                          className='grid grid-cols-1 gap-2 @md:grid-cols-2'
-                        >
-                          {/* issueMode cannot be changed after creation — on the edit screen it
-                              is a read-only badge. A choice that final should state its outcome
-                              at the moment it is made, not in one shared line above both. */}
-                          {[
-                            { value: 'INDIVIDUAL', label: '개별 코드', hint: '서로 다른 코드 N장, 각 1회' },
-                            { value: 'SHARED', label: '공용 코드', hint: '코드 1개를 N명이 사용' },
-                          ].map((opt) => (
-                            <div key={opt.value}>
-                              <RadioGroupItem value={opt.value} id={`mode-${opt.value}`} className='peer sr-only' />
-                              <Label
-                                htmlFor={`mode-${opt.value}`}
-                                // peer-* only reaches siblings of the input, so the checked
-                                // colour lives here and the title inherits it.
-                                className='flex cursor-pointer flex-col gap-0.5 rounded-lg border border-border bg-background px-3 py-2 text-foreground transition-colors hover:bg-muted/70 peer-focus-visible:ring-1 peer-focus-visible:ring-ring peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
-                              >
-                                <span className='text-sm font-medium'>{opt.label}</span>
-                                <span className='text-xs font-normal text-muted-foreground'>{opt.hint}</span>
-                              </Label>
-                            </div>
-                          ))}
-                        </RadioGroup>
+                          onChange={field.onChange}
+                          options={[
+                            { value: 'INDIVIDUAL', label: '개별 코드' },
+                            { value: 'SHARED', label: '공용 코드' },
+                          ]}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               )}
-            </FormSection>
+              {/* One line that describes the current choice, rather than a description
+                  packed into every option at once. */}
+              <p className='text-xs text-slate-500'>
+                {isShared ? '코드 하나를 여러 사람이 사용합니다.' : '서로 다른 코드를 1인 1장씩, 각 1회 사용합니다.'}
+                {isEdit && ' 타입은 변경할 수 없습니다.'}
+              </p>
+            </Section>
 
-            <FormSection title='기본 정보'>
-              <FormGroup title='쿠폰 이름*'>
-                <FormField
-                  control={form.control}
-                  name='name'
-                  render={({ field }) => (
-                    <FormItem>
+            <Section title='기본 정보'>
+              <FormField
+                control={form.control}
+                name='name'
+                render={({ field }) => (
+                  <FormItem>
+                    <Field label='쿠폰 이름'>
                       <FormControl>
                         <Input placeholder='예: 여름 이벤트 보상' {...field} />
                       </FormControl>
+                    </Field>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {!isShared && (
+                <FormField
+                  control={form.control}
+                  name='count'
+                  render={({ field }) => (
+                    <FormItem>
+                      <Field label='발급 수량' hint={`1~${MAX_ISSUE_COUNT}장 · 코드 자동 생성`}>
+                        <FormControl>
+                          <Input type='number' min={1} max={MAX_ISSUE_COUNT} disabled={isEdit} {...field} />
+                        </FormControl>
+                      </Field>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </FormGroup>
-
-              {values.issueMode === 'INDIVIDUAL' && (
-                <FormGroup title='발급 수량*' description={`1~${MAX_ISSUE_COUNT}장. 코드는 자동 생성됩니다.`}>
-                  <FormField
-                    control={form.control}
-                    name='count'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            type='number'
-                            min={1}
-                            max={MAX_ISSUE_COUNT}
-                            disabled={isEdit}
-                            {...field}
-                            className='w-full sm:w-[220px]'
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </FormGroup>
               )}
 
-              {values.issueMode === 'SHARED' && (
+              {isShared && (
                 <>
-                  <FormGroup
-                    title='쿠폰 코드'
-                    description='비우면 10자리로 자동 생성됩니다. 대소문자는 구분하지 않습니다.'
-                  >
-                    <FormField
-                      control={form.control}
-                      name='code'
-                      render={({ field }) => (
-                        <FormItem>
+                  <FormField
+                    control={form.control}
+                    name='code'
+                    render={({ field }) => (
+                      <FormItem>
+                        <Field label='쿠폰 코드' hint='비우면 자동 생성 · 대소문자 무시'>
                           <FormControl>
                             <Input placeholder='예: SUMMER2026' disabled={isEdit} {...field} />
                           </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </FormGroup>
+                        </Field>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                  <FormGroup title='최대 이용 횟수*'>
-                    <div className='flex items-center gap-3'>
-                      <FormField
-                        control={form.control}
-                        name='maxUseCount'
-                        render={({ field }) => (
-                          <FormItem className='flex-1'>
+                  <FormField
+                    control={form.control}
+                    name='maxUseCount'
+                    render={({ field }) => (
+                      <FormItem>
+                        <Field label='최대 이용 횟수'>
+                          <div className='flex items-center gap-3'>
                             <FormControl>
-                              <Input
-                                type='number'
-                                min={0}
-                                disabled={values.isUnlimited}
-                                {...field}
-                                className='w-full sm:w-[220px]'
-                              />
+                              <Input type='number' min={0} disabled={values.isUnlimited} {...field} />
                             </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name='isUnlimited'
-                        render={({ field }) => (
-                          <FormItem className='flex items-center gap-2'>
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={(checked) => field.onChange(checked === true)}
-                                id='coupon-unlimited'
-                              />
-                            </FormControl>
-                            <Label htmlFor='coupon-unlimited' className='text-sm font-medium'>
-                              무제한
-                            </Label>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </FormGroup>
+                            <FormField
+                              control={form.control}
+                              name='isUnlimited'
+                              render={({ field: unlimited }) => (
+                                <FormItem className='flex shrink-0 items-center gap-2'>
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={unlimited.value}
+                                      onCheckedChange={(checked) => unlimited.onChange(checked === true)}
+                                      id='coupon-unlimited'
+                                    />
+                                  </FormControl>
+                                  <Label htmlFor='coupon-unlimited' className='whitespace-nowrap text-sm'>
+                                    무제한
+                                  </Label>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </Field>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </>
               )}
-            </FormSection>
+            </Section>
 
-            <FormSection
-              title='사용 기간'
-              description={
-                isClosed
-                  ? '이미 종료된 쿠폰입니다. 저장해도 종료 상태는 유지되며, 다시 사용하게 하려면 만료일을 오늘 이후 날짜로 변경해주세요.'
-                  : undefined
-              }
-            >
-              <FormGroup title='시작일 / 만료일*'>
-                <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-                  <FormField
-                    control={form.control}
-                    name='startAt'
-                    render={({ field }) => (
-                      <FormItem>
+            <Section title='사용 기간'>
+              <div className='grid grid-cols-2 gap-3'>
+                <FormField
+                  control={form.control}
+                  name='startAt'
+                  render={({ field }) => (
+                    <FormItem>
+                      <Field label='시작일'>
                         <FormControl>
                           <Input type='date' {...field} />
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name='dueAt'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input type='date' {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className='mt-2 flex flex-wrap gap-1.5'>
-                  {[7, 30, 90].map((days) => (
-                    <button
-                      key={days}
-                      type='button'
-                      onClick={() => applyQuickRange(days)}
-                      className='inline-flex h-8 items-center rounded-full border border-border bg-white px-3 text-xs font-medium text-slate-600 transition-colors duration-fast hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
-                    >
-                      오늘부터 {days}일
-                    </button>
-                  ))}
-                </div>
-              </FormGroup>
-            </FormSection>
-
-            <FormSection
-              title={
-                <span className='flex items-center gap-2'>
-                  보상
-                  {/* The lock is otherwise conveyed by greyed-out inputs alone, with the reason
-                    buried in the description — DESIGN.md forbids signalling by colour only. */}
-                  {isLocked && (
-                    <Badge variant='dotNeutral'>
-                      {hasBothCurrencies ? '코인 2종 · 잠김' : `${init?.usedCount}명 사용 · 잠김`}
-                    </Badge>
+                      </Field>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </span>
-              }
-              description={
-                hasBothCurrencies
-                  ? '이 쿠폰은 하트와 스타를 함께 지급합니다. 이 화면은 코인을 한 종류만 다루므로 보상을 수정할 수 없습니다.'
-                  : isLocked
-                    ? `이미 ${init?.usedCount}명이 사용한 쿠폰입니다. 보상과 코드는 변경할 수 없습니다.`
-                    : undefined
-              }
-            >
-              <FormGroup title='코인 종류 / 수량*'>
-                <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                />
+                <FormField
+                  control={form.control}
+                  name='dueAt'
+                  render={({ field }) => (
+                    <FormItem>
+                      <Field label='만료일'>
+                        <FormControl>
+                          <Input type='date' {...field} />
+                        </FormControl>
+                      </Field>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className='flex flex-wrap gap-1.5'>
+                {[7, 30, 90].map((days) => (
+                  <button
+                    key={days}
+                    type='button'
+                    onClick={() => applyQuickRange(days)}
+                    className='inline-flex h-8 items-center rounded-full border border-border bg-card px-3 text-xs font-medium text-slate-600 transition-colors duration-fast hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                  >
+                    오늘부터 {days}일
+                  </button>
+                ))}
+              </div>
+
+              {isClosed && (
+                <p className='text-xs text-slate-500'>
+                  이미 종료된 쿠폰입니다. 저장해도 종료 상태는 유지되며, 다시 사용하게 하려면 만료일을 오늘 이후 날짜로
+                  변경해주세요.
+                </p>
+              )}
+            </Section>
+
+            <Section title='보상'>
+              <Field label='코인'>
+                <div className='flex gap-2'>
                   <FormField
                     control={form.control}
                     name='isPaid'
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className='shrink-0'>
                         <FormControl>
-                          <RadioGroup
+                          <Segmented
+                            name='isPaid'
+                            className='w-[136px]'
                             value={String(field.value)}
-                            onValueChange={(v) => field.onChange(v === 'true')}
-                            className='grid grid-cols-2 gap-2'
+                            onChange={(next) => field.onChange(next === 'true')}
                             disabled={isLocked}
-                          >
-                            {[
-                              { label: '하트', value: 'false' },
-                              { label: '스타', value: 'true' },
-                            ].map((opt) => (
-                              <div key={opt.value}>
-                                <RadioGroupItem value={opt.value} id={`isPaid-${opt.value}`} className='peer sr-only' />
-                                <Label
-                                  htmlFor={`isPaid-${opt.value}`}
-                                  className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
-                                >
-                                  {opt.label}
-                                </Label>
-                              </div>
-                            ))}
-                          </RadioGroup>
+                            options={[
+                              { value: 'false', label: '하트' },
+                              { value: 'true', label: '스타' },
+                            ]}
+                          />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -487,26 +483,26 @@ function CouponForm({ init, reload, close }: Props) {
                     control={form.control}
                     name='reward'
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className='flex-1'>
                         <FormControl>
-                          <Input type='number' min={0} disabled={isLocked} {...field} />
+                          <Input type='number' min={0} disabled={isLocked} placeholder='수량' {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
-              </FormGroup>
+              </Field>
 
-              <FormGroup title='프리미엄 티켓' description='기간 0은 평생권입니다.'>
-                <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+              <Field label='프리미엄 티켓' hint='기간 0은 평생권'>
+                <div className='grid grid-cols-2 gap-3'>
                   <FormField
                     control={form.control}
                     name='ticketCount'
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Input type='number' min={0} disabled={isLocked} placeholder='티켓 수량' {...field} />
+                          <Input type='number' min={0} disabled={isLocked} placeholder='수량' {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -525,17 +521,22 @@ function CouponForm({ init, reload, close }: Props) {
                     )}
                   />
                 </div>
-              </FormGroup>
-            </FormSection>
+              </Field>
+
+              {isLocked && (
+                <p className='text-xs text-slate-500'>
+                  {hasBothCurrencies
+                    ? '하트와 스타를 함께 지급하는 쿠폰입니다. 이 화면은 코인을 한 종류만 다루므로 보상을 수정할 수 없습니다.'
+                    : `이미 ${init?.usedCount}명이 사용해 보상과 코드를 변경할 수 없습니다.`}
+                </p>
+              )}
+            </Section>
           </div>
 
-          {/* The summary answers "what will this button do", so it belongs beside the button.
-              Left in the scroll flow it sat below the fold at the moment of submitting. */}
-          <div className='border-t bg-card px-6 py-3'>
-            <CouponSummaryCard
+          <div className='space-y-3 border-t bg-card px-6 py-3'>
+            <CouponSummaryLine
               mode={isEdit ? 'edit' : 'create'}
               values={{
-                name: values.name,
                 issueMode: values.issueMode,
                 code: values.code,
                 count: values.count,
@@ -550,7 +551,7 @@ function CouponForm({ init, reload, close }: Props) {
               }}
             />
 
-            <div className='mt-3 flex justify-end gap-2'>
+            <div className='flex justify-end gap-2'>
               <Button type='button' variant='outline' onClick={close} disabled={isLoading}>
                 취소
               </Button>

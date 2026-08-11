@@ -1,5 +1,6 @@
 import type { CouponBatch } from '@/client/coupon';
 import TableRowActions from '@/components/shared/ui/table-row-actions';
+import { Badge } from '@/components/ui/badge';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { ChevronDown, ChevronRight } from 'lucide-react';
@@ -61,23 +62,28 @@ export const createCouponColumns = (actions: CouponRowActions): ColumnDef<Coupon
   {
     id: 'coupon',
     header: '쿠폰',
-    size: 240,
-    // The mode lives here rather than in a column of its own: the subtitle already had to
-    // say "코드 N개" or print the shared code, so a separate 모드 column repeated it on
-    // every row and told the two apart no better than this line does.
+    size: 220,
     cell: ({ row }) => (
       <div className='min-w-0'>
         <div className='truncate font-medium text-slate-900'>{row.original.name}</div>
         <div className='truncate text-xs text-slate-600'>
           {row.original.issueMode === 'SHARED' ? (
-            <>
-              <span className='font-mono text-slate-700'>{row.original.code}</span> · 공용
-            </>
+            <span className='font-mono text-slate-700'>{row.original.code}</span>
           ) : (
-            `개별 · 코드 ${row.original.codeCount}개`
+            `코드 ${row.original.codeCount}개`
           )}
         </div>
       </div>
+    ),
+  },
+  {
+    id: 'issueMode',
+    header: '타입',
+    size: 88,
+    cell: ({ row }) => (
+      <Badge variant={row.original.issueMode === 'SHARED' ? 'softInfo' : 'softNeutral'}>
+        {row.original.issueMode === 'SHARED' ? '공용' : '개별'}
+      </Badge>
     ),
   },
   {
