@@ -182,8 +182,7 @@ function CouponForm({ init, reload, close }: Props) {
           name: input.name,
           startAt: input.startAt,
           dueAt: input.dueAt,
-          maxUseCount:
-            input.issueMode === 'SHARED' ? (input.isUnlimited ? 0 : input.maxUseCount) : undefined,
+          maxUseCount: input.issueMode === 'SHARED' ? (input.isUnlimited ? 0 : input.maxUseCount) : undefined,
           heart,
           star,
           ticketCount: input.ticketCount,
@@ -198,8 +197,7 @@ function CouponForm({ init, reload, close }: Props) {
           dueAt: input.dueAt,
           count: input.issueMode === 'INDIVIDUAL' ? input.count : undefined,
           code: input.issueMode === 'SHARED' ? input.code.trim() || undefined : undefined,
-          maxUseCount:
-            input.issueMode === 'SHARED' ? (input.isUnlimited ? 0 : input.maxUseCount) : undefined,
+          maxUseCount: input.issueMode === 'SHARED' ? (input.isUnlimited ? 0 : input.maxUseCount) : undefined,
           heart,
           star,
           ticketCount: input.ticketCount,
@@ -224,240 +222,46 @@ function CouponForm({ init, reload, close }: Props) {
         </div>
       )}
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(save, onInvalid)} className='space-y-4 pb-2'>
-          <FormSection
-            title='발급 방식'
-            description={
-              isEdit
-                ? '발급 방식은 변경할 수 없습니다.'
-                : '개별 코드는 1인 1코드로 각 1회, 공용 코드는 모두 같은 코드를 씁니다.'
-            }
-          >
-            {isEdit ? (
-              <Badge variant={values.issueMode === 'SHARED' ? 'softInfo' : 'softNeutral'}>
-                {values.issueMode === 'SHARED' ? '공용 코드' : '개별 코드'}
-              </Badge>
-            ) : (
-              <FormField
-                control={form.control}
-                name='issueMode'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <RadioGroup
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        className='grid grid-cols-2 gap-2 sm:max-w-[360px]'
-                      >
-                        {[
-                          { value: 'INDIVIDUAL', label: '개별 코드' },
-                          { value: 'SHARED', label: '공용 코드' },
-                        ].map((opt) => (
-                          <div key={opt.value}>
-                            <RadioGroupItem value={opt.value} id={`mode-${opt.value}`} className='peer sr-only' />
-                            <Label
-                              htmlFor={`mode-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
-                            >
-                              {opt.label}
-                            </Label>
-                          </div>
-                        ))}
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-          </FormSection>
-
-          <FormSection title='기본 정보'>
-            <FormGroup title='쿠폰 이름*'>
-              <FormField
-                control={form.control}
-                name='name'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input placeholder='예: 여름 이벤트 보상' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </FormGroup>
-
-            {values.issueMode === 'INDIVIDUAL' && (
-              <FormGroup title='발급 수량*' description={`1~${MAX_ISSUE_COUNT}장. 코드는 자동 생성됩니다.`}>
+        {/* The sheet gives this its full height with no padding, so the form owns the split:
+            one scrolling column of sections, one pinned block holding the summary and the
+            actions. That replaces a `sticky bottom-0 -mx-6` bar that cancelled the body
+            padding by hand. */}
+        <form onSubmit={form.handleSubmit(save, onInvalid)} className='flex h-full flex-col'>
+          <div className='min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4'>
+            <FormSection title='발급 방식' description={isEdit ? '발급 방식은 변경할 수 없습니다.' : undefined}>
+              {isEdit ? (
+                <Badge variant={values.issueMode === 'SHARED' ? 'softInfo' : 'softNeutral'}>
+                  {values.issueMode === 'SHARED' ? '공용 코드' : '개별 코드'}
+                </Badge>
+              ) : (
                 <FormField
                   control={form.control}
-                  name='count'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          type='number'
-                          min={1}
-                          max={MAX_ISSUE_COUNT}
-                          disabled={isEdit}
-                          {...field}
-                          className='w-full sm:w-[220px]'
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </FormGroup>
-            )}
-
-            {values.issueMode === 'SHARED' && (
-              <>
-                <FormGroup title='쿠폰 코드' description='비우면 10자리로 자동 생성됩니다. 대소문자는 구분하지 않습니다.'>
-                  <FormField
-                    control={form.control}
-                    name='code'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input placeholder='예: SUMMER2026' disabled={isEdit} {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </FormGroup>
-
-                <FormGroup title='최대 이용 횟수*'>
-                  <div className='flex items-center gap-3'>
-                    <FormField
-                      control={form.control}
-                      name='maxUseCount'
-                      render={({ field }) => (
-                        <FormItem className='flex-1'>
-                          <FormControl>
-                            <Input
-                              type='number'
-                              min={0}
-                              disabled={values.isUnlimited}
-                              {...field}
-                              className='w-full sm:w-[220px]'
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name='isUnlimited'
-                      render={({ field }) => (
-                        <FormItem className='flex items-center gap-2'>
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={(checked) => field.onChange(checked === true)}
-                              id='coupon-unlimited'
-                            />
-                          </FormControl>
-                          <Label htmlFor='coupon-unlimited' className='text-sm font-medium'>
-                            무제한
-                          </Label>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </FormGroup>
-              </>
-            )}
-          </FormSection>
-
-          <FormSection
-            title='사용 기간'
-            description={
-              isClosed
-                ? '이미 종료된 쿠폰입니다. 저장해도 종료 상태는 유지되며, 다시 사용하게 하려면 만료일을 오늘 이후 날짜로 변경해주세요.'
-                : undefined
-            }
-          >
-            <FormGroup title='시작일 / 만료일*'>
-              <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-                <FormField
-                  control={form.control}
-                  name='startAt'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input type='date' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name='dueAt'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input type='date' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className='mt-2 flex flex-wrap gap-1.5'>
-                {[7, 30, 90].map((days) => (
-                  <button
-                    key={days}
-                    type='button'
-                    onClick={() => applyQuickRange(days)}
-                    className='inline-flex h-8 items-center rounded-full border border-border bg-white px-3 text-xs font-medium text-slate-600 transition-colors duration-fast hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
-                  >
-                    오늘부터 {days}일
-                  </button>
-                ))}
-              </div>
-            </FormGroup>
-          </FormSection>
-
-          <FormSection
-            title='보상'
-            description={
-              hasBothCurrencies
-                ? '이 쿠폰은 하트와 스타를 함께 지급합니다. 이 화면은 코인을 한 종류만 다루므로 보상을 수정할 수 없습니다.'
-                : isLocked
-                  ? `이미 ${init?.usedCount}명이 사용한 쿠폰입니다. 보상과 코드는 변경할 수 없습니다.`
-                  : undefined
-            }
-          >
-            <FormGroup title='코인 종류 / 수량*'>
-              <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-                <FormField
-                  control={form.control}
-                  name='isPaid'
+                  name='issueMode'
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
                         <RadioGroup
-                          value={String(field.value)}
-                          onValueChange={(v) => field.onChange(v === 'true')}
-                          className='grid grid-cols-2 gap-2'
-                          disabled={isLocked}
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          className='grid grid-cols-1 gap-2 @md:grid-cols-2'
                         >
+                          {/* issueMode cannot be changed after creation — on the edit screen it
+                              is a read-only badge. A choice that final should state its outcome
+                              at the moment it is made, not in one shared line above both. */}
                           {[
-                            { label: '하트', value: 'false' },
-                            { label: '스타', value: 'true' },
+                            { value: 'INDIVIDUAL', label: '개별 코드', hint: '서로 다른 코드 N장, 각 1회' },
+                            { value: 'SHARED', label: '공용 코드', hint: '코드 1개를 N명이 사용' },
                           ].map((opt) => (
                             <div key={opt.value}>
-                              <RadioGroupItem value={opt.value} id={`isPaid-${opt.value}`} className='peer sr-only' />
+                              <RadioGroupItem value={opt.value} id={`mode-${opt.value}`} className='peer sr-only' />
                               <Label
-                                htmlFor={`isPaid-${opt.value}`}
-                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                                htmlFor={`mode-${opt.value}`}
+                                // peer-* only reaches siblings of the input, so the checked
+                                // colour lives here and the title inherits it.
+                                className='flex cursor-pointer flex-col gap-0.5 rounded-lg border border-border bg-background px-3 py-2 text-foreground transition-colors hover:bg-muted/70 peer-focus-visible:ring-1 peer-focus-visible:ring-ring peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
                               >
-                                {opt.label}
+                                <span className='text-sm font-medium'>{opt.label}</span>
+                                <span className='text-xs font-normal text-muted-foreground'>{opt.hint}</span>
                               </Label>
                             </div>
                           ))}
@@ -467,75 +271,290 @@ function CouponForm({ init, reload, close }: Props) {
                     </FormItem>
                   )}
                 />
+              )}
+            </FormSection>
+
+            <FormSection title='기본 정보'>
+              <FormGroup title='쿠폰 이름*'>
                 <FormField
                   control={form.control}
-                  name='reward'
+                  name='name'
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Input type='number' min={0} disabled={isLocked} {...field} />
+                        <Input placeholder='예: 여름 이벤트 보상' {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </div>
-            </FormGroup>
+              </FormGroup>
 
-            <FormGroup title='프리미엄 티켓' description='기간 0은 평생권입니다.'>
-              <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-                <FormField
-                  control={form.control}
-                  name='ticketCount'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input type='number' min={0} disabled={isLocked} placeholder='티켓 수량' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+              {values.issueMode === 'INDIVIDUAL' && (
+                <FormGroup title='발급 수량*' description={`1~${MAX_ISSUE_COUNT}장. 코드는 자동 생성됩니다.`}>
+                  <FormField
+                    control={form.control}
+                    name='count'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input
+                            type='number'
+                            min={1}
+                            max={MAX_ISSUE_COUNT}
+                            disabled={isEdit}
+                            {...field}
+                            className='w-full sm:w-[220px]'
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </FormGroup>
+              )}
+
+              {values.issueMode === 'SHARED' && (
+                <>
+                  <FormGroup
+                    title='쿠폰 코드'
+                    description='비우면 10자리로 자동 생성됩니다. 대소문자는 구분하지 않습니다.'
+                  >
+                    <FormField
+                      control={form.control}
+                      name='code'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input placeholder='예: SUMMER2026' disabled={isEdit} {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </FormGroup>
+
+                  <FormGroup title='최대 이용 횟수*'>
+                    <div className='flex items-center gap-3'>
+                      <FormField
+                        control={form.control}
+                        name='maxUseCount'
+                        render={({ field }) => (
+                          <FormItem className='flex-1'>
+                            <FormControl>
+                              <Input
+                                type='number'
+                                min={0}
+                                disabled={values.isUnlimited}
+                                {...field}
+                                className='w-full sm:w-[220px]'
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name='isUnlimited'
+                        render={({ field }) => (
+                          <FormItem className='flex items-center gap-2'>
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={(checked) => field.onChange(checked === true)}
+                                id='coupon-unlimited'
+                              />
+                            </FormControl>
+                            <Label htmlFor='coupon-unlimited' className='text-sm font-medium'>
+                              무제한
+                            </Label>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </FormGroup>
+                </>
+              )}
+            </FormSection>
+
+            <FormSection
+              title='사용 기간'
+              description={
+                isClosed
+                  ? '이미 종료된 쿠폰입니다. 저장해도 종료 상태는 유지되며, 다시 사용하게 하려면 만료일을 오늘 이후 날짜로 변경해주세요.'
+                  : undefined
+              }
+            >
+              <FormGroup title='시작일 / 만료일*'>
+                <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                  <FormField
+                    control={form.control}
+                    name='startAt'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input type='date' {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='dueAt'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input type='date' {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className='mt-2 flex flex-wrap gap-1.5'>
+                  {[7, 30, 90].map((days) => (
+                    <button
+                      key={days}
+                      type='button'
+                      onClick={() => applyQuickRange(days)}
+                      className='inline-flex h-8 items-center rounded-full border border-border bg-white px-3 text-xs font-medium text-slate-600 transition-colors duration-fast hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                    >
+                      오늘부터 {days}일
+                    </button>
+                  ))}
+                </div>
+              </FormGroup>
+            </FormSection>
+
+            <FormSection
+              title={
+                <span className='flex items-center gap-2'>
+                  보상
+                  {/* The lock is otherwise conveyed by greyed-out inputs alone, with the reason
+                    buried in the description — DESIGN.md forbids signalling by colour only. */}
+                  {isLocked && (
+                    <Badge variant='dotNeutral'>
+                      {hasBothCurrencies ? '코인 2종 · 잠김' : `${init?.usedCount}명 사용 · 잠김`}
+                    </Badge>
                   )}
-                />
-                <FormField
-                  control={form.control}
-                  name='ticketDueDayNum'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input type='number' min={0} disabled={isLocked} placeholder='기간 (일)' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </FormGroup>
-          </FormSection>
+                </span>
+              }
+              description={
+                hasBothCurrencies
+                  ? '이 쿠폰은 하트와 스타를 함께 지급합니다. 이 화면은 코인을 한 종류만 다루므로 보상을 수정할 수 없습니다.'
+                  : isLocked
+                    ? `이미 ${init?.usedCount}명이 사용한 쿠폰입니다. 보상과 코드는 변경할 수 없습니다.`
+                    : undefined
+              }
+            >
+              <FormGroup title='코인 종류 / 수량*'>
+                <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                  <FormField
+                    control={form.control}
+                    name='isPaid'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <RadioGroup
+                            value={String(field.value)}
+                            onValueChange={(v) => field.onChange(v === 'true')}
+                            className='grid grid-cols-2 gap-2'
+                            disabled={isLocked}
+                          >
+                            {[
+                              { label: '하트', value: 'false' },
+                              { label: '스타', value: 'true' },
+                            ].map((opt) => (
+                              <div key={opt.value}>
+                                <RadioGroupItem value={opt.value} id={`isPaid-${opt.value}`} className='peer sr-only' />
+                                <Label
+                                  htmlFor={`isPaid-${opt.value}`}
+                                  className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                                >
+                                  {opt.label}
+                                </Label>
+                              </div>
+                            ))}
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='reward'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input type='number' min={0} disabled={isLocked} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </FormGroup>
 
-          <CouponSummaryCard
-            mode={isEdit ? 'edit' : 'create'}
-            values={{
-              name: values.name,
-              issueMode: values.issueMode,
-              code: values.code,
-              count: values.count,
-              maxUseCount: values.maxUseCount,
-              isUnlimited: values.isUnlimited,
-              startAt: values.startAt,
-              dueAt: values.dueAt,
-              isPaid: values.isPaid,
-              reward: values.reward,
-              ticketCount: values.ticketCount,
-              ticketDueDayNum: values.ticketDueDayNum,
-            }}
-          />
+              <FormGroup title='프리미엄 티켓' description='기간 0은 평생권입니다.'>
+                <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                  <FormField
+                    control={form.control}
+                    name='ticketCount'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input type='number' min={0} disabled={isLocked} placeholder='티켓 수량' {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='ticketDueDayNum'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input type='number' min={0} disabled={isLocked} placeholder='기간 (일)' {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </FormGroup>
+            </FormSection>
+          </div>
 
-          <div className='sticky bottom-0 z-10 -mx-6 border-t bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
-            <div className='flex justify-end gap-2'>
+          {/* The summary answers "what will this button do", so it belongs beside the button.
+              Left in the scroll flow it sat below the fold at the moment of submitting. */}
+          <div className='border-t bg-card px-6 py-3'>
+            <CouponSummaryCard
+              mode={isEdit ? 'edit' : 'create'}
+              values={{
+                name: values.name,
+                issueMode: values.issueMode,
+                code: values.code,
+                count: values.count,
+                maxUseCount: values.maxUseCount,
+                isUnlimited: values.isUnlimited,
+                startAt: values.startAt,
+                dueAt: values.dueAt,
+                isPaid: values.isPaid,
+                reward: values.reward,
+                ticketCount: values.ticketCount,
+                ticketDueDayNum: values.ticketDueDayNum,
+              }}
+            />
+
+            <div className='mt-3 flex justify-end gap-2'>
               <Button type='button' variant='outline' onClick={close} disabled={isLoading}>
                 취소
               </Button>
-              <Button type='submit' size='lg' disabled={isLoading}>
+              <Button type='submit' disabled={isLoading}>
                 {isLoading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                 {isEdit ? '변경사항 저장' : '쿠폰 발급'}
               </Button>

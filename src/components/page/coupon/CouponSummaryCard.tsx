@@ -16,13 +16,7 @@ export type CouponSummaryValues = {
   ticketDueDayNum: number;
 };
 
-function CouponSummaryCard({
-  values,
-  mode = 'create',
-}: {
-  values: CouponSummaryValues;
-  mode?: 'create' | 'edit';
-}) {
+function CouponSummaryCard({ values, mode = 'create' }: { values: CouponSummaryValues; mode?: 'create' | 'edit' }) {
   // On edit nothing is issued: updateCouponBatch never sends `count` and the API has no
   // field for it. The creation phrasing ("자동 생성") would promise N fresh codes that the
   // save will not produce — on a card whose whole point is that what it says is what happens.
@@ -57,8 +51,10 @@ function CouponSummaryCard({
       : '사용 기간을 입력해주세요.';
 
   return (
-    <div className='rounded-lg border border-border bg-card p-4'>
-      <div className='mb-2 font-mono text-xs font-medium uppercase tracking-wide text-slate-600'>
+    // Inset well, not a card: this now sits inside the sheet's white action bar, where
+    // card-on-card would just draw a second box.
+    <div className='rounded-lg border border-border bg-canvas p-3'>
+      <div className='mb-1.5 font-mono text-xs font-medium uppercase tracking-wide text-slate-600'>
         {isEdit ? '이렇게 저장됩니다' : '이렇게 발급됩니다'}
       </div>
       <div className='space-y-1 text-sm text-slate-700'>
