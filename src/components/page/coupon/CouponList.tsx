@@ -257,13 +257,15 @@ function CouponList() {
 
       <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
         {/* The form owns the scroll/footer split, so the sheet hands it the raw height. */}
-        <AdminSideSheetContent title='쿠폰 발급' size='md' bodyClassName='overflow-hidden p-0'>
+        {/* lg (720px): the form keeps a 140px label column and a 220px summary rail, which
+            an md sheet cannot hold without squeezing the inputs. */}
+        <AdminSideSheetContent title='쿠폰 발급' size='lg' bodyClassName='overflow-hidden p-0'>
           <CouponForm reload={reloadAll} close={() => setOpenCreate(false)} />
         </AdminSideSheetContent>
       </Sheet>
 
       <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
-        <AdminSideSheetContent title='쿠폰 수정' size='md' bodyClassName='overflow-hidden p-0'>
+        <AdminSideSheetContent title='쿠폰 수정' size='lg' bodyClassName='overflow-hidden p-0'>
           <CouponForm init={focused} reload={reloadAll} close={() => setOpenEdit(false)} />
         </AdminSideSheetContent>
       </Sheet>

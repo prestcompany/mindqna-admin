@@ -6,6 +6,11 @@ function useCouponSummary() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['coupon-summary'],
     queryFn: getCouponSummary,
+    // This one aggregates across every coupon and every redemption, so it must not run
+    // on each window focus the way the app's default (staleTime 0) would have it. The
+    // mutations that move these numbers refetch it explicitly.
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
   });
 
   return { summary: data, isLoading, refetch };

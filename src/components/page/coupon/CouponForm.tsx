@@ -13,7 +13,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useForm, type FieldErrors } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import CouponSummaryLine from './CouponSummaryLine';
+import CouponSummaryRail from './CouponSummaryRail';
 import { errorMessage } from './errorMessage';
 
 type Props = {
@@ -92,33 +92,33 @@ const makeCouponSchema = (isEdit: boolean) =>
 
 type CouponFormValues = z.infer<ReturnType<typeof makeCouponSchema>>;
 
-/**
- * A section is a label and its fields, divided by a hairline — no card, no header row.
- * Four bordered cards stacked inside a 600px sheet read as boxes inside a box; the panel
- * already is the container.
- */
-function Section({ title, children }: { title: string; children: ReactNode }) {
+/** A full-width band, not a card header — it divides without adding a container. */
+function Group({ children }: { children: ReactNode }) {
   return (
-    <section className='border-b border-border py-5 first:pt-1 last:border-b-0 last:pb-1'>
-      <h3 className='mb-3 font-mono text-[11px] font-medium uppercase tracking-wider text-slate-500'>{title}</h3>
-      <div className='space-y-4'>{children}</div>
-    </section>
-  );
-}
-
-function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
-  return (
-    <div className='space-y-1.5'>
-      <div className='flex flex-wrap items-baseline gap-x-2'>
-        <span className='text-sm font-medium text-slate-900'>{label}</span>
-        {hint && <span className='text-xs text-slate-500'>{hint}</span>}
-      </div>
+    <div className='border-b border-border bg-muted/50 px-4 py-1.5 font-mono text-xs font-medium uppercase tracking-wider text-slate-600'>
       {children}
     </div>
   );
 }
 
-/** Two or three choices on one track — smaller and calmer than a stack of option cards. */
+/**
+ * Label column left, control column right. Every control then starts and ends on the same
+ * two vertical lines, which is what makes a settings surface read as aligned — labels
+ * stacked above their fields leave each row starting at a different place.
+ */
+function Row({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+  return (
+    <div className='grid grid-cols-[140px_minmax(0,1fr)] items-start gap-4 border-b border-border px-4 py-2.5 last:border-b-0'>
+      <div className='pt-1.5'>
+        <div className='text-sm font-medium text-slate-900'>{label}</div>
+        {hint && <div className='mt-0.5 text-xs leading-snug text-slate-500'>{hint}</div>}
+      </div>
+      <div className='min-w-0'>{children}</div>
+    </div>
+  );
+}
+
+/** Two choices on one track — no shadow, the selected item just takes the card surface. */
 function Segmented<T extends string>({
   name,
   value,
@@ -139,7 +139,7 @@ function Segmented<T extends string>({
       value={value}
       onValueChange={(next) => onChange(next as T)}
       disabled={disabled}
-      className={`grid auto-cols-fr grid-flow-col gap-1 rounded-lg border border-border bg-muted/50 p-1 ${className ?? ''}`}
+      className={`grid auto-cols-fr grid-flow-col gap-1 rounded-lg border border-border bg-muted/60 p-1 ${className ?? ''}`}
     >
       {options.map((option) => (
         <div key={option.value}>
@@ -269,6 +269,21 @@ function CouponForm({ init, reload, close }: Props) {
     setLoading(false);
   };
 
+  // Constraints belong beside the outcome they constrain, not buried in the field list.
+  const notices =
+    isClosed || isLocked ? (
+      <div className='space-y-2 border-t border-border pt-3 text-xs leading-relaxed text-slate-600'>
+        {isClosed && <p>이미 종료된 쿠폰입니다. 만료일을 오늘 이후로 바꿔야 다시 사용할 수 있습니다.</p>}
+        {isLocked && (
+          <p>
+            {hasBothCurrencies
+              ? '하트와 스타를 함께 지급하는 쿠폰이라 이 화면에서는 보상을 수정할 수 없습니다.'
+              : `이미 ${init?.usedCount}명이 사용해 보상과 코드를 변경할 수 없습니다.`}
+          </p>
+        )}
+      </div>
+    ) : null;
+
   return (
     <>
       {isLoading && (
@@ -277,99 +292,87 @@ function CouponForm({ init, reload, close }: Props) {
         </div>
       )}
       <Form {...form}>
-        {/* The sheet gives this its full height with no padding, so the form owns the
-            split: one scrolling column, one pinned block with the summary and actions. */}
+        {/* The sheet hands over its full height with no padding: fields scroll on the left,
+            the outcome stays pinned on the right, actions sit across the bottom. */}
         <form onSubmit={form.handleSubmit(save, onInvalid)} className='flex h-full flex-col'>
-          <div className='min-h-0 flex-1 overflow-y-auto px-6'>
-            <Section title='타입'>
-              {isEdit ? (
-                <Badge variant={isShared ? 'softInfo' : 'softNeutral'}>{isShared ? '공용 코드' : '개별 코드'}</Badge>
-              ) : (
-                <FormField
-                  control={form.control}
-                  name='issueMode'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Segmented
-                          name='mode'
-                          value={field.value}
-                          onChange={field.onChange}
-                          options={[
-                            { value: 'INDIVIDUAL', label: '개별 코드' },
-                            { value: 'SHARED', label: '공용 코드' },
-                          ]}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-              {/* One line that describes the current choice, rather than a description
-                  packed into every option at once. */}
-              <p className='text-xs text-slate-500'>
-                {isShared ? '코드 하나를 여러 사람이 사용합니다.' : '서로 다른 코드를 1인 1장씩, 각 1회 사용합니다.'}
-                {isEdit && ' 타입은 변경할 수 없습니다.'}
-              </p>
-            </Section>
+          <div className='grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_220px] overflow-hidden'>
+            <div className='min-h-0 overflow-y-auto'>
+              <Group>타입</Group>
 
-            <Section title='기본 정보'>
-              <FormField
-                control={form.control}
-                name='name'
-                render={({ field }) => (
-                  <FormItem>
-                    <Field label='쿠폰 이름'>
-                      <FormControl>
-                        <Input placeholder='예: 여름 이벤트 보상' {...field} />
-                      </FormControl>
-                    </Field>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {!isShared && (
-                <FormField
-                  control={form.control}
-                  name='count'
-                  render={({ field }) => (
-                    <FormItem>
-                      <Field label='발급 수량' hint={`1~${MAX_ISSUE_COUNT}장 · 코드 자동 생성`}>
-                        <FormControl>
-                          <Input type='number' min={1} max={MAX_ISSUE_COUNT} disabled={isEdit} {...field} />
-                        </FormControl>
-                      </Field>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              {isShared && (
-                <>
+              <Row label='발급 방식' hint={isEdit ? '생성 후 변경 불가' : undefined}>
+                {isEdit ? (
+                  <div className='pt-1'>
+                    <Badge variant={isShared ? 'softInfo' : 'softNeutral'}>
+                      {isShared ? '공용 코드' : '개별 코드'}
+                    </Badge>
+                  </div>
+                ) : (
                   <FormField
                     control={form.control}
-                    name='code'
+                    name='issueMode'
                     render={({ field }) => (
-                      <FormItem>
-                        <Field label='쿠폰 코드' hint='비우면 자동 생성 · 대소문자 무시'>
-                          <FormControl>
-                            <Input placeholder='예: SUMMER2026' disabled={isEdit} {...field} />
-                          </FormControl>
-                        </Field>
+                      <FormItem className='space-y-1.5'>
+                        <FormControl>
+                          <Segmented
+                            name='mode'
+                            value={field.value}
+                            onChange={field.onChange}
+                            options={[
+                              { value: 'INDIVIDUAL', label: '개별 코드' },
+                              { value: 'SHARED', label: '공용 코드' },
+                            ]}
+                          />
+                        </FormControl>
+                        <p className='text-xs text-slate-500'>
+                          {isShared ? '코드 하나를 여러 사람이 사용합니다.' : '서로 다른 코드를 1인 1장씩 사용합니다.'}
+                        </p>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+                )}
+              </Row>
 
+              {!isShared && (
+                <Row label='발급 수량' hint={`1~${MAX_ISSUE_COUNT}장 · 코드 자동 생성`}>
                   <FormField
                     control={form.control}
-                    name='maxUseCount'
+                    name='count'
                     render={({ field }) => (
-                      <FormItem>
-                        <Field label='최대 이용 횟수'>
+                      <FormItem className='space-y-1.5'>
+                        <FormControl>
+                          <Input type='number' min={1} max={MAX_ISSUE_COUNT} disabled={isEdit} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </Row>
+              )}
+
+              {isShared && (
+                <>
+                  <Row label='쿠폰 코드' hint='비우면 자동 생성 · 대소문자 무시'>
+                    <FormField
+                      control={form.control}
+                      name='code'
+                      render={({ field }) => (
+                        <FormItem className='space-y-1.5'>
+                          <FormControl>
+                            <Input placeholder='예: SUMMER2026' disabled={isEdit} {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </Row>
+
+                  <Row label='최대 이용 횟수'>
+                    <FormField
+                      control={form.control}
+                      name='maxUseCount'
+                      render={({ field }) => (
+                        <FormItem className='space-y-1.5'>
                           <div className='flex items-center gap-3'>
                             <FormControl>
                               <Input type='number' min={0} disabled={values.isUnlimited} {...field} />
@@ -378,7 +381,7 @@ function CouponForm({ init, reload, close }: Props) {
                               control={form.control}
                               name='isUnlimited'
                               render={({ field: unlimited }) => (
-                                <FormItem className='flex shrink-0 items-center gap-2'>
+                                <FormItem className='flex shrink-0 items-center gap-2 space-y-0'>
                                   <FormControl>
                                     <Checkbox
                                       checked={unlimited.value}
@@ -393,80 +396,90 @@ function CouponForm({ init, reload, close }: Props) {
                               )}
                             />
                           </div>
-                        </Field>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </Row>
+                </>
+              )}
+
+              <Group>기본 정보</Group>
+
+              <Row label='쿠폰 이름'>
+                <FormField
+                  control={form.control}
+                  name='name'
+                  render={({ field }) => (
+                    <FormItem className='space-y-1.5'>
+                      <FormControl>
+                        <Input placeholder='예: 여름 이벤트 보상' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </Row>
+
+              <Group>사용 기간</Group>
+
+              <Row label='시작일 / 만료일'>
+                <div className='grid grid-cols-2 gap-2'>
+                  <FormField
+                    control={form.control}
+                    name='startAt'
+                    render={({ field }) => (
+                      <FormItem className='space-y-1.5'>
+                        <FormControl>
+                          <Input type='date' {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </>
-              )}
-            </Section>
-
-            <Section title='사용 기간'>
-              <div className='grid grid-cols-2 gap-3'>
-                <FormField
-                  control={form.control}
-                  name='startAt'
-                  render={({ field }) => (
-                    <FormItem>
-                      <Field label='시작일'>
+                  <FormField
+                    control={form.control}
+                    name='dueAt'
+                    render={({ field }) => (
+                      <FormItem className='space-y-1.5'>
                         <FormControl>
                           <Input type='date' {...field} />
                         </FormControl>
-                      </Field>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name='dueAt'
-                  render={({ field }) => (
-                    <FormItem>
-                      <Field label='만료일'>
-                        <FormControl>
-                          <Input type='date' {...field} />
-                        </FormControl>
-                      </Field>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </Row>
 
-              <div className='flex flex-wrap gap-1.5'>
-                {[7, 30, 90].map((days) => (
-                  <button
-                    key={days}
-                    type='button'
-                    onClick={() => applyQuickRange(days)}
-                    className='inline-flex h-8 items-center rounded-full border border-border bg-card px-3 text-xs font-medium text-slate-600 transition-colors duration-fast hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
-                  >
-                    오늘부터 {days}일
-                  </button>
-                ))}
-              </div>
+              <Row label='빠른 설정'>
+                <div className='flex flex-wrap gap-1.5 pt-1'>
+                  {[7, 30, 90].map((days) => (
+                    <button
+                      key={days}
+                      type='button'
+                      onClick={() => applyQuickRange(days)}
+                      className='inline-flex h-8 items-center rounded-full border border-border bg-card px-3 text-xs font-medium text-slate-600 transition-colors duration-fast hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                    >
+                      오늘부터 {days}일
+                    </button>
+                  ))}
+                </div>
+              </Row>
 
-              {isClosed && (
-                <p className='text-xs text-slate-500'>
-                  이미 종료된 쿠폰입니다. 저장해도 종료 상태는 유지되며, 다시 사용하게 하려면 만료일을 오늘 이후 날짜로
-                  변경해주세요.
-                </p>
-              )}
-            </Section>
+              <Group>보상</Group>
 
-            <Section title='보상'>
-              <Field label='코인'>
+              <Row label='코인'>
                 <div className='flex gap-2'>
                   <FormField
                     control={form.control}
                     name='isPaid'
                     render={({ field }) => (
-                      <FormItem className='shrink-0'>
+                      <FormItem className='shrink-0 space-y-0'>
                         <FormControl>
                           <Segmented
                             name='isPaid'
-                            className='w-[136px]'
+                            className='w-[128px]'
                             value={String(field.value)}
                             onChange={(next) => field.onChange(next === 'true')}
                             disabled={isLocked}
@@ -483,7 +496,7 @@ function CouponForm({ init, reload, close }: Props) {
                     control={form.control}
                     name='reward'
                     render={({ field }) => (
-                      <FormItem className='flex-1'>
+                      <FormItem className='flex-1 space-y-1.5'>
                         <FormControl>
                           <Input type='number' min={0} disabled={isLocked} placeholder='수량' {...field} />
                         </FormControl>
@@ -492,15 +505,15 @@ function CouponForm({ init, reload, close }: Props) {
                     )}
                   />
                 </div>
-              </Field>
+              </Row>
 
-              <Field label='프리미엄 티켓' hint='기간 0은 평생권'>
-                <div className='grid grid-cols-2 gap-3'>
+              <Row label='프리미엄 티켓' hint='기간 0은 평생권'>
+                <div className='grid grid-cols-2 gap-2'>
                   <FormField
                     control={form.control}
                     name='ticketCount'
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className='space-y-1.5'>
                         <FormControl>
                           <Input type='number' min={0} disabled={isLocked} placeholder='수량' {...field} />
                         </FormControl>
@@ -512,7 +525,7 @@ function CouponForm({ init, reload, close }: Props) {
                     control={form.control}
                     name='ticketDueDayNum'
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className='space-y-1.5'>
                         <FormControl>
                           <Input type='number' min={0} disabled={isLocked} placeholder='기간 (일)' {...field} />
                         </FormControl>
@@ -521,22 +534,14 @@ function CouponForm({ init, reload, close }: Props) {
                     )}
                   />
                 </div>
-              </Field>
+              </Row>
+            </div>
 
-              {isLocked && (
-                <p className='text-xs text-slate-500'>
-                  {hasBothCurrencies
-                    ? '하트와 스타를 함께 지급하는 쿠폰입니다. 이 화면은 코인을 한 종류만 다루므로 보상을 수정할 수 없습니다.'
-                    : `이미 ${init?.usedCount}명이 사용해 보상과 코드를 변경할 수 없습니다.`}
-                </p>
-              )}
-            </Section>
-          </div>
-
-          <div className='space-y-3 border-t bg-card px-6 py-3'>
-            <CouponSummaryLine
+            <CouponSummaryRail
               mode={isEdit ? 'edit' : 'create'}
+              notices={notices}
               values={{
+                name: values.name,
                 issueMode: values.issueMode,
                 code: values.code,
                 count: values.count,
@@ -550,8 +555,13 @@ function CouponForm({ init, reload, close }: Props) {
                 ticketDueDayNum: values.ticketDueDayNum,
               }}
             />
+          </div>
 
-            <div className='flex justify-end gap-2'>
+          <div className='flex items-center gap-3 border-t bg-card px-4 py-3'>
+            <p className='min-w-0 truncate text-xs text-slate-500'>
+              {isEdit ? '변경 내용은 이 배치의 모든 코드에 적용됩니다.' : '발급 후 코드는 목록에서 펼쳐 복사합니다.'}
+            </p>
+            <div className='ml-auto flex shrink-0 gap-2'>
               <Button type='button' variant='outline' onClick={close} disabled={isLoading}>
                 취소
               </Button>

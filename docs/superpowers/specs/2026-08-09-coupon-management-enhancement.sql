@@ -111,6 +111,13 @@ ALTER TABLE `CouponMeta` DROP INDEX `CouponMeta_couponId_key`;
 ALTER TABLE `CouponMeta`
   ADD UNIQUE INDEX `CouponMeta_couponId_userId_key` (`couponId`, `userId`);
 
+-- The admin list's summary strip counts today's redemptions with
+-- `WHERE createdAt >= CURDATE()`. CouponMeta has no index on createdAt, so without
+-- this the count full-scans a table that grows by one row per redemption forever —
+-- on the same instance that serves the user-facing redemption path. Safe to run at
+-- any time; it is additive and touches no existing constraint.
+CREATE INDEX `CouponMeta_createdAt_idx` ON `CouponMeta`(`createdAt`);
+
 
 -- ============================================================
 -- STEP 6 — RUN IMMEDIATELY AFTER THE BACKEND DEPLOY COMPLETES
