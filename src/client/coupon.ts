@@ -3,6 +3,15 @@ import { QueryResultWithPagination } from './types';
 
 export type CouponIssueMode = 'INDIVIDUAL' | 'SHARED';
 export type CouponStatus = 'SCHEDULED' | 'ACTIVE' | 'EXHAUSTED' | 'EXPIRED';
+export type CouponSort = 'RECENT' | 'USAGE' | 'ENDING';
+
+/** Whole-table counts, not the current page — see getCouponSummary on the server. */
+export type CouponSummary = {
+  active: number;
+  endingSoon: number;
+  nearlyExhausted: number;
+  usedToday: number;
+};
 
 export type CouponBatch = {
   batchId: string;
@@ -58,17 +67,23 @@ export type UpdateCouponBatchParams = {
   ticketDueDayNum: number;
 };
 
-export async function getCoupons(page: number, search?: string, status?: CouponStatus) {
+export async function getCoupons(page: number, search?: string, status?: CouponStatus, sort?: CouponSort) {
   const res = await client.get<QueryResultWithPagination<CouponBatch>>('/coupon', {
-    params: { page, search: search?.trim() || undefined, status },
+    params: { page, search: search?.trim() || undefined, status, sort: sort === 'RECENT' ? undefined : sort },
   });
 
   return res.data;
 }
 
-export async function getCouponBatchCodes(batchId: string, page: number, all?: boolean) {
+export async function getCouponSummary() {
+  const res = await client.get<CouponSummary>('/coupon/summary');
+
+  return res.data;
+}
+
+export async function getCouponBatchCodes(batchId: string, page: number, all?: boolean, search?: string) {
   const res = await client.get<QueryResultWithPagination<CouponCode>>(`/coupon/batch/${batchId}/codes`, {
-    params: { page, all: all || undefined },
+    params: { page, all: all || undefined, search: search?.trim() || undefined },
   });
 
   return res.data;

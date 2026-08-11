@@ -7,31 +7,42 @@ type Props = {
   ticketDueDayNum: number;
 };
 
+/**
+ * One line, always. Stacking heart / star / ticket as separate blocks grew the row to
+ * ~56px with two rewards and ~76px with three, against DESIGN.md's ~36px table row — so
+ * a list mixed row heights and lost its vertical rhythm. The ticket clause drops to
+ * {typography.caption} to keep the coin amount the thing the eye lands on.
+ */
 function CouponRewardCell({ heart, star, ticketCount, ticketDueDayNum }: Props) {
   const hasCoin = heart > 0 || star > 0;
 
+  if (!hasCoin && ticketCount === 0) {
+    return <span className='text-slate-500'>—</span>;
+  }
+
   return (
-    <div className='space-y-0.5'>
+    <div className='flex min-w-0 items-center gap-2'>
       {heart > 0 && (
-        <div className='flex items-center gap-1.5'>
+        <span className='flex shrink-0 items-center gap-1'>
           <Heart className='h-3.5 w-3.5 text-rose-600' aria-label='하트' />
           <span className='tabular-nums text-slate-900'>{heart}</span>
-        </div>
+        </span>
       )}
       {star > 0 && (
-        <div className='flex items-center gap-1.5'>
+        <span className='flex shrink-0 items-center gap-1'>
           <Star className='h-3.5 w-3.5 text-amber-600' aria-label='스타' />
           <span className='tabular-nums text-slate-900'>{star}</span>
-        </div>
+        </span>
       )}
       {ticketCount > 0 && (
-        <div className='flex items-center gap-1.5 text-slate-600'>
-          <Ticket className='h-3.5 w-3.5 text-slate-500' aria-label='프리미엄 티켓' />
-          <span className='tabular-nums'>{ticketCount}</span>
-          <span>· {ticketDueDayNum > 0 ? `${ticketDueDayNum}일` : '평생'}</span>
-        </div>
+        <span className='flex min-w-0 items-center gap-1 text-xs text-slate-600'>
+          {hasCoin && <span className='text-slate-400'>·</span>}
+          <Ticket className='h-3.5 w-3.5 shrink-0 text-slate-500' aria-label='프리미엄 티켓' />
+          <span className='truncate tabular-nums'>
+            {ticketCount} · {ticketDueDayNum > 0 ? `${ticketDueDayNum}일` : '평생'}
+          </span>
+        </span>
       )}
-      {!hasCoin && ticketCount === 0 && <span className='text-slate-500'>—</span>}
     </div>
   );
 }

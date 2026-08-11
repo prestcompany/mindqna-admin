@@ -1,4 +1,10 @@
-import { removeCouponBatch, stopCouponBatch, type CouponBatch, type CouponStatus } from '@/client/coupon';
+import {
+  removeCouponBatch,
+  stopCouponBatch,
+  type CouponBatch,
+  type CouponSort,
+  type CouponStatus,
+} from '@/client/coupon';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import DataTable from '@/components/shared/ui/data-table';
 import { FILTER_CONTROL_CLASS, FilterBar } from '@/components/shared/ui/filter-bar';
@@ -17,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet } from '@/components/ui/sheet';
 import useCoupons from '@/hooks/useCoupons';
+import useCouponSummary from '@/hooks/useCouponSummary';
 import useDebouncedValue from '@/hooks/useDebouncedValue';
 import { useQueryClient } from '@tanstack/react-query';
 import { Search } from 'lucide-react';
@@ -25,7 +32,14 @@ import { toast } from 'sonner';
 import CouponCodeList from './CouponCodeList';
 import { createCouponColumns } from './CouponColumns';
 import CouponForm from './CouponForm';
+import CouponSummaryStrip from './CouponSummaryStrip';
 import { errorMessage } from './errorMessage';
+
+const SORT_OPTIONS: { value: CouponSort; label: string }[] = [
+  { value: 'RECENT', label: '최근 발급순' },
+  { value: 'USAGE', label: '사용률순' },
+  { value: 'ENDING', label: '종료 임박순' },
+];
 
 const STATUS_OPTIONS: { value: CouponStatus | 'ALL'; label: string }[] = [
   { value: 'ALL', label: '전체 상태' },
@@ -39,6 +53,7 @@ function CouponList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchInput, setSearchInput] = useState('');
   const [status, setStatus] = useState<CouponStatus | 'ALL'>('ALL');
+  const [sort, setSort] = useState<CouponSort>('RECENT');
   const debouncedSearch = useDebouncedValue(searchInput, 500);
   const trimmedSearch = debouncedSearch.trim();
   const effectiveSearch = trimmedSearch.length >= 2 ? trimmedSearch : undefined;
@@ -47,7 +62,9 @@ function CouponList() {
     currentPage,
     effectiveSearch,
     status === 'ALL' ? undefined : status,
+    sort,
   );
+  const { summary, isLoading: isSummaryLoading, refetch: refetchSummary } = useCouponSummary();
   const queryClient = useQueryClient();
 
   const [isOpenCreate, setOpenCreate] = useState(false);
@@ -58,7 +75,7 @@ function CouponList() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [effectiveSearch, status]);
+  }, [effectiveSearch, status, sort]);
 
   // Deleting every batch on the last page shrinks the list under the page the admin is
   // standing on. The refetch then returns an empty array for a page that no longer exists,
@@ -76,6 +93,9 @@ function CouponList() {
       const result = await removeCouponBatch(confirmDelete.batchId);
       await Promise.all([
         refetch(),
+        // The strip counts the whole table, so a delete moves it even when the row that
+        // vanished was not on this page.
+        refetchSummary(),
         // The code list lives under its own query key and survives a delete that
         // still keeps the batch (kept > 0), so it never refetches on its own —
         // invalidate it explicitly or an expanded row keeps showing deleted codes.
@@ -96,7 +116,7 @@ function CouponList() {
     if (!confirmStop) return;
     try {
       await stopCouponBatch(confirmStop.batchId);
-      await refetch();
+      await Promise.all([refetch(), refetchSummary()]);
       toast.success('쿠폰 발급을 중단했습니다.');
     } catch (err) {
       toast.error(errorMessage(err));
@@ -117,8 +137,16 @@ function CouponList() {
     [],
   );
 
+  const hasFilters = !!effectiveSearch || status !== 'ALL';
+  // Issuing or editing changes the whole-table counts too, not just this page.
+  const reloadAll = async () => {
+    await Promise.all([refetch(), refetchSummary()]);
+  };
+
   return (
     <>
+      <CouponSummaryStrip summary={summary} isLoading={isSummaryLoading} />
+
       <FilterBar
         chips={
           status === 'ALL'
@@ -148,6 +176,18 @@ function CouponList() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={sort} onValueChange={(value) => setSort(value as CouponSort)}>
+          <SelectTrigger className={`w-[150px] ${FILTER_CONTROL_CLASS}`}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SORT_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <div className='flex-1' />
         <Button
           onClick={() => {
@@ -165,24 +205,66 @@ function CouponList() {
         data={items}
         loading={isLoading}
         rowKey='batchId'
-        expandable={{ expandedRowRender: (batch) => <CouponCodeList batch={batch} /> }}
+        expandable={{
+          expandedRowRender: (batch) => <CouponCodeList batch={batch} />,
+          expandOnRowClick: true,
+        }}
         pagination={{
           total: totalPage * 10,
           page: currentPage,
           pageSize: 10,
           onChange: (page) => setCurrentPage(page),
         }}
+        // A filtered-empty list and a never-used list need opposite next actions, so they
+        // must not share one message.
+        emptyState={
+          hasFilters ? (
+            <div className='space-y-2 py-4'>
+              <div className='text-slate-900'>
+                {effectiveSearch ? `‘${effectiveSearch}’에 해당하는 쿠폰이 없습니다` : '조건에 맞는 쿠폰이 없습니다'}
+              </div>
+              <div className='text-slate-500'>쿠폰명 · 코드 · 사용자명으로 검색합니다.</div>
+              <Button
+                variant='outline'
+                size='sm'
+                className='h-8'
+                onClick={() => {
+                  setSearchInput('');
+                  setStatus('ALL');
+                }}
+              >
+                검색 초기화
+              </Button>
+            </div>
+          ) : (
+            <div className='space-y-2 py-4'>
+              <div className='text-slate-900'>아직 발급한 쿠폰이 없습니다</div>
+              <div className='text-slate-500'>개별 코드는 1인 1코드, 공용 코드는 하나를 여럿이 사용합니다.</div>
+              <Button
+                size='sm'
+                className='h-8'
+                onClick={() => {
+                  setFocused(undefined);
+                  setOpenCreate(true);
+                }}
+              >
+                첫 쿠폰 발급
+              </Button>
+            </div>
+          )
+        }
       />
 
       <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
-        <AdminSideSheetContent title='쿠폰 발급' size='md'>
-          <CouponForm reload={refetch} close={() => setOpenCreate(false)} />
+        {/* The form owns the scroll/footer split, so the sheet hands it the raw height. */}
+        <AdminSideSheetContent title='쿠폰 발급' size='md' bodyClassName='overflow-hidden p-0'>
+          <CouponForm reload={reloadAll} close={() => setOpenCreate(false)} />
         </AdminSideSheetContent>
       </Sheet>
 
       <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
-        <AdminSideSheetContent title='쿠폰 수정' size='md'>
-          <CouponForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
+        <AdminSideSheetContent title='쿠폰 수정' size='md' bodyClassName='overflow-hidden p-0'>
+          <CouponForm init={focused} reload={reloadAll} close={() => setOpenEdit(false)} />
         </AdminSideSheetContent>
       </Sheet>
 

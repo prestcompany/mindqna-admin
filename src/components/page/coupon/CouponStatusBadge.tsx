@@ -1,7 +1,10 @@
 import type { CouponStatus } from '@/client/coupon';
 import { Badge } from '@/components/ui/badge';
 
-const STATUS_MAP: Record<CouponStatus, { label: string; variant: 'dotInfo' | 'dotSuccess' | 'dotWarning' | 'dotNeutral' }> = {
+const STATUS_MAP: Record<
+  CouponStatus,
+  { label: string; variant: 'dotInfo' | 'dotSuccess' | 'dotWarning' | 'dotNeutral' }
+> = {
   SCHEDULED: { label: '예정', variant: 'dotInfo' },
   ACTIVE: { label: '진행중', variant: 'dotSuccess' },
   EXHAUSTED: { label: '소진', variant: 'dotWarning' },

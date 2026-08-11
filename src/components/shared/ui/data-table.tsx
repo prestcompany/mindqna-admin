@@ -1,11 +1,4 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -36,11 +29,19 @@ interface DataTableProps<TData, TValue> {
   rowKey?: string | ((record: TData) => string);
   expandable?: {
     expandedRowRender: (record: TData) => React.ReactNode;
+    /** Let the whole row toggle the panel, not just the 32px chevron. */
+    expandOnRowClick?: boolean;
   };
   onRow?: (record: TData) => {
     onClick?: () => void;
     className?: string;
   };
+  /**
+   * Shown instead of the default text when there are no rows. "데이터가 없습니다" reads the
+   * same whether a filter excluded everything or nothing was ever created, and those two
+   * situations call for opposite next actions.
+   */
+  emptyState?: React.ReactNode;
 }
 
 type DataTableColumnMeta = {
@@ -67,6 +68,7 @@ function DataTable<TData, TValue>({
   rowKey = 'id',
   expandable,
   onRow,
+  emptyState,
 }: DataTableProps<TData, TValue>) {
   const [expanded, setExpanded] = useState<ExpandedState>({});
   const hasSizedColumn = columns.some((column) => typeof column.size === 'number');
@@ -240,27 +242,45 @@ function DataTable<TData, TValue>({
               ) : table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => {
                   const rowProps = onRow ? onRow(row.original) : undefined;
+                  // An explicit onRow handler wins; expandOnRowClick only fills the gap
+                  // for tables whose row has no other purpose than opening its panel.
+                  const toggleExpanded =
+                    expandable?.expandOnRowClick && !rowProps?.onClick ? () => row.toggleExpanded() : undefined;
+                  const handleRowClick = rowProps?.onClick ?? toggleExpanded;
                   return (
                     <React.Fragment key={row.id}>
                       <TableRow
                         data-state={row.getIsSelected() && 'selected'}
-                        onClick={rowProps?.onClick}
-                        tabIndex={rowProps?.onClick ? 0 : undefined}
+                        aria-expanded={toggleExpanded ? row.getIsExpanded() : undefined}
+                        onClick={
+                          handleRowClick
+                            ? (event) => {
+                                // Buttons, links and menu items inside the row own their
+                                // click — the chevron, the row-action menu, anything a cell
+                                // renders. Dragging out a selection is not a click either.
+                                if ((event.target as HTMLElement).closest('button, a, [role="menuitem"]')) return;
+                                if (window.getSelection()?.toString()) return;
+                                handleRowClick();
+                              }
+                            : undefined
+                        }
+                        tabIndex={handleRowClick ? 0 : undefined}
                         onKeyDown={
-                          rowProps?.onClick
+                          handleRowClick
                             ? (event) => {
                                 if (event.target !== event.currentTarget) return;
                                 if (event.key === 'Enter' || event.key === ' ') {
                                   event.preventDefault();
-                                  rowProps.onClick?.();
+                                  handleRowClick();
                                 }
                               }
                             : undefined
                         }
                         className={cn(
                           'group transition-colors duration-fast',
-                          rowProps?.onClick &&
+                          handleRowClick &&
                             'cursor-pointer hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring',
+                          row.getIsExpanded() && 'bg-slate-50',
                           rowProps?.className,
                         )}
                       >
@@ -279,7 +299,10 @@ function DataTable<TData, TValue>({
                       </TableRow>
                       {expandable && row.getIsExpanded() && (
                         <TableRow className='hover:bg-transparent'>
-                          <TableCell colSpan={row.getVisibleCells().length} className='border-b-0 bg-muted/20 p-3'>
+                          {/* Same tint as the expanded parent row so the pair reads as one
+                              unit, and the bottom hairline stays so the panel closes inside
+                              the table instead of bleeding into the page. */}
+                          <TableCell colSpan={row.getVisibleCells().length} className='bg-slate-50 p-3'>
                             {expandable.expandedRowRender(row.original)}
                           </TableCell>
                         </TableRow>
@@ -290,7 +313,7 @@ function DataTable<TData, TValue>({
               ) : (
                 <TableRow>
                   <TableCell colSpan={columns.length} className='h-24 text-center text-sm text-slate-500'>
-                    데이터가 없습니다
+                    {emptyState ?? '데이터가 없습니다'}
                   </TableCell>
                 </TableRow>
               )}
