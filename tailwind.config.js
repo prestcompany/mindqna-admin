@@ -215,7 +215,9 @@ module.exports = {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  // Container queries let form rows respond to the panel they sit in rather than the
+  // viewport — a 600px side sheet on a 1440px screen is still a narrow column.
+  plugins: [require('tailwindcss-animate'), require('@tailwindcss/container-queries')],
   corePlugins: {
     preflight: true,
   },
