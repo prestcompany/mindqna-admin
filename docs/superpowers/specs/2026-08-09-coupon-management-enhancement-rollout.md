@@ -120,6 +120,24 @@ Failures here are in `couponSearchFilter` or `couponBatchSubquery` in `coupon.sq
 
 **Shared-batch rendering.** Create a `SHARED` batch with `maxUseCount = 100`. The list row must show the code string and `0 / 100`; after one redemption, `1 / 100` and still 진행중. (This exercises the `MIN(CAST(issueMode AS CHAR))` projection, which no mocked test can reach.)
 
+## New surface added after the review (2026-08-11)
+
+Three design proposals were implemented on top of the reviewed branch. They add two API
+surfaces that the checks below do not cover, so verify these on dev before production:
+
+- **`GET /coupon/summary`** — unfiltered whole-table counts for the list's summary strip.
+  Confirm the four tiles match `SELECT` counts run by hand, and that they do **not** move
+  when a search or status filter is applied.
+- **`sort` on `GET /coupon`** — `RECENT` (default) / `USAGE` / `ENDING`. Only the raw
+  `ORDER BY` proves itself: check that `USAGE` puts an unlimited (`maxUseCount = 0`) batch
+  last rather than first, and that `ENDING` puts already-expired batches last.
+- **`search` on `GET /coupon/batch/:batchId/codes`** — shared batches only. The pager must
+  count the filtered set, not the whole log.
+- **The expanded panel loads an individual batch in full** (`?all=true`) when its
+  `codeCount` is at or under 1000, and falls back to server paging above that. Test both
+  sides of the boundary — a migrated batch over 1000 codes is the case that exercises the
+  fallback, and the rollout check above already asks you to find one.
+
 ## Behaviour change worth knowing (2026-08-10 review fixes)
 
 `updateCouponBatch` now compares `dueAt` on the calendar day, exactly as it already did
