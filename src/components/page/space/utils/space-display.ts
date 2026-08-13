@@ -1,18 +1,10 @@
 import dayjs from 'dayjs';
 import type { Room } from '@/client/types';
+import { PET_TYPE_LABELS } from '@/components/shared/form/constants/pet-options';
 
 export function getPetTypeLabel(type?: string | null) {
-  const map: Record<string, string> = {
-    dog: '강아지',
-    cat: '고양이',
-    rebbit: '토끼',
-    squirrel: '다람쥐',
-    bear: '곰',
-    hamster: '햄스터',
-    chick: '병아리',
-    penguin: '펭귄',
-  };
-  return type ? map[type] ?? type : null;
+  const map: Record<string, string> = PET_TYPE_LABELS;
+  return type ? (map[type] ?? type) : null;
 }
 
 export function buildRoomCategorySummary(rooms?: Room[]) {
@@ -53,9 +45,15 @@ export function getMemberStatus(p: {
   removed?: boolean;
   renew?: boolean;
   removedAt?: string | null;
-}): { key: SpaceMemberStatusKey; label: string; badgeVariant: 'dotDanger' | 'dotWarning' | 'dotNeutral' | null; date: string | null } {
+}): {
+  key: SpaceMemberStatusKey;
+  label: string;
+  badgeVariant: 'dotDanger' | 'dotWarning' | 'dotNeutral' | null;
+  date: string | null;
+} {
   if (p.removed) return { key: 'removed', label: '삭제 대기', badgeVariant: 'dotDanger', date: p.removedAt ?? null };
-  if (p.disabled && p.renew) return { key: 'renewPending', label: '재가입 대기', badgeVariant: 'dotWarning', date: null };
+  if (p.disabled && p.renew)
+    return { key: 'renewPending', label: '재가입 대기', badgeVariant: 'dotWarning', date: null };
   if (p.disabled) return { key: 'left', label: '나감', badgeVariant: 'dotNeutral', date: p.removedAt ?? null };
   return { key: 'active', label: '활성', badgeVariant: null, date: null };
 }

@@ -270,7 +270,9 @@ export type CreateSnackParams = {
   isActive: boolean;
 };
 
-export type PetType = 'dog' | 'cat' | 'rebbit' | 'squirrel' | 'bear' | 'hamster' | 'chick' | 'penguin';
+// Mirrors the server's PetType enum. `deer` and `pig` existed there but were missing
+// here, so no admin screen could assign them.
+export type PetType = 'dog' | 'cat' | 'rebbit' | 'squirrel' | 'bear' | 'hamster' | 'chick' | 'penguin' | 'deer' | 'pig';
 export type PetTypeForCustom = PetType | 'null';
 
 export type GetSnacksResult = {
@@ -859,14 +861,7 @@ export type UserPushRow = {
   createdAt: string;
 };
 
-export type LiveSubscriptionStatus =
-  | 'active'
-  | 'grace'
-  | 'billingRetry'
-  | 'expired'
-  | 'revoked'
-  | 'canceled'
-  | 'error';
+export type LiveSubscriptionStatus = 'active' | 'grace' | 'billingRetry' | 'expired' | 'revoked' | 'canceled' | 'error';
 
 export type LiveSubscriptionRow = {
   id: number;

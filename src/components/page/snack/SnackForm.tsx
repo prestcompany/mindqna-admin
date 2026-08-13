@@ -1,5 +1,6 @@
 import { createSnack, updateSnack } from '@/client/snack';
 import { ImgItem, PetType, Snack, SnackKind } from '@/client/types';
+import { PET_TYPE_OPTIONS } from '@/components/shared/form/constants/pet-options';
 import FormGroup from '@/components/shared/form/ui/form-group';
 import FormSection from '@/components/shared/form/ui/form-section';
 import { Button } from '@/components/ui/button';
@@ -25,16 +26,7 @@ const KIND_OPTIONS: { label: string; value: SnackKind }[] = [
   { label: 'special', value: 'special' },
 ];
 
-const TYPE_OPTIONS: { label: string; value: PetType }[] = [
-  { label: '곰', value: 'bear' },
-  { label: '고양이', value: 'cat' },
-  { label: '강아지', value: 'dog' },
-  { label: '펭귄', value: 'penguin' },
-  { label: '병아리', value: 'chick' },
-  { label: '토끼', value: 'rebbit' },
-  { label: '햄스터', value: 'hamster' },
-  { label: '다람쥐', value: 'squirrel' },
-];
+const TYPE_OPTIONS = PET_TYPE_OPTIONS;
 
 const PREMIUM_OPTIONS = [
   { label: '스타', value: 'true' },
@@ -143,7 +135,10 @@ function SnackForm({ initialSnack, close, reload }: Props) {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
-          <FormSection title={initialSnack ? '간식 수정' : '간식 추가'} description='이미지, 스탯, 노출 옵션을 설정합니다.'>
+          <FormSection
+            title={initialSnack ? '간식 수정' : '간식 추가'}
+            description='이미지, 스탯, 노출 옵션을 설정합니다.'
+          >
             <FormGroup title='대표 이미지*' description='리스트와 상세 화면에 노출됩니다.'>
               <div className='flex flex-col gap-2 items-start'>
                 {image && (
@@ -194,7 +189,11 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <RadioGroup value={field.value} onValueChange={field.onChange} className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
+                      <RadioGroup
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        className='grid grid-cols-2 gap-2 sm:grid-cols-4'
+                      >
                         {KIND_OPTIONS.map((opt) => (
                           <div key={opt.value}>
                             <RadioGroupItem value={opt.value} id={`kind-${opt.value}`} className='peer sr-only' />
@@ -221,7 +220,11 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <RadioGroup value={field.value ?? ''} onValueChange={field.onChange} className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
+                      <RadioGroup
+                        value={field.value ?? ''}
+                        onValueChange={field.onChange}
+                        className='grid grid-cols-2 gap-2 sm:grid-cols-4'
+                      >
                         {TYPE_OPTIONS.map((opt) => (
                           <div key={opt.value}>
                             <RadioGroupItem value={opt.value} id={`type-${opt.value}`} className='peer sr-only' />

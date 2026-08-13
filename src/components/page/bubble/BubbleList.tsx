@@ -2,6 +2,7 @@ import { removeBubble } from '@/client/bubble';
 import { BubbleType, PetBubble } from '@/client/types';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import DataTable from '@/components/shared/ui/data-table';
+import { PET_LEVEL_VALUES } from '@/components/shared/form/constants/pet-options';
 import { FILTER_CONTROL_CLASS, FilterBar } from '@/components/shared/ui/filter-bar';
 import TableRowActions from '@/components/shared/ui/table-row-actions';
 import {
@@ -199,7 +200,7 @@ function BubbleList() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value='__all__'>전체</SelectItem>
-            {Array.from({ length: 10 }, (_, index) => index + 1).map((level) => (
+            {PET_LEVEL_VALUES.map((level) => (
               <SelectItem key={level} value={String(level)}>
                 Lv.{level}
               </SelectItem>
