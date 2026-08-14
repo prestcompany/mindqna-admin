@@ -1,4 +1,5 @@
 import { PetTypeForCustom } from '@/client/types';
+import { PET_TYPE_OPTIONS } from '@/components/shared/form/constants/pet-options';
 
 export const PetCustomTypeOptions = [
   { label: '효과', value: 'effect' },
@@ -13,12 +14,5 @@ export const premiumOptions = [
 
 export const petTypeOptions: { label: string; value: PetTypeForCustom }[] = [
   { label: '전체', value: 'null' },
-  { label: '곰', value: 'bear' },
-  { label: '고양이', value: 'cat' },
-  { label: '강아지', value: 'dog' },
-  { label: '펭귄', value: 'penguin' },
-  { label: '병아리', value: 'chick' },
-  { label: '토끼', value: 'rebbit' },
-  { label: '햄스터', value: 'hamster' },
-  { label: '다람쥐', value: 'squirrel' },
+  ...PET_TYPE_OPTIONS,
 ];

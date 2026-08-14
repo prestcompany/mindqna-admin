@@ -1,6 +1,7 @@
 import { createBubble, updateBubble } from '@/client/bubble';
 import { BubbleType, Locale, PetBubble } from '@/client/types';
 import { LOCALE_OPTIONS } from '@/components/shared/form/constants/locale-options';
+import { MAX_PET_LEVEL } from '@/components/shared/form/constants/pet-options';
 import FormGroup from '@/components/shared/form/ui/form-group';
 import FormSection from '@/components/shared/form/ui/form-section';
 import { Button } from '@/components/ui/button';
@@ -29,9 +30,11 @@ const typeOptions = [
   { label: '커스텀', value: 'custom' },
 ];
 
-const levelOptions = Array(13)
+// The list stopped at 12 — one short of 13, the level where the pet's animal is decided —
+// so no bubble could be authored for an evolved pet.
+const levelOptions = Array(MAX_PET_LEVEL + 1)
   .fill(0)
-  .map((_, idx) => ({ label: String(idx), value: idx }));
+  .map((_, idx) => ({ label: idx === 0 ? '전체' : String(idx), value: idx }));
 
 const bubbleSchema = z.object({
   locale: z.string().min(1, '언어를 선택해주세요.'),
@@ -132,7 +135,10 @@ function BubbleForm({ init, reload, close }: Props) {
       )}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
-          <FormSection title={focusedId ? '말풍선 수정' : '말풍선 추가'} description='메시지, 타입, 레벨 조건을 설정합니다.'>
+          <FormSection
+            title={focusedId ? '말풍선 수정' : '말풍선 추가'}
+            description='메시지, 타입, 레벨 조건을 설정합니다.'
+          >
             <FormGroup title='언어*'>
               <FormField
                 control={form.control}
