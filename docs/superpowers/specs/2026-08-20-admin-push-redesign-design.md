@@ -110,7 +110,9 @@ Per-user sends are dropped too, for consistency: the same rows are equally unrea
 
 ### 2.7 A broadcast takes tens of minutes, and the UI says so
 
-`sendEachForMulticast` dispatches per-token requests multiplexed over HTTP/2 — roughly 1–3 s per 500-token batch. At one batch at a time that is 7,500–22,500 users per minute, so **300,000 users is 13–40 minutes**. Concurrency is an env-var knob defaulting to 1; raising it to 3–5 brings a full broadcast to 5–10 minutes at proportionally higher FCM and DB load.
+`sendEachForMulticast` dispatches per-token requests multiplexed over HTTP/2 — roughly 1–3 s per 500-token batch. At one batch at a time that is 7,500–22,500 users per minute.
+
+Measured 2026-08-20, users holding an FCM token by locale: **ko 442,953**, en 48,583, ja 24,333, es 5,856, zhTw 1,968, id 844, zh 474 — 525,011 in total. The largest broadcast is therefore **886 batches, 15–44 minutes**. Concurrency is an env-var knob defaulting to 1; raising it to 3–5 brings a ko broadcast to roughly 5–15 minutes at proportionally higher FCM and DB load.
 
 Only one push is processed at a time. A second push scheduled for the same minute waits for the first to finish. Serial is the safe default, but an operator who does not know this will read the wait as a failure, so the form's summary rail states the estimate before the send is created.
 
@@ -120,7 +122,9 @@ The cursor walks `User.id`. A user who signs up mid-send receives the push if th
 
 ### 2.9 `targetCount` is approximate for broadcasts
 
-An exact count needs `fcmToken IS NOT NULL`, which no index narrows. Counting on `locale` alone is indexed and cheap, and drives a progress bar that does not need to be exact. The API returns `targetCountIsApproximate` and the UI renders 약 300,000명. Per-user sends report an exact count.
+An exact count needs `fcmToken IS NOT NULL`, which no index narrows. Counting on `locale` alone is indexed and cheap, and drives a progress bar that does not need to be exact. The API returns `targetCountIsApproximate` and the UI renders 약 442,953명. Per-user sends report an exact count.
+
+The admin cannot derive this number itself, and hardcoding a figure in the frontend guarantees it drifts as the user base grows. `GET /admin/push/target-count?locale=` returns the same approximate count the sender records, so the compose-time estimate and the progress bar are computed from one source.
 
 ### 2.10 Per-user sends ignore `locale`
 
@@ -441,6 +445,7 @@ Batch concurrency is `ADMIN_PUSH_BATCH_CONCURRENCY`, default `1`.
 | `POST` | `/admin/push/:id/cancel` | `SCHEDULED` -> `CANCELED` |
 | `POST` | `/admin/push/:id/abort` | `SENDING` -> `ABORTED` (new) |
 | `DELETE` | `/admin/push/:id` | `sentCount === 0` |
+| `GET` | `/admin/push/target-count` | `locale` query; approximate recipient count for the compose-time estimate (new) |
 
 Cancel and abort are state transitions that leave a record; delete removes the row. They are separate operations because they answer different questions.
 
@@ -535,7 +540,7 @@ Registration moves from a dedicated page into the side sheet, matching the coupo
 | 제목 | title, with the start of the body beneath it |
 | 발송 시각 | `pushAt` plus a relative phrase (`3시간 후`, `2일 전`) |
 | 상태 | `PushStatusBadge` |
-| 진행 | `PushProgressMeter` — `12,340 / 약 300,000 · 4%` over a 1px bar |
+| 진행 | `PushProgressMeter` — `12,340 / 약 442,953 · 3%` over a 1px bar |
 | — | `TableRowActions` |
 
 An absolute timestamp alone makes the reader subtract today's date to learn what it means; pairing it with status and a relative phrase lets the row explain itself, as `CouponColumns` already does.
@@ -589,7 +594,7 @@ Language and recipients are mutually exclusive, because a per-user send ignores 
 
 ### 5.5 Summary rail
 
-While composing, the rail states what the send will do in one sentence — `ko 사용자 약 300,000명에게 2026-08-25 10:00에 발송` — with the estimated duration from §2.7 beneath it. This is the place where "this takes tens of minutes" reaches the operator before they commit.
+While composing, the rail states what the send will do in one sentence — `ko 사용자 약 442,953명에게 2026-08-25 10:00에 발송` — with the estimated duration from §2.7 beneath it. This is the place where "this takes tens of minutes" reaches the operator before they commit.
 
 Opened on a send that has started, the rail becomes a result panel: target, delivered, failed, start and finish times, elapsed, and `lastError` when `FAILED`.
 
