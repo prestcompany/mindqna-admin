@@ -2,11 +2,13 @@ import type { AdminPushStatus } from '@/client/push';
 
 export type PushAction = 'view' | 'edit' | 'cancel' | 'abort' | 'duplicate' | 'delete';
 
+type PushStatusVariant = 'dotInfo' | 'dotWarning' | 'dotSuccess' | 'dotDanger' | 'dotNeutral';
+
 /**
  * Dot variants throughout: DESIGN.md reserves soft variants for categories and
  * gives status a coloured dot beside neutral text.
  */
-export const PUSH_STATUS_META: Record<AdminPushStatus, { label: string; variant: string }> = {
+export const PUSH_STATUS_META: Record<AdminPushStatus, { label: string; variant: PushStatusVariant }> = {
   SCHEDULED: { label: '예약됨', variant: 'dotInfo' },
   SENDING: { label: '발송 중', variant: 'dotWarning' },
   SENT: { label: '발송 완료', variant: 'dotSuccess' },
