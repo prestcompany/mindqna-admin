@@ -289,8 +289,16 @@ ALTER TABLE `AdminPush`
 ALTER TABLE `User`
   ADD INDEX `User_locale_id_idx` (`locale`, `id`), ALGORITHM=INPLACE, LOCK=NONE;
 
--- 2-5. Restore the default now that the backfill is done.
+-- 2-5. Settle the column defaults now that the backfill is done.
+-- status was created DEFAULT 'CANCELED' so that no row read as "scheduled" in the
+-- window before the backfill. Put it back.
 ALTER TABLE `AdminPush` ALTER COLUMN `status` SET DEFAULT 'SCHEDULED';
+
+-- target was created DEFAULT 'ALL' only so the ALTER could fill existing rows on a
+-- NOT NULL column. Leaving it is dangerous: an insert that omits target would
+-- silently become a broadcast to every user of a locale. Every caller sets it
+-- explicitly, so the default has no remaining use.
+ALTER TABLE `AdminPush` ALTER COLUMN `target` DROP DEFAULT;
 ```
 
 #### Step 2 verification
@@ -302,6 +310,13 @@ SELECT `target`, COUNT(*) FROM `AdminPush` GROUP BY `target`;
 -- Must be zero. A SCHEDULED row with a past pushAt means the backfill went wrong.
 SELECT COUNT(*) AS must_be_zero
   FROM `AdminPush` WHERE `status` = 'SCHEDULED' AND `pushAt` <= NOW(3);
+
+-- Column defaults must read SCHEDULED and NULL respectively. A stale 'CANCELED' on
+-- status, or any default left on target, means 2-5 did not run.
+SELECT `COLUMN_NAME`, `COLUMN_DEFAULT`
+  FROM `information_schema`.`COLUMNS`
+ WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = 'AdminPush'
+   AND `COLUMN_NAME` IN ('status', 'target');
 
 -- key should read AdminPush_status_pushAt_idx.
 EXPLAIN SELECT * FROM `AdminPush`
