@@ -92,6 +92,10 @@ Resumability comes from the cursor, which is committed after every batch. A per-
 
 This makes a per-batch FCM timeout mandatory. Without one, a single hung call strands `isRunning` and stops every future send.
 
+**A failed batch ends the tick rather than retrying in place.** The success path runs to completion, but the failure path yields: the sender persists the incremented failure counter and `lastError`, leaves the row `SENDING` with the cursor unmoved, and returns. The next tick resumes from the DB cursor a minute later.
+
+The first draft retried three times inside the loop, which made the three-strike rule useless — the attempts burned back-to-back in about fifteen milliseconds, so a two-second FCM outage would mark a half-delivered broadcast `FAILED`, and `FAILED` never resumes. Spacing is what turns a repeat count into a transient-fault filter, and the cron's own cadence supplies it for free: three ticks is roughly three minutes of tolerance, with no sleep inside the loop and no extra state. The cost is that a genuinely dead send takes three minutes to reach `FAILED` instead of milliseconds, which is the right trade for a channel that reaches hundreds of thousands of people.
+
 ### 2.4 Deletion is gated on `sentCount === 0`, not on status
 
 A push that reached even one device is a delivery record and must not be erasable. A push that reached nobody is a mistake and should be cleanable regardless of how it ended. Writing the rule against status misses the case that matters: a `FAILED` row that had already delivered to 30,000 people.
