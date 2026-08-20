@@ -1,0 +1,122 @@
+import type { AdminPushItem } from '@/client/push';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
+import { ColumnDef } from '@tanstack/react-table';
+import dayjs from 'dayjs';
+import PushProgressMeter from './PushProgressMeter';
+import PushStatusBadge from './PushStatusBadge';
+import { allowedActions } from './services/push-status';
+
+export interface PushRowActions {
+  onView: (row: AdminPushItem) => void;
+  onEdit: (row: AdminPushItem) => void;
+  onCancel: (row: AdminPushItem) => void;
+  onAbort: (row: AdminPushItem) => void;
+  onDuplicate: (row: AdminPushItem) => void;
+  onDelete: (row: AdminPushItem) => void;
+}
+
+/**
+ * An absolute timestamp alone makes the reader subtract today's date to learn what it
+ * means. Pairing it with the status lets the row explain itself, as CouponColumns does.
+ */
+function relativeTime(iso: string, now = dayjs()): string {
+  const at = dayjs(iso);
+  const minutes = at.diff(now, 'minute');
+  if (minutes > 0) {
+    if (minutes < 60) return `${minutes}분 후`;
+    if (minutes < 60 * 24) return `${Math.round(minutes / 60)}시간 후`;
+    return `${Math.round(minutes / (60 * 24))}일 후`;
+  }
+  const past = -minutes;
+  if (past < 1) return '방금';
+  if (past < 60) return `${past}분 전`;
+  if (past < 60 * 24) return `${Math.round(past / 60)}시간 전`;
+  return `${Math.round(past / (60 * 24))}일 전`;
+}
+
+export const createPushColumns = (actions: PushRowActions): ColumnDef<AdminPushItem>[] => [
+  { accessorKey: 'id', header: '번호', size: 64 },
+  {
+    id: 'target',
+    header: '대상',
+    cell: ({ row }) => {
+      const item = row.original;
+      return item.target === 'ALL'
+        ? `전체 · ${item.locale ?? '—'}`
+        : `개인 · ${(item.userNames ?? []).length}명`;
+    },
+  },
+  {
+    accessorKey: 'title',
+    header: '제목',
+    cell: ({ row }) => (
+      <div className='min-w-0'>
+        <div className='truncate text-slate-900'>{row.original.title}</div>
+        <div className='truncate text-xs text-slate-600'>{row.original.message}</div>
+      </div>
+    ),
+  },
+  {
+    accessorKey: 'pushAt',
+    header: '발송 시각',
+    cell: ({ row }) => (
+      <div className='tabular-nums'>
+        <div>{dayjs(row.original.pushAt).format('YYYY.MM.DD HH:mm')}</div>
+        <div className='text-xs text-slate-600'>{relativeTime(row.original.pushAt)}</div>
+      </div>
+    ),
+  },
+  {
+    accessorKey: 'status',
+    header: '상태',
+    cell: ({ row }) => (
+      <PushStatusBadge status={row.original.status} failedCount={row.original.failedCount} />
+    ),
+  },
+  {
+    id: 'progress',
+    header: '진행',
+    cell: ({ row }) => (
+      <PushProgressMeter
+        sentCount={row.original.sentCount}
+        failedCount={row.original.failedCount}
+        targetCount={row.original.targetCount}
+        isApproximate={row.original.targetCountIsApproximate}
+      />
+    ),
+  },
+  {
+    id: 'actions',
+    header: '',
+    size: 48,
+    meta: { useTruncateTooltip: false },
+    cell: ({ row }) => {
+      const item = row.original;
+      const labels: Record<string, string> = {
+        view: '상세 보기',
+        edit: '수정',
+        cancel: '예약 취소',
+        abort: '발송 중단',
+        duplicate: '복제하여 새로 등록',
+        delete: '삭제',
+      };
+      const handlers: Record<string, () => void> = {
+        view: () => actions.onView(item),
+        edit: () => actions.onEdit(item),
+        cancel: () => actions.onCancel(item),
+        abort: () => actions.onAbort(item),
+        duplicate: () => actions.onDuplicate(item),
+        delete: () => actions.onDelete(item),
+      };
+      return (
+        <TableRowActions
+          items={allowedActions(item.status, item.sentCount).map((action) => ({
+            label: labels[action],
+            onClick: handlers[action],
+            destructive: action === 'delete' || action === 'abort',
+          }))}
+        />
+      );
+    },
+  },
+];
