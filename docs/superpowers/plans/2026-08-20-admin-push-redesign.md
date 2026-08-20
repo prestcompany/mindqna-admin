@@ -19,6 +19,31 @@ Two repos are involved. Every task names which one.
 
 Commit in the repo the task touches. Never commit across both in one commit.
 
+## Gates before every commit
+
+The server's CI (`.github/workflows/ci.yml`) blocks on lint and build, not only on types and tests.
+A task that passes `tsc` and `jest` can still fail the PR. Before committing:
+
+**SERVER**
+```bash
+cd ~/Documents/backend/mindqna-server
+npx tsc --noEmit -p tsconfig.json
+npx jest                                     # once per task, not after every edit
+npx eslint "{src,apps,libs,test}/**/*.ts"    # blocking in CI; prettier runs through it
+yarn build
+```
+
+**ADMIN**
+```bash
+cd ~/Documents/frontend/mindqna-admin
+npx tsc --noEmit
+pnpm test
+pnpm lint
+```
+
+`eslint` carries `prettier/prettier` as an error rule here, so formatting is a build failure, not a
+preference. `npx eslint --fix <file>` resolves the formatting class of finding.
+
 ## Global Constraints
 
 Exact values from the spec. Every task's requirements implicitly include this section.
