@@ -629,14 +629,26 @@ Bring `schema.prisma` in line with what the operator's SQL produces. **Do not ru
 
 - [ ] **Step 1: Confirm the dev database already has the SQL applied**
 
-Run against the dev database:
+**This repo's default `.env` points at the PRODUCTION database.** `.env.development` is the only file
+with the dev URL. Every Prisma command that touches a datasource must therefore carry the dev URL
+explicitly:
 
-```sql
-SHOW COLUMNS FROM `AdminPush` LIKE 'status';
-SHOW INDEX FROM `User` WHERE Key_name = 'User_locale_id_idx';
+```bash
+cd ~/Documents/backend/mindqna-server
+DEV_URL=$(grep -m1 '^DATABASE_URL=' .env.development | cut -d= -f2- | tr -d '"')
 ```
 
-Expected: one row each. If either is empty, stop — spec §3.2 step 2 has not been applied and the rest of this task will produce a schema that does not match the database.
+Never run `prisma db push`, `prisma migrate dev`, or `prisma migrate deploy` in this repo at all.
+Schema changes are hand-applied SQL by the operator; those commands would write to whichever
+database the URL resolves to.
+
+The state below was verified before this task was dispatched, so it should already hold:
+
+- `AdminPush.status` exists as `enum('SCHEDULED','SENDING','SENT','FAILED','CANCELED','ABORTED')`
+- `User_locale_id_idx` exists on `(locale, id)`
+- `isActive`, `isSuccess` and `sentAt` have already been dropped from `AdminPush` on dev
+
+Confirm it yourself before editing the schema; if any of the three is wrong, stop and report.
 
 - [ ] **Step 2: Replace the `AdminPush` model**
 
@@ -681,11 +693,6 @@ model AdminPush {
   finishedAt          DateTime?
   lastError           String?         @db.Text
 
-  // Legacy — no longer read or written. Dropped by spec §3.3 after one production cycle.
-  isActive  Boolean   @default(false)
-  isSuccess Boolean   @default(false)
-  sentAt    DateTime?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -711,10 +718,28 @@ npx prisma generate
 ```
 Expected: `The schema at prisma/schema.prisma is valid` then `Generated Prisma Client`
 
-- [ ] **Step 5: Confirm the schema matches the database**
+- [ ] **Step 5: Confirm the schema matches the database, scoped to what this task changed**
 
-Run: `cd ~/Documents/backend/mindqna-server && npx prisma migrate diff --from-schema-datamodel prisma/schema.prisma --to-schema-datasource prisma/schema.prisma --exit-code`
-Expected: exit code 0 and "No difference detected". A non-zero exit means the hand-applied SQL and this schema disagree — reconcile before continuing, and do not "fix" it by running `prisma migrate`.
+A blanket `migrate diff --exit-code` cannot pass here: the dev database carries roughly seventy
+differences from `main`'s schema, because other feature branches' tables and indexes are applied to
+it. Check only what this task touches:
+
+```bash
+DATABASE_URL="$DEV_URL" npx prisma migrate diff \
+  --from-schema-datamodel prisma/schema.prisma \
+  --to-schema-datasource prisma/schema.prisma 2>&1 \
+  | grep -A30 'Changed the `AdminPush` table'
+```
+
+Expected: **no `AdminPush` section at all** in the output. Its presence means the schema block and
+the database still disagree about that table. Unrelated tables in the output are pre-existing dev
+drift and are not this task's problem.
+
+Then confirm the model compiles against the real client:
+
+```bash
+DATABASE_URL="$DEV_URL" npx prisma validate
+```
 
 - [ ] **Step 6: Commit**
 
@@ -723,8 +748,10 @@ cd ~/Documents/backend/mindqna-server
 git add prisma/schema.prisma
 git commit -m "feat(push): model AdminPush execution state
 
-Mirrors the hand-applied SQL in the admin repo's spec §3.2. isActive, isSuccess
-and sentAt stay until §3.3 drops them."
+Mirrors the hand-applied SQL in the admin repo's spec §3.2. The legacy isActive,
+isSuccess and sentAt columns are left out of the model: they carry defaults or
+are nullable, so a database that still has them accepts inserts that omit them,
+and Prisma ignores columns it does not declare."
 ```
 
 ---

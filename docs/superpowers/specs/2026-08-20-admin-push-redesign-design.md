@@ -166,11 +166,6 @@ model AdminPush {
   finishedAt          DateTime?
   lastError           String?         @db.Text
 
-  // Legacy — no longer read or written; dropped in a later migration (§3.3)
-  isActive     Boolean         @default(false)
-  isSuccess    Boolean         @default(false)
-  sentAt       DateTime?
-
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 
@@ -321,9 +316,14 @@ EXPLAIN SELECT `id`, `fcmToken` FROM `User`
 SHOW CREATE TABLE `AdminPush`;
 ```
 
-### 3.3 Step 3 — legacy columns, deferred
+### 3.3 Step 3 — legacy columns, optional
 
-Run only after the new code has completed a production cycle. Column drops are irreversible.
+`isActive`, `isSuccess` and `sentAt` are left out of the Prisma model entirely (§3.1). Each either
+carries a default or is nullable, so a database that still has them accepts inserts that omit them,
+and Prisma ignores columns it does not declare. Dropping them is therefore tidying, not a
+prerequisite — the code runs correctly either way.
+
+Run it only after the new code has completed a production cycle. Column drops are irreversible.
 
 ```sql
 ALTER TABLE `AdminPush`
