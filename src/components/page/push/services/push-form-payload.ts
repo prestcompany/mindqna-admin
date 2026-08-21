@@ -23,6 +23,38 @@ export function parseUserNamesInput(raw: string): string[] {
   return Array.from(new Set(parsed));
 }
 
+function isAbsoluteUrl(value: string): boolean {
+  // The URL constructor silently percent-encodes a space rather than refusing it, so the raw
+  // string is checked for whitespace separately — `https://a.example/b c.png` is a typo.
+  if (/\s/.test(value)) return false;
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Mirrors PushService.buildData so the operator hears about a bad URL before the request goes
+ * out. Not cosmetic: imgUrl reaches FCM as notification.imageUrl, and a malformed one makes
+ * every send in the batch fail with messaging/invalid-argument.
+ *
+ * imgUrl must be http(s) because FCM fetches it itself. link only has to be absolute — the
+ * app resolves it as a deep link, and the rest of the product sends mindqna://<path> there.
+ * Both are optional, so empty stays valid.
+ */
+export function pushUrlError(values: Pick<PushFormValues, 'link' | 'imgUrl'>): string | null {
+  const link = values.link.trim();
+  const imgUrl = values.imgUrl.trim();
+
+  if (link && !isAbsoluteUrl(link)) return '링크는 https:// 또는 mindqna:// 로 시작하는 절대 URL이어야 합니다';
+  if (imgUrl && !(isAbsoluteUrl(imgUrl) && /^https?:$/.test(new URL(imgUrl).protocol))) {
+    return '이미지 URL은 https:// 로 시작하는 절대 URL이어야 합니다';
+  }
+  return null;
+}
+
 function optional(value: string): string | undefined {
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;

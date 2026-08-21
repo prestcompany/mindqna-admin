@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { parseUserNamesInput, toCreatePushParams } from './push-form-payload';
+import { parseUserNamesInput, pushUrlError, toCreatePushParams } from './push-form-payload';
 
 const base = {
   sendMode: 'now' as const,
@@ -50,4 +50,40 @@ test('link and imgUrl are trimmed and passed through when present', () => {
 test('parseUserNamesInput trims, drops blanks and de-duplicates', () => {
   assert.deepEqual(parseUserNamesInput('alice, bob ,,alice,'), ['alice', 'bob']);
   assert.deepEqual(parseUserNamesInput('   '), []);
+});
+
+// A malformed imgUrl reaches FCM as notification.imageUrl and fails every send in the batch
+// with messaging/invalid-argument, so the form has to refuse it before the request goes out.
+test('pushUrlError rejects an imgUrl that is a relative path', () => {
+  assert.match(pushUrlError({ ...base, imgUrl: 'banner.png' }) ?? '', /이미지 URL/);
+  assert.match(pushUrlError({ ...base, imgUrl: '/assets/banner.png' }) ?? '', /이미지 URL/);
+});
+
+test('pushUrlError rejects an imgUrl containing a space', () => {
+  assert.match(pushUrlError({ ...base, imgUrl: 'https://cdn.example.com/my banner.png' }) ?? '', /이미지 URL/);
+});
+
+test('pushUrlError rejects a non-http imgUrl, since FCM fetches the image itself', () => {
+  assert.match(pushUrlError({ ...base, imgUrl: 'mindqna://push/42' }) ?? '', /이미지 URL/);
+});
+
+test('pushUrlError accepts an https imgUrl', () => {
+  assert.equal(pushUrlError({ ...base, imgUrl: 'https://cdn.example.com/banner.png' }), null);
+});
+
+test('pushUrlError rejects a scheme-less link', () => {
+  assert.match(pushUrlError({ ...base, link: 'push/42' }) ?? '', /링크/);
+  assert.match(pushUrlError({ ...base, link: 'https://example.com/a b' }) ?? '', /링크/);
+});
+
+// Every other push in the product deep-links as mindqna://<path>, so the app's own format
+// has to stay sendable — only http(s) would reject it.
+test('pushUrlError accepts an https link and the mindqna:// deep link', () => {
+  assert.equal(pushUrlError({ ...base, link: 'https://example.com/promo' }), null);
+  assert.equal(pushUrlError({ ...base, link: 'mindqna://push/42' }), null);
+});
+
+test('pushUrlError leaves both optional — empty stays valid', () => {
+  assert.equal(pushUrlError({ link: '', imgUrl: '' }), null);
+  assert.equal(pushUrlError({ link: '  ', imgUrl: '  ' }), null);
 });

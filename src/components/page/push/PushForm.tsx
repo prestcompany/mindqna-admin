@@ -20,7 +20,12 @@ import { Loader2 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import PushSummaryRail from './PushSummaryRail';
-import { parseUserNamesInput, toCreatePushParams, type PushFormValues } from './services/push-form-payload';
+import {
+  parseUserNamesInput,
+  pushUrlError,
+  toCreatePushParams,
+  type PushFormValues,
+} from './services/push-form-payload';
 
 type Props = {
   mode: 'create' | 'edit' | 'view';
@@ -83,6 +88,13 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
     }
     if (values.target === 'USER' && recipients.length === 0) {
       toast.error('사용자를 1명 이상 입력해주세요');
+      return;
+    }
+    // Mirrors the server's 400. A bad imgUrl is the expensive one: it reaches FCM as
+    // notification.imageUrl and fails the whole batch, so the operator hears it here.
+    const urlError = pushUrlError(values);
+    if (urlError) {
+      toast.error(urlError);
       return;
     }
     if (values.sendMode === 'schedule') {
@@ -245,9 +257,7 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                 mode='compose'
                 target={values.target}
                 locale={values.locale}
-                recipientCount={
-                  values.target === 'ALL' ? (targetCount ? targetCount.count : null) : recipients.length
-                }
+                recipientCount={values.target === 'ALL' ? (targetCount ? targetCount.count : null) : recipients.length}
                 when={
                   values.sendMode === 'now'
                     ? '지금'
