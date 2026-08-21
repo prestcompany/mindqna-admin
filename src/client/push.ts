@@ -64,11 +64,6 @@ export async function getPushes(page: number, locale?: string[], status?: string
   return res.data;
 }
 
-export async function getPush(id: number) {
-  const res = await client.get<AdminPushItem>(`/push/${id}`);
-  return res.data;
-}
-
 /** Feeds the compose-time estimate; the admin has no other way to know the size. */
 export async function getPushTargetCount(locale: Locale) {
   const res = await client.get<{ count: number; isApproximate: boolean }>('/push/target-count', {

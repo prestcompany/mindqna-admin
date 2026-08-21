@@ -10,7 +10,7 @@ type Props = {
 const SENDING_POLL_MS = 5_000;
 
 function usePushes({ page, locale, status }: Props) {
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['pushes', page, locale, status],
     queryFn: () => getPushes(page, locale, status),
     // Polling is switched on by a condition, never left on by default — the same
@@ -19,11 +19,12 @@ function usePushes({ page, locale, status }: Props) {
       query.state.data?.items.some((item) => item.status === 'SENDING') ? SENDING_POLL_MS : false,
   });
 
+  // No refetch: the list is invalidated through the query client after every mutation, and
+  // handing one out was the defect that let callers reload the list two different ways.
   return {
     items: data?.items ?? [],
     totalPage: data?.pageInfo.totalPage ?? 1,
     isLoading,
-    refetch,
   };
 }
 
