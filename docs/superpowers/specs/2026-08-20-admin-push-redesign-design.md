@@ -130,6 +130,29 @@ An exact count needs `fcmToken IS NOT NULL`, which no index narrows. Counting on
 
 The admin cannot derive this number itself, and hardcoding a figure in the frontend guarantees it drifts as the user base grows. `GET /admin/push/target-count?locale=` returns the same approximate count the sender records, so the compose-time estimate and the progress bar are computed from one source.
 
+### 2.11 `invalid-argument` is only a dead token when the batch disagrees with itself
+
+`messaging/invalid-argument` is FCM's code for a malformed **message**, not only for an unusable
+registration token — and `notification.imageUrl` is part of the message. Nothing in the original design
+validated the admin's link or image URL, so an operator pasting `banner.png` into the image field would
+have drawn that code for every sub-response of every batch. The sender would have read 442,953 dead
+tokens, nulled every one of them, and finished as `SENT` with `sentCount: 0` — ending *all* push delivery
+for those users, in-app notifications included, until each device reopened the app and re-registered.
+
+The old code never read the response, so the same typo cost nothing. Reading it is what turns a typo into
+bulk data loss, which is why this stayed invisible until the change was reviewed as a whole.
+
+Two guards, because either alone leaves a gap:
+
+- A batch whose responses are **entirely** failures and **entirely** `invalid-argument` is treated as a
+  batch failure rather than as dead tokens: the failure counter advances, the cursor holds, and no token
+  is touched. A genuinely token-caused `invalid-argument` is never one hundred per cent of a batch.
+- `link` and `imgUrl` are validated as absolute `http(s)` URLs at the API boundary and again in the form,
+  so a malformed message is rejected before it reaches FCM.
+
+The first bounds the damage whatever else FCM decides to return `invalid-argument` for; the second stops
+the common case where the operator can still fix it.
+
 ### 2.10 Per-user sends ignore `locale`
 
 The cron currently ANDs `locale` with the username list, so naming a user whose locale differs silently drops them. Naming someone is an explicit instruction. `locale` becomes nullable and per-user rows store `NULL`; the form hides the language selector when 개인 is chosen.
@@ -443,7 +466,7 @@ await prisma.adminPush.update({
 
 The keyed cursor replaces `skip += users.length`, whose cost grows quadratically across hundreds of thousands of rows, and it doubles as the resume point.
 
-Dead tokens are exactly `messaging/registration-token-not-registered` and `messaging/invalid-argument`. Other failure codes are counted but leave the token alone.
+Dead tokens are `messaging/registration-token-not-registered` and `messaging/invalid-argument` — the latter only when the batch is not uniformly invalid, see §2.11. Other failure codes are counted but leave the token alone.
 
 `data.deepLinkUrl` carries the admin's link. In-app pushes put a `mindqna://` scheme in this key; admin links are ordinary URLs and the app handles both.
 
