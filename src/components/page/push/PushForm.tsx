@@ -245,7 +245,9 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                 mode='compose'
                 target={values.target}
                 locale={values.locale}
-                recipientCount={values.target === 'ALL' ? targetCount?.count ?? 0 : recipients.length}
+                recipientCount={
+                  values.target === 'ALL' ? (targetCount ? targetCount.count : null) : recipients.length
+                }
                 when={
                   values.sendMode === 'now'
                     ? '지금'

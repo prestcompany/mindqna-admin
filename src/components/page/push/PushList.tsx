@@ -42,6 +42,13 @@ function PushList() {
 
   const { items, totalPage, isLoading } = usePushes({ page, locale: filter.locale, status: filter.status });
 
+  // view/edit track the live, polled row so a SENDING sheet's counts and countdown move
+  // the same way the list behind it does. A duplicate is a snapshot the operator is
+  // composing a fresh send from, so it must not drift if the original row changes later —
+  // and it may have already scrolled off the current page by the time it does.
+  const sheetRow =
+    sheet?.row && sheet.mode !== 'create' ? items.find((item) => item.id === sheet.row!.id) ?? sheet.row : sheet?.row;
+
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['pushes'] });
 
   const run = async () => {
@@ -122,7 +129,7 @@ function PushList() {
       {sheet && (
         <PushForm
           mode={sheet.mode}
-          initial={sheet.row}
+          initial={sheetRow}
           onClose={() => setSheet(null)}
           onSaved={async () => {
             setSheet(null);

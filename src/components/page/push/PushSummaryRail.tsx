@@ -6,7 +6,8 @@ type ComposeProps = {
   mode: 'compose';
   target: 'ALL' | 'USER';
   locale: string;
-  recipientCount: number;
+  /** null while a broadcast's server-side count is still in flight — never a placeholder 0. */
+  recipientCount: number | null;
   when: string;
 };
 
@@ -47,8 +48,10 @@ function PushSummaryRail(props: ComposeProps | ResultProps) {
   }
 
   const { target, locale, recipientCount, when } = props;
-  const estimate = estimateDurationMs(recipientCount);
-  const who = target === 'ALL' ? `${locale} 사용자` : `지정한 ${recipientCount}명`;
+  // A flashed "1~1분" while the real count is still loading is worse than no number at
+  // all — it teaches the operator that a forty-minute broadcast is a one-minute one.
+  const estimate = recipientCount === null ? null : estimateDurationMs(recipientCount);
+  const who = target === 'ALL' ? `${locale} 사용자` : `지정한 ${recipientCount ?? 0}명`;
 
   return (
     <div className='space-y-3 text-sm'>
@@ -56,9 +59,11 @@ function PushSummaryRail(props: ComposeProps | ResultProps) {
         {who}에게 {when}에 발송합니다.
       </p>
       {/* Tens of minutes is the fact an operator most needs before pressing save. */}
-      <p className='text-xs text-slate-600'>
-        예상 소요 {minutes(estimate.minMs)}~{minutes(estimate.maxMs)}분
-      </p>
+      {estimate && (
+        <p className='text-xs text-slate-600'>
+          예상 소요 {minutes(estimate.minMs)}~{minutes(estimate.maxMs)}분
+        </p>
+      )}
     </div>
   );
 }
