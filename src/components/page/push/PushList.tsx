@@ -1,4 +1,4 @@
-import { abortPush, AdminPushItem, cancelPush, removePush } from '@/client/push';
+import { abortPush, AdminPushItem, AdminPushStatus, cancelPush, removePush } from '@/client/push';
 import DataTable from '@/components/shared/ui/data-table';
 import { FILTER_CONTROL_CLASS, FilterBar } from '@/components/shared/ui/filter-bar';
 import {
@@ -15,13 +15,23 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import usePushes from '@/hooks/usePushes';
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { createPushColumns } from './PushColumns';
 import PushForm from './PushForm';
 import { PUSH_STATUS_META } from './services/push-status';
 
 type Pending = { kind: 'cancel' | 'abort' | 'delete'; row: AdminPushItem } | null;
+
+const LOCALES = ['ko', 'en', 'ja', 'zh', 'zhTw', 'es', 'id'] as const;
+
+/**
+ * Radix Select cannot return to '', so a filter with no sentinel option is a one-way door:
+ * pick 언어 = ja to check one send and every push after that is filtered to ja, including
+ * the ko row just created, which looks like it vanished. Same 'ALL' sentinel + removable
+ * chips the coupon list uses.
+ */
+const ALL = 'ALL';
 
 const confirmCopy: Record<'cancel' | 'abort' | 'delete', (row: AdminPushItem) => { title: string; body: string }> = {
   cancel: (row) => ({ title: '예약을 취소할까요?', body: `"${row.title}" 은 발송되지 않습니다.` }),
@@ -36,18 +46,29 @@ const confirmCopy: Record<'cancel' | 'abort' | 'delete', (row: AdminPushItem) =>
 function PushList() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [filter, setFilter] = useState<{ locale?: string[]; status?: string[] }>({});
+  const [locale, setLocale] = useState<string>(ALL);
+  const [status, setStatus] = useState<AdminPushStatus | typeof ALL>(ALL);
   const [sheet, setSheet] = useState<{ mode: 'create' | 'edit' | 'view'; row?: AdminPushItem } | null>(null);
   const [pending, setPending] = useState<Pending>(null);
 
-  const { items, totalPage, isLoading } = usePushes({ page, locale: filter.locale, status: filter.status });
+  const { items, totalPage, isLoading } = usePushes({
+    page,
+    locale: locale === ALL ? undefined : [locale],
+    status: status === ALL ? undefined : [status],
+  });
+
+  // A narrowed filter re-pages the whole result set, so holding page 4 renders an empty
+  // table with nothing to explain it.
+  useEffect(() => {
+    setPage(1);
+  }, [locale, status]);
 
   // view/edit track the live, polled row so a SENDING sheet's counts and countdown move
   // the same way the list behind it does. A duplicate is a snapshot the operator is
   // composing a fresh send from, so it must not drift if the original row changes later —
   // and it may have already scrolled off the current page by the time it does.
   const sheetRow =
-    sheet?.row && sheet.mode !== 'create' ? items.find((item) => item.id === sheet.row!.id) ?? sheet.row : sheet?.row;
+    sheet?.row && sheet.mode !== 'create' ? (items.find((item) => item.id === sheet.row!.id) ?? sheet.row) : sheet?.row;
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['pushes'] });
 
@@ -78,18 +99,21 @@ function PushList() {
 
   const confirmContent = pending ? confirmCopy[pending.kind](pending.row) : null;
 
+  const chips = [
+    ...(locale === ALL ? [] : [{ key: 'locale', label: `언어 ${locale}` }]),
+    ...(status === ALL ? [] : [{ key: 'status', label: PUSH_STATUS_META[status].label }]),
+  ];
+
   return (
     <>
-      <FilterBar>
-        <Select
-          value={filter.locale?.[0] ?? ''}
-          onValueChange={(v) => setFilter((p) => ({ ...p, locale: v ? [v] : undefined }))}
-        >
+      <FilterBar chips={chips} onRemoveChip={(key) => (key === 'locale' ? setLocale(ALL) : setStatus(ALL))}>
+        <Select value={locale} onValueChange={setLocale}>
           <SelectTrigger className={`w-[120px] ${FILTER_CONTROL_CLASS}`}>
-            <SelectValue placeholder='언어' />
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {['ko', 'en', 'ja', 'zh', 'zhTw', 'es', 'id'].map((l) => (
+            <SelectItem value={ALL}>전체 언어</SelectItem>
+            {LOCALES.map((l) => (
               <SelectItem key={l} value={l}>
                 {l}
               </SelectItem>
@@ -97,14 +121,12 @@ function PushList() {
           </SelectContent>
         </Select>
 
-        <Select
-          value={filter.status?.[0] ?? ''}
-          onValueChange={(v) => setFilter((p) => ({ ...p, status: v ? [v] : undefined }))}
-        >
+        <Select value={status} onValueChange={(v) => setStatus(v as AdminPushStatus | typeof ALL)}>
           <SelectTrigger className={`w-[140px] ${FILTER_CONTROL_CLASS}`}>
-            <SelectValue placeholder='상태' />
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value={ALL}>전체 상태</SelectItem>
             {Object.entries(PUSH_STATUS_META).map(([value, meta]) => (
               <SelectItem key={value} value={value}>
                 {meta.label}
