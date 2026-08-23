@@ -4,21 +4,28 @@ import { useQuery } from '@tanstack/react-query';
 type Props = {
   page: number;
   locale?: string[];
+  status?: string[];
 };
 
-function usePushes(by: Props) {
-  const { page, locale } = by;
+const SENDING_POLL_MS = 5_000;
 
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: ['pushes', page, locale],
-    queryFn: () => getPushes(page, locale),
+function usePushes({ page, locale, status }: Props) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['pushes', page, locale, status],
+    queryFn: () => getPushes(page, locale, status),
+    // Polling is switched on by a condition, never left on by default — the same
+    // reason cf6f664 stopped the coupon aggregate refetching on window focus.
+    refetchInterval: (query) =>
+      query.state.data?.items.some((item) => item.status === 'SENDING') ? SENDING_POLL_MS : false,
   });
 
-  const items = data?.items ?? [];
-
-  const totalPage = data?.pageInfo.totalPage ?? 1;
-
-  return { items, totalPage, isLoading, refetch };
+  // No refetch: the list is invalidated through the query client after every mutation, and
+  // handing one out was the defect that let callers reload the list two different ways.
+  return {
+    items: data?.items ?? [],
+    totalPage: data?.pageInfo.totalPage ?? 1,
+    isLoading,
+  };
 }
 
 export default usePushes;
