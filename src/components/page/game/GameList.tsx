@@ -5,7 +5,7 @@ import DataTable from '@/components/shared/ui/data-table';
 import { useGames } from '@/hooks/useGame';
 import { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
-import GameFormModal from './GameFormModal';
+import GameFormSheet from './GameFormSheet';
 
 function GameList() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -107,7 +107,7 @@ function GameList() {
           onChange: (page) => setCurrentPage(page),
         }}
       />
-      <GameFormModal isOpen={isOpenEdit} close={handleCloseEdit} game={selectedGame} refetch={refetch} />
+      <GameFormSheet isOpen={isOpenEdit} close={handleCloseEdit} game={selectedGame} refetch={refetch} />
     </>
   );
 }
