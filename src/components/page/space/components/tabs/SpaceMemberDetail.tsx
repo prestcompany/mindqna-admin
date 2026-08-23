@@ -2,7 +2,7 @@ import { getSpaceMemberDetail } from '@/client/space';
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { Loader2 } from 'lucide-react';
+import { Copy, Loader2 } from 'lucide-react';
 import { getMemberStatus } from '../../utils/space-display';
 
 function Stat({ label, value }: { label: string; value: number }) {
@@ -14,7 +14,13 @@ function Stat({ label, value }: { label: string; value: number }) {
   );
 }
 
-function SpaceMemberDetail({ spaceId, profileId }: { spaceId: string; profileId: string }) {
+interface SpaceMemberDetailProps {
+  spaceId: string;
+  profileId: string;
+  copyId?: (id: string) => void;
+}
+
+function SpaceMemberDetail({ spaceId, profileId, copyId }: SpaceMemberDetailProps) {
   const { data, isFetching } = useQuery({
     queryKey: ['space-member-detail', spaceId, profileId],
     queryFn: () => getSpaceMemberDetail(spaceId, profileId),
@@ -31,6 +37,19 @@ function SpaceMemberDetail({ spaceId, profileId }: { spaceId: string; profileId:
   const status = getMemberStatus(data.profile);
   return (
     <div className='space-y-3'>
+      <div className='flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground'>
+        <span className='font-mono'>ID: {data.profile.id}</span>
+        {data.profile.user?.username && copyId ? (
+          <button
+            type='button'
+            onClick={() => copyId(data.profile.user!.username)}
+            className='inline-flex items-center gap-1 rounded px-1 py-0.5 transition-colors hover:bg-muted hover:text-foreground'
+          >
+            @{data.profile.user.username}
+            <Copy className='h-3 w-3' />
+          </button>
+        ) : null}
+      </div>
       {status.badgeVariant ? (
         <div className='flex flex-wrap items-center gap-2'>
           <span className='truncate text-sm font-medium text-slate-900'>{data.profile.nickname}</span>

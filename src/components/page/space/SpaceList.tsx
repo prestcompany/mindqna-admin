@@ -29,7 +29,6 @@ import { createSpaceTableColumns } from './SpaceTableColumns';
 import BulkMessageKeywords from './components/BulkMessageKeywords';
 import SpaceDetailSheet from './components/SpaceDetailSheet';
 import SpaceFilterBar from './components/SpaceFilterBar';
-import SpaceProfileModal from './components/SpaceProfileModal';
 import { useSpaceFilters } from './hooks/useSpaceFilters';
 import { useSpaceModals } from './hooks/useSpaceModals';
 import { Input } from '@/components/ui/input';
@@ -59,6 +58,9 @@ function SpaceList() {
   const router = useRouter();
   const [isFetching, setFetching] = useState(false);
   const [detailTarget, setDetailTarget] = useState<Space | null>(null);
+  // Set alongside detailTarget so the member-list row action can land the detail sheet on
+  // its 멤버 tab directly, instead of the deleted SpaceProfileModal.
+  const [detailInitialTab, setDetailInitialTab] = useState<string | undefined>(undefined);
 
   const deepLinkSpaceId = typeof router.query.spaceId === 'string' ? router.query.spaceId : undefined;
   const consumedDeepLinkRef = useRef<string | null>(null);
@@ -85,24 +87,24 @@ function SpaceList() {
 
   const closeDetail = () => {
     setDetailTarget(null);
+    setDetailInitialTab(undefined);
     if (deepLinkSpaceId) {
       router.replace({ pathname: router.pathname }, undefined, { shallow: true });
     }
   };
 
+  const openDetail = (space: Space) => {
+    setDetailTarget(space);
+    setDetailInitialTab(undefined);
+  };
+
+  const handleViewMembers = (space: Space) => {
+    setDetailTarget(space);
+    setDetailInitialTab('members');
+  };
+
   const { filter, currentPage, setCurrentPage, updateFilter } = useSpaceFilters();
-  const {
-    isOpenSearch,
-    isOpenCoin,
-    isOpenProfile,
-    focused,
-    openSearch,
-    closeSearch,
-    openCoin,
-    closeCoin,
-    openProfile,
-    closeProfile,
-  } = useSpaceModals();
+  const { isOpenSearch, isOpenCoin, focused, openSearch, closeSearch, openCoin, closeCoin } = useSpaceModals();
 
   const { items, totalPage, refetch, isLoading } = useSpaces({
     page: currentPage,
@@ -245,7 +247,7 @@ function SpaceList() {
   };
 
   const baseColumns = createSpaceTableColumns({
-    onViewProfiles: openProfile,
+    onViewProfiles: handleViewMembers,
     onOpenCoin: openCoin,
     onRemove: handleRemove,
     copyId,
@@ -273,7 +275,7 @@ function SpaceList() {
           }}
           loading={isLoading}
           onRow={(space) => ({
-            onClick: () => setDetailTarget(space),
+            onClick: () => openDetail(space),
           })}
         />
       </div>
@@ -304,17 +306,14 @@ function SpaceList() {
         </AdminSideSheetContent>
       </Sheet>
 
-      {/* 프로필 모달 */}
-      <SpaceProfileModal
-        open={isOpenProfile}
-        space={focused || null}
-        onClose={closeProfile}
-        onRefresh={refetch}
-        onRemoveProfile={handleRemoveProfile}
+      <SpaceDetailSheet
+        open={!!detailTarget}
+        space={detailTarget}
+        onClose={closeDetail}
         copyId={copyId}
+        initialTab={detailInitialTab}
+        onRemoveProfile={handleRemoveProfile}
       />
-
-      <SpaceDetailSheet open={!!detailTarget} space={detailTarget} onClose={closeDetail} copyId={copyId} />
 
       {/* 공간 삭제 확인 */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
