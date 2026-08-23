@@ -196,7 +196,7 @@ function Dashboard() {
           <div className='flex flex-wrap items-start justify-between gap-3'>
             <div className='space-y-1.5'>
               <p className='text-base font-semibold text-slate-900 sm:text-lg'>세부 현황</p>
-              <p className='text-sm leading-6 text-slate-600 sm:text-[15px]'>
+              <p className='text-sm leading-6 text-muted-foreground sm:text-base'>
                 기간과 국가 설정을 기준으로 가입자와 공간 성장, 로케일별 분포를 비교하는 영역입니다.
               </p>
             </div>

@@ -7,6 +7,7 @@ import {
 } from '@/client/push';
 import type { Locale } from '@/client/types';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
+import { DefinitionRow } from '@/components/shared/ui/definition-row';
 import { LOCALE_OPTIONS } from '@/components/shared/form/constants/locale-options';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -135,18 +136,18 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
         <AdminSideSheetContent title='발송 상세' size='lg' bodyClassName='overflow-hidden p-0'>
           <div className='grid h-full grid-cols-[minmax(0,1fr)_220px] overflow-hidden'>
             <div className='min-h-0 overflow-y-auto'>
-              <DefRow label='대상'>
+              <DefinitionRow label='대상'>
                 {initial.target === 'ALL'
                   ? `전체 · ${initial.locale ?? '—'}`
                   : `개인 · ${(initial.userNames ?? []).join(', ') || '—'}`}
-              </DefRow>
-              <DefRow label='제목'>{initial.title}</DefRow>
-              <DefRow label='내용'>
+              </DefinitionRow>
+              <DefinitionRow label='제목'>{initial.title}</DefinitionRow>
+              <DefinitionRow label='내용'>
                 <p className='whitespace-pre-wrap'>{initial.message}</p>
-              </DefRow>
-              <DefRow label='링크'>{initial.link ?? '—'}</DefRow>
-              <DefRow label='이미지'>{initial.imgUrl ?? '—'}</DefRow>
-              <DefRow label='발송 시각'>{dayjs(initial.pushAt).format('YYYY.MM.DD HH:mm')}</DefRow>
+              </DefinitionRow>
+              <DefinitionRow label='링크'>{initial.link ?? '—'}</DefinitionRow>
+              <DefinitionRow label='이미지'>{initial.imgUrl ?? '—'}</DefinitionRow>
+              <DefinitionRow label='발송 시각'>{dayjs(initial.pushAt).format('YYYY.MM.DD HH:mm')}</DefinitionRow>
             </div>
             <aside className='min-h-0 overflow-y-auto border-l border-border p-4'>
               <PushSummaryRail mode='result' row={initial} />
@@ -170,7 +171,7 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
         <div className='flex h-full flex-col'>
           <div className='grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_220px] overflow-hidden'>
             <div className='min-h-0 overflow-y-auto'>
-              <DefRow label='발송 시점*'>
+              <DefinitionRow label='발송 시점*'>
                 <RadioGroup
                   value={values.sendMode}
                   onValueChange={(v) => set('sendMode', v as PushFormValues['sendMode'])}
@@ -190,9 +191,9 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                 ) : (
                   <p className='mt-1 text-xs text-slate-600'>즉시 발송은 최대 1분 내에 시작됩니다</p>
                 )}
-              </DefRow>
+              </DefinitionRow>
 
-              <DefRow label='발송 대상*'>
+              <DefinitionRow label='발송 대상*'>
                 <RadioGroup
                   value={values.target}
                   onValueChange={(v) => set('target', v as PushFormValues['target'])}
@@ -201,11 +202,11 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                   <Choice id='target-all' value='ALL' label='전체' />
                   <Choice id='target-user' value='USER' label='개인' />
                 </RadioGroup>
-              </DefRow>
+              </DefinitionRow>
 
               {/* Exclusive on purpose: a per-user send ignores locale, so showing it would lie. */}
               {values.target === 'ALL' ? (
-                <DefRow label='언어*'>
+                <DefinitionRow label='언어*'>
                   <RadioGroup
                     value={values.locale}
                     onValueChange={(v) => set('locale', v)}
@@ -215,9 +216,9 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                       <Choice key={opt.value} id={`locale-${opt.value}`} value={opt.value} label={opt.label} />
                     ))}
                   </RadioGroup>
-                </DefRow>
+                </DefinitionRow>
               ) : (
-                <DefRow label='사용자*'>
+                <DefinitionRow label='사용자*'>
                   <Textarea
                     placeholder='username 을 콤마로 구분해 입력하세요'
                     value={values.userNames}
@@ -227,29 +228,29 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                   {unknown.length > 0 && (
                     <p className='mt-1 text-xs text-red-600'>존재하지 않는 사용자: {unknown.join(', ')}</p>
                   )}
-                </DefRow>
+                </DefinitionRow>
               )}
 
-              <DefRow label='제목*'>
+              <DefinitionRow label='제목*'>
                 <Input value={values.title} onChange={(e) => set('title', e.target.value)} maxLength={100} />
-              </DefRow>
-              <DefRow label='내용*'>
+              </DefinitionRow>
+              <DefinitionRow label='내용*'>
                 <Textarea value={values.message} onChange={(e) => set('message', e.target.value)} maxLength={500} />
-              </DefRow>
-              <DefRow label='링크'>
+              </DefinitionRow>
+              <DefinitionRow label='링크'>
                 <Input
                   placeholder='탭했을 때 이동할 URL'
                   value={values.link}
                   onChange={(e) => set('link', e.target.value)}
                 />
-              </DefRow>
-              <DefRow label='이미지 URL'>
+              </DefinitionRow>
+              <DefinitionRow label='이미지 URL'>
                 <Input
                   placeholder='알림에 표시할 이미지 URL'
                   value={values.imgUrl}
                   onChange={(e) => set('imgUrl', e.target.value)}
                 />
-              </DefRow>
+              </DefinitionRow>
             </div>
 
             <aside className='min-h-0 overflow-y-auto border-l border-border p-4'>
@@ -281,15 +282,6 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
         </div>
       </AdminSideSheetContent>
     </Sheet>
-  );
-}
-
-function DefRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className='grid grid-cols-[140px_minmax(0,1fr)] items-start gap-4 border-b border-border px-4 py-2.5 last:border-b-0'>
-      <div className='pt-1.5 text-sm font-medium text-slate-900'>{label}</div>
-      <div className='min-w-0 text-sm'>{children}</div>
-    </div>
   );
 }
 

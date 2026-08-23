@@ -24,7 +24,7 @@ interface CopyInlineCellProps {
 function CopyInlineCell({ text, copyValue, maxWidthClassName, monospace = false, copyId }: CopyInlineCellProps) {
   return (
     <div className='flex min-w-0 items-center gap-1'>
-      <span className={`${maxWidthClassName} truncate ${monospace ? 'font-mono text-[12px] text-slate-700' : 'font-medium text-slate-900'}`}>{text}</span>
+      <span className={`${maxWidthClassName} truncate ${monospace ? 'font-mono text-xs text-muted-foreground' : 'font-medium text-foreground'}`}>{text}</span>
       <Button
         type='button'
         variant='ghost'

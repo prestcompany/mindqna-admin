@@ -262,7 +262,7 @@ function CouponCodeList({ batch }: { batch: CouponBatch }) {
         </div>
       ) : (
         <>
-          <div className={`grid ${gridClass} h-7 border-b border-border bg-muted/40 px-2 text-[11px] text-slate-600`}>
+          <div className={`grid ${gridClass} h-7 border-b border-border bg-muted/40 px-2 text-xs text-muted-foreground`}>
             {!isShared && <span>코드</span>}
             {!isShared && <span>상태</span>}
             <span>사용자</span>
@@ -319,8 +319,8 @@ function CouponCodeList({ batch }: { batch: CouponBatch }) {
 function Count({ label, value }: { label: string; value: number | string }) {
   return (
     <div className='text-right'>
-      <div className='text-[15px] font-semibold tabular-nums tracking-heading text-slate-900'>{value}</div>
-      <div className='text-[10px] text-slate-600'>{label}</div>
+      <div className='text-base font-semibold tabular-nums tracking-heading text-foreground'>{value}</div>
+      <div className='text-xs text-muted-foreground'>{label}</div>
     </div>
   );
 }

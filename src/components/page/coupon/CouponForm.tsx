@@ -1,4 +1,5 @@
 import { createCoupon, updateCouponBatch, type CouponBatch } from '@/client/coupon';
+import { DefinitionRow, PanelBand } from '@/components/shared/ui/definition-row';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -9,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { zodResolver } from '@hookform/resolvers/zod';
 import dayjs from 'dayjs';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm, type FieldErrors } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -91,32 +92,6 @@ const makeCouponSchema = (isEdit: boolean) =>
     });
 
 type CouponFormValues = z.infer<ReturnType<typeof makeCouponSchema>>;
-
-/** A full-width band, not a card header — it divides without adding a container. */
-function Group({ children }: { children: ReactNode }) {
-  return (
-    <div className='border-b border-border bg-muted/50 px-4 py-1.5 font-mono text-xs font-medium uppercase tracking-wider text-slate-600'>
-      {children}
-    </div>
-  );
-}
-
-/**
- * Label column left, control column right. Every control then starts and ends on the same
- * two vertical lines, which is what makes a settings surface read as aligned — labels
- * stacked above their fields leave each row starting at a different place.
- */
-function Row({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
-  return (
-    <div className='grid grid-cols-[140px_minmax(0,1fr)] items-start gap-4 border-b border-border px-4 py-2.5 last:border-b-0'>
-      <div className='pt-1.5'>
-        <div className='text-sm font-medium text-slate-900'>{label}</div>
-        {hint && <div className='mt-0.5 text-xs leading-snug text-slate-500'>{hint}</div>}
-      </div>
-      <div className='min-w-0'>{children}</div>
-    </div>
-  );
-}
 
 /** Two choices on one track — no shadow, the selected item just takes the card surface. */
 function Segmented<T extends string>({
@@ -297,9 +272,9 @@ function CouponForm({ init, reload, close }: Props) {
         <form onSubmit={form.handleSubmit(save, onInvalid)} className='flex h-full flex-col'>
           <div className='grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_220px] overflow-hidden'>
             <div className='min-h-0 overflow-y-auto'>
-              <Group>타입</Group>
+              <PanelBand title='타입' />
 
-              <Row label='발급 방식' hint={isEdit ? '생성 후 변경 불가' : undefined}>
+              <DefinitionRow label='발급 방식' hint={isEdit ? '생성 후 변경 불가' : undefined}>
                 {isEdit ? (
                   <div className='pt-1'>
                     <Badge variant={isShared ? 'softInfo' : 'softNeutral'}>
@@ -331,10 +306,10 @@ function CouponForm({ init, reload, close }: Props) {
                     )}
                   />
                 )}
-              </Row>
+              </DefinitionRow>
 
               {!isShared && (
-                <Row label='발급 수량' hint={`1~${MAX_ISSUE_COUNT}장 · 코드 자동 생성`}>
+                <DefinitionRow label='발급 수량' hint={`1~${MAX_ISSUE_COUNT}장 · 코드 자동 생성`}>
                   <FormField
                     control={form.control}
                     name='count'
@@ -347,12 +322,12 @@ function CouponForm({ init, reload, close }: Props) {
                       </FormItem>
                     )}
                   />
-                </Row>
+                </DefinitionRow>
               )}
 
               {isShared && (
                 <>
-                  <Row label='쿠폰 코드' hint='비우면 자동 생성 · 대소문자 무시'>
+                  <DefinitionRow label='쿠폰 코드' hint='비우면 자동 생성 · 대소문자 무시'>
                     <FormField
                       control={form.control}
                       name='code'
@@ -365,9 +340,9 @@ function CouponForm({ init, reload, close }: Props) {
                         </FormItem>
                       )}
                     />
-                  </Row>
+                  </DefinitionRow>
 
-                  <Row label='최대 이용 횟수'>
+                  <DefinitionRow label='최대 이용 횟수'>
                     <FormField
                       control={form.control}
                       name='maxUseCount'
@@ -400,13 +375,13 @@ function CouponForm({ init, reload, close }: Props) {
                         </FormItem>
                       )}
                     />
-                  </Row>
+                  </DefinitionRow>
                 </>
               )}
 
-              <Group>기본 정보</Group>
+              <PanelBand title='기본 정보' />
 
-              <Row label='쿠폰 이름'>
+              <DefinitionRow label='쿠폰 이름'>
                 <FormField
                   control={form.control}
                   name='name'
@@ -419,11 +394,11 @@ function CouponForm({ init, reload, close }: Props) {
                     </FormItem>
                   )}
                 />
-              </Row>
+              </DefinitionRow>
 
-              <Group>사용 기간</Group>
+              <PanelBand title='사용 기간' />
 
-              <Row label='시작일 / 만료일'>
+              <DefinitionRow label='시작일 / 만료일'>
                 <div className='grid grid-cols-2 gap-2'>
                   <FormField
                     control={form.control}
@@ -450,9 +425,9 @@ function CouponForm({ init, reload, close }: Props) {
                     )}
                   />
                 </div>
-              </Row>
+              </DefinitionRow>
 
-              <Row label='빠른 설정'>
+              <DefinitionRow label='빠른 설정'>
                 <div className='flex flex-wrap gap-1.5 pt-1'>
                   {[7, 30, 90].map((days) => (
                     <button
@@ -465,11 +440,11 @@ function CouponForm({ init, reload, close }: Props) {
                     </button>
                   ))}
                 </div>
-              </Row>
+              </DefinitionRow>
 
-              <Group>보상</Group>
+              <PanelBand title='보상' />
 
-              <Row label='코인'>
+              <DefinitionRow label='코인'>
                 <div className='flex gap-2'>
                   <FormField
                     control={form.control}
@@ -505,9 +480,9 @@ function CouponForm({ init, reload, close }: Props) {
                     )}
                   />
                 </div>
-              </Row>
+              </DefinitionRow>
 
-              <Row label='프리미엄 티켓' hint='기간 0은 평생권'>
+              <DefinitionRow label='프리미엄 티켓' hint='기간 0은 평생권'>
                 <div className='grid grid-cols-2 gap-2'>
                   <FormField
                     control={form.control}
@@ -534,7 +509,7 @@ function CouponForm({ init, reload, close }: Props) {
                     )}
                   />
                 </div>
-              </Row>
+              </DefinitionRow>
             </div>
 
             <CouponSummaryRail

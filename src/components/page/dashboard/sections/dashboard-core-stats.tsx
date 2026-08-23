@@ -52,7 +52,7 @@ function DashboardCoreStats({ users, profiles, removedProfiles, spaces, isLoadin
       <div className='flex flex-wrap items-start justify-between gap-3'>
         <div className='flex flex-col gap-1.5'>
           <p className='text-base font-semibold text-slate-900 sm:text-lg'>전체 누적 현황</p>
-          <p className='text-sm leading-6 text-slate-600 sm:text-[15px]'>
+          <p className='text-sm leading-6 text-muted-foreground sm:text-base'>
             이 영역은 서비스 전체 스냅샷으로, 아래 기간과 국가 설정의 영향을 받지 않습니다.
           </p>
         </div>
