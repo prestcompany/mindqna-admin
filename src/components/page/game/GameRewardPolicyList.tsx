@@ -5,7 +5,7 @@ import DataTable from '@/components/shared/ui/data-table';
 import { useGameRewardPolicies } from '@/hooks/useGame';
 import { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
-import GameRewardPolicyModal from './GameRewardPolicyModal';
+import GameRewardPolicySheet from './GameRewardPolicySheet';
 
 function GameRewardPolicyList() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -73,7 +73,7 @@ function GameRewardPolicyList() {
           onChange: (page) => setCurrentPage(page),
         }}
       />
-      <GameRewardPolicyModal
+      <GameRewardPolicySheet
         isOpen={isOpenEdit}
         close={() => setOpenEdit(false)}
         refetch={refetch}
