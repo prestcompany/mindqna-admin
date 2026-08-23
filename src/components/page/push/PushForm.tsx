@@ -7,12 +7,13 @@ import {
 } from '@/client/push';
 import type { Locale } from '@/client/types';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
-import { DefinitionRow } from '@/components/shared/ui/definition-row';
+import { DefinitionRow, PanelBand } from '@/components/shared/ui/definition-row';
 import { LOCALE_OPTIONS } from '@/components/shared/form/constants/locale-options';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
 import { useQuery } from '@tanstack/react-query';
@@ -136,18 +137,21 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
         <AdminSideSheetContent title='발송 상세' size='lg' bodyClassName='overflow-hidden p-0'>
           <div className='grid h-full grid-cols-[minmax(0,1fr)_220px] overflow-hidden'>
             <div className='min-h-0 overflow-y-auto'>
+              <PanelBand title='수신' />
               <DefinitionRow label='대상'>
                 {initial.target === 'ALL'
                   ? `전체 · ${initial.locale ?? '—'}`
                   : `개인 · ${(initial.userNames ?? []).join(', ') || '—'}`}
               </DefinitionRow>
+              <DefinitionRow label='발송 시각'>{dayjs(initial.pushAt).format('YYYY.MM.DD HH:mm')}</DefinitionRow>
+
+              <PanelBand title='메시지' />
               <DefinitionRow label='제목'>{initial.title}</DefinitionRow>
               <DefinitionRow label='내용'>
                 <p className='whitespace-pre-wrap'>{initial.message}</p>
               </DefinitionRow>
-              <DefinitionRow label='링크'>{initial.link ?? '—'}</DefinitionRow>
               <DefinitionRow label='이미지'>{initial.imgUrl ?? '—'}</DefinitionRow>
-              <DefinitionRow label='발송 시각'>{dayjs(initial.pushAt).format('YYYY.MM.DD HH:mm')}</DefinitionRow>
+              <DefinitionRow label='링크'>{initial.link ?? '—'}</DefinitionRow>
             </div>
             <aside className='min-h-0 overflow-y-auto border-l border-border p-4'>
               <PushSummaryRail mode='result' row={initial} />
@@ -171,27 +175,7 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
         <div className='flex h-full flex-col'>
           <div className='grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_220px] overflow-hidden'>
             <div className='min-h-0 overflow-y-auto'>
-              <DefinitionRow label='발송 시점*'>
-                <RadioGroup
-                  value={values.sendMode}
-                  onValueChange={(v) => set('sendMode', v as PushFormValues['sendMode'])}
-                  className='flex gap-4'
-                >
-                  <Choice id='send-now' value='now' label='즉시 발송' />
-                  <Choice id='send-schedule' value='schedule' label='예약' />
-                </RadioGroup>
-                {values.sendMode === 'schedule' ? (
-                  <Input
-                    type='datetime-local'
-                    className='mt-2'
-                    min={dayjs().format('YYYY-MM-DDTHH:mm')}
-                    value={values.pushAt}
-                    onChange={(e) => set('pushAt', e.target.value)}
-                  />
-                ) : (
-                  <p className='mt-1 text-xs text-slate-600'>즉시 발송은 최대 1분 내에 시작됩니다</p>
-                )}
-              </DefinitionRow>
+              <PanelBand title='수신' />
 
               <DefinitionRow label='발송 대상*'>
                 <RadioGroup
@@ -204,51 +188,83 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                 </RadioGroup>
               </DefinitionRow>
 
-              {/* Exclusive on purpose: a per-user send ignores locale, so showing it would lie. */}
+              {/* Exclusive on purpose: a per-user send ignores locale, so showing it would lie.
+                  Comes after 발송 대상 — language and headcount only mean something once the
+                  audience is chosen. */}
               {values.target === 'ALL' ? (
-                <DefinitionRow label='언어*'>
-                  <RadioGroup
-                    value={values.locale}
-                    onValueChange={(v) => set('locale', v)}
-                    className='flex flex-wrap gap-4'
-                  >
-                    {LOCALE_OPTIONS.map((opt) => (
-                      <Choice key={opt.value} id={`locale-${opt.value}`} value={opt.value} label={opt.label} />
-                    ))}
-                  </RadioGroup>
+                <DefinitionRow
+                  label='언어*'
+                  hint={targetCount ? `약 ${targetCount.count.toLocaleString()}명` : undefined}
+                >
+                  <Select value={values.locale} onValueChange={(v) => set('locale', v)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {LOCALE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </DefinitionRow>
               ) : (
-                <DefinitionRow label='사용자*'>
+                <DefinitionRow label='사용자*' hint={`${recipients.length}명 인식됨`}>
                   <Textarea
                     placeholder='username 을 콤마로 구분해 입력하세요'
                     value={values.userNames}
                     onChange={(e) => set('userNames', e.target.value)}
                   />
-                  <p className='mt-1 text-xs text-slate-600'>{recipients.length}명 인식됨</p>
                   {unknown.length > 0 && (
-                    <p className='mt-1 text-xs text-red-600'>존재하지 않는 사용자: {unknown.join(', ')}</p>
+                    <p className='mt-1 text-xs text-destructive'>존재하지 않는 사용자: {unknown.join(', ')}</p>
                   )}
                 </DefinitionRow>
               )}
 
-              <DefinitionRow label='제목*'>
+              <DefinitionRow
+                label='발송 시점*'
+                hint={values.sendMode === 'now' ? '최대 1분 내에 시작됩니다' : undefined}
+              >
+                <RadioGroup
+                  value={values.sendMode}
+                  onValueChange={(v) => set('sendMode', v as PushFormValues['sendMode'])}
+                  className='flex gap-4'
+                >
+                  <Choice id='send-now' value='now' label='즉시 발송' />
+                  <Choice id='send-schedule' value='schedule' label='예약' />
+                </RadioGroup>
+                {values.sendMode === 'schedule' && (
+                  <Input
+                    type='datetime-local'
+                    className='mt-2'
+                    min={dayjs().format('YYYY-MM-DDTHH:mm')}
+                    value={values.pushAt}
+                    onChange={(e) => set('pushAt', e.target.value)}
+                  />
+                )}
+              </DefinitionRow>
+
+              <PanelBand title='메시지' />
+
+              <DefinitionRow label='제목*' hint={`${values.title.length}/100`}>
                 <Input value={values.title} onChange={(e) => set('title', e.target.value)} maxLength={100} />
               </DefinitionRow>
-              <DefinitionRow label='내용*'>
+              <DefinitionRow label='내용*' hint={`${values.message.length}/500`}>
                 <Textarea value={values.message} onChange={(e) => set('message', e.target.value)} maxLength={500} />
+              </DefinitionRow>
+              <DefinitionRow label='이미지'>
+                <Input
+                  placeholder='알림에 표시할 이미지 URL'
+                  value={values.imgUrl}
+                  onChange={(e) => set('imgUrl', e.target.value)}
+                />
               </DefinitionRow>
               <DefinitionRow label='링크'>
                 <Input
                   placeholder='탭했을 때 이동할 URL'
                   value={values.link}
                   onChange={(e) => set('link', e.target.value)}
-                />
-              </DefinitionRow>
-              <DefinitionRow label='이미지 URL'>
-                <Input
-                  placeholder='알림에 표시할 이미지 URL'
-                  value={values.imgUrl}
-                  onChange={(e) => set('imgUrl', e.target.value)}
                 />
               </DefinitionRow>
             </div>
@@ -266,6 +282,9 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                       ? dayjs(values.pushAt).format('YYYY.MM.DD HH:mm')
                       : '시간 미설정'
                 }
+                title={values.title}
+                message={values.message}
+                imgUrl={values.imgUrl}
               />
             </aside>
           </div>
