@@ -36,7 +36,7 @@ export function DefinitionRow({
  */
 export function PanelBand({ title }: { title: string }) {
   return (
-    <div className='border-b border-t border-border bg-muted/40 px-4 py-2 first:border-t-0'>
+    <div className='border-b border-t border-border bg-muted px-4 py-2 first:border-t-0'>
       <div className='text-sm font-semibold text-foreground'>{title}</div>
     </div>
   );
