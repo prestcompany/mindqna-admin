@@ -1,7 +1,7 @@
 import type { AdminPushItem } from '@/client/push';
 import dayjs from 'dayjs';
 import { useState } from 'react';
-import { estimateDurationMs, estimateRemainingMs } from './services/push-progress';
+import { estimateDurationMs, estimateRemainingMs, minutes } from './services/push-progress';
 
 type ComposeProps = {
   mode: 'compose';
@@ -16,10 +16,6 @@ type ComposeProps = {
 };
 
 type ResultProps = { mode: 'result'; row: AdminPushItem };
-
-function minutes(ms: number) {
-  return Math.max(1, Math.round(ms / 60_000));
-}
 
 function PushSummaryRail(props: ComposeProps | ResultProps) {
   if (props.mode === 'result') {
