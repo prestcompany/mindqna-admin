@@ -57,7 +57,7 @@ function SpaceDetailSheet({ open, space, onClose, copyId, initialTab, onRemovePr
     <Sheet open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <AdminSideSheetContent
         title={detail.spaceInfo?.name ?? '공간 상세'}
-        size={editOpen ? 'md' : 'xl'}
+        size='xl'
         bodyClassName={editOpen ? 'overflow-hidden p-0' : undefined}
       >
         {editOpen ? (

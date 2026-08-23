@@ -48,7 +48,7 @@ function UserDetailSheet({ open, user, onClose, copyId, onOpenTicket, onRemove }
       <AdminSideSheetContent
         title={data?.username ?? user.username}
         description={editOpen ? undefined : '사용자 상세 정보와 결제/구독/접속/푸시 탭을 확인합니다.'}
-        size={editOpen ? 'md' : 'xl'}
+        size='xl'
         bodyClassName={editOpen ? 'overflow-hidden p-0' : undefined}
       >
         {editOpen && data ? (
