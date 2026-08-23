@@ -20,7 +20,7 @@ export function DefinitionRow({
         <div className='text-sm font-medium text-foreground'>{label}</div>
         {hint && <div className='mt-0.5 text-xs leading-snug text-muted-foreground'>{hint}</div>}
       </div>
-      <div className='min-w-0'>{children}</div>
+      <div className='min-w-0 text-sm'>{children}</div>
     </div>
   );
 }
