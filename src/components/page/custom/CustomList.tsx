@@ -265,7 +265,7 @@ function CustomList() {
         <Sheet open={isOpenEdit} onOpenChange={(open) => !open && setOpenEdit(false)}>
           <AdminSideSheetContent
             title='펫 커스텀 수정'
-            description='추가할 펫 커스텀 정보를 입력해주세요.'
+            description='수정할 펫 커스텀 정보를 입력해주세요.'
             size='lg'
             bodyClassName='overflow-hidden p-0'
           >
