@@ -75,6 +75,25 @@ module.exports = {
       ],
     },
     extend: {
+      /**
+       * DESIGN.md §Hierarchy의 5단 스케일(12 / 14 / 15 / 16 / 24+)을 px로 고정합니다.
+       *
+       * globals.css가 루트를 15px로 잡는 것은 의도된 것(body = 루트 크기)이지만,
+       * Tailwind 기본 fontSize는 16px 기준 rem이라 유틸리티 이름과 디자인 토큰이
+       * 어긋납니다. text-xs는 11.25px로 DESIGN.md가 정한 12px 바닥을 밑돌았고,
+       * text-sm은 13.13px로 label/body-sm의 14px에 미달했습니다.
+       *
+       * letterSpacing은 이미 tracking-display/heading/label 토큰이 담당합니다 —
+       * 같은 14px에 label(-0.28px)과 body-sm(0)이 공존하므로 크기에 묶을 수 없습니다.
+       */
+      fontSize: {
+        xs: ['12px', '16px'],
+        sm: ['14px', '20px'],
+        base: ['15px', '22px'],
+        lg: ['16px', '24px'],
+        '2xl': ['24px', '30px'],
+      },
+
       colors: {
         // --- Geist 중립 램프 (Tailwind 기본 팔레트 대체) ---
         slate: neutralRamp,

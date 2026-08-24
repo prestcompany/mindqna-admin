@@ -48,7 +48,7 @@ const IndexPage: IDefaultLayoutPage = () => {
     <div className='space-y-6'>
       <Card className='border-border bg-white'>
         <CardHeader>
-          <CardTitle className='text-xl text-slate-900'>빠른 이동</CardTitle>
+          <CardTitle className='text-lg tracking-heading text-slate-900'>빠른 이동</CardTitle>
           <CardDescription className='text-slate-500'>자주 사용하는 운영 메뉴를 바로 열 수 있습니다.</CardDescription>
         </CardHeader>
         <CardContent>
