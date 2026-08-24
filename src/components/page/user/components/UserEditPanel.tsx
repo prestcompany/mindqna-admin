@@ -11,9 +11,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DefinitionRow } from '@/components/shared/ui/definition-row';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
@@ -30,10 +29,12 @@ const LOCALES: { value: Locale; label: string }[] = [
   { value: 'id', label: 'ID' },
 ];
 
-interface UserEditModalProps {
-  open: boolean;
+interface UserEditPanelProps {
   user: UserDetail;
-  onOpenChange: (open: boolean) => void;
+  /** Returns to the overview tab without saving. */
+  onCancel: () => void;
+  /** Returns to the overview tab after a successful save. */
+  onSaved: () => void;
 }
 
 type FormState = {
@@ -57,7 +58,7 @@ function buildInitialForm(user: UserDetail): FormState {
 
 const TODAY = new Date().toLocaleDateString('sv-SE');
 
-function UserEditModal({ open, user, onOpenChange }: UserEditModalProps) {
+function UserEditPanel({ user, onCancel, onSaved }: UserEditPanelProps) {
   const queryClient = useQueryClient();
   const initial = buildInitialForm(user);
   const [form, setForm] = useState<FormState>(initial);
@@ -80,7 +81,7 @@ function UserEditModal({ open, user, onOpenChange }: UserEditModalProps) {
         queryClient.invalidateQueries({ queryKey: ['user-search'] }),
       ]);
       toast.success('사용자 정보를 수정했습니다.');
-      onOpenChange(false);
+      onSaved();
     },
     onError: (err) => toast.error(`${err}`),
   });
@@ -118,82 +119,60 @@ function UserEditModal({ open, user, onOpenChange }: UserEditModalProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='flex max-h-[90vh] w-full max-w-[480px] flex-col'>
-        <DialogHeader className='shrink-0'>
-          <DialogTitle>사용자 정보 수정</DialogTitle>
-        </DialogHeader>
-
-        <div className='min-h-0 flex-1 space-y-4 overflow-y-auto py-1 pr-1'>
-          <div className='space-y-1.5'>
-            <Label htmlFor='user-locale' className='text-xs text-slate-600'>
-              언어
-            </Label>
-            <Select value={form.locale} onValueChange={(v) => set('locale', v as Locale)}>
-              <SelectTrigger id='user-locale'>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {LOCALES.map((l) => (
-                  <SelectItem key={l.value} value={l.value}>
-                    {l.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+    <div className='flex h-full flex-col'>
+      <div className='min-h-0 flex-1 overflow-y-auto'>
+        <DefinitionRow label='언어'>
+          <Select value={form.locale} onValueChange={(v) => set('locale', v as Locale)}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {LOCALES.map((l) => (
+                <SelectItem key={l.value} value={l.value}>
+                  {l.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </DefinitionRow>
+        <DefinitionRow label='최대 공간 수'>
+          <Input
+            type='text'
+            inputMode='numeric'
+            value={form.spaceMaxCount}
+            onChange={(e) => set('spaceMaxCount', e.target.value.replace(/[^\d]/g, ''))}
+          />
+        </DefinitionRow>
+        <DefinitionRow
+          label='탈퇴 예약일'
+          hint='날짜를 비우거나 "예약 취소"를 누르면 탈퇴 예약이 해제됩니다.'
+        >
+          <div className='flex items-center gap-2'>
+            <Input
+              type='date'
+              min={TODAY}
+              value={form.reserveUnregisterAt}
+              onChange={(e) => set('reserveUnregisterAt', e.target.value)}
+              className='flex-1'
+            />
+            {form.reserveUnregisterAt ? (
+              <Button type='button' variant='outline' size='sm' onClick={() => set('reserveUnregisterAt', '')}>
+                예약 취소
+              </Button>
+            ) : null}
           </div>
+        </DefinitionRow>
+      </div>
 
-          <section className='space-y-3 rounded-lg border border-border bg-slate-50 p-3'>
-            <div className='flex items-center gap-1.5'>
-              <span className='h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500' aria-hidden />
-              <span className='text-xs font-semibold text-slate-700'>운영 — 계정에 영향</span>
-            </div>
-            <div className='space-y-1.5'>
-              <Label htmlFor='user-space-max' className='text-xs text-slate-600'>
-                최대 공간 수
-              </Label>
-              <Input
-                id='user-space-max'
-                type='text'
-                inputMode='numeric'
-                value={form.spaceMaxCount}
-                onChange={(e) => set('spaceMaxCount', e.target.value.replace(/[^\d]/g, ''))}
-              />
-            </div>
-            <div className='space-y-1.5'>
-              <Label htmlFor='user-reserve' className='text-xs text-slate-600'>
-                탈퇴 예약일
-              </Label>
-              <div className='flex items-center gap-2'>
-                <Input
-                  id='user-reserve'
-                  type='date'
-                  min={TODAY}
-                  value={form.reserveUnregisterAt}
-                  onChange={(e) => set('reserveUnregisterAt', e.target.value)}
-                  className='flex-1'
-                />
-                {form.reserveUnregisterAt ? (
-                  <Button type='button' variant='outline' size='sm' onClick={() => set('reserveUnregisterAt', '')}>
-                    예약 취소
-                  </Button>
-                ) : null}
-              </div>
-              <p className='text-xs text-slate-600'>날짜를 비우거나 &quot;예약 취소&quot;를 누르면 탈퇴 예약이 해제됩니다.</p>
-            </div>
-          </section>
-        </div>
-
-        <div className='flex shrink-0 justify-end gap-2 border-t border-border pt-4'>
-          <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
-            취소
-          </Button>
-          <Button type='button' onClick={save} disabled={mutation.isPending}>
-            {mutation.isPending ? <Loader2 className='mr-1 h-4 w-4 animate-spin' /> : null}
-            저장
-          </Button>
-        </div>
-      </DialogContent>
+      <div className='flex shrink-0 items-center justify-end gap-2 border-t bg-card px-4 py-3'>
+        <Button type='button' variant='outline' onClick={onCancel}>
+          취소
+        </Button>
+        <Button type='button' onClick={save} disabled={mutation.isPending}>
+          {mutation.isPending ? <Loader2 className='mr-1 h-4 w-4 animate-spin' /> : null}
+          저장
+        </Button>
+      </div>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
@@ -218,8 +197,8 @@ function UserEditModal({ open, user, onOpenChange }: UserEditModalProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Dialog>
+    </div>
   );
 }
 
-export default UserEditModal;
+export default UserEditPanel;

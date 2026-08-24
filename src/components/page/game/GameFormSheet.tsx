@@ -1,12 +1,11 @@
 import { createGame, Game, GameCreateParams, GameType, updateGame } from '@/client/game';
-import FormGroup from '@/components/shared/form/ui/form-group';
-import FormSection from '@/components/shared/form/ui/form-section';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
+import { DefinitionRow, PanelBand } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
+import { Sheet } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, PauseIcon, PlayIcon } from 'lucide-react';
@@ -62,7 +61,7 @@ const COLOR_FIELDS = [
   { name: 'headerTextColor' as const, label: '헤더 텍스트 색상' },
 ] as const;
 
-const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
+const GameFormSheet = ({ game, isOpen, close, refetch }: GameFormProps) => {
   const form = useForm<GameFormValues>({
     resolver: zodResolver(gameFormSchema),
     defaultValues: {
@@ -170,21 +169,29 @@ const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
     }
   }, [isOpen, game, form]);
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) handleClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className='max-w-3xl max-h-[90vh] overflow-y-auto'>
-        <DialogHeader>
-          <DialogTitle>{game ? '게임 수정' : '게임 등록'}</DialogTitle>
-        </DialogHeader>
+    <Sheet open={isOpen} onOpenChange={handleOpenChange}>
+      <AdminSideSheetContent
+        title={game ? '게임 수정' : '게임 등록'}
+        description={game ? '게임 정보를 수정해주세요' : '등록할 게임 정보를 입력해주세요.'}
+        size='lg'
+        bodyClassName='overflow-hidden p-0'
+      >
         {isLoading && (
-          <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/20'>
-            <Loader2 className='h-8 w-8 animate-spin' />
+          <div className='fixed inset-0 z-50 flex items-center justify-center bg-background/80'>
+            <Loader2 className='h-8 w-8 animate-spin text-primary' />
           </div>
         )}
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleFinish)} className='space-y-4'>
-            <FormSection title={game ? '게임 수정' : '게임 등록'} description={game ? '게임 정보를 수정해주세요' : '등록할 게임 정보를 입력해주세요.'}>
-              <FormGroup title='게임 타입*'>
+          <form onSubmit={form.handleSubmit(handleFinish)} className='flex h-full flex-col'>
+            <div className='min-h-0 flex-1 overflow-y-auto'>
+              <PanelBand title='기본 정보' />
+
+              <DefinitionRow label='게임 타입*'>
                 <FormField
                   control={form.control}
                   name='type'
@@ -208,11 +215,9 @@ const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
                     </FormItem>
                   )}
                 />
-              </FormGroup>
+              </DefinitionRow>
 
-              <Separator className='my-4' />
-
-              <FormGroup title='게임명*'>
+              <DefinitionRow label='게임명*'>
                 <FormField
                   control={form.control}
                   name='name'
@@ -225,100 +230,139 @@ const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
                     </FormItem>
                   )}
                 />
-              </FormGroup>
-              <Separator className='my-4' />
-              <FormGroup title='스테이지 점수'>
+              </DefinitionRow>
+
+              <PanelBand title='진행 규칙' />
+
+              <DefinitionRow label='스테이지 점수'>
                 <FormField
                   control={form.control}
                   name='stageScore'
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Input type='number' placeholder='스테이지 점수를 입력해주세요.' {...field} value={field.value ?? ''} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
+                        <Input
+                          type='number'
+                          placeholder='스테이지 점수를 입력해주세요.'
+                          {...field}
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </FormGroup>
-              <Separator className='my-4' />
-              <FormGroup title='라이프 제한'>
+              </DefinitionRow>
+
+              <DefinitionRow label='라이프 제한'>
                 <FormField
                   control={form.control}
                   name='playLimitLife'
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Input type='number' placeholder='라이프 제한을 입력해주세요.' {...field} value={field.value ?? ''} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
+                        <Input
+                          type='number'
+                          placeholder='라이프 제한을 입력해주세요.'
+                          {...field}
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </FormGroup>
-              <Separator className='my-4' />
-              <FormGroup title='제한시간 (초)'>
+              </DefinitionRow>
+
+              <DefinitionRow label='제한시간 (초)'>
                 <FormField
                   control={form.control}
                   name='timeLimitSecond'
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Input type='number' placeholder='제한시간을 입력해주세요.' {...field} value={field.value ?? ''} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
+                        <Input
+                          type='number'
+                          placeholder='제한시간을 입력해주세요.'
+                          {...field}
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </FormGroup>
-              <Separator className='my-4' />
-              <FormGroup title='일일 플레이 제한'>
+              </DefinitionRow>
+
+              <DefinitionRow label='일일 플레이 제한'>
                 <FormField
                   control={form.control}
                   name='dailyPlayLimit'
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Input type='number' placeholder='일일 플레이 제한을 입력해주세요.' {...field} value={field.value ?? ''} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
+                        <Input
+                          type='number'
+                          placeholder='일일 플레이 제한을 입력해주세요.'
+                          {...field}
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </FormGroup>
-              <Separator className='my-4' />
-              <FormGroup title='이용권 충전 (하트)'>
+              </DefinitionRow>
+
+              <DefinitionRow label='이용권 충전 (하트)'>
                 <FormField
                   control={form.control}
                   name='ticketRechargeHeart'
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Input type='number' placeholder='하트 충전량을 입력해주세요.' {...field} value={field.value ?? ''} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
+                        <Input
+                          type='number'
+                          placeholder='하트 충전량을 입력해주세요.'
+                          {...field}
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </FormGroup>
-              <Separator className='my-4' />
-              <FormGroup title='이용권 충전 (별)'>
+              </DefinitionRow>
+
+              <DefinitionRow label='이용권 충전 (별)'>
                 <FormField
                   control={form.control}
                   name='ticketRechargeStar'
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Input type='number' placeholder='별 충전량을 입력해주세요.' {...field} value={field.value ?? ''} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
+                        <Input
+                          type='number'
+                          placeholder='별 충전량을 입력해주세요.'
+                          {...field}
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </FormGroup>
-              <Separator className='my-4' />
+              </DefinitionRow>
 
-              <FormGroup title='게임 배경음'>
+              <PanelBand title='노출' />
+
+              <DefinitionRow label='게임 배경음'>
                 <FormField
                   control={form.control}
                   name='bgmUrl'
@@ -342,45 +386,41 @@ const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
                     </FormItem>
                   )}
                 />
-              </FormGroup>
-              <Separator className='my-4' />
+              </DefinitionRow>
 
               {COLOR_FIELDS.map(({ name, label }) => (
-                <div key={name}>
-                  <FormGroup title={label}>
-                    <FormField
-                      control={form.control}
-                      name={name}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <div className='flex items-center gap-2'>
-                              <input
-                                type='color'
-                                value={field.value || '#000000'}
-                                onChange={(e) => field.onChange(e.target.value)}
-                                className='h-9 w-9 rounded border border-input cursor-pointer'
-                              />
-                              <Input
-                                value={field.value || ''}
-                                onChange={(e) => {
-                                  field.onChange(e.target.value);
-                                }}
-                                placeholder='#000000'
-                                className='w-32'
-                              />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </FormGroup>
-                  <Separator className='my-4' />
-                </div>
+                <DefinitionRow key={name} label={label}>
+                  <FormField
+                    control={form.control}
+                    name={name}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <div className='flex items-center gap-2'>
+                            <input
+                              type='color'
+                              value={field.value || '#000000'}
+                              onChange={(e) => field.onChange(e.target.value)}
+                              className='h-9 w-9 rounded border border-input cursor-pointer'
+                            />
+                            <Input
+                              value={field.value || ''}
+                              onChange={(e) => {
+                                field.onChange(e.target.value);
+                              }}
+                              placeholder='#000000'
+                              className='w-32'
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </DefinitionRow>
               ))}
 
-              <FormGroup title='활성 상태'>
+              <DefinitionRow label='활성 상태'>
                 <FormField
                   control={form.control}
                   name='isActive'
@@ -392,10 +432,13 @@ const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
                     </FormItem>
                   )}
                 />
-              </FormGroup>
-            </FormSection>
+              </DefinitionRow>
+            </div>
 
-            <div className='text-center'>
+            <div className='flex items-center justify-end gap-2 border-t bg-card px-4 py-3'>
+              <Button type='button' variant='outline' onClick={handleClose} disabled={isLoading}>
+                취소
+              </Button>
               <Button type='submit' disabled={isLoading}>
                 {isLoading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                 {game ? '수정' : '생성'}
@@ -403,9 +446,9 @@ const GameFormModal = ({ game, isOpen, close, refetch }: GameFormProps) => {
             </div>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </AdminSideSheetContent>
+    </Sheet>
   );
 };
 
-export default GameFormModal;
+export default GameFormSheet;

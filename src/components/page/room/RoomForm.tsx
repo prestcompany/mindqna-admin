@@ -1,6 +1,5 @@
 import { RoomCategory, RoomTemplate, createRoom, updateRoom } from '@/client/room';
-import FormGroup from '@/components/shared/form/ui/form-group';
-import FormSection from '@/components/shared/form/ui/form-section';
+import { DefinitionRow } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -122,8 +121,8 @@ function RoomForm({ init, reload, close }: Props) {
       )}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
-          <FormSection title={focusedId ? '방 수정' : '방 추가'} description='방 기본 정보와 판매 옵션을 설정합니다.'>
-            <FormGroup title='이름*'>
+          <div className='-mx-6'>
+            <DefinitionRow label='이름*'>
               <FormField
                 control={form.control}
                 name='name'
@@ -136,16 +135,20 @@ function RoomForm({ init, reload, close }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
+            </DefinitionRow>
 
-            <FormGroup title='카테고리*'>
+            <DefinitionRow label='카테고리*'>
               <FormField
                 control={form.control}
                 name='category'
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <RadioGroup value={field.value} onValueChange={field.onChange} className='grid grid-cols-1 gap-2 sm:grid-cols-3'>
+                      <RadioGroup
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        className='grid grid-cols-1 gap-2 sm:grid-cols-3'
+                      >
                         {categoryOptions.map((opt) => (
                           <div key={opt.value}>
                             <RadioGroupItem value={opt.value} id={`cat-${opt.value}`} className='peer sr-only' />
@@ -163,11 +166,9 @@ function RoomForm({ init, reload, close }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
-          </FormSection>
+            </DefinitionRow>
 
-          <FormSection title='판매/운영 설정'>
-            <FormGroup title='코인 타입*'>
+            <DefinitionRow label='코인 타입*'>
               <FormField
                 control={form.control}
                 name='isPaid'
@@ -196,9 +197,9 @@ function RoomForm({ init, reload, close }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
+            </DefinitionRow>
 
-            <FormGroup title='가격*'>
+            <DefinitionRow label='가격*'>
               <FormField
                 control={form.control}
                 name='price'
@@ -211,9 +212,9 @@ function RoomForm({ init, reload, close }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
+            </DefinitionRow>
 
-            <FormGroup title='활성화'>
+            <DefinitionRow label='활성화'>
               <FormField
                 control={form.control}
                 name='isActive'
@@ -243,8 +244,8 @@ function RoomForm({ init, reload, close }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
-          </FormSection>
+            </DefinitionRow>
+          </div>
 
           <div className='sticky bottom-0 z-10 -mx-6 border-t bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
             <div className='flex justify-end gap-2'>

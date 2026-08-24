@@ -1,15 +1,8 @@
 import { createRule, updateRule } from '@/client/rule';
 import { AppRule } from '@/client/types';
-import FormGroup from '@/components/shared/form/ui/form-group';
-import FormSection from '@/components/shared/form/ui/form-section';
+import { DefinitionRow } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
@@ -70,8 +63,8 @@ function ExpForm({ init, reload, close }: Props) {
       )}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
-          <FormSection title={focusedId ? '경험치 규칙 수정' : '경험치 규칙 추가'} description='레벨업 키와 경험치를 관리합니다.'>
-            <FormGroup title='규칙 키*' description='예: level_1_exp'>
+          <div className='-mx-6'>
+            <DefinitionRow label='규칙 키*' hint='예: level_1_exp'>
               <FormField
                 control={form.control}
                 name='key'
@@ -84,9 +77,9 @@ function ExpForm({ init, reload, close }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
+            </DefinitionRow>
 
-            <FormGroup title='필요 경험치*'>
+            <DefinitionRow label='필요 경험치*'>
               <FormField
                 control={form.control}
                 name='value'
@@ -99,8 +92,8 @@ function ExpForm({ init, reload, close }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
-          </FormSection>
+            </DefinitionRow>
+          </div>
 
           <div className='sticky bottom-0 z-10 -mx-6 border-t bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
             <div className='flex justify-end gap-2'>

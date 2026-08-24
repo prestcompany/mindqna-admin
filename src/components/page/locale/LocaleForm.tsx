@@ -1,8 +1,7 @@
 import { createLocale, updateLocale } from '@/client/locale';
 import { Locale, LocaleWord } from '@/client/types';
 import { LOCALE_OPTIONS } from '@/components/shared/form/constants/locale-options';
-import FormGroup from '@/components/shared/form/ui/form-group';
-import FormSection from '@/components/shared/form/ui/form-section';
+import { DefinitionRow } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
@@ -166,8 +165,8 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
       )}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
-          <FormSection title={focusedId ? '다국어 수정' : '다국어 추가'} description='키와 locale별 값을 설정합니다.'>
-            <FormGroup title='언어*' description='신규 생성 시 복수 선택 가능합니다.'>
+          <div className='-mx-6'>
+            <DefinitionRow label='언어*' hint='신규 생성 시 복수 선택 가능합니다.'>
               <FormField
                 control={form.control}
                 name='locales'
@@ -184,7 +183,9 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
                             <Checkbox
                               id={`locale-${opt.value}`}
                               checked={field.value.includes(opt.value)}
-                              onCheckedChange={(checked) => field.onChange(toggleLocale(opt.value, !!checked, field.value))}
+                              onCheckedChange={(checked) =>
+                                field.onChange(toggleLocale(opt.value, !!checked, field.value))
+                              }
                               disabled={!!focusedId}
                             />
                             <span>{opt.label}</span>
@@ -196,9 +197,9 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
+            </DefinitionRow>
 
-            <FormGroup title='키*' description='앱에서 참조하는 locale key'>
+            <DefinitionRow label='키*' hint='앱에서 참조하는 locale key'>
               <FormField
                 control={form.control}
                 name='key'
@@ -211,12 +212,10 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
-          </FormSection>
+            </DefinitionRow>
 
-          <FormSection title='번역 값'>
             {focusedId ? (
-              <FormGroup title={`${selectedLocales[0] ?? 'locale'} 값*`}>
+              <DefinitionRow label={`${selectedLocales[0] ?? 'locale'} 값*`}>
                 <FormField
                   control={form.control}
                   name='singleValue'
@@ -229,12 +228,12 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
                     </FormItem>
                   )}
                 />
-              </FormGroup>
+              </DefinitionRow>
             ) : (
               selectedLocales.map((locale) => {
                 const fieldName = LOCALE_FIELD_MAP[locale];
                 return (
-                  <FormGroup key={locale} title={`${locale} 값*`}>
+                  <DefinitionRow key={locale} label={`${locale} 값*`}>
                     <FormField
                       control={form.control}
                       name={fieldName}
@@ -247,11 +246,11 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
                         </FormItem>
                       )}
                     />
-                  </FormGroup>
+                  </DefinitionRow>
                 );
               })
             )}
-          </FormSection>
+          </div>
 
           <div className='sticky bottom-0 z-10 -mx-6 border-t bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
             <div className='flex justify-end gap-2'>

@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import UserDetailContent from './UserDetailContent';
-import UserEditModal from './UserEditModal';
+import UserEditPanel from './UserEditPanel';
 import UserProfilesTab from './tabs/UserProfilesTab';
 import UserPurchasesTab from './tabs/UserPurchasesTab';
 import UserEntitlementsTab from './tabs/UserEntitlementsTab';
@@ -26,9 +26,12 @@ interface UserDetailSheetProps {
 function UserDetailSheet({ open, user, onClose, copyId, onOpenTicket, onRemove }: UserDetailSheetProps) {
   const username = user?.username;
   const [tab, setTab] = useState('overview');
+  // A mode of this sheet, not a second overlay stacked on top of it — the body swaps
+  // between the tab strip and the edit rows, and only one of them is ever mounted.
   const [editOpen, setEditOpen] = useState(false);
   useEffect(() => {
     setTab('overview');
+    setEditOpen(false);
   }, [username]);
   const { data, isLoading, isError } = useQuery<UserDetail>({
     queryKey: ['user-detail', username],
@@ -44,10 +47,13 @@ function UserDetailSheet({ open, user, onClose, copyId, onOpenTicket, onRemove }
     <Sheet open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <AdminSideSheetContent
         title={data?.username ?? user.username}
-        description='사용자 상세 정보와 결제/구독/접속/푸시 탭을 확인합니다.'
+        description={editOpen ? undefined : '사용자 상세 정보와 결제/구독/접속/푸시 탭을 확인합니다.'}
         size='xl'
+        bodyClassName={editOpen ? 'overflow-hidden p-0' : undefined}
       >
-        {isLoading ? (
+        {editOpen && data ? (
+          <UserEditPanel user={data} onCancel={() => setEditOpen(false)} onSaved={() => setEditOpen(false)} />
+        ) : isLoading ? (
           <div className='flex min-h-[320px] items-center justify-center'>
             <Loader2 className='h-5 w-5 animate-spin text-muted-foreground' />
           </div>
@@ -75,7 +81,6 @@ function UserDetailSheet({ open, user, onClose, copyId, onOpenTicket, onRemove }
                 onRemove={onRemove}
                 onEdit={() => setEditOpen(true)}
               />
-              <UserEditModal open={editOpen} user={data} onOpenChange={setEditOpen} />
             </TabsContent>
             <TabsContent value='profiles'>
               <UserProfilesTab username={data.username} active={tab === 'profiles'} />

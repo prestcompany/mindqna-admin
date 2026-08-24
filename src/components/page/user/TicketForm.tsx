@@ -1,16 +1,9 @@
 import { giveTicket, revokeTicket } from '@/client/premium';
 import { getUser } from '@/client/user';
-import FormGroup from '@/components/shared/form/ui/form-group';
 import FormSection from '@/components/shared/form/ui/form-section';
+import { DefinitionRow } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -113,13 +106,13 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
       )}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className='space-y-4 pb-2'>
-          <FormSection title='대상 사용자' description='티켓을 관리할 사용자 정보입니다.'>
-            <FormGroup title='Username'>
+          <div className='-mx-6'>
+            <DefinitionRow label='Username'>
               <div className='rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm font-medium text-foreground'>
                 {username}
               </div>
-            </FormGroup>
-          </FormSection>
+            </DefinitionRow>
+          </div>
 
           <FormSection title='현재 티켓 현황' description='회수는 아직 프로필에 적용되지 않은 티켓만 가능합니다.'>
             <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
@@ -136,18 +129,24 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
                 <div className='mt-1 text-lg font-semibold text-foreground'>{summary.applied}</div>
               </div>
             </div>
-            <p className='text-xs text-muted-foreground'>누적 이력: 사용 {summary.used} · 만료 {summary.expired}</p>
+            <p className='text-xs text-muted-foreground'>
+              누적 이력: 사용 {summary.used} · 만료 {summary.expired}
+            </p>
           </FormSection>
 
-          <FormSection title='티켓 관리' description='지급하거나, 아직 적용되지 않은 티켓만 회수할 수 있습니다.'>
-            <FormGroup title='작업 유형*'>
+          <div className='-mx-6'>
+            <DefinitionRow label='작업 유형*'>
               <FormField
                 control={form.control}
                 name='operation'
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <RadioGroup value={field.value} onValueChange={field.onChange} className='grid grid-cols-2 gap-2 sm:max-w-[280px]'>
+                      <RadioGroup
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        className='grid grid-cols-2 gap-2 sm:max-w-[280px]'
+                      >
                         {operationOptions.map((opt) => (
                           <div key={opt.value}>
                             <RadioGroupItem value={opt.value} id={`ticket-op-${opt.value}`} className='peer sr-only' />
@@ -165,10 +164,10 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
+            </DefinitionRow>
 
             {operation === 'give' ? (
-              <FormGroup title='티켓 종류*'>
+              <DefinitionRow label='티켓 종류*'>
                 <FormField
                   control={form.control}
                   name='type'
@@ -182,7 +181,11 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
                         >
                           {typeOptions.map((opt) => (
                             <div key={opt.value}>
-                              <RadioGroupItem value={opt.value} id={`ticket-type-${opt.value}`} className='peer sr-only' />
+                              <RadioGroupItem
+                                value={opt.value}
+                                id={`ticket-type-${opt.value}`}
+                                className='peer sr-only'
+                              />
                               <Label
                                 htmlFor={`ticket-type-${opt.value}`}
                                 className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
@@ -197,17 +200,24 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
                     </FormItem>
                   )}
                 />
-              </FormGroup>
+              </DefinitionRow>
             ) : null}
 
-            <FormGroup title={`${operation === 'give' ? '지급' : '회수'} 개수*`}>
+            <DefinitionRow label={`${operation === 'give' ? '지급' : '회수'} 개수*`}>
               <FormField
                 control={form.control}
                 name='amount'
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input type='number' min={1} max={100} placeholder='1 ~ 100' {...field} className='w-full sm:w-[220px]' />
+                      <Input
+                        type='number'
+                        min={1}
+                        max={100}
+                        placeholder='1 ~ 100'
+                        {...field}
+                        className='w-full sm:w-[220px]'
+                      />
                     </FormControl>
                     {operation === 'take' ? (
                       <FormDescription>아직 프로필에 적용되지 않은 티켓만 회수합니다.</FormDescription>
@@ -216,41 +226,51 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
+            </DefinitionRow>
 
             {operation === 'give' && ticketType === 'sub' && (
-              <FormGroup title='유효 기간(일)*'>
+              <DefinitionRow label='유효 기간(일)*'>
                 <FormField
                   control={form.control}
                   name='dueDayNum'
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Input type='number' min={1} max={365} placeholder='예: 30' {...field} className='w-full sm:w-[220px]' />
+                        <Input
+                          type='number'
+                          min={1}
+                          max={365}
+                          placeholder='예: 30'
+                          {...field}
+                          className='w-full sm:w-[220px]'
+                        />
                       </FormControl>
                       <FormDescription>기간 티켓 선택 시 만료 일수를 지정해야 합니다.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </FormGroup>
+              </DefinitionRow>
             )}
 
-            <FormGroup title='메모'>
+            <DefinitionRow label='메모'>
               <FormField
                 control={form.control}
                 name='message'
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input placeholder={`${operation === 'give' ? '지급' : '회수'} 사유 또는 내부 메모 (선택사항)`} {...field} />
+                      <Input
+                        placeholder={`${operation === 'give' ? '지급' : '회수'} 사유 또는 내부 메모 (선택사항)`}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </FormGroup>
-          </FormSection>
+            </DefinitionRow>
+          </div>
 
           <div className='sticky bottom-0 z-10 -mx-6 border-t bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
             <div className='flex justify-end gap-2'>

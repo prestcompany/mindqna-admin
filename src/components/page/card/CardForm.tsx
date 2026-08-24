@@ -1,19 +1,10 @@
 import { createCardTemplate, updateCardTemplate } from '@/client/card';
 import { CardTemplate, CardTemplateType, SpaceType } from '@/client/types';
 import { LOCALE_OPTIONS } from '@/components/shared/form/constants/locale-options';
-import FormGroup from '@/components/shared/form/ui/form-group';
-import FormSection from '@/components/shared/form/ui/form-section';
+import { DefinitionRow } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -70,7 +61,8 @@ function CardForm({ init, reload, close }: Props) {
   useEffect(() => {
     if (!init) return;
     const { id, name, locale, type, spaceType, order } = init;
-    const normalizedType: FormValues['type'] = type === 'basic' || type === 'bonus' || type === 'random' ? type : 'basic';
+    const normalizedType: FormValues['type'] =
+      type === 'basic' || type === 'bonus' || type === 'random' ? type : 'basic';
     setEditId(id);
     form.reset({ name, locale, type: normalizedType, order, spaceTypes: [spaceType] });
   }, [init, form]);
@@ -112,8 +104,8 @@ function CardForm({ init, reload, close }: Props) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className='space-y-4 pb-2'>
-        <FormSection title={editId ? '카드 템플릿 수정' : '카드 템플릿 추가'} description='기본 정보와 노출 정책을 함께 설정합니다.'>
-          <FormGroup title='카드 제목*' description='관리자에서 구분할 수 있는 명칭'>
+        <div className='-mx-6'>
+          <DefinitionRow label='카드 제목*' hint='관리자에서 구분할 수 있는 명칭'>
             <FormField
               control={form.control}
               name='name'
@@ -126,10 +118,10 @@ function CardForm({ init, reload, close }: Props) {
                 </FormItem>
               )}
             />
-          </FormGroup>
+          </DefinitionRow>
 
           {!editId && (
-            <FormGroup title='정렬 순서' description='0 입력 시 가장 마지막에 배치됩니다.'>
+            <DefinitionRow label='정렬 순서' hint='0 입력 시 가장 마지막에 배치됩니다.'>
               <FormField
                 control={form.control}
                 name='order'
@@ -142,19 +134,21 @@ function CardForm({ init, reload, close }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
+            </DefinitionRow>
           )}
-        </FormSection>
 
-        <FormSection title='언어 설정' description='템플릿이 노출될 언어를 선택하세요.'>
-          <FormGroup title='언어*'>
+          <DefinitionRow label='언어*'>
             <FormField
               control={form.control}
               name='locale'
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <RadioGroup value={field.value} onValueChange={field.onChange} className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
+                    <RadioGroup
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      className='grid grid-cols-2 gap-2 sm:grid-cols-4'
+                    >
                       {LOCALE_OPTIONS.map((opt) => (
                         <div key={opt.value}>
                           <RadioGroupItem value={opt.value} id={`locale-${opt.value}`} className='peer sr-only' />
@@ -172,18 +166,20 @@ function CardForm({ init, reload, close }: Props) {
                 </FormItem>
               )}
             />
-          </FormGroup>
-        </FormSection>
+          </DefinitionRow>
 
-        <FormSection title='템플릿 옵션' description='질문 타입과 노출 공간을 설정합니다.'>
-          <FormGroup title='질문 타입*'>
+          <DefinitionRow label='질문 타입*'>
             <FormField
               control={form.control}
               name='type'
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <RadioGroup value={field.value} onValueChange={field.onChange} className='grid grid-cols-1 gap-2 sm:grid-cols-3'>
+                    <RadioGroup
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      className='grid grid-cols-1 gap-2 sm:grid-cols-3'
+                    >
                       {optionsType.map((opt) => (
                         <div key={opt.value}>
                           <RadioGroupItem value={opt.value} id={`type-${opt.value}`} className='peer sr-only' />
@@ -201,9 +197,9 @@ function CardForm({ init, reload, close }: Props) {
                 </FormItem>
               )}
             />
-          </FormGroup>
+          </DefinitionRow>
 
-          <FormGroup title='공간 타입*' description='템플릿이 노출될 공간 범위'>
+          <DefinitionRow label='공간 타입*' hint='템플릿이 노출될 공간 범위'>
             <FormField
               control={form.control}
               name='spaceTypes'
@@ -249,8 +245,8 @@ function CardForm({ init, reload, close }: Props) {
                 </FormItem>
               )}
             />
-          </FormGroup>
-        </FormSection>
+          </DefinitionRow>
+        </div>
 
         <div className='sticky bottom-0 z-10 -mx-6 border-t bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
           <div className='flex justify-end gap-2'>

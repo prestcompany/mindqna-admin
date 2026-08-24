@@ -7,11 +7,23 @@ import {
 } from '@/client/push';
 import type { Locale } from '@/client/types';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
+import { DefinitionRow, PanelBand } from '@/components/shared/ui/definition-row';
 import { LOCALE_OPTIONS } from '@/components/shared/form/constants/locale-options';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
 import { useQuery } from '@tanstack/react-query';
@@ -26,6 +38,7 @@ import {
   toCreatePushParams,
   type PushFormValues,
 } from './services/push-form-payload';
+import { estimateDurationMs, minutes } from './services/push-progress';
 
 type Props = {
   mode: 'create' | 'edit' | 'view';
@@ -57,6 +70,9 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
   const [values, setValues] = useState<PushFormValues>(() => toValues(mode, initial));
   const [unknown, setUnknown] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  // A broadcast has no recovery path once it starts sending, so it gets one more step than
+  // every other send here — the confirm stops the click, the rail notice only informs it.
+  const [confirmingBroadcast, setConfirmingBroadcast] = useState(false);
 
   const set = <K extends keyof PushFormValues>(key: K, value: PushFormValues[K]) =>
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -79,32 +95,24 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
     staleTime: 5 * 60_000,
   });
 
-  const submit = async () => {
-    const title = values.title.trim();
-    const message = values.message.trim();
-    if (!title || !message) {
-      toast.error('제목과 내용을 입력해주세요');
-      return;
-    }
-    if (values.target === 'USER' && recipients.length === 0) {
-      toast.error('사용자를 1명 이상 입력해주세요');
-      return;
-    }
+  /** Null when the form is ready to send; otherwise the toast to show instead. */
+  const validate = (): string | null => {
+    if (!values.title.trim() || !values.message.trim()) return '제목과 내용을 입력해주세요';
+    if (values.target === 'USER' && recipients.length === 0) return '사용자를 1명 이상 입력해주세요';
     // Mirrors the server's 400. A bad imgUrl is the expensive one: it reaches FCM as
     // notification.imageUrl and fails the whole batch, so the operator hears it here.
     const urlError = pushUrlError(values);
-    if (urlError) {
-      toast.error(urlError);
-      return;
-    }
+    if (urlError) return urlError;
     if (values.sendMode === 'schedule') {
       const pushAtMs = values.pushAt ? new Date(values.pushAt).getTime() : NaN;
-      if (Number.isNaN(pushAtMs) || pushAtMs <= Date.now()) {
-        toast.error('발송 시각은 현재보다 미래여야 합니다');
-        return;
-      }
+      if (Number.isNaN(pushAtMs) || pushAtMs <= Date.now()) return '발송 시각은 현재보다 미래여야 합니다';
     }
+    return null;
+  };
 
+  const doSubmit = async () => {
+    const title = values.title.trim();
+    const message = values.message.trim();
     setSaving(true);
     setUnknown([]);
     try {
@@ -125,9 +133,49 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
     }
   };
 
+  // 전체 발송 stops here for a second look — naming three usernames is not the same act as
+  // reaching every user in a locale, and confirming every small send trains operators to
+  // dismiss the dialog without reading it, which is how the broadcast one stops working too.
+  const handleSaveClick = () => {
+    const error = validate();
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    if (values.target === 'ALL') {
+      setConfirmingBroadcast(true);
+      return;
+    }
+    doSubmit();
+  };
+
+  const confirmBroadcast = () => {
+    setConfirmingBroadcast(false);
+    doSubmit();
+  };
+
   const handleOpenChange = (open: boolean) => {
     if (!open) onClose();
   };
+
+  // Shared with the rail below — the confirm dialog restates the same facts at the moment
+  // of commitment, so it has to be the same numbers, not a second computation of them.
+  const when =
+    values.sendMode === 'now'
+      ? '지금'
+      : values.pushAt
+        ? dayjs(values.pushAt).format('YYYY.MM.DD HH:mm')
+        : '시간 미설정';
+  const broadcastEstimate = targetCount ? estimateDurationMs(targetCount.count) : null;
+  const confirmDescription = [
+    `${values.locale} 사용자 ${targetCount ? `약 ${targetCount.count.toLocaleString()}명` : '집계 중인 인원'}에게 ${when} 발송을 시작합니다.`,
+    broadcastEstimate
+      ? `예상 소요 ${minutes(broadcastEstimate.minMs)}~${minutes(broadcastEstimate.maxMs)}분.`
+      : null,
+    '시작하면 되돌릴 수 없습니다. 중단해도 이미 도달한 사람에게는 취소되지 않습니다.',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   if (isReadOnly && initial) {
     return (
@@ -135,18 +183,21 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
         <AdminSideSheetContent title='발송 상세' size='lg' bodyClassName='overflow-hidden p-0'>
           <div className='grid h-full grid-cols-[minmax(0,1fr)_220px] overflow-hidden'>
             <div className='min-h-0 overflow-y-auto'>
-              <DefRow label='대상'>
+              <PanelBand title='수신' />
+              <DefinitionRow label='대상'>
                 {initial.target === 'ALL'
                   ? `전체 · ${initial.locale ?? '—'}`
                   : `개인 · ${(initial.userNames ?? []).join(', ') || '—'}`}
-              </DefRow>
-              <DefRow label='제목'>{initial.title}</DefRow>
-              <DefRow label='내용'>
+              </DefinitionRow>
+              <DefinitionRow label='발송 시각'>{dayjs(initial.pushAt).format('YYYY.MM.DD HH:mm')}</DefinitionRow>
+
+              <PanelBand title='메시지' />
+              <DefinitionRow label='제목'>{initial.title}</DefinitionRow>
+              <DefinitionRow label='내용'>
                 <p className='whitespace-pre-wrap'>{initial.message}</p>
-              </DefRow>
-              <DefRow label='링크'>{initial.link ?? '—'}</DefRow>
-              <DefRow label='이미지'>{initial.imgUrl ?? '—'}</DefRow>
-              <DefRow label='발송 시각'>{dayjs(initial.pushAt).format('YYYY.MM.DD HH:mm')}</DefRow>
+              </DefinitionRow>
+              <DefinitionRow label='이미지'>{initial.imgUrl ?? '—'}</DefinitionRow>
+              <DefinitionRow label='링크'>{initial.link ?? '—'}</DefinitionRow>
             </div>
             <aside className='min-h-0 overflow-y-auto border-l border-border p-4'>
               <PushSummaryRail mode='result' row={initial} />
@@ -158,138 +209,153 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
   }
 
   return (
-    <Sheet open onOpenChange={handleOpenChange}>
-      <AdminSideSheetContent
-        title={mode === 'edit' ? '푸시 수정' : '푸시 등록'}
-        size='lg'
-        bodyClassName='overflow-hidden p-0'
-      >
-        {/* The sheet hands over its full height with no padding: fields scroll on the left,
-            the outcome stays pinned on the right, actions sit across the bottom — same
-            split as CouponForm. */}
-        <div className='flex h-full flex-col'>
-          <div className='grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_220px] overflow-hidden'>
-            <div className='min-h-0 overflow-y-auto'>
-              <DefRow label='발송 시점*'>
-                <RadioGroup
-                  value={values.sendMode}
-                  onValueChange={(v) => set('sendMode', v as PushFormValues['sendMode'])}
-                  className='flex gap-4'
-                >
-                  <Choice id='send-now' value='now' label='즉시 발송' />
-                  <Choice id='send-schedule' value='schedule' label='예약' />
-                </RadioGroup>
-                {values.sendMode === 'schedule' ? (
-                  <Input
-                    type='datetime-local'
-                    className='mt-2'
-                    min={dayjs().format('YYYY-MM-DDTHH:mm')}
-                    value={values.pushAt}
-                    onChange={(e) => set('pushAt', e.target.value)}
-                  />
-                ) : (
-                  <p className='mt-1 text-xs text-slate-600'>즉시 발송은 최대 1분 내에 시작됩니다</p>
-                )}
-              </DefRow>
+    <>
+      <Sheet open onOpenChange={handleOpenChange}>
+        <AdminSideSheetContent
+          title={mode === 'edit' ? '푸시 수정' : '푸시 등록'}
+          size='lg'
+          bodyClassName='overflow-hidden p-0'
+        >
+          {/* The sheet hands over its full height with no padding: fields scroll on the left,
+              the outcome stays pinned on the right, actions sit across the bottom — same
+              split as CouponForm. */}
+          <div className='flex h-full flex-col'>
+            <div className='grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_220px] overflow-hidden'>
+              <div className='min-h-0 overflow-y-auto'>
+                <PanelBand title='수신' />
 
-              <DefRow label='발송 대상*'>
-                <RadioGroup
-                  value={values.target}
-                  onValueChange={(v) => set('target', v as PushFormValues['target'])}
-                  className='flex gap-4'
-                >
-                  <Choice id='target-all' value='ALL' label='전체' />
-                  <Choice id='target-user' value='USER' label='개인' />
-                </RadioGroup>
-              </DefRow>
-
-              {/* Exclusive on purpose: a per-user send ignores locale, so showing it would lie. */}
-              {values.target === 'ALL' ? (
-                <DefRow label='언어*'>
+                <DefinitionRow label='발송 대상*'>
                   <RadioGroup
-                    value={values.locale}
-                    onValueChange={(v) => set('locale', v)}
-                    className='flex flex-wrap gap-4'
+                    value={values.target}
+                    onValueChange={(v) => set('target', v as PushFormValues['target'])}
+                    className='flex gap-4'
                   >
-                    {LOCALE_OPTIONS.map((opt) => (
-                      <Choice key={opt.value} id={`locale-${opt.value}`} value={opt.value} label={opt.label} />
-                    ))}
+                    <Choice id='target-all' value='ALL' label='전체' />
+                    <Choice id='target-user' value='USER' label='개인' />
                   </RadioGroup>
-                </DefRow>
-              ) : (
-                <DefRow label='사용자*'>
-                  <Textarea
-                    placeholder='username 을 콤마로 구분해 입력하세요'
-                    value={values.userNames}
-                    onChange={(e) => set('userNames', e.target.value)}
-                  />
-                  <p className='mt-1 text-xs text-slate-600'>{recipients.length}명 인식됨</p>
-                  {unknown.length > 0 && (
-                    <p className='mt-1 text-xs text-red-600'>존재하지 않는 사용자: {unknown.join(', ')}</p>
-                  )}
-                </DefRow>
-              )}
+                </DefinitionRow>
 
-              <DefRow label='제목*'>
-                <Input value={values.title} onChange={(e) => set('title', e.target.value)} maxLength={100} />
-              </DefRow>
-              <DefRow label='내용*'>
-                <Textarea value={values.message} onChange={(e) => set('message', e.target.value)} maxLength={500} />
-              </DefRow>
-              <DefRow label='링크'>
-                <Input
-                  placeholder='탭했을 때 이동할 URL'
-                  value={values.link}
-                  onChange={(e) => set('link', e.target.value)}
+                {/* Exclusive on purpose: a per-user send ignores locale, so showing it would lie.
+                    Comes after 발송 대상 — language and headcount only mean something once the
+                    audience is chosen. */}
+                {values.target === 'ALL' ? (
+                  <DefinitionRow
+                    label='언어*'
+                    hint={targetCount ? `약 ${targetCount.count.toLocaleString()}명` : undefined}
+                  >
+                    <Select value={values.locale} onValueChange={(v) => set('locale', v)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {LOCALE_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </DefinitionRow>
+                ) : (
+                  <DefinitionRow label='사용자*' hint={`${recipients.length}명 인식됨`}>
+                    <Textarea
+                      placeholder='username 을 콤마로 구분해 입력하세요'
+                      value={values.userNames}
+                      onChange={(e) => set('userNames', e.target.value)}
+                    />
+                    {unknown.length > 0 && (
+                      <p className='mt-1 text-xs text-destructive'>존재하지 않는 사용자: {unknown.join(', ')}</p>
+                    )}
+                  </DefinitionRow>
+                )}
+
+                <DefinitionRow
+                  label='발송 시점*'
+                  hint={values.sendMode === 'now' ? '최대 1분 내에 시작됩니다' : undefined}
+                >
+                  <RadioGroup
+                    value={values.sendMode}
+                    onValueChange={(v) => set('sendMode', v as PushFormValues['sendMode'])}
+                    className='flex gap-4'
+                  >
+                    <Choice id='send-now' value='now' label='즉시 발송' />
+                    <Choice id='send-schedule' value='schedule' label='예약' />
+                  </RadioGroup>
+                  {values.sendMode === 'schedule' && (
+                    <Input
+                      type='datetime-local'
+                      className='mt-2'
+                      min={dayjs().format('YYYY-MM-DDTHH:mm')}
+                      value={values.pushAt}
+                      onChange={(e) => set('pushAt', e.target.value)}
+                    />
+                  )}
+                </DefinitionRow>
+
+                <PanelBand title='메시지' />
+
+                <DefinitionRow label='제목*' hint={`${values.title.length}/100`}>
+                  <Input value={values.title} onChange={(e) => set('title', e.target.value)} maxLength={100} />
+                </DefinitionRow>
+                <DefinitionRow label='내용*' hint={`${values.message.length}/500`}>
+                  <Textarea value={values.message} onChange={(e) => set('message', e.target.value)} maxLength={500} />
+                </DefinitionRow>
+                <DefinitionRow label='이미지'>
+                  <Input
+                    placeholder='알림에 표시할 이미지 URL'
+                    value={values.imgUrl}
+                    onChange={(e) => set('imgUrl', e.target.value)}
+                  />
+                </DefinitionRow>
+                <DefinitionRow label='링크'>
+                  <Input
+                    placeholder='탭했을 때 이동할 URL'
+                    value={values.link}
+                    onChange={(e) => set('link', e.target.value)}
+                  />
+                </DefinitionRow>
+              </div>
+
+              <aside className='min-h-0 overflow-y-auto border-l border-border p-4'>
+                <PushSummaryRail
+                  mode='compose'
+                  target={values.target}
+                  locale={values.locale}
+                  recipientCount={values.target === 'ALL' ? (targetCount ? targetCount.count : null) : recipients.length}
+                  when={when}
+                  title={values.title}
+                  message={values.message}
+                  imgUrl={values.imgUrl}
                 />
-              </DefRow>
-              <DefRow label='이미지 URL'>
-                <Input
-                  placeholder='알림에 표시할 이미지 URL'
-                  value={values.imgUrl}
-                  onChange={(e) => set('imgUrl', e.target.value)}
-                />
-              </DefRow>
+              </aside>
             </div>
 
-            <aside className='min-h-0 overflow-y-auto border-l border-border p-4'>
-              <PushSummaryRail
-                mode='compose'
-                target={values.target}
-                locale={values.locale}
-                recipientCount={values.target === 'ALL' ? (targetCount ? targetCount.count : null) : recipients.length}
-                when={
-                  values.sendMode === 'now'
-                    ? '지금'
-                    : values.pushAt
-                      ? dayjs(values.pushAt).format('YYYY.MM.DD HH:mm')
-                      : '시간 미설정'
-                }
-              />
-            </aside>
+            <div className='flex items-center justify-end gap-2 border-t bg-card px-4 py-3'>
+              <Button variant='outline' onClick={onClose} disabled={saving}>
+                취소
+              </Button>
+              <Button onClick={handleSaveClick} disabled={saving}>
+                {saving && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                저장
+              </Button>
+            </div>
           </div>
+        </AdminSideSheetContent>
+      </Sheet>
 
-          <div className='flex items-center justify-end gap-2 border-t bg-card px-4 py-3'>
-            <Button variant='outline' onClick={onClose} disabled={saving}>
-              취소
-            </Button>
-            <Button onClick={submit} disabled={saving}>
-              {saving && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-              저장
-            </Button>
-          </div>
-        </div>
-      </AdminSideSheetContent>
-    </Sheet>
-  );
-}
-
-function DefRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className='grid grid-cols-[140px_minmax(0,1fr)] items-start gap-4 border-b border-border px-4 py-2.5 last:border-b-0'>
-      <div className='pt-1.5 text-sm font-medium text-slate-900'>{label}</div>
-      <div className='min-w-0 text-sm'>{children}</div>
-    </div>
+      <AlertDialog open={confirmingBroadcast} onOpenChange={(open) => !open && setConfirmingBroadcast(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>전체 발송할까요?</AlertDialogTitle>
+            <AlertDialogDescription>{confirmDescription}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmBroadcast}>발송</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 

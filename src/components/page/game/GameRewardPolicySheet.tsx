@@ -1,11 +1,10 @@
 import { GameRewardPolicy, updateGameRewardPolicy } from '@/client/game';
-import FormGroup from '@/components/shared/form/ui/form-group';
-import FormSection from '@/components/shared/form/ui/form-section';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
+import { DefinitionRow, PanelBand } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
+import { Sheet } from '@/components/ui/sheet';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -20,24 +19,26 @@ const rankSchema = z.object({
 const gameRewardPolicySchema = z.object({
   condition: z.object({
     individualRanks: z.record(rankSchema).optional(),
-    rangeRank: z.object({
-      hearts: z.coerce.number().optional(),
-      rankStart: z.coerce.number().optional(),
-      rankEnd: z.coerce.number().optional(),
-    }).optional(),
+    rangeRank: z
+      .object({
+        hearts: z.coerce.number().optional(),
+        rankStart: z.coerce.number().optional(),
+        rankEnd: z.coerce.number().optional(),
+      })
+      .optional(),
   }),
 });
 
 type GameRewardPolicyFormValues = z.infer<typeof gameRewardPolicySchema>;
 
-interface GameRewardPolicyModalProps {
+interface GameRewardPolicyProps {
   gameRewardPolicy?: GameRewardPolicy;
   isOpen: boolean;
   close: () => void;
   refetch: () => void;
 }
 
-const GameRewardPolicyModal = ({ gameRewardPolicy, isOpen, close, refetch }: GameRewardPolicyModalProps) => {
+const GameRewardPolicySheet = ({ gameRewardPolicy, isOpen, close, refetch }: GameRewardPolicyProps) => {
   const form = useForm<GameRewardPolicyFormValues>({
     resolver: zodResolver(gameRewardPolicySchema),
     defaultValues: {
@@ -94,87 +95,115 @@ const GameRewardPolicyModal = ({ gameRewardPolicy, isOpen, close, refetch }: Gam
     }
   }, [isOpen, gameRewardPolicy, form]);
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) handleClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className='max-w-3xl max-h-[90vh] overflow-y-auto'>
-        <DialogHeader>
-          <DialogTitle>보상 정책 수정</DialogTitle>
-        </DialogHeader>
+    <Sheet open={isOpen} onOpenChange={handleOpenChange}>
+      <AdminSideSheetContent title='보상 정책 수정' size='md' bodyClassName='overflow-hidden p-0'>
         {isLoading && (
-          <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/20'>
-            <Loader2 className='h-8 w-8 animate-spin' />
+          <div className='fixed inset-0 z-50 flex items-center justify-center bg-background/80'>
+            <Loader2 className='h-8 w-8 animate-spin text-primary' />
           </div>
         )}
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleFinish)} className='space-y-4'>
-            <FormSection title='상위 랭킹 보상' description='상위 랭킹 보상 정책을 수정하세요.' key={individualRankKeys.length}>
-              {individualRankKeys.map((key) => (
-                <div key={key}>
-                  <FormGroup title={rankTitleMap[key]}>
+          <form onSubmit={form.handleSubmit(handleFinish)} className='flex h-full flex-col'>
+            <div className='min-h-0 flex-1 overflow-y-auto'>
+              {/* Keyed on the rank count, same as before the conversion — a batch of rank
+                  fields resets as a whole when which ranks exist changes, rather than
+                  reconciling field-by-field against the previous set. */}
+              <div key={individualRankKeys.length}>
+                <PanelBand title='상위 랭킹 보상' />
+                {individualRankKeys.map((key) => (
+                  <DefinitionRow key={key} label={rankTitleMap[key]}>
                     <FormField
                       control={form.control}
                       name={`condition.individualRanks.${key}.hearts`}
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Input type='number' {...field} value={field.value ?? ''} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
+                            <Input
+                              type='number'
+                              {...field}
+                              value={field.value ?? ''}
+                              onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                  </FormGroup>
-                  <Separator className='my-4' />
-                </div>
-              ))}
-            </FormSection>
+                  </DefinitionRow>
+                ))}
+              </div>
 
-            <FormSection title='그 외 랭킹 보상' description='하위 랭킹 보상 정책을 수정하세요.'>
-              <FormGroup title='보상'>
+              <PanelBand title='그 외 랭킹 보상' />
+
+              <DefinitionRow label='보상'>
                 <FormField
                   control={form.control}
                   name='condition.rangeRank.hearts'
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Input type='number' {...field} value={field.value ?? ''} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
+                        <Input
+                          type='number'
+                          {...field}
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </FormGroup>
-              <FormGroup title='랭킹 범위 - 시작'>
+              </DefinitionRow>
+              <DefinitionRow label='랭킹 범위 - 시작'>
                 <FormField
                   control={form.control}
                   name='condition.rangeRank.rankStart'
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Input type='number' min={1} {...field} value={field.value ?? ''} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
+                        <Input
+                          type='number'
+                          min={1}
+                          {...field}
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </FormGroup>
-              <FormGroup title='랭킹 범위 - 끝'>
+              </DefinitionRow>
+              <DefinitionRow label='랭킹 범위 - 끝'>
                 <FormField
                   control={form.control}
                   name='condition.rangeRank.rankEnd'
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Input type='number' {...field} value={field.value ?? ''} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
+                        <Input
+                          type='number'
+                          {...field}
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </FormGroup>
-              <Separator className='my-4' />
-            </FormSection>
-            <div className='text-center'>
+              </DefinitionRow>
+            </div>
+
+            <div className='flex items-center justify-end gap-2 border-t bg-card px-4 py-3'>
+              <Button type='button' variant='outline' onClick={handleClose} disabled={isLoading}>
+                취소
+              </Button>
               <Button type='submit' disabled={isLoading}>
                 {isLoading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                 {gameRewardPolicy ? '수정' : '생성'}
@@ -182,9 +211,9 @@ const GameRewardPolicyModal = ({ gameRewardPolicy, isOpen, close, refetch }: Gam
             </div>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </AdminSideSheetContent>
+    </Sheet>
   );
 };
 
-export default GameRewardPolicyModal;
+export default GameRewardPolicySheet;

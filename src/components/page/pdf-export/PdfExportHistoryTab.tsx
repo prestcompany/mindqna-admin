@@ -1,5 +1,6 @@
 import { deletePdfExportRecord, getPdfExportAdminDownloadUrl, getPdfExportHistory } from '@/client/pdf-export';
 import type { PdfExportRecord } from '@/client/types';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import DataTable from '@/components/shared/ui/data-table';
 import { FILTER_CONTROL_CLASS, FilterBar, type FilterChipItem } from '@/components/shared/ui/filter-bar';
 import {
@@ -14,6 +15,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Sheet } from '@/components/ui/sheet';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
@@ -136,11 +138,19 @@ function PdfExportHistoryTab() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <PdfExportAdjustDialog
-        record={adjustTarget}
-        onClose={() => setAdjustTarget(null)}
-        onChanged={() => refetch()}
-      />
+      <Sheet open={!!adjustTarget} onOpenChange={(open) => !open && setAdjustTarget(null)}>
+        <AdminSideSheetContent
+          title='다운로드·만료 조정'
+          description='CS 대응을 위해 이 발급 건의 다운로드 횟수와 만료일을 직접 수정합니다.'
+          size='sm'
+        >
+          <PdfExportAdjustDialog
+            record={adjustTarget}
+            onClose={() => setAdjustTarget(null)}
+            onChanged={() => refetch()}
+          />
+        </AdminSideSheetContent>
+      </Sheet>
     </>
   );
 }

@@ -17,7 +17,6 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { SelectContent, SelectItem, SelectTrigger, SelectValue, Select as ShadSelect } from '@/components/ui/select';
 import { Sheet } from '@/components/ui/sheet';
 import useCardTemplates from '@/hooks/useCardTemplates';
@@ -309,14 +308,11 @@ function CardList() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
-        <DialogContent className='max-w-lg'>
-          <DialogHeader>
-            <DialogTitle>카드 템플릿 업로드</DialogTitle>
-          </DialogHeader>
-          <CardUploadModal />
-        </DialogContent>
-      </Dialog>
+      <Sheet open={isUploadOpen} onOpenChange={setIsUploadOpen}>
+        <AdminSideSheetContent title='카드 템플릿 업로드' size='md'>
+          <CardUploadModal close={() => setIsUploadOpen(false)} />
+        </AdminSideSheetContent>
+      </Sheet>
     </div>
   );
 }

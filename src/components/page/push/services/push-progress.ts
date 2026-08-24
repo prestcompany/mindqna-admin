@@ -41,3 +41,8 @@ export function estimateDurationMs(targetCount: number): { minMs: number; maxMs:
   const batches = Math.ceil(targetCount / BATCH_SIZE);
   return { minMs: batches * MS_PER_BATCH_MIN, maxMs: batches * MS_PER_BATCH_MAX };
 }
+
+/** Rounds up to a whole minute, and never down to zero — "0분" would read as instant. */
+export function minutes(ms: number): number {
+  return Math.max(1, Math.round(ms / 60_000));
+}

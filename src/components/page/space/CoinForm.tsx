@@ -1,17 +1,8 @@
 import { giveCoin } from '@/client/premium';
 import BulkMessageKeywords from './components/BulkMessageKeywords';
-import FormGroup from '@/components/shared/form/ui/form-group';
-import FormSection from '@/components/shared/form/ui/form-section';
+import { DefinitionRow } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -103,7 +94,9 @@ function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
         meta: values.meta ?? '',
       };
 
-      toast.success(`${starBool ? '스타' : '하트'} ${values.amount}개 ${values.operation === 'give' ? '지급' : '회수'} 완료`);
+      toast.success(
+        `${starBool ? '스타' : '하트'} ${values.amount}개 ${values.operation === 'give' ? '지급' : '회수'} 완료`,
+      );
       await refreshSpaceCoinMutationCaches({ spaceId, queryClient, reload });
       close();
     } catch (err) {
@@ -121,10 +114,132 @@ function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
         </div>
       )}
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
-          {currentCoins && (
-            <FormSection title='현재 잔액'>
-              <div className='grid grid-cols-2 gap-3 sm:max-w-[320px]'>
+        <form onSubmit={form.handleSubmit(save)} className='flex flex-col gap-4 pb-2'>
+          <div className='-mx-6 flex gap-4'>
+            <div className='min-w-0 flex-1'>
+              <DefinitionRow label='공간 ID'>
+                <div className='rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm font-medium text-foreground'>
+                  {spaceId}
+                </div>
+              </DefinitionRow>
+
+              <DefinitionRow label='작업 유형*'>
+                <FormField
+                  control={form.control}
+                  name='operation'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <RadioGroup
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          className='grid grid-cols-2 gap-2'
+                        >
+                          {operationOptions.map((opt) => (
+                            <div key={opt.value}>
+                              <RadioGroupItem value={opt.value} id={`op-${opt.value}`} className='peer sr-only' />
+                              <Label
+                                htmlFor={`op-${opt.value}`}
+                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                              >
+                                {opt.label}
+                              </Label>
+                            </div>
+                          ))}
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </DefinitionRow>
+
+              <DefinitionRow label='코인 타입*'>
+                <FormField
+                  control={form.control}
+                  name='isStar'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <RadioGroup
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          className='grid grid-cols-2 gap-2'
+                        >
+                          {coinTypeOptions.map((opt) => (
+                            <div key={opt.value}>
+                              <RadioGroupItem value={opt.value} id={`coin-${opt.value}`} className='peer sr-only' />
+                              <Label
+                                htmlFor={`coin-${opt.value}`}
+                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                              >
+                                {opt.label}
+                              </Label>
+                            </div>
+                          ))}
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </DefinitionRow>
+
+              <DefinitionRow label={`${operation === 'give' ? '지급' : '회수'} 수량*`}>
+                <FormField
+                  control={form.control}
+                  name='amount'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input
+                          type='number'
+                          min={1}
+                          max={operation === 'take' ? getCurrentCoinCount() : undefined}
+                          {...field}
+                          className='w-full'
+                        />
+                      </FormControl>
+                      {operation === 'take' && currentCoins ? (
+                        <FormDescription>최대 {getCurrentCoinCount()}개 회수 가능합니다.</FormDescription>
+                      ) : null}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </DefinitionRow>
+
+              <DefinitionRow label='메시지'>
+                <FormField
+                  control={form.control}
+                  name='meta'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          placeholder={`${operation === 'give' ? '지급' : '회수'} 사유를 입력하세요...`}
+                          rows={3}
+                        />
+                      </FormControl>
+                      <BulkMessageKeywords
+                        onPick={(keyword) => {
+                          const current = form.getValues('meta') ?? '';
+                          form.setValue('meta', current.trim() ? `${current} ${keyword}` : keyword, {
+                            shouldDirty: true,
+                          });
+                        }}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </DefinitionRow>
+            </div>
+
+            {currentCoins && (
+              <aside className='w-[220px] shrink-0 space-y-3 border-l border-border py-1 pl-4 pr-6'>
+                <div className='text-sm font-medium text-foreground'>현재 잔액</div>
                 <div className='rounded-lg border border-border bg-muted/30 px-4 py-3 text-center'>
                   <div className='text-xs text-muted-foreground'>하트</div>
                   <div className='text-lg font-semibold text-foreground'>{currentCoins.hearts}</div>
@@ -133,122 +248,9 @@ function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
                   <div className='text-xs text-muted-foreground'>스타</div>
                   <div className='text-lg font-semibold text-foreground'>{currentCoins.stars}</div>
                 </div>
-              </div>
-            </FormSection>
-          )}
-
-          <FormSection title='코인 관리' description='지급 또는 회수할 코인 정보를 입력하세요.'>
-            <FormGroup title='공간 ID'>
-              <div className='rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm font-medium text-foreground'>
-                {spaceId}
-              </div>
-            </FormGroup>
-
-            <FormGroup title='작업 유형*'>
-              <FormField
-                control={form.control}
-                name='operation'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <RadioGroup value={field.value} onValueChange={field.onChange} className='grid grid-cols-2 gap-2 sm:max-w-[280px]'>
-                        {operationOptions.map((opt) => (
-                          <div key={opt.value}>
-                            <RadioGroupItem value={opt.value} id={`op-${opt.value}`} className='peer sr-only' />
-                            <Label
-                              htmlFor={`op-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
-                            >
-                              {opt.label}
-                            </Label>
-                          </div>
-                        ))}
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </FormGroup>
-
-            <FormGroup title='코인 타입*'>
-              <FormField
-                control={form.control}
-                name='isStar'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <RadioGroup value={field.value} onValueChange={field.onChange} className='grid grid-cols-2 gap-2 sm:max-w-[280px]'>
-                        {coinTypeOptions.map((opt) => (
-                          <div key={opt.value}>
-                            <RadioGroupItem value={opt.value} id={`coin-${opt.value}`} className='peer sr-only' />
-                            <Label
-                              htmlFor={`coin-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
-                            >
-                              {opt.label}
-                            </Label>
-                          </div>
-                        ))}
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </FormGroup>
-
-            <FormGroup title={`${operation === 'give' ? '지급' : '회수'} 수량*`}>
-              <FormField
-                control={form.control}
-                name='amount'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input
-                        type='number'
-                        min={1}
-                        max={operation === 'take' ? getCurrentCoinCount() : undefined}
-                        {...field}
-                        className='w-full sm:w-[220px]'
-                      />
-                    </FormControl>
-                    {operation === 'take' && currentCoins ? (
-                      <FormDescription>최대 {getCurrentCoinCount()}개 회수 가능합니다.</FormDescription>
-                    ) : null}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </FormGroup>
-
-            <FormGroup title='메시지'>
-              <FormField
-                control={form.control}
-                name='meta'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder={`${operation === 'give' ? '지급' : '회수'} 사유를 입력하세요...`}
-                        rows={3}
-                      />
-                    </FormControl>
-                    <BulkMessageKeywords
-                      onPick={(keyword) => {
-                        const current = form.getValues('meta') ?? '';
-                        form.setValue('meta', current.trim() ? `${current} ${keyword}` : keyword, {
-                          shouldDirty: true,
-                        });
-                      }}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </FormGroup>
-          </FormSection>
+              </aside>
+            )}
+          </div>
 
           <div className='sticky bottom-0 z-10 -mx-6 border-t bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
             <div className='flex justify-end gap-2'>

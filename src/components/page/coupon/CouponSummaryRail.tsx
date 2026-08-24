@@ -66,9 +66,10 @@ function CouponSummaryRail({ values, mode = 'create', notices }: Props) {
   return (
     <aside className='flex min-h-0 flex-col gap-3 overflow-y-auto border-l border-border bg-muted/40 p-4'>
       <div>
-        {/* 12px is DESIGN.md's floor for labels and captions; the mono eyebrow token is
-            12px too, so this is the smallest type the system allows here. */}
-        <div className='font-mono text-xs font-medium uppercase tracking-wider text-slate-600'>
+        {/* Introduces the name below it, so it ranks under that name rather than above it —
+            a caption, not a band. Size and muted color carry that rank; no capitals or
+            tracking, which would do nothing for Korean and only add false weight. */}
+        <div className='text-xs text-muted-foreground'>
           {mode === 'edit' ? '이렇게 저장됩니다' : '이렇게 발급됩니다'}
         </div>
         <div className='mt-1.5 break-words text-sm font-semibold tracking-heading text-slate-900'>
