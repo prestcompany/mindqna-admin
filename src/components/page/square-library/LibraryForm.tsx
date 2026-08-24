@@ -146,7 +146,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
           <div className='-mx-6'>
-            <PanelBand title={focusedId ? '라이브러리 수정' : '라이브러리 추가'} />
+            <PanelBand title='기본 정보' />
 
             <DefinitionRow label='이미지 URL*'>
               <FormField

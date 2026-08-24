@@ -152,7 +152,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
           <div className='-mx-6'>
-            <PanelBand title={initialSnack ? '간식 수정' : '간식 추가'} />
+            <PanelBand title='기본 정보' />
 
             <DefinitionRow label='대표 이미지*' hint='리스트와 상세 화면에 노출됩니다.'>
               <div className='flex flex-col gap-2 items-start'>

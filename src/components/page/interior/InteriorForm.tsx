@@ -262,7 +262,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
           <div className='-mx-6'>
-            <PanelBand title={focusedId ? '인테리어 수정' : '인테리어 추가'} />
+            <PanelBand title='기본 정보' />
 
             <DefinitionRow label='대표 이미지*'>
               <div className='flex flex-col items-start gap-2'>

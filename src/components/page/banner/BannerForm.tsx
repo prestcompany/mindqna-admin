@@ -140,7 +140,7 @@ function BannerForm({ init, reload, close }: Props) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
           <div className='-mx-6'>
-            <PanelBand title={focusedId ? '배너 수정' : '배너 추가'} />
+            <PanelBand title='기본 정보' />
 
             <DefinitionRow label='대표 이미지*' hint='권장 비율을 유지하면 리스트/상세에서 안정적으로 노출됩니다.'>
               <div className='flex flex-col items-start gap-2'>
