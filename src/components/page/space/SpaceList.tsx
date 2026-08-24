@@ -526,7 +526,7 @@ function SpaceList() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              단체 코인 {pendingBulkCoin?.operation === 'give' ? '지급' : '회수'}을 실행하시겠습니까?
+              단체 코인 {pendingBulkCoin?.operation === 'give' ? '지급을' : '회수를'} 실행하시겠습니까?
             </AlertDialogTitle>
             <AlertDialogDescription>
               {pendingBulkCoin && (
