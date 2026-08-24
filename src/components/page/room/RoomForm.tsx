@@ -122,7 +122,7 @@ function RoomForm({ init, reload, close }: Props) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
           <div className='-mx-6'>
-            <DefinitionRow label='이름*'>
+            <DefinitionRow label='이름' required>
               <FormField
                 control={form.control}
                 name='name'
@@ -137,7 +137,7 @@ function RoomForm({ init, reload, close }: Props) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='카테고리*'>
+            <DefinitionRow label='카테고리' required>
               <FormField
                 control={form.control}
                 name='category'
@@ -168,7 +168,7 @@ function RoomForm({ init, reload, close }: Props) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='코인 타입*'>
+            <DefinitionRow label='코인 타입' required>
               <FormField
                 control={form.control}
                 name='isPaid'
@@ -199,7 +199,7 @@ function RoomForm({ init, reload, close }: Props) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='가격*'>
+            <DefinitionRow label='가격' required>
               <FormField
                 control={form.control}
                 name='price'

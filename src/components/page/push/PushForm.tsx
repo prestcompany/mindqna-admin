@@ -222,7 +222,7 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
               <div className='min-h-0 overflow-y-auto'>
                 <PanelBand title='수신' />
 
-                <DefinitionRow label='발송 대상*'>
+                <DefinitionRow label='발송 대상' required>
                   <Segmented
                     name='push-target'
                     value={values.target}
@@ -239,7 +239,8 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                     audience is chosen. */}
                 {values.target === 'ALL' ? (
                   <DefinitionRow
-                    label='언어*'
+                    label='언어'
+                    required
                     hint={targetCount ? `약 ${targetCount.count.toLocaleString()}명` : undefined}
                   >
                     <Select value={values.locale} onValueChange={(v) => set('locale', v)}>
@@ -256,7 +257,7 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                     </Select>
                   </DefinitionRow>
                 ) : (
-                  <DefinitionRow label='사용자*' hint={`${recipients.length}명 인식됨`}>
+                  <DefinitionRow label='사용자' required hint={`${recipients.length}명 인식됨`}>
                     <Textarea
                       placeholder='username 을 콤마로 구분해 입력하세요'
                       value={values.userNames}
@@ -269,7 +270,8 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                 )}
 
                 <DefinitionRow
-                  label='발송 시점*'
+                  label='발송 시점'
+                  required
                   hint={values.sendMode === 'now' ? '최대 1분 내에 시작됩니다' : undefined}
                 >
                   <Segmented
@@ -295,10 +297,10 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
 
                 <PanelBand title='메시지' />
 
-                <DefinitionRow label='제목*' hint={`${values.title.length}/100`}>
+                <DefinitionRow label='제목' required hint={`${values.title.length}/100`}>
                   <Input value={values.title} onChange={(e) => set('title', e.target.value)} maxLength={100} />
                 </DefinitionRow>
-                <DefinitionRow label='내용*' hint={`${values.message.length}/500`}>
+                <DefinitionRow label='내용' required hint={`${values.message.length}/500`}>
                   <Textarea value={values.message} onChange={(e) => set('message', e.target.value)} maxLength={500} />
                 </DefinitionRow>
                 <DefinitionRow label='이미지'>

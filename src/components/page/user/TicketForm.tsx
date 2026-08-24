@@ -135,7 +135,7 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
           </FormSection>
 
           <div className='-mx-6'>
-            <DefinitionRow label='작업 유형*'>
+            <DefinitionRow label='작업 유형' required>
               <FormField
                 control={form.control}
                 name='operation'
@@ -167,7 +167,7 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
             </DefinitionRow>
 
             {operation === 'give' ? (
-              <DefinitionRow label='티켓 종류*'>
+              <DefinitionRow label='티켓 종류' required>
                 <FormField
                   control={form.control}
                   name='type'
@@ -229,7 +229,7 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
             </DefinitionRow>
 
             {operation === 'give' && ticketType === 'sub' && (
-              <DefinitionRow label='유효 기간(일)*'>
+              <DefinitionRow label='유효 기간(일)' required>
                 <FormField
                   control={form.control}
                   name='dueDayNum'

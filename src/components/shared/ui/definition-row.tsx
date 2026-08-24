@@ -12,10 +12,36 @@ import type { ReactNode } from 'react';
  * mid-word — and that made the row's height depend on the hint rather than the control,
  * leaving the control floating at the top of a tall, half-empty row.
  */
-export function DefinitionRow({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+export function DefinitionRow({
+  label,
+  hint,
+  required,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  /**
+   * Renders the required marker as STYLE rather than as a character in the label.
+   *
+   * Labels used to carry a literal asterisk — `label='이름*'` — which meant the marker
+   * could not be coloured or sized, and a screen reader announced "이름 별표". Marking it
+   * here also keeps every panel's marker identical instead of depending on whether whoever
+   * wrote that row remembered to type one.
+   */
+  required?: boolean;
+  children: ReactNode;
+}) {
   return (
     <div className='grid grid-cols-[140px_minmax(0,1fr)] items-start gap-4 border-b border-border px-4 py-2.5 last:border-b-0'>
-      <div className='pt-1.5 text-sm font-medium text-muted-foreground'>{label}</div>
+      <div className='pt-1.5 text-sm font-medium text-muted-foreground'>
+        {label}
+        {required && (
+          <span className='ml-1 align-middle text-destructive' aria-hidden>
+            *
+          </span>
+        )}
+        {required && <span className='sr-only'> (필수)</span>}
+      </div>
       <div className='min-w-0 text-sm'>
         {children}
         {hint && <div className='mt-1.5 text-xs leading-snug text-muted-foreground'>{hint}</div>}

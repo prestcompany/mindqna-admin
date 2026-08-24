@@ -154,7 +154,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
           <div className='-mx-6'>
             <PanelBand title='기본 정보' />
 
-            <DefinitionRow label='대표 이미지*' hint='리스트와 상세 화면에 노출됩니다.'>
+            <DefinitionRow label='대표 이미지' required hint='리스트와 상세 화면에 노출됩니다.'>
               <div className='flex flex-col gap-2 items-start'>
                 {image && (
                   <div className='flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border bg-transparent p-2'>
@@ -165,7 +165,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
               </div>
             </DefinitionRow>
 
-            <DefinitionRow label='이름*'>
+            <DefinitionRow label='이름' required>
               <FormField
                 control={form.control}
                 name='name'
@@ -197,7 +197,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
 
             <PanelBand title='노출/타입 설정' />
 
-            <DefinitionRow label='종류*'>
+            <DefinitionRow label='종류' required>
               <FormField
                 control={form.control}
                 name='kind'

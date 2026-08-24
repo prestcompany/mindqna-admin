@@ -123,7 +123,7 @@ function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
                 </div>
               </DefinitionRow>
 
-              <DefinitionRow label='작업 유형*'>
+              <DefinitionRow label='작업 유형' required>
                 <FormField
                   control={form.control}
                   name='operation'
@@ -154,7 +154,7 @@ function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
                 />
               </DefinitionRow>
 
-              <DefinitionRow label='코인 타입*'>
+              <DefinitionRow label='코인 타입' required>
                 <FormField
                   control={form.control}
                   name='isStar'

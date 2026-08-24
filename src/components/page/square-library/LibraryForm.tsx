@@ -148,7 +148,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
           <div className='-mx-6'>
             <PanelBand title='기본 정보' />
 
-            <DefinitionRow label='이미지 URL*'>
+            <DefinitionRow label='이미지 URL' required>
               <FormField
                 control={form.control}
                 name='img'
@@ -163,7 +163,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='타입*'>
+            <DefinitionRow label='타입' required>
               <FormField
                 control={form.control}
                 name='subCategory'
@@ -194,7 +194,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='이름*'>
+            <DefinitionRow label='이름' required>
               <FormField
                 control={form.control}
                 name='name'
@@ -211,7 +211,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
 
             <PanelBand title='콘텐츠 정보' />
 
-            <DefinitionRow label='제목 키*'>
+            <DefinitionRow label='제목 키' required>
               <FormField
                 control={form.control}
                 name='title'
@@ -258,7 +258,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
 
             <PanelBand title='운영 설정' />
 
-            <DefinitionRow label='언어*'>
+            <DefinitionRow label='언어' required>
               <FormField
                 control={form.control}
                 name='locale'

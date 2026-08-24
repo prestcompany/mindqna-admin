@@ -64,7 +64,7 @@ function ExpForm({ init, reload, close }: Props) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
           <div className='-mx-6'>
-            <DefinitionRow label='규칙 키*' hint='예: level_1_exp'>
+            <DefinitionRow label='규칙 키' required hint='예: level_1_exp'>
               <FormField
                 control={form.control}
                 name='key'
@@ -79,7 +79,7 @@ function ExpForm({ init, reload, close }: Props) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='필요 경험치*'>
+            <DefinitionRow label='필요 경험치' required>
               <FormField
                 control={form.control}
                 name='value'

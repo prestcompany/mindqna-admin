@@ -166,7 +166,7 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
           <div className='-mx-6'>
-            <DefinitionRow label='언어*' hint='신규 생성 시 복수 선택 가능합니다.'>
+            <DefinitionRow label='언어' required hint='신규 생성 시 복수 선택 가능합니다.'>
               <FormField
                 control={form.control}
                 name='locales'
@@ -199,7 +199,7 @@ function LocaleForm({ init, reload, close }: LocaleFormProps) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='키*' hint='앱에서 참조하는 locale key'>
+            <DefinitionRow label='키' required hint='앱에서 참조하는 locale key'>
               <FormField
                 control={form.control}
                 name='key'
