@@ -1,5 +1,6 @@
 import { transferUser } from '@/client/user';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
+import { DefinitionRow } from '@/components/shared/ui/definition-row';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,12 +12,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Sheet } from '@/components/ui/sheet';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowDownUp, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useState, type MouseEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -104,67 +104,65 @@ function UserMigrationModal({ open, onClose, onSuccess }: UserMigrationModalProp
     <>
       <Sheet open={open} onOpenChange={(o) => !o && handleCancel()}>
         <AdminSideSheetContent title='로그인 수단 교체' size='md'>
-          <div className='space-y-4'>
-            <div className='rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700'>
-              <p className='font-medium'>주의: 되돌릴 수 없는 작업입니다</p>
-              <p className='mt-1'>
-                기존 계정의 로그인 수단이 새 계정의 로그인 정보로 교체되며, 새 계정은 임시 상태로 변경됩니다.
-              </p>
-            </div>
+          <div className='rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700'>
+            <p className='font-medium'>주의: 되돌릴 수 없는 작업입니다</p>
+            <p className='mt-1'>
+              기존 계정의 로그인 수단이 새 계정의 로그인 정보로 교체되며, 새 계정은 임시 상태로 변경됩니다.
+            </p>
+          </div>
 
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)}>
-                <Card className='mb-4'>
-                  <CardHeader className='pb-3'>
-                    <CardTitle className='text-base'>기존 계정 (유지할 데이터)</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <FormField
-                      control={form.control}
-                      name='oldUserName'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>데이터를 유지할 계정의 유저코드</FormLabel>
-                          <FormControl>
-                            <Input placeholder='예: 01234567' className='h-10' {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className='text-sm text-slate-600 mt-2'>
-                      이 계정의 모든 데이터는 유지되며, 로그인 수단만 교체됩니다.
-                    </div>
-                  </CardContent>
-                </Card>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className='flex flex-col gap-4 pb-2'>
+              <div className='-mx-6 mt-4'>
+                <DefinitionRow label='기존 계정 (유지할 데이터)' hint='데이터를 유지할 계정의 유저코드'>
+                  <FormField
+                    control={form.control}
+                    name='oldUserName'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input placeholder='예: 01234567' {...field} />
+                        </FormControl>
+                        <FormDescription>이 계정의 모든 데이터는 유지되며, 로그인 수단만 교체됩니다.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </DefinitionRow>
 
-                <div className='mb-4 text-center'>
-                  <ArrowDownUp className='w-6 h-6 mx-auto text-slate-400' />
-                  <div className='text-sm text-slate-500'>로그인 수단 교체</div>
-                </div>
+                <DefinitionRow label='새 로그인 계정 (로그인 정보 제공)' hint='로그인 정보를 가져올 계정의 유저코드'>
+                  <FormField
+                    control={form.control}
+                    name='newUserName'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input placeholder='예: fedcba98' {...field} />
+                        </FormControl>
+                        <FormDescription>이 계정의 로그인 정보가 기존 계정으로 이동합니다.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </DefinitionRow>
+              </div>
 
-                <Card className='mb-4'>
-                  <CardHeader className='pb-3'>
-                    <CardTitle className='text-base'>새 로그인 계정 (로그인 정보 제공)</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <FormField
-                      control={form.control}
-                      name='newUserName'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>로그인 정보를 가져올 계정의 유저코드</FormLabel>
-                          <FormControl>
-                            <Input placeholder='예: fedcba98' className='h-10' {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className='text-sm text-slate-600 mt-2'>이 계정의 로그인 정보가 기존 계정으로 이동합니다.</div>
-                  </CardContent>
-                </Card>
+              <div className='rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800'>
+                <div className='mb-2 font-medium'>교체되는 정보:</div>
+                <ul className='ml-4 list-disc space-y-1'>
+                  <li>로그인 제공자 (Google, Kakao, Apple, Line 등)</li>
+                  <li>소셜 계정 ID</li>
+                  <li>이메일 주소</li>
+                </ul>
+                <div className='mb-2 mt-3 font-medium'>작업 과정:</div>
+                <ol className='ml-4 list-decimal space-y-1'>
+                  <li>새 계정을 임시 상태로 변경</li>
+                  <li>기존 계정에 새 로그인 정보 적용</li>
+                  <li>기존 계정의 모든 데이터는 그대로 유지</li>
+                </ol>
+              </div>
 
+              <div className='sticky bottom-0 z-10 -mx-6 border-t bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
                 <div className='flex justify-end gap-2'>
                   <Button variant='outline' type='button' onClick={handleCancel} disabled={loading}>
                     취소
@@ -174,28 +172,9 @@ function UserMigrationModal({ open, onClose, onSuccess }: UserMigrationModalProp
                     교체 실행
                   </Button>
                 </div>
-              </form>
-            </Form>
-
-            <Card className='bg-blue-50 border-blue-200'>
-              <CardContent className='p-4'>
-                <div className='text-sm text-blue-800'>
-                  <div className='mb-2 font-medium'>교체되는 정보:</div>
-                  <ul className='ml-4 space-y-1 list-disc'>
-                    <li>로그인 제공자 (Google, Kakao, Apple, Line 등)</li>
-                    <li>소셜 계정 ID</li>
-                    <li>이메일 주소</li>
-                  </ul>
-                  <div className='mt-3 mb-2 font-medium'>작업 과정:</div>
-                  <ol className='ml-4 space-y-1 list-decimal'>
-                    <li>새 계정을 임시 상태로 변경</li>
-                    <li>기존 계정에 새 로그인 정보 적용</li>
-                    <li>기존 계정의 모든 데이터는 그대로 유지</li>
-                  </ol>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </form>
+          </Form>
         </AdminSideSheetContent>
       </Sheet>
 
