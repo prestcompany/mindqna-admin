@@ -232,7 +232,9 @@ function SpaceSearch() {
       id: 'members',
       header: '멤버',
       size: 60,
-      cell: ({ row }) => <span className='text-sm font-medium tabular-nums text-slate-900'>{row.original.profiles?.length ?? 0}</span>,
+      cell: ({ row }) => (
+        <span className='text-sm font-medium tabular-nums text-slate-900'>{row.original.profiles?.length ?? 0}</span>
+      ),
     },
     {
       id: 'coins',
@@ -373,9 +375,7 @@ function SpaceSearch() {
           <FormGroup title='언어'>
             <Select
               value={searchParams.locale || '__all__'}
-              onValueChange={(v) =>
-                setSearchParams((prev) => ({ ...prev, locale: v === '__all__' ? undefined : v }))
-              }
+              onValueChange={(v) => setSearchParams((prev) => ({ ...prev, locale: v === '__all__' ? undefined : v }))}
             >
               <SelectTrigger className='w-full sm:w-[220px]'>
                 <SelectValue placeholder='언어' />
@@ -471,7 +471,9 @@ function SpaceSearch() {
           </div>
         )}
 
-        {hasSubmittedSearch && <SpaceActiveFilterChips params={submittedSearchParams} onRemove={handleRemoveFilterChip} />}
+        {hasSubmittedSearch && (
+          <SpaceActiveFilterChips params={submittedSearchParams} onRemove={handleRemoveFilterChip} />
+        )}
 
         {isInitialResultLoading && (
           <Card className='bg-card'>
@@ -517,7 +519,8 @@ function SpaceSearch() {
                 {totalCount > 0 && (
                   <div className='flex items-center justify-between px-1'>
                     <div className='text-sm text-muted-foreground'>
-                      총 {totalCount.toLocaleString()}건 중 {(currentPage - 1) * 10 + 1}-{Math.min(currentPage * 10, totalCount)}
+                      총 {totalCount.toLocaleString()}건 중 {(currentPage - 1) * 10 + 1}-
+                      {Math.min(currentPage * 10, totalCount)}
                     </div>
                     <div className='flex items-center gap-2'>
                       <Button
@@ -572,7 +575,7 @@ function SpaceSearch() {
           }
         }}
       >
-        <AdminSideSheetContent title='코인 관리' size='md'>
+        <AdminSideSheetContent title='코인 관리' size='lg'>
           <CoinForm
             reload={refetch}
             close={() => {
@@ -592,7 +595,12 @@ function SpaceSearch() {
         </AdminSideSheetContent>
       </Sheet>
 
-      <SpaceDetailSheet open={!!detailTarget} space={detailTarget} onClose={() => setDetailTarget(null)} copyId={copyId} />
+      <SpaceDetailSheet
+        open={!!detailTarget}
+        space={detailTarget}
+        onClose={() => setDetailTarget(null)}
+        copyId={copyId}
+      />
 
       {/* 공간 삭제 확인 */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>

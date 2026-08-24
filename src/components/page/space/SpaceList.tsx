@@ -316,7 +316,7 @@ function SpaceList() {
 
       {/* 코인 관리 시트 */}
       <Sheet open={isOpenCoin} onOpenChange={(open) => !open && closeCoin()}>
-        <AdminSideSheetContent title='코인 관리' size='md'>
+        <AdminSideSheetContent title='코인 관리' size='lg'>
           <CoinForm
             reload={refetch}
             close={closeCoin}
