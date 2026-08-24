@@ -1,5 +1,5 @@
 import { publishCardTemplates, removeCardTemplate, unpublishedCardTemplates } from '@/client/card';
-import { CardTemplate, CardTemplateType, GetCardTemplatesResult, SpaceType } from '@/client/types';
+import { CardTemplate, CardTemplateType, SpaceType } from '@/client/types';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import DataTable from '@/components/shared/ui/data-table';
 import { FILTER_CONTROL_CLASS, FilterBar } from '@/components/shared/ui/filter-bar';
@@ -20,17 +20,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { SelectContent, SelectItem, SelectTrigger, SelectValue, Select as ShadSelect } from '@/components/ui/select';
 import { Sheet } from '@/components/ui/sheet';
 import useCardTemplates from '@/hooks/useCardTemplates';
-import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
-import { produce } from 'immer';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import CardForm from './CardForm';
 import { CardUploadModal } from './CardUploadModal';
 
 function CardList() {
-  const queryClient = useQueryClient();
-
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
   const [focused, setFocused] = useState<CardTemplate | undefined>(undefined);
@@ -65,16 +61,7 @@ function CardList() {
     try {
       setLoading(true);
       await publishCardTemplates(selectedRowKeys as number[]);
-      queryClient.setQueryData<GetCardTemplatesResult>(['cardTemplates'], (prev) => {
-        if (!prev) return;
-        return produce(prev, (draft) => {
-          draft.templates.forEach((template) => {
-            if (selectedRowKeys.includes(template.id)) {
-              template.isPublished = true;
-            }
-          });
-        });
-      });
+      await refetch();
       toast.success('성공');
     } catch (err) {
       console.error(err);
@@ -88,16 +75,7 @@ function CardList() {
       setLoading(true);
       await unpublishedCardTemplates(selectedRowKeys as number[]);
       toast.success('성공');
-      queryClient.setQueryData<GetCardTemplatesResult>(['cardTemplates'], (prev) => {
-        if (!prev) return;
-        return produce(prev, (draft) => {
-          draft.templates.forEach((template) => {
-            if (selectedRowKeys.includes(template.id)) {
-              template.isPublished = false;
-            }
-          });
-        });
-      });
+      await refetch();
     } catch (err) {
       console.error(err);
       toast.error(`실패 : ${err}`);
