@@ -97,8 +97,9 @@ export function AssetsPickerPanel({ onSelect, onBack, selectedImage, className }
         ) : (
           // 200px min fitted four across the old dialog's fixed 1200px. The picker now
           // takes whatever width its parent sheet actually has (600–920px here), so the
-          // minimum shrinks to use that room instead of standing on a width no sheet has.
-          <div className='grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-3'>
+          // minimum shrinks to use that room instead of standing on a width no sheet has —
+          // roughly 5/6/8 columns at 600/720/920px, near the widest real parent.
+          <div className='grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2'>
             {filteredImgs.map((item) => {
               const fileName = item.uri.split('/').pop() || '';
               const imgPart = fileName.includes('img') ? 'img' + fileName.split('img')[1] : fileName;
