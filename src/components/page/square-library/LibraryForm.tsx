@@ -180,7 +180,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
                             <RadioGroupItem value={opt.value} id={`subcat-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`subcat-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -275,7 +275,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
                             <RadioGroupItem value={opt.value} id={`locale-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`locale-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -305,7 +305,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
                           <RadioGroupItem value='true' id='active-true' className='peer sr-only' />
                           <Label
                             htmlFor='active-true'
-                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                           >
                             활성화
                           </Label>
@@ -314,7 +314,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
                           <RadioGroupItem value='false' id='active-false' className='peer sr-only' />
                           <Label
                             htmlFor='active-false'
-                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                           >
                             비활성화
                           </Label>
@@ -343,7 +343,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
                           <RadioGroupItem value='true' id='fixed-true' className='peer sr-only' />
                           <Label
                             htmlFor='fixed-true'
-                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                           >
                             고정
                           </Label>
@@ -352,7 +352,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
                           <RadioGroupItem value='false' id='fixed-false' className='peer sr-only' />
                           <Label
                             htmlFor='fixed-false'
-                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                           >
                             고정 안함
                           </Label>

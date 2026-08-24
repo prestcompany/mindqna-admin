@@ -50,8 +50,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
     id: '',
   });
 
-  const { formData, focusedId, hasFile, updateFormData, setFileUploaded, resetForm } =
-    useCustomForm(init);
+  const { formData, focusedId, hasFile, updateFormData, setFileUploaded, resetForm } = useCustomForm(init);
 
   const form = useForm<CustomFormValues>({
     resolver: zodResolver(customFormSchema),
@@ -270,7 +269,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
                                 <RadioGroupItem value={opt.value} id={`type-${opt.value}`} className='peer sr-only' />
                                 <Label
                                   htmlFor={`type-${opt.value}`}
-                                  className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                                  className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                                 >
                                   {opt.label}
                                 </Label>
@@ -301,10 +300,14 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
                           >
                             {petTypeOptions.map((opt) => (
                               <div key={opt.value}>
-                                <RadioGroupItem value={opt.value} id={`petType-${opt.value}`} className='peer sr-only' />
+                                <RadioGroupItem
+                                  value={opt.value}
+                                  id={`petType-${opt.value}`}
+                                  className='peer sr-only'
+                                />
                                 <Label
                                   htmlFor={`petType-${opt.value}`}
-                                  className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                                  className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                                 >
                                   {opt.label}
                                 </Label>
@@ -387,10 +390,14 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
                           >
                             {premiumOptions.map((opt) => (
                               <div key={String(opt.value)}>
-                                <RadioGroupItem value={String(opt.value)} id={`isPremium-${opt.value}`} className='peer sr-only' />
+                                <RadioGroupItem
+                                  value={String(opt.value)}
+                                  id={`isPremium-${opt.value}`}
+                                  className='peer sr-only'
+                                />
                                 <Label
                                   htmlFor={`isPremium-${opt.value}`}
-                                  className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                                  className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                                 >
                                   {opt.label}
                                 </Label>
@@ -450,7 +457,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
                               <RadioGroupItem value='true' id='isActive-true' className='peer sr-only' />
                               <Label
                                 htmlFor='isActive-true'
-                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                               >
                                 활성화
                               </Label>
@@ -459,7 +466,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
                               <RadioGroupItem value='false' id='isActive-false' className='peer sr-only' />
                               <Label
                                 htmlFor='isActive-false'
-                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                               >
                                 비활성화
                               </Label>

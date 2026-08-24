@@ -154,7 +154,7 @@ function CardForm({ init, reload, close }: Props) {
                           <RadioGroupItem value={opt.value} id={`locale-${opt.value}`} className='peer sr-only' />
                           <Label
                             htmlFor={`locale-${opt.value}`}
-                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                           >
                             {opt.label}
                           </Label>
@@ -185,7 +185,7 @@ function CardForm({ init, reload, close }: Props) {
                           <RadioGroupItem value={opt.value} id={`type-${opt.value}`} className='peer sr-only' />
                           <Label
                             htmlFor={`type-${opt.value}`}
-                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium capitalize transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium capitalize transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                           >
                             {opt.label}
                           </Label>
@@ -223,7 +223,7 @@ function CardForm({ init, reload, close }: Props) {
                         <label
                           key={opt.value}
                           htmlFor={`space-${opt.value}`}
-                          className='flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm transition-colors hover:bg-muted/70'
+                          className='flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm transition-colors hover:bg-muted'
                         >
                           <Checkbox
                             id={`space-${opt.value}`}
