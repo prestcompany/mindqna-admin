@@ -2,8 +2,7 @@ import { createBubble, updateBubble } from '@/client/bubble';
 import { BubbleType, Locale, PetBubble } from '@/client/types';
 import { LOCALE_OPTIONS } from '@/components/shared/form/constants/locale-options';
 import { MAX_PET_LEVEL } from '@/components/shared/form/constants/pet-options';
-import FormGroup from '@/components/shared/form/ui/form-group';
-import FormSection from '@/components/shared/form/ui/form-section';
+import { DefinitionRow } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormMessage } from '@/components/ui/form';
@@ -135,11 +134,8 @@ function BubbleForm({ init, reload, close }: Props) {
       )}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
-          <FormSection
-            title={focusedId ? '말풍선 수정' : '말풍선 추가'}
-            description='메시지, 타입, 레벨 조건을 설정합니다.'
-          >
-            <FormGroup title='언어*'>
+          <div className='-mx-6'>
+            <DefinitionRow label='언어*'>
               <FormField
                 control={form.control}
                 name='locale'
@@ -170,9 +166,9 @@ function BubbleForm({ init, reload, close }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
+            </DefinitionRow>
 
-            <FormGroup title='메시지*'>
+            <DefinitionRow label='메시지*'>
               <FormField
                 control={form.control}
                 name='message'
@@ -185,15 +181,9 @@ function BubbleForm({ init, reload, close }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
-          </FormSection>
+            </DefinitionRow>
 
-          <FormSection title='노출 조건'>
-            <FormGroup
-              title='타입*'
-              description='복수 선택 시 선택 타입별로 생성됩니다.'
-              className='lg:grid-cols-[8.5rem_minmax(0,1fr)]'
-            >
+            <DefinitionRow label='타입*' hint='복수 선택 시 선택 타입별로 생성됩니다.'>
               <FormField
                 control={form.control}
                 name='types'
@@ -226,13 +216,9 @@ function BubbleForm({ init, reload, close }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
+            </DefinitionRow>
 
-            <FormGroup
-              title='레벨*'
-              description='0은 전체 레벨 대상으로 처리됩니다.'
-              className='lg:grid-cols-[8.5rem_minmax(0,1fr)]'
-            >
+            <DefinitionRow label='레벨*' hint='0은 전체 레벨 대상으로 처리됩니다.'>
               <FormField
                 control={form.control}
                 name='levels'
@@ -265,8 +251,8 @@ function BubbleForm({ init, reload, close }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
-          </FormSection>
+            </DefinitionRow>
+          </div>
 
           <div className='sticky bottom-0 z-10 -mx-6 border-t bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
             <div className='flex justify-end gap-2'>
