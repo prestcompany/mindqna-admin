@@ -86,6 +86,41 @@ module.exports = {
        * letterSpacing은 이미 tracking-display/heading/label 토큰이 담당합니다 —
        * 같은 14px에 label(-0.28px)과 body-sm(0)이 공존하므로 크기에 묶을 수 없습니다.
        */
+      /**
+       * DESIGN.md §Spacing System: base unit 4px, scale 4 -> 8 -> 12 -> 16 -> 24 ->
+       * 32 -> 40 -> 64 -> 96 -> 128px. Tailwind's default spacing is rem, so against
+       * the intentional 15px root every box rendered at 93.75% — p-4 was 15px, not 16.
+       * Pinned to px so the 4px grid is literally a 4px grid.
+       */
+      spacing: {
+        0.5: '2px',
+        1: '4px',
+        1.5: '6px',
+        2: '8px',
+        2.5: '10px',
+        3: '12px',
+        3.5: '14px',
+        4: '16px',
+        5: '20px',
+        6: '24px',
+        7: '28px',
+        8: '32px',
+        9: '36px',
+        10: '40px',
+        11: '44px',
+        12: '48px',
+        14: '56px',
+        16: '64px',
+        20: '80px',
+        24: '96px',
+        28: '112px',
+        32: '128px',
+        40: '160px',
+        56: '224px',
+        72: '288px',
+        80: '320px',
+      },
+
       fontSize: {
         xs: ['12px', '16px'],
         sm: ['14px', '20px'],
