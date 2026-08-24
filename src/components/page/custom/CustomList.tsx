@@ -1,5 +1,6 @@
 import { removeCustomTemplate } from '@/client/custom';
 import { ImgItem, PetCustomTemplate } from '@/client/types';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
 import DataTable from '@/components/shared/ui/data-table';
 import { FILTER_CONTROL_CLASS, FilterBar } from '@/components/shared/ui/filter-bar';
@@ -16,6 +17,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Sheet } from '@/components/ui/sheet';
 import useDebouncedValue from '@/hooks/useDebouncedValue';
 import useCustoms from '@/hooks/useCustoms';
 import { ColumnDef } from '@tanstack/react-table';
@@ -247,9 +249,29 @@ function CustomList() {
         }}
       />
 
-      {isOpenCreate && <CustomFormModal isOpen={isOpenCreate} reload={refetch} close={() => setOpenCreate(false)} />}
+      {isOpenCreate && (
+        <Sheet open={isOpenCreate} onOpenChange={(open) => !open && setOpenCreate(false)}>
+          <AdminSideSheetContent
+            title='펫 커스텀 등록'
+            description='추가할 펫 커스텀 정보를 입력해주세요.'
+            size='lg'
+            bodyClassName='overflow-hidden p-0'
+          >
+            <CustomFormModal reload={refetch} close={() => setOpenCreate(false)} />
+          </AdminSideSheetContent>
+        </Sheet>
+      )}
       {isOpenEdit && (
-        <CustomFormModal isOpen={isOpenEdit} reload={refetch} close={() => setOpenEdit(false)} init={focused} />
+        <Sheet open={isOpenEdit} onOpenChange={(open) => !open && setOpenEdit(false)}>
+          <AdminSideSheetContent
+            title='펫 커스텀 수정'
+            description='추가할 펫 커스텀 정보를 입력해주세요.'
+            size='lg'
+            bodyClassName='overflow-hidden p-0'
+          >
+            <CustomFormModal reload={refetch} close={() => setOpenEdit(false)} init={focused} />
+          </AdminSideSheetContent>
+        </Sheet>
       )}
     </>
   );

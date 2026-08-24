@@ -32,7 +32,6 @@ export interface AnimationFileState {
 }
 
 export interface CustomFormProps {
-  isOpen: boolean;
   init?: PetCustomTemplate;
   reload: () => Promise<any>;
   close: () => void;

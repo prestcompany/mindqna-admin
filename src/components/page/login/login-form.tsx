@@ -1,5 +1,5 @@
-import DefaultModal from '@/components/shared/ui/default-modal';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -117,16 +117,16 @@ const LoginForm = () => {
         </form>
       </Form>
 
-      <DefaultModal
-        title='비밀번호 찾기'
-        open={showPasswordModal}
-        handleHide={() => setShowPasswordModal(false)}
-        className='max-w-md'
-      >
-        <div className='text-sm text-slate-700'>
-          임시 로그인 정보는 <code className='rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-800'>admin / admin</code> 입니다.
-        </div>
-      </DefaultModal>
+      <Dialog open={showPasswordModal} onOpenChange={(isOpen) => !isOpen && setShowPasswordModal(false)}>
+        <DialogContent className='max-w-md'>
+          <DialogHeader>
+            <DialogTitle>비밀번호 찾기</DialogTitle>
+          </DialogHeader>
+          <div className='text-sm text-slate-700'>
+            임시 로그인 정보는 <code className='rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-800'>admin / admin</code> 입니다.
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

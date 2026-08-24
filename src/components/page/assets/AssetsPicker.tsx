@@ -28,10 +28,8 @@ type AssetsPickerPanelProps = {
   onBack: () => void;
   selectedImage?: ImgItem;
   /**
-   * Sizing for the panel's own root. The three sheet-hosted callers can default to
-   * `h-full` — `SheetContent` gives their ancestor a definite height, so it cascades.
-   * `CustomFormModal`'s `DefaultModal` only caps height (`max-h-[90vh]`, no `height` of
-   * its own), same as the form it swaps out — pass that same cap here instead.
+   * Sizing for the panel's own root. Every caller now lives inside a `SheetContent`,
+   * which gives their ancestor a definite height, so the `h-full` default cascades.
    */
   className?: string;
 };
