@@ -94,7 +94,9 @@ function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
         meta: values.meta ?? '',
       };
 
-      toast.success(`${starBool ? '스타' : '하트'} ${values.amount}개 ${values.operation === 'give' ? '지급' : '회수'} 완료`);
+      toast.success(
+        `${starBool ? '스타' : '하트'} ${values.amount}개 ${values.operation === 'give' ? '지급' : '회수'} 완료`,
+      );
       await refreshSpaceCoinMutationCaches({ spaceId, queryClient, reload });
       close();
     } catch (err) {
@@ -128,7 +130,11 @@ function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <RadioGroup value={field.value} onValueChange={field.onChange} className='grid grid-cols-2 gap-2'>
+                        <RadioGroup
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          className='grid grid-cols-2 gap-2'
+                        >
                           {operationOptions.map((opt) => (
                             <div key={opt.value}>
                               <RadioGroupItem value={opt.value} id={`op-${opt.value}`} className='peer sr-only' />
@@ -155,7 +161,11 @@ function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <RadioGroup value={field.value} onValueChange={field.onChange} className='grid grid-cols-2 gap-2'>
+                        <RadioGroup
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          className='grid grid-cols-2 gap-2'
+                        >
                           {coinTypeOptions.map((opt) => (
                             <div key={opt.value}>
                               <RadioGroupItem value={opt.value} id={`coin-${opt.value}`} className='peer sr-only' />
