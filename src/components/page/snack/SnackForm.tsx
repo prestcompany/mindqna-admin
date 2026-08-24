@@ -1,8 +1,7 @@
 import { createSnack, updateSnack } from '@/client/snack';
 import { ImgItem, PetType, Snack, SnackKind } from '@/client/types';
 import { PET_TYPE_OPTIONS } from '@/components/shared/form/constants/pet-options';
-import FormGroup from '@/components/shared/form/ui/form-group';
-import FormSection from '@/components/shared/form/ui/form-section';
+import { DefinitionRow, PanelBand } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -152,11 +151,10 @@ function SnackForm({ initialSnack, close, reload }: Props) {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
-          <FormSection
-            title={initialSnack ? '간식 수정' : '간식 추가'}
-            description='이미지, 스탯, 노출 옵션을 설정합니다.'
-          >
-            <FormGroup title='대표 이미지*' description='리스트와 상세 화면에 노출됩니다.'>
+          <div className='-mx-6'>
+            <PanelBand title={initialSnack ? '간식 수정' : '간식 추가'} />
+
+            <DefinitionRow label='대표 이미지*' hint='리스트와 상세 화면에 노출됩니다.'>
               <div className='flex flex-col gap-2 items-start'>
                 {image && (
                   <div className='flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border bg-transparent p-2'>
@@ -165,9 +163,9 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                 )}
                 <AssetsPickerButton onOpen={() => setPickingImage(true)} />
               </div>
-            </FormGroup>
+            </DefinitionRow>
 
-            <FormGroup title='이름*'>
+            <DefinitionRow label='이름*'>
               <FormField
                 control={form.control}
                 name='name'
@@ -180,9 +178,9 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
+            </DefinitionRow>
 
-            <FormGroup title='설명'>
+            <DefinitionRow label='설명'>
               <FormField
                 control={form.control}
                 name='desc'
@@ -195,11 +193,11 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
-          </FormSection>
+            </DefinitionRow>
 
-          <FormSection title='노출/타입 설정'>
-            <FormGroup title='종류*'>
+            <PanelBand title='노출/타입 설정' />
+
+            <DefinitionRow label='종류*'>
               <FormField
                 control={form.control}
                 name='kind'
@@ -228,9 +226,9 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
+            </DefinitionRow>
 
-            <FormGroup title='진화하는 펫 타입'>
+            <DefinitionRow label='진화하는 펫 타입'>
               <FormField
                 control={form.control}
                 name='type'
@@ -259,11 +257,11 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
-          </FormSection>
+            </DefinitionRow>
 
-          <FormSection title='가격/운영 설정'>
-            <FormGroup title='순서 / 경험치'>
+            <PanelBand title='가격/운영 설정' />
+
+            <DefinitionRow label='순서 / 경험치'>
               <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
                 <FormField
                   control={form.control}
@@ -304,9 +302,9 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                   )}
                 />
               </div>
-            </FormGroup>
+            </DefinitionRow>
 
-            <FormGroup title='코인 타입 / 가격'>
+            <DefinitionRow label='코인 타입 / 가격'>
               <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
                 <FormField
                   control={form.control}
@@ -357,9 +355,9 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                   )}
                 />
               </div>
-            </FormGroup>
+            </DefinitionRow>
 
-            <FormGroup title='활성 상태'>
+            <DefinitionRow label='활성 상태'>
               <FormField
                 control={form.control}
                 name='isActive'
@@ -388,8 +386,8 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
-          </FormSection>
+            </DefinitionRow>
+          </div>
 
           <div className='sticky bottom-0 z-10 -mx-6 border-t bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
             <div className='flex justify-end gap-2'>
