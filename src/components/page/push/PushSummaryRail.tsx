@@ -1,4 +1,5 @@
 import type { AdminPushItem } from '@/client/push';
+import { LOCALE_DISPLAY_NAME } from '@/components/shared/form/constants/locale-options';
 import dayjs from 'dayjs';
 import { useState } from 'react';
 import { estimateDurationMs, estimateRemainingMs, minutes } from './services/push-progress';
@@ -36,7 +37,11 @@ function PushSummaryRail(props: ComposeProps | ResultProps) {
       <dl className='space-y-3 text-sm'>
         <Row
           label='대상'
-          value={row.target === 'ALL' ? `전체 · ${row.locale ?? '—'}` : `개인 ${(row.userNames ?? []).length}명`}
+          value={
+            row.target === 'ALL'
+              ? `전체 · ${row.locale ? (LOCALE_DISPLAY_NAME[row.locale] ?? row.locale) : '—'}`
+              : `개인 ${(row.userNames ?? []).length}명`
+          }
         />
         <Row label='도달' value={row.sentCount.toLocaleString()} />
         <Row label='실패' value={row.failedCount.toLocaleString()} />
@@ -58,11 +63,14 @@ function PushSummaryRail(props: ComposeProps | ResultProps) {
   // broadcast, whose count is a locale-wide estimate, and bare for a per-user send, whose
   // count is the list they just typed. While a broadcast's count is still in flight the
   // rail says who but not how many — same reason the duration line waits.
+  // The select above says 한국어; a rail that says `ko` for the same field makes the
+  // operator reconcile two names for one thing.
+  const localeName = LOCALE_DISPLAY_NAME[locale] ?? locale;
   const who =
     target === 'ALL'
       ? recipientCount === null
-        ? `${locale} 사용자`
-        : `${locale} 사용자 약 ${recipientCount.toLocaleString()}명`
+        ? `${localeName} 사용자`
+        : `${localeName} 사용자 약 ${recipientCount.toLocaleString()}명`
       : `지정한 ${(recipientCount ?? 0).toLocaleString()}명`;
 
   return (
