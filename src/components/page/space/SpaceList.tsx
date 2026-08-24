@@ -2,6 +2,7 @@ import { giveCoinBulk } from '@/client/premium';
 import { getSpace, removeProfile, removeSpace } from '@/client/space';
 import { GiveCoinBulkFailure, Space } from '@/client/types';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
+import { DefinitionRow } from '@/components/shared/ui/definition-row';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,13 +14,12 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet } from '@/components/ui/sheet';
 import useSpaces from '@/hooks/useSpaces';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import DataTable from '@/components/shared/ui/data-table';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -125,6 +125,16 @@ function SpaceList() {
   const [bulkIsStar, setBulkIsStar] = useState(false);
   const [bulkOperation, setBulkOperation] = useState<'give' | 'take'>('give');
   const [bulkResult, setBulkResult] = useState<BulkCoinResultState>(null);
+  // Holds the parsed, about-to-execute values while the confirm AlertDialog is open — a bulk
+  // write across many spaces used to fire straight from 실행 with nothing in front of it, and
+  // the confirm needs to name the exact operation/coin type/amount/space count it is about
+  // to run, not whatever the inputs happen to say by the time the request settles.
+  const [pendingBulkCoin, setPendingBulkCoin] = useState<{
+    operation: 'give' | 'take';
+    isStar: boolean;
+    amount: number;
+    spaceIds: string[];
+  } | null>(null);
 
   const copyId = (id: string) => {
     navigator.clipboard.writeText(id);
@@ -177,9 +187,12 @@ function SpaceList() {
     if (isFetching) return;
     setIsBulkCoinOpen(false);
     setBulkResult(null);
+    setPendingBulkCoin(null);
   };
 
-  const confirmBulkCoin = async () => {
+  // Bound to 실행: parses and validates the inputs, then hands the parsed facts to the
+  // confirm AlertDialog instead of calling the API directly.
+  const handleBulkCoinSubmit = () => {
     const parsedBulkAmount = bulkAmountInput ? Number(bulkAmountInput) : 0;
     const spaceIds = bulkSpaceIds
       .split(',')
@@ -195,24 +208,28 @@ function SpaceList() {
       return;
     }
 
+    setPendingBulkCoin({ operation: bulkOperation, isStar: bulkIsStar, amount: parsedBulkAmount, spaceIds });
+  };
+
+  const executeBulkCoin = async (payload: NonNullable<typeof pendingBulkCoin>) => {
     try {
       setFetching(true);
       setBulkResult(null);
-      const finalAmount = bulkOperation === 'take' ? -parsedBulkAmount : parsedBulkAmount;
+      const finalAmount = payload.operation === 'take' ? -payload.amount : payload.amount;
 
       const result = await giveCoinBulk({
-        spaceIds,
-        isStar: bulkIsStar,
+        spaceIds: payload.spaceIds,
+        isStar: payload.isStar,
         amount: finalAmount,
-        message: bulkMeta || `단체 ${bulkOperation === 'give' ? '지급' : '회수'}: ${parsedBulkAmount}개`,
+        message: bulkMeta || `단체 ${payload.operation === 'give' ? '지급' : '회수'}: ${payload.amount}개`,
       });
 
       if (Array.isArray(result) && result.length > 0) {
         setBulkResult({
           status: 'partial',
           failedSpaces: result,
-          successCount: spaceIds.length - result.length,
-          totalCount: spaceIds.length,
+          successCount: payload.spaceIds.length - result.length,
+          totalCount: payload.spaceIds.length,
         });
         toast.warning(`일부 공간 처리 실패 - ${result.length}개 공간을 확인해주세요.`);
         await refetch();
@@ -229,7 +246,7 @@ function SpaceList() {
       }
 
       toast.success(
-        `단체 ${bulkOperation === 'give' ? '지급' : '회수'} 완료 - ${spaceIds.length}개 공간, ${bulkIsStar ? '스타' : '하트'} ${parsedBulkAmount}개`,
+        `단체 ${payload.operation === 'give' ? '지급' : '회수'} 완료 - ${payload.spaceIds.length}개 공간, ${payload.isStar ? '스타' : '하트'} ${payload.amount}개`,
       );
 
       await refetch();
@@ -243,7 +260,17 @@ function SpaceList() {
       toast.error(`실패: ${message}`);
     } finally {
       setFetching(false);
+      setPendingBulkCoin(null);
     }
+  };
+
+  // AlertDialogAction renders Radix's DialogPrimitive.Close, which closes the dialog right
+  // after this handler unless the default is prevented — same fix as the user-migration
+  // confirm: without it the confirm surface would vanish before the bulk write settles.
+  const handleConfirmBulkCoin = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    if (!pendingBulkCoin) return;
+    executeBulkCoin(pendingBulkCoin);
   };
 
   const baseColumns = createSpaceTableColumns({
@@ -347,130 +374,180 @@ function SpaceList() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Dialog open={isBulkCoinOpen} onOpenChange={(open) => !open && handleCloseBulkCoin()}>
-        <DialogContent className='max-w-[560px] border-border bg-background p-0 shadow-2xl'>
-          <DialogHeader className='border-b border-border px-6 py-5'>
-            <DialogTitle>단체 코인 지급/회수</DialogTitle>
-            <DialogDescription>
-              처리 실패한 공간이 있으면 이 팝업 안에서 바로 확인할 수 있습니다.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className='space-y-5 px-6 py-5'>
-            <div className='space-y-2'>
-              <label className='block text-sm font-medium text-foreground'>작업 유형</label>
-              <RadioGroup value={bulkOperation} onValueChange={(v) => setBulkOperation(v as 'give' | 'take')} className='flex gap-0'>
+      <Sheet open={isBulkCoinOpen} onOpenChange={(open) => !open && handleCloseBulkCoin()}>
+        <AdminSideSheetContent
+          title='단체 코인 지급/회수'
+          description='처리 실패한 공간이 있으면 이 시트 안에서 바로 확인할 수 있습니다.'
+          size='md'
+        >
+          <div className='-mx-6'>
+            <DefinitionRow label='작업 유형'>
+              <RadioGroup
+                value={bulkOperation}
+                onValueChange={(v) => setBulkOperation(v as 'give' | 'take')}
+                className='flex gap-0'
+              >
                 <div className='flex items-center'>
                   <RadioGroupItem value='give' id='bulk-op-give' className='peer sr-only' />
-                  <Label htmlFor='bulk-op-give' className='cursor-pointer rounded-l-md border px-3 py-1.5 text-sm peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'>지급</Label>
+                  <Label
+                    htmlFor='bulk-op-give'
+                    className='cursor-pointer rounded-l-md border px-3 py-1.5 text-sm peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                  >
+                    지급
+                  </Label>
                 </div>
                 <div className='flex items-center'>
                   <RadioGroupItem value='take' id='bulk-op-take' className='peer sr-only' />
-                  <Label htmlFor='bulk-op-take' className='cursor-pointer rounded-r-md border border-l-0 px-3 py-1.5 text-sm peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'>회수</Label>
+                  <Label
+                    htmlFor='bulk-op-take'
+                    className='cursor-pointer rounded-r-md border border-l-0 px-3 py-1.5 text-sm peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                  >
+                    회수
+                  </Label>
                 </div>
               </RadioGroup>
-            </div>
+            </DefinitionRow>
 
-            <div className='space-y-2'>
-              <label className='block text-sm font-medium text-foreground'>공간 ID 목록</label>
+            <DefinitionRow label='공간 ID 목록' hint='콤마(,) 기준으로 여러 공간 ID를 입력합니다.'>
               <Textarea
                 placeholder='abcd,1234,xyz'
                 rows={4}
                 value={bulkSpaceIds}
                 onChange={(e) => setBulkSpaceIds(e.target.value)}
               />
-              <p className='text-xs text-muted-foreground'>콤마(,) 기준으로 여러 공간 ID를 입력합니다.</p>
-            </div>
+            </DefinitionRow>
 
-            <div className='grid gap-4 sm:grid-cols-2'>
-              <div className='space-y-2'>
-                <label className='block text-sm font-medium text-foreground'>코인 타입</label>
-                <RadioGroup value={String(bulkIsStar)} onValueChange={(v) => setBulkIsStar(v === 'true')} className='flex gap-0'>
-                  <div className='flex items-center'>
-                    <RadioGroupItem value='false' id='bulk-coin-heart' className='peer sr-only' />
-                    <Label htmlFor='bulk-coin-heart' className='cursor-pointer rounded-l-md border px-3 py-1.5 text-sm peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'>하트</Label>
-                  </div>
-                  <div className='flex items-center'>
-                    <RadioGroupItem value='true' id='bulk-coin-star' className='peer sr-only' />
-                    <Label htmlFor='bulk-coin-star' className='cursor-pointer rounded-r-md border border-l-0 px-3 py-1.5 text-sm peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'>스타</Label>
-                  </div>
-                </RadioGroup>
-              </div>
+            <DefinitionRow label='코인 타입'>
+              <RadioGroup
+                value={String(bulkIsStar)}
+                onValueChange={(v) => setBulkIsStar(v === 'true')}
+                className='flex gap-0'
+              >
+                <div className='flex items-center'>
+                  <RadioGroupItem value='false' id='bulk-coin-heart' className='peer sr-only' />
+                  <Label
+                    htmlFor='bulk-coin-heart'
+                    className='cursor-pointer rounded-l-md border px-3 py-1.5 text-sm peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                  >
+                    하트
+                  </Label>
+                </div>
+                <div className='flex items-center'>
+                  <RadioGroupItem value='true' id='bulk-coin-star' className='peer sr-only' />
+                  <Label
+                    htmlFor='bulk-coin-star'
+                    className='cursor-pointer rounded-r-md border border-l-0 px-3 py-1.5 text-sm peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                  >
+                    스타
+                  </Label>
+                </div>
+              </RadioGroup>
+            </DefinitionRow>
 
-              <div className='space-y-2'>
-                <label className='block text-sm font-medium text-foreground'>수량</label>
-                <Input
-                  type='text'
-                  inputMode='numeric'
-                  autoComplete='off'
-                  placeholder='예: 100'
-                  value={bulkAmountInput}
-                  onChange={(e) => setBulkAmountInput(e.target.value.replace(/[^\d]/g, ''))}
-                />
-              </div>
-            </div>
+            <DefinitionRow label='수량'>
+              <Input
+                type='text'
+                inputMode='numeric'
+                autoComplete='off'
+                placeholder='예: 100'
+                value={bulkAmountInput}
+                onChange={(e) => setBulkAmountInput(e.target.value.replace(/[^\d]/g, ''))}
+              />
+            </DefinitionRow>
 
-            <div className='space-y-2'>
-              <label className='block text-sm font-medium text-foreground'>메시지</label>
+            <DefinitionRow label='메시지'>
               <Input value={bulkMeta} onChange={(e) => setBulkMeta(e.target.value)} placeholder='메시지 내용' />
               <BulkMessageKeywords
                 onPick={(keyword) => setBulkMeta((prev) => (prev.trim() ? `${prev} ${keyword}` : keyword))}
               />
-            </div>
-
-            {bulkResult?.status === 'partial' ? (
-              <div className='rounded-lg border border-amber-200 bg-amber-50 p-4'>
-                <div className='flex items-start justify-between gap-3'>
-                  <div className='space-y-1'>
-                    <p className='text-sm font-semibold text-amber-900'>부분 실패</p>
-                    <p className='text-sm text-amber-800'>
-                      총 {bulkResult.totalCount}개 중 {bulkResult.successCount}개 성공, {bulkResult.failedSpaces.length}개 실패
-                    </p>
-                  </div>
-                  <Button
-                    type='button'
-                    variant='outline'
-                    size='sm'
-                    onClick={() => {
-                      navigator.clipboard.writeText(bulkResult.failedSpaces.map((item) => item.spaceId).join(','));
-                      toast.success('실패한 공간 ID를 복사했습니다.');
-                    }}
-                  >
-                    실패 ID 복사
-                  </Button>
-                </div>
-
-                <div className='mt-3 max-h-40 overflow-y-auto rounded-lg border border-amber-200 bg-white'>
-                  <div className='divide-y divide-border/60'>
-                    {bulkResult.failedSpaces.map((item) => (
-                      <div key={item.spaceId} className='flex items-center justify-between gap-3 px-3 py-2 text-sm'>
-                        <span className='break-all font-medium text-foreground'>{item.spaceId}</span>
-                        <span className='shrink-0 text-xs text-muted-foreground'>{getBulkFailureReasonLabel(item.reason)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : null}
-
-            {bulkResult?.status === 'error' ? (
-              <div className='rounded-lg border border-destructive/20 bg-red-50 p-4'>
-                <p className='text-sm font-semibold text-destructive'>처리 실패</p>
-                <p className='mt-1 break-words text-sm text-destructive/80'>{bulkResult.message}</p>
-              </div>
-            ) : null}
+            </DefinitionRow>
           </div>
 
-          <DialogFooter className='border-t border-border px-6 py-4'>
-            <Button type='button' variant='outline' onClick={handleCloseBulkCoin} disabled={isFetching}>
-              닫기
-            </Button>
-            <Button type='button' onClick={confirmBulkCoin} disabled={isFetching}>
+          {bulkResult?.status === 'partial' ? (
+            <div className='mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4'>
+              <div className='flex items-start justify-between gap-3'>
+                <div className='space-y-1'>
+                  <p className='text-sm font-semibold text-amber-900'>부분 실패</p>
+                  <p className='text-sm text-amber-800'>
+                    총 {bulkResult.totalCount}개 중 {bulkResult.successCount}개 성공, {bulkResult.failedSpaces.length}개
+                    실패
+                  </p>
+                </div>
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='sm'
+                  onClick={() => {
+                    navigator.clipboard.writeText(bulkResult.failedSpaces.map((item) => item.spaceId).join(','));
+                    toast.success('실패한 공간 ID를 복사했습니다.');
+                  }}
+                >
+                  실패 ID 복사
+                </Button>
+              </div>
+
+              <div className='mt-3 max-h-40 overflow-y-auto rounded-lg border border-amber-200 bg-white'>
+                <div className='divide-y divide-border/60'>
+                  {bulkResult.failedSpaces.map((item) => (
+                    <div key={item.spaceId} className='flex items-center justify-between gap-3 px-3 py-2 text-sm'>
+                      <span className='break-all font-medium text-foreground'>{item.spaceId}</span>
+                      <span className='shrink-0 text-xs text-muted-foreground'>
+                        {getBulkFailureReasonLabel(item.reason)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {bulkResult?.status === 'error' ? (
+            <div className='mt-4 rounded-lg border border-destructive/20 bg-red-50 p-4'>
+              <p className='text-sm font-semibold text-destructive'>처리 실패</p>
+              <p className='mt-1 break-words text-sm text-destructive/80'>{bulkResult.message}</p>
+            </div>
+          ) : null}
+
+          <div className='sticky bottom-0 z-10 -mx-6 border-t bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
+            <div className='flex justify-end gap-2'>
+              <Button type='button' variant='outline' onClick={handleCloseBulkCoin} disabled={isFetching}>
+                닫기
+              </Button>
+              <Button type='button' onClick={handleBulkCoinSubmit} disabled={isFetching}>
+                실행
+              </Button>
+            </div>
+          </div>
+        </AdminSideSheetContent>
+      </Sheet>
+
+      {/* 단체 코인 지급/회수 실행 확인 — 실제 결제/회수를 수행하기 전 마지막 확인 지점 */}
+      <AlertDialog open={!!pendingBulkCoin} onOpenChange={(open) => !open && !isFetching && setPendingBulkCoin(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              단체 코인 {pendingBulkCoin?.operation === 'give' ? '지급' : '회수'}을 실행하시겠습니까?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingBulkCoin && (
+                <>
+                  공간 <strong>{pendingBulkCoin.spaceIds.length}곳</strong>에{' '}
+                  <strong>{pendingBulkCoin.isStar ? '스타' : '하트'}</strong>{' '}
+                  <strong>{pendingBulkCoin.amount}개</strong>를{' '}
+                  <strong>{pendingBulkCoin.operation === 'give' ? '지급' : '회수'}</strong>합니다. 이 작업은 되돌릴 수
+                  없습니다.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isFetching}>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmBulkCoin} disabled={isFetching}>
               실행
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
