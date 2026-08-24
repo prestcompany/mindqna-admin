@@ -41,9 +41,7 @@ export const createPushColumns = (actions: PushRowActions): ColumnDef<AdminPushI
     header: '대상',
     cell: ({ row }) => {
       const item = row.original;
-      return item.target === 'ALL'
-        ? `전체 · ${item.locale ?? '—'}`
-        : `개인 · ${(item.userNames ?? []).length}명`;
+      return item.target === 'ALL' ? `전체 · ${item.locale ?? '—'}` : `개인 · ${(item.userNames ?? []).length}명`;
     },
   },
   {
@@ -51,8 +49,8 @@ export const createPushColumns = (actions: PushRowActions): ColumnDef<AdminPushI
     header: '제목',
     cell: ({ row }) => (
       <div className='min-w-0'>
-        <div className='truncate text-slate-900'>{row.original.title}</div>
-        <div className='truncate text-xs text-slate-600'>{row.original.message}</div>
+        <div className='truncate text-foreground'>{row.original.title}</div>
+        <div className='truncate text-xs text-muted-foreground'>{row.original.message}</div>
       </div>
     ),
   },
@@ -62,16 +60,14 @@ export const createPushColumns = (actions: PushRowActions): ColumnDef<AdminPushI
     cell: ({ row }) => (
       <div className='tabular-nums'>
         <div>{dayjs(row.original.pushAt).format('YYYY.MM.DD HH:mm')}</div>
-        <div className='text-xs text-slate-600'>{relativeTime(row.original.pushAt)}</div>
+        <div className='text-xs text-muted-foreground'>{relativeTime(row.original.pushAt)}</div>
       </div>
     ),
   },
   {
     accessorKey: 'status',
     header: '상태',
-    cell: ({ row }) => (
-      <PushStatusBadge status={row.original.status} failedCount={row.original.failedCount} />
-    ),
+    cell: ({ row }) => <PushStatusBadge status={row.original.status} failedCount={row.original.failedCount} />,
   },
   {
     id: 'progress',

@@ -36,7 +36,7 @@ function SpaceTab({ dashboard }: SpaceTabProps) {
       <div className='grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.9fr)]'>
         <Card className='border-border bg-white'>
           <CardHeader>
-            <CardTitle className='text-base text-slate-950'>선택 기간 공간 성장</CardTitle>
+            <CardTitle className='text-base text-foreground'>선택 기간 공간 성장</CardTitle>
             <CardDescription>날짜 필터가 적용되는 공간 증가만 분리해서 비교합니다.</CardDescription>
           </CardHeader>
           <CardContent>

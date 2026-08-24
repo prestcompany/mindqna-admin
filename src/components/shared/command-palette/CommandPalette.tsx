@@ -103,13 +103,13 @@ function CommandPalette() {
     <CommandDialog open={open} onOpenChange={setOpen} shouldFilter={false}>
       <CommandInput value={query} onValueChange={setQuery} placeholder='메뉴 이동 · 유저/스페이스 검색 (2자 이상)' />
       <CommandList>
-        {isSearching ? <div className='px-3 py-2 text-xs text-slate-600'>검색 중…</div> : null}
+        {isSearching ? <div className='px-3 py-2 text-xs text-muted-foreground'>검색 중…</div> : null}
         {!isSearching ? <CommandEmpty>결과가 없습니다.</CommandEmpty> : null}
         {filteredMenus.length > 0 ? (
           <CommandGroup heading='메뉴'>
             {filteredMenus.map((entry) => (
               <CommandItem key={entry.id} value={`${entry.group} ${entry.name}`} onSelect={() => go(entry.path)}>
-                {entry.group ? <span className='mr-1 text-slate-500'>{entry.group} ·</span> : null}
+                {entry.group ? <span className='mr-1 text-muted-foreground'>{entry.group} ·</span> : null}
                 {entry.name}
               </CommandItem>
             ))}
@@ -123,7 +123,7 @@ function CommandPalette() {
                 value={`user ${userLookup.data.username}`}
                 onSelect={() => go(`/user/list?username=${encodeURIComponent(userLookup.data.username)}`)}
               >
-                <User className='mr-2 h-4 w-4 text-slate-500' />
+                <User className='mr-2 h-4 w-4 text-muted-foreground' />
                 유저 상세 열기: {userLookup.data.username}
               </CommandItem>
             </CommandGroup>
@@ -142,7 +142,7 @@ function CommandPalette() {
                     value={`space ${space.id}`}
                     onSelect={() => go(`/space/list?spaceId=${encodeURIComponent(space.id)}`)}
                   >
-                    <Building2 className='mr-2 h-4 w-4 text-slate-500' />
+                    <Building2 className='mr-2 h-4 w-4 text-muted-foreground' />
                     <span className='truncate'>스페이스 열기: {spaceLabel}</span>
                   </CommandItem>
                 );

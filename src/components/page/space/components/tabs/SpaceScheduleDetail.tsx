@@ -22,12 +22,12 @@ function SpaceScheduleDetail({ spaceId, scheduleId }: { spaceId: string; schedul
     <div className='space-y-3 text-sm'>
       {data.memo ? (
         <div>
-          <div className='text-xs font-medium text-slate-600'>메모</div>
-          <p className='mt-0.5 whitespace-pre-wrap break-words text-slate-600'>{data.memo}</p>
+          <div className='text-xs font-medium text-muted-foreground'>메모</div>
+          <p className='mt-0.5 whitespace-pre-wrap break-words text-muted-foreground'>{data.memo}</p>
         </div>
       ) : null}
       <div>
-        <div className='mb-1 text-xs font-medium text-slate-600'>일정 날짜 ({data.items.length})</div>
+        <div className='mb-1 text-xs font-medium text-muted-foreground'>일정 날짜 ({data.items.length})</div>
         {data.items.length ? (
           <div className='flex flex-wrap gap-1.5'>
             {data.items.map((it) => (
@@ -37,21 +37,21 @@ function SpaceScheduleDetail({ spaceId, scheduleId }: { spaceId: string; schedul
             ))}
           </div>
         ) : (
-          <div className='text-xs text-slate-600'>등록된 날짜 없음</div>
+          <div className='text-xs text-muted-foreground'>등록된 날짜 없음</div>
         )}
       </div>
       <div>
-        <div className='mb-1 text-xs font-medium text-slate-600'>참여 멤버 ({data.memberMetas.length})</div>
+        <div className='mb-1 text-xs font-medium text-muted-foreground'>참여 멤버 ({data.memberMetas.length})</div>
         {data.memberMetas.length ? (
           <div className='flex flex-wrap gap-1.5'>
             {data.memberMetas.map((m) => (
-              <span key={m.id} className='rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700'>
+              <span key={m.id} className='rounded-full bg-muted px-2 py-0.5 text-xs text-foreground'>
                 {m.profile?.nickname ?? '-'}
               </span>
             ))}
           </div>
         ) : (
-          <div className='text-xs text-slate-600'>참여 멤버 없음</div>
+          <div className='text-xs text-muted-foreground'>참여 멤버 없음</div>
         )}
       </div>
     </div>

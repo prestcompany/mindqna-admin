@@ -23,11 +23,11 @@ function LocaleDailyUserChart({ series }: LocaleDailyUserChartProps) {
     return (
       <Card className='border-border bg-white'>
         <CardHeader className='space-y-2'>
-          <CardTitle className='text-base text-slate-950'>{series.title}</CardTitle>
+          <CardTitle className='text-base text-foreground'>{series.title}</CardTitle>
           <CardDescription>{series.description}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className='flex h-[320px] items-center justify-center rounded-2xl border border-dashed border-border bg-slate-50/70 text-sm text-slate-500'>
+          <div className='flex h-[320px] items-center justify-center rounded-2xl border border-dashed border-border bg-canvas/70 text-sm text-muted-foreground'>
             표시할 가입자 증가 데이터가 없습니다.
           </div>
         </CardContent>
@@ -100,7 +100,7 @@ function LocaleDailyUserChart({ series }: LocaleDailyUserChartProps) {
   return (
     <Card className='border-border bg-white'>
       <CardHeader className='space-y-2'>
-        <CardTitle className='text-base text-slate-950'>{series.title}</CardTitle>
+        <CardTitle className='text-base text-foreground'>{series.title}</CardTitle>
         <CardDescription>{series.description}</CardDescription>
       </CardHeader>
       <CardContent>

@@ -588,7 +588,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                             'px-1 text-xs',
                             isSelected &&
                               'border-sky-500 bg-sky-500 text-white hover:border-sky-600 hover:bg-sky-600 hover:text-white',
-                            !isSelected && option.value.y >= 5 && 'bg-slate-100 hover:bg-slate-200',
+                            !isSelected && option.value.y >= 5 && 'bg-muted hover:bg-border',
                           )}
                         >
                           {option.label}

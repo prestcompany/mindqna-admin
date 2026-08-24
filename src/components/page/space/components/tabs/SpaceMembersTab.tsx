@@ -35,8 +35,8 @@ function SpaceMembersTab({ spaceId, active, copyId, onRemoveProfile }: SpaceMemb
   return (
     <section className='space-y-2'>
       <div className='flex items-center gap-2'>
-        <h3 className='text-base font-semibold text-slate-900'>멤버 {data.profiles.length}</h3>
-        <span className='text-xs text-slate-600'>활성 {activeCount}명</span>
+        <h3 className='text-base font-semibold text-foreground'>멤버 {data.profiles.length}</h3>
+        <span className='text-xs text-muted-foreground'>활성 {activeCount}명</span>
       </div>
       <div className='space-y-2'>
         {data.profiles.map((p) => {
@@ -54,7 +54,9 @@ function SpaceMembersTab({ spaceId, active, copyId, onRemoveProfile }: SpaceMemb
                 >
                   <Avatar className='h-9 w-9 shrink-0'>
                     {p.img?.uri ? <AvatarImage src={p.img.uri} alt={p.nickname} className='object-cover' /> : null}
-                    <AvatarFallback className='bg-muted text-sm font-semibold text-muted-foreground'>{initial}</AvatarFallback>
+                    <AvatarFallback className='bg-muted text-sm font-semibold text-muted-foreground'>
+                      {initial}
+                    </AvatarFallback>
                   </Avatar>
                   <div className='min-w-0 flex-1 space-y-1'>
                     <div className='flex flex-wrap items-center gap-2'>
@@ -67,7 +69,11 @@ function SpaceMembersTab({ spaceId, active, copyId, onRemoveProfile }: SpaceMemb
                     <div className='truncate text-xs text-muted-foreground'>@{p.user?.username ?? '-'}</div>
                     <div className='flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground'>
                       <span>가입 {dayjs(p.createdAt).format('YY.MM.DD')}</span>
-                      {status.date ? <span>{status.label} {dayjs(status.date).format('YY.MM.DD')}</span> : null}
+                      {status.date ? (
+                        <span>
+                          {status.label} {dayjs(status.date).format('YY.MM.DD')}
+                        </span>
+                      ) : null}
                     </div>
                   </div>
                   <ChevronDown

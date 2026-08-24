@@ -69,11 +69,11 @@ function LocaleShareChart({
     return (
       <Card className='border-border bg-white'>
         <CardHeader className='space-y-2'>
-          <CardTitle className='text-base text-slate-950'>{title}</CardTitle>
+          <CardTitle className='text-base text-foreground'>{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className='flex h-[320px] items-center justify-center rounded-2xl border border-dashed border-border bg-slate-50/70 text-sm text-slate-500'>
+          <div className='flex h-[320px] items-center justify-center rounded-2xl border border-dashed border-border bg-canvas/70 text-sm text-muted-foreground'>
             표시할 로케일 비중이 없습니다.
           </div>
         </CardContent>
@@ -177,7 +177,7 @@ function LocaleShareChart({
   return (
     <Card className='border-border bg-white'>
       <CardHeader className='space-y-2'>
-        <CardTitle className='text-base text-slate-950'>{title}</CardTitle>
+        <CardTitle className='text-base text-foreground'>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className='space-y-4'>
@@ -204,18 +204,18 @@ function LocaleShareChart({
             return (
               <div
                 key={row.locale}
-                className='flex items-center justify-between rounded-lg border border-border bg-slate-50/70 px-3 py-2'
+                className='flex items-center justify-between rounded-lg border border-border bg-canvas/70 px-3 py-2'
               >
                 <div className='flex items-center gap-2'>
                   <span
                     className='h-2.5 w-2.5 rounded-full'
                     style={{ backgroundColor: colors[index % colors.length] }}
                   />
-                  <span className='text-sm font-medium text-slate-800'>{row.label}</span>
+                  <span className='text-sm font-medium text-foreground'>{row.label}</span>
                 </div>
                 <div className='text-right'>
-                  <p className='text-sm font-semibold text-slate-950'>{value.toLocaleString('ko-KR')}</p>
-                  <p className='text-xs text-slate-600'>{share.toFixed(1)}%</p>
+                  <p className='text-sm font-semibold text-foreground'>{value.toLocaleString('ko-KR')}</p>
+                  <p className='text-xs text-muted-foreground'>{share.toFixed(1)}%</p>
                 </div>
               </div>
             );

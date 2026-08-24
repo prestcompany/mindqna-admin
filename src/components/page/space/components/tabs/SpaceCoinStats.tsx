@@ -7,7 +7,7 @@ import { ArrowDownRight, ArrowUpRight, Loader2, Minus } from 'lucide-react';
 function ChangeRate({ rate }: { rate: number | null }) {
   if (rate === null) {
     return (
-      <span className='inline-flex items-center gap-0.5 text-xs text-slate-600'>
+      <span className='inline-flex items-center gap-0.5 text-xs text-muted-foreground'>
         <Minus className='h-3 w-3' />
         직전 0
       </span>
@@ -15,7 +15,9 @@ function ChangeRate({ rate }: { rate: number | null }) {
   }
   const up = rate >= 0;
   return (
-    <span className={cn('inline-flex items-center gap-0.5 text-xs font-medium', up ? 'text-emerald-600' : 'text-rose-600')}>
+    <span
+      className={cn('inline-flex items-center gap-0.5 text-xs font-medium', up ? 'text-success' : 'text-destructive')}
+    >
       {up ? <ArrowUpRight className='h-3 w-3' /> : <ArrowDownRight className='h-3 w-3' />}
       {up ? '+' : ''}
       {Math.round(rate * 100)}%
@@ -28,17 +30,17 @@ function StatCard({ label, window }: { label: string; window: CoinStatWindow }) 
   return (
     <div className='rounded-lg border border-border bg-white p-4'>
       <div className='flex items-center justify-between'>
-        <span className='text-xs font-medium text-slate-600'>{label}</span>
+        <span className='text-xs font-medium text-muted-foreground'>{label}</span>
         <ChangeRate rate={window.changeRate} />
       </div>
-      <div className={cn('mt-1 text-2xl font-semibold tabular-nums', netUp ? 'text-slate-900' : 'text-rose-600')}>
+      <div className={cn('mt-1 text-2xl font-semibold tabular-nums', netUp ? 'text-foreground' : 'text-destructive')}>
         {netUp ? '+' : ''}
         {window.current.net.toLocaleString()}
       </div>
-      <div className='mt-1 flex items-center gap-2 text-xs tabular-nums text-slate-600'>
-        <span className='text-emerald-600'>지급 {window.current.given.toLocaleString()}</span>
-        <span className='text-slate-300'>·</span>
-        <span className='text-rose-600'>사용 {window.current.used.toLocaleString()}</span>
+      <div className='mt-1 flex items-center gap-2 text-xs tabular-nums text-muted-foreground'>
+        <span className='text-success'>지급 {window.current.given.toLocaleString()}</span>
+        <span className='text-faint'>·</span>
+        <span className='text-destructive'>사용 {window.current.used.toLocaleString()}</span>
       </div>
     </div>
   );

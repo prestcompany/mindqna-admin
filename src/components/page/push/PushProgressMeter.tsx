@@ -12,9 +12,9 @@ function PushProgressMeter({ sentCount, failedCount, targetCount, isApproximate 
 
   return (
     <div className='space-y-1'>
-      <div className='tabular-nums text-slate-900'>
+      <div className='tabular-nums text-foreground'>
         {sentCount.toLocaleString()}
-        <span className='text-slate-500'>
+        <span className='text-muted-foreground'>
           {' / '}
           {targetCount === null ? '—' : `${isApproximate ? '약 ' : ''}${targetCount.toLocaleString()}`}
           {percent !== null && ` · ${percent}%`}
@@ -30,7 +30,7 @@ function PushProgressMeter({ sentCount, failedCount, targetCount, isApproximate 
           aria-valuemin={0}
           aria-valuemax={targetCount ?? 0}
         >
-          <div className='h-full bg-slate-900' style={{ width: `${ratio * 100}%` }} />
+          <div className='h-full bg-foreground' style={{ width: `${ratio * 100}%` }} />
         </div>
       )}
     </div>

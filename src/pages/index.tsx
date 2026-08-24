@@ -48,8 +48,10 @@ const IndexPage: IDefaultLayoutPage = () => {
     <div className='space-y-6'>
       <Card className='border-border bg-white'>
         <CardHeader>
-          <CardTitle className='text-lg tracking-heading text-slate-900'>빠른 이동</CardTitle>
-          <CardDescription className='text-slate-500'>자주 사용하는 운영 메뉴를 바로 열 수 있습니다.</CardDescription>
+          <CardTitle className='text-lg tracking-heading text-foreground'>빠른 이동</CardTitle>
+          <CardDescription className='text-muted-foreground'>
+            자주 사용하는 운영 메뉴를 바로 열 수 있습니다.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className='grid gap-3 sm:grid-cols-2 xl:grid-cols-4'>
@@ -59,17 +61,17 @@ const IndexPage: IDefaultLayoutPage = () => {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className='group rounded-lg border border-border bg-white p-4 transition-colors hover:border-slate-300 hover:bg-slate-50'
+                  className='group rounded-lg border border-border bg-white p-4 transition-colors hover:border-border hover:bg-canvas'
                 >
                   <div className='flex items-center justify-between'>
-                    <div className='rounded-md border border-border bg-slate-50 p-2 text-slate-700'>
+                    <div className='rounded-md border border-border bg-canvas p-2 text-foreground'>
                       <Icon className='h-4 w-4' />
                     </div>
-                    <ArrowRight className='h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-0.5' />
+                    <ArrowRight className='h-4 w-4 text-faint transition-transform group-hover:translate-x-0.5' />
                   </div>
                   <div className='mt-4'>
-                    <div className='text-sm font-semibold text-slate-900'>{item.title}</div>
-                    <div className='mt-1 text-xs text-slate-500'>{item.description}</div>
+                    <div className='text-sm font-semibold text-foreground'>{item.title}</div>
+                    <div className='mt-1 text-xs text-muted-foreground'>{item.description}</div>
                   </div>
                 </Link>
               );

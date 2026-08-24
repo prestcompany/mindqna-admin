@@ -257,7 +257,7 @@ function SpaceEditPanel({ detail, onCancel, onSaved }: SpaceEditPanelProps) {
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setPendingBody(null)}>취소</AlertDialogCancel>
             <AlertDialogAction
-              className='bg-rose-600 text-white hover:bg-rose-700'
+              className='bg-destructive text-white hover:bg-destructive'
               onClick={() => {
                 if (pendingBody) mutation.mutate(pendingBody);
                 setConfirmOpen(false);

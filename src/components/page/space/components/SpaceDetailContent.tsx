@@ -41,19 +41,19 @@ function DetailField({
 }) {
   return (
     <div className='flex items-start gap-3'>
-      <span className='mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500'>
+      <span className='mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground'>
         <Icon className='h-4 w-4' />
       </span>
       <div className='min-w-0'>
-        <div className='text-xs text-slate-600'>{label}</div>
-        <div className={cn('mt-0.5 break-words text-sm font-medium text-slate-900', valueClassName)}>{value}</div>
+        <div className='text-xs text-muted-foreground'>{label}</div>
+        <div className={cn('mt-0.5 break-words text-sm font-medium text-foreground', valueClassName)}>{value}</div>
       </div>
     </div>
   );
 }
 
 function SectionTitle({ children }: { children: ReactNode }) {
-  return <h3 className='mb-2 text-base font-semibold text-slate-900'>{children}</h3>;
+  return <h3 className='mb-2 text-base font-semibold text-foreground'>{children}</h3>;
 }
 
 function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
@@ -74,10 +74,14 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
     <div className='space-y-6'>
       {/* KPI 그리드 — 숫자가 주인공. 0은 회색으로 */}
       <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6'>
-        <SpaceStatTile label='하트' value={detail.coin} accent={getMetricAccent(detail.coin, 'text-rose-500')} />
-        <SpaceStatTile label='스타' value={detail.coinPaid} accent={getMetricAccent(detail.coinPaid, 'text-amber-500')} />
-        <SpaceStatTile label='멤버' value={memberCount} accent={getMetricAccent(memberCount, 'text-slate-950')} />
-        <SpaceStatTile label='답변' value={replies} accent={getMetricAccent(replies, 'text-slate-950')} />
+        <SpaceStatTile label='하트' value={detail.coin} accent={getMetricAccent(detail.coin, 'text-destructive')} />
+        <SpaceStatTile
+          label='스타'
+          value={detail.coinPaid}
+          accent={getMetricAccent(detail.coinPaid, 'text-warning-foreground')}
+        />
+        <SpaceStatTile label='멤버' value={memberCount} accent={getMetricAccent(memberCount, 'text-foreground')} />
+        <SpaceStatTile label='답변' value={replies} accent={getMetricAccent(replies, 'text-foreground')} />
         <SpaceStatTile label='펫' value={`Lv.${petLevel}`} sub={`EXP ${petExp.toFixed(1)}`} />
         <SpaceStatTile label='방 / 인테리어' value={`${roomCount} / ${interiorCount}`} />
       </div>
@@ -93,12 +97,16 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
             value={detail.spaceInfo?.startedAt ? formatDate(detail.spaceInfo.startedAt, 'YY.MM.DD') : '-'}
           />
           <DetailField icon={Home} label='방 구성' value={roomSummary ?? `방 ${roomCount}`} />
-          <DetailField icon={History} label='최근 수정일' value={detail.updatedAt ? formatDate(detail.updatedAt) : '-'} />
+          <DetailField
+            icon={History}
+            label='최근 수정일'
+            value={detail.updatedAt ? formatDate(detail.updatedAt) : '-'}
+          />
           <DetailField
             icon={Trash2}
             label='삭제예정일'
             value={dueRemovedMeta ? `${dueRemovedMeta.dateText} (${dueRemovedMeta.gapLabel})` : '예정 없음'}
-            valueClassName={dueRemovedMeta ? 'text-rose-600' : undefined}
+            valueClassName={dueRemovedMeta ? 'text-destructive' : undefined}
           />
         </div>
       </section>
@@ -116,32 +124,49 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
               const status = getMemberStatus(profile);
               const showAccessLine = Boolean(latestAccessAt) || Boolean(status.date);
               return (
-                <div key={profile.id} className='flex items-start gap-3 rounded-lg border border-border bg-white px-3 py-2.5'>
+                <div
+                  key={profile.id}
+                  className='flex items-start gap-3 rounded-lg border border-border bg-white px-3 py-2.5'
+                >
                   <Avatar className='h-9 w-9 shrink-0'>
-                    {profile.img?.uri ? <AvatarImage src={profile.img.uri} alt={profile.nickname} className='object-cover' /> : null}
-                    <AvatarFallback className='bg-slate-100 text-sm font-semibold text-slate-500'>{initial}</AvatarFallback>
+                    {profile.img?.uri ? (
+                      <AvatarImage src={profile.img.uri} alt={profile.nickname} className='object-cover' />
+                    ) : null}
+                    <AvatarFallback className='bg-muted text-sm font-semibold text-muted-foreground'>
+                      {initial}
+                    </AvatarFallback>
                   </Avatar>
                   <div className='min-w-0 flex-1 space-y-1'>
                     <div className='flex flex-wrap items-center gap-2'>
-                      <span className='truncate font-medium text-slate-900'>{profile.nickname}</span>
+                      <span className='truncate font-medium text-foreground'>{profile.nickname}</span>
                       {isOwner ? <Badge variant='softNeutral'>OWNER</Badge> : null}
                       {profile.isPremium ? <Badge variant='softSuccess'>PREMIUM</Badge> : null}
                       {profile.isGoldClub ? <Badge variant='softWarning'>GOLD CLUB</Badge> : null}
                       {profile.isAccepted === false ? <Badge variant='softWarning'>수락대기</Badge> : null}
                       {status.badgeVariant ? <Badge variant={status.badgeVariant}>{status.label}</Badge> : null}
                     </div>
-                    <div className='truncate text-xs text-slate-600'>
+                    <div className='truncate text-xs text-muted-foreground'>
                       @{profile.user?.username ?? '-'}
                       {userCode ? ` · #${userCode}` : ''}
                     </div>
                     {showAccessLine ? (
-                      <div className='flex flex-wrap gap-x-3 text-xs text-slate-600'>
+                      <div className='flex flex-wrap gap-x-3 text-xs text-muted-foreground'>
                         {latestAccessAt ? <span>최근 접속 {formatDate(latestAccessAt, 'YY.MM.DD HH:mm')}</span> : null}
-                        {status.date ? <span>{status.label} {formatDate(status.date, 'YY.MM.DD')}</span> : null}
+                        {status.date ? (
+                          <span>
+                            {status.label} {formatDate(status.date, 'YY.MM.DD')}
+                          </span>
+                        ) : null}
                       </div>
                     ) : null}
                   </div>
-                  <Button type='button' variant='ghost' size='sm' className='h-9 shrink-0' onClick={() => copyId(profile.user?.username ?? profile.id)}>
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='sm'
+                    className='h-9 shrink-0'
+                    onClick={() => copyId(profile.user?.username ?? profile.id)}
+                  >
                     복사
                   </Button>
                 </div>
@@ -149,7 +174,9 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
             })}
           </div>
         ) : (
-          <div className='rounded-lg border border-border bg-white px-4 py-6 text-center text-sm text-slate-500'>멤버 정보가 없습니다.</div>
+          <div className='rounded-lg border border-border bg-white px-4 py-6 text-center text-sm text-muted-foreground'>
+            멤버 정보가 없습니다.
+          </div>
         )}
       </section>
 
@@ -157,7 +184,7 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
       <section>
         <SectionTitle>최근 재화 이용 내역</SectionTitle>
         {detail.recentCoinMetas?.length ? (
-          <div className='max-h-[420px] divide-y divide-slate-100 overflow-y-auto rounded-lg border border-border bg-white px-4'>
+          <div className='max-h-[420px] divide-y divide-border overflow-y-auto rounded-lg border border-border bg-white px-4'>
             {detail.recentCoinMetas.map((meta) => {
               const actorName = meta.profile?.nickname ?? meta.profile?.user?.username ?? '-';
               const isSpend = meta.isUse || meta.amount < 0;
@@ -167,23 +194,27 @@ function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
                     {meta.isPaid ? '스타' : '하트'}
                   </Badge>
                   <div className='min-w-0 flex-1'>
-                    <div className='truncate text-sm font-medium text-slate-900'>{actorName}</div>
-                    <div className='truncate text-xs text-slate-600'>
+                    <div className='truncate text-sm font-medium text-foreground'>{actorName}</div>
+                    <div className='truncate text-xs text-muted-foreground'>
                       {isSpend ? '사용' : '지급'} · {meta.description || '사유 없음'}
                     </div>
                   </div>
                   <div className='shrink-0 text-right'>
-                    <div className={cn('text-sm font-bold tabular-nums', isSpend ? 'text-rose-600' : 'text-emerald-600')}>
+                    <div
+                      className={cn('text-sm font-bold tabular-nums', isSpend ? 'text-destructive' : 'text-success')}
+                    >
                       {buildCoinMetaLabel(meta)}
                     </div>
-                    <div className='text-xs text-slate-600'>{formatDate(meta.createdAt, 'MM.DD HH:mm')}</div>
+                    <div className='text-xs text-muted-foreground'>{formatDate(meta.createdAt, 'MM.DD HH:mm')}</div>
                   </div>
                 </div>
               );
             })}
           </div>
         ) : (
-          <div className='rounded-lg border border-border bg-white px-4 py-6 text-center text-sm text-slate-500'>최근 재화 이용 내역이 없습니다.</div>
+          <div className='rounded-lg border border-border bg-white px-4 py-6 text-center text-sm text-muted-foreground'>
+            최근 재화 이용 내역이 없습니다.
+          </div>
         )}
       </section>
     </div>

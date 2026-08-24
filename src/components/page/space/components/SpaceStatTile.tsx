@@ -12,11 +12,11 @@ interface SpaceStatTileProps {
 function SpaceStatTile({ label, value, sub, accent }: SpaceStatTileProps) {
   return (
     <div className='rounded-lg border border-border bg-white p-4'>
-      <div className='text-sm font-medium text-slate-600'>{label}</div>
-      <div className={cn('mt-1 text-2xl font-semibold tracking-tight tabular-nums', accent ?? 'text-slate-950')}>
+      <div className='text-sm font-medium text-muted-foreground'>{label}</div>
+      <div className={cn('mt-1 text-2xl font-semibold tracking-tight tabular-nums', accent ?? 'text-foreground')}>
         {value}
       </div>
-      {sub ? <div className='mt-0.5 text-xs text-slate-600'>{sub}</div> : null}
+      {sub ? <div className='mt-0.5 text-xs text-muted-foreground'>{sub}</div> : null}
     </div>
   );
 }

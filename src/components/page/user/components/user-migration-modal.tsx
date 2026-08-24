@@ -104,7 +104,7 @@ function UserMigrationModal({ open, onClose, onSuccess }: UserMigrationModalProp
     <>
       <Sheet open={open} onOpenChange={(o) => !o && handleCancel()}>
         <AdminSideSheetContent title='로그인 수단 교체' size='md'>
-          <div className='rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700'>
+          <div className='rounded-md border border-warning/35 bg-warning/15 p-3 text-sm text-warning-foreground'>
             <p className='font-medium'>주의: 되돌릴 수 없는 작업입니다</p>
             <p className='mt-1'>
               기존 계정의 로그인 수단이 새 계정의 로그인 정보로 교체되며, 새 계정은 임시 상태로 변경됩니다.
@@ -147,7 +147,7 @@ function UserMigrationModal({ open, onClose, onSuccess }: UserMigrationModalProp
                 </DefinitionRow>
               </div>
 
-              <div className='rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800'>
+              <div className='rounded-md border border-info/25 bg-info/10 p-4 text-sm text-info'>
                 <div className='mb-2 font-medium'>교체되는 정보:</div>
                 <ul className='ml-4 list-disc space-y-1'>
                   <li>로그인 제공자 (Google, Kakao, Apple, Line 등)</li>

@@ -16,7 +16,7 @@ function SpaceDiaryDetail({ spaceId, diaryId }: { spaceId: string; diaryId: numb
     );
   }
   if (!data) return null;
-  return <p className='whitespace-pre-wrap break-words text-sm text-slate-600'>{data.content || '내용 없음'}</p>;
+  return <p className='whitespace-pre-wrap break-words text-sm text-muted-foreground'>{data.content || '내용 없음'}</p>;
 }
 
 export default SpaceDiaryDetail;

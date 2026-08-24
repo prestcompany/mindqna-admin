@@ -47,7 +47,7 @@ const LoginForm = () => {
   return (
     <>
       {router?.query.error && router?.query.error !== 'CredentialsSignin' ? (
-        <div className='mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700'>
+        <div className='mb-4 rounded-lg border border-warning/35 bg-warning/15 px-3 py-2 text-sm text-warning-foreground'>
           로그인 중 오류가 발생했습니다. {router?.query.error}
         </div>
       ) : null}
@@ -55,7 +55,7 @@ const LoginForm = () => {
         <form onSubmit={form.handleSubmit(handleFinish)} className='space-y-4'>
           <div>
             {router?.query.error === 'CredentialsSignin' ? (
-              <div className='rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700'>
+              <div className='rounded-lg border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm text-destructive'>
                 로그인을 실패했습니다. 아이디 또는 비밀번호를 다시 확인해주세요.
               </div>
             ) : (
@@ -67,11 +67,11 @@ const LoginForm = () => {
             name='email'
             render={({ field }) => (
               <FormItem>
-                <Label className='text-sm font-medium text-slate-700'>이메일</Label>
+                <Label className='text-sm font-medium text-foreground'>이메일</Label>
                 <FormControl>
                   <Input
                     placeholder='admin@example.com'
-                    className='h-11 border-border bg-slate-50 text-base focus-visible:ring-slate-900'
+                    className='h-11 border-border bg-canvas text-base focus-visible:ring-foreground'
                     {...field}
                   />
                 </FormControl>
@@ -84,12 +84,12 @@ const LoginForm = () => {
             name='password'
             render={({ field }) => (
               <FormItem>
-                <Label className='text-sm font-medium text-slate-700'>비밀번호</Label>
+                <Label className='text-sm font-medium text-foreground'>비밀번호</Label>
                 <FormControl>
                   <Input
                     placeholder='비밀번호'
                     type='password'
-                    className='h-11 border-border bg-slate-50 text-base focus-visible:ring-slate-900'
+                    className='h-11 border-border bg-canvas text-base focus-visible:ring-foreground'
                     {...field}
                   />
                 </FormControl>
@@ -101,7 +101,7 @@ const LoginForm = () => {
           <Button
             type='submit'
             size='lg'
-            className='h-11 w-full bg-slate-900 text-white hover:bg-slate-800'
+            className='h-11 w-full bg-foreground text-white hover:bg-foreground'
             disabled={isLoading}
           >
             {isLoading ? '로그인 중...' : '로그인'}
@@ -109,7 +109,7 @@ const LoginForm = () => {
 
           <button
             type='button'
-            className='inline-block text-sm text-slate-500 transition-colors hover:text-slate-900'
+            className='inline-block text-sm text-muted-foreground transition-colors hover:text-foreground'
             onClick={() => setShowPasswordModal(true)}
           >
             비밀번호 찾기
@@ -122,8 +122,9 @@ const LoginForm = () => {
           <DialogHeader>
             <DialogTitle>비밀번호 찾기</DialogTitle>
           </DialogHeader>
-          <div className='text-sm text-slate-700'>
-            임시 로그인 정보는 <code className='rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-800'>admin / admin</code> 입니다.
+          <div className='text-sm text-foreground'>
+            임시 로그인 정보는{' '}
+            <code className='rounded bg-muted px-1.5 py-0.5 text-xs text-foreground'>admin / admin</code> 입니다.
           </div>
         </DialogContent>
       </Dialog>

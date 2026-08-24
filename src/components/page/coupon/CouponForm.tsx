@@ -210,7 +210,7 @@ function CouponForm({ init, reload, close }: Props) {
   // Constraints belong beside the outcome they constrain, not buried in the field list.
   const notices =
     isClosed || isLocked ? (
-      <div className='space-y-2 border-t border-border pt-3 text-xs leading-relaxed text-slate-600'>
+      <div className='space-y-2 border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground'>
         {isClosed && <p>이미 종료된 쿠폰입니다. 만료일을 오늘 이후로 바꿔야 다시 사용할 수 있습니다.</p>}
         {isLocked && (
           <p>
@@ -261,7 +261,7 @@ function CouponForm({ init, reload, close }: Props) {
                             ]}
                           />
                         </FormControl>
-                        <p className='text-xs text-slate-500'>
+                        <p className='text-xs text-muted-foreground'>
                           {isShared ? '코드 하나를 여러 사람이 사용합니다.' : '서로 다른 코드를 1인 1장씩 사용합니다.'}
                         </p>
                         <FormMessage />
@@ -397,7 +397,7 @@ function CouponForm({ init, reload, close }: Props) {
                       key={days}
                       type='button'
                       onClick={() => applyQuickRange(days)}
-                      className='inline-flex h-8 items-center rounded-full border border-border bg-card px-3 text-xs font-medium text-slate-600 transition-colors duration-fast hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                      className='inline-flex h-8 items-center rounded-full border border-border bg-card px-3 text-xs font-medium text-muted-foreground transition-colors duration-fast hover:bg-canvas focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
                     >
                       오늘부터 {days}일
                     </button>
@@ -496,7 +496,7 @@ function CouponForm({ init, reload, close }: Props) {
           </div>
 
           <div className='flex items-center gap-3 border-t bg-card px-4 py-3'>
-            <p className='min-w-0 truncate text-xs text-slate-500'>
+            <p className='min-w-0 truncate text-xs text-muted-foreground'>
               {isEdit ? '변경 내용은 이 배치의 모든 코드에 적용됩니다.' : '발급 후 코드는 목록에서 펼쳐 복사합니다.'}
             </p>
             <div className='ml-auto flex shrink-0 gap-2'>

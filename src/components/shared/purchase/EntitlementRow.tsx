@@ -17,12 +17,12 @@ function EntitlementRow({ label, t }: { label: string; t: UserEntitlementTicket 
         {label}
       </Badge>
       <div className='min-w-0 flex-1'>
-        <div className='truncate text-sm font-medium text-slate-900'>{t.productId}</div>
-        <div className='truncate text-xs text-slate-600'>
+        <div className='truncate text-sm font-medium text-foreground'>{t.productId}</div>
+        <div className='truncate text-xs text-muted-foreground'>
           {t.platform.toUpperCase()} · {t.dueAt ? `만료 ${dayjs(t.dueAt).format('YYYY.MM.DD')}` : '만료 없음'}
         </div>
       </div>
-      <span className={cn('shrink-0 text-xs font-medium', live ? 'text-emerald-600' : 'text-slate-500')}>
+      <span className={cn('shrink-0 text-xs font-medium', live ? 'text-success' : 'text-muted-foreground')}>
         {live ? '활성' : '비활성'}
       </span>
     </div>

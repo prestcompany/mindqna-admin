@@ -86,8 +86,8 @@ function DashboardFilterBar({
               className={cn(
                 'h-10 rounded-full px-4 text-sm transition-all',
                 granularity === 'month'
-                  ? 'bg-slate-900 text-white hover:bg-slate-800'
-                  : 'border-border bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700',
+                  ? 'bg-foreground text-white hover:bg-foreground'
+                  : 'border-border bg-white text-foreground hover:border-info/25 hover:bg-info/10 hover:text-info',
               )}
               onClick={() => onGranularityChange('month')}
             >
@@ -101,8 +101,8 @@ function DashboardFilterBar({
               className={cn(
                 'h-10 rounded-full px-4 text-sm transition-all',
                 granularity === 'day'
-                  ? 'bg-slate-900 text-white hover:bg-slate-800'
-                  : 'border-border bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700',
+                  ? 'bg-foreground text-white hover:bg-foreground'
+                  : 'border-border bg-white text-foreground hover:border-info/25 hover:bg-info/10 hover:text-info',
               )}
               onClick={() => onGranularityChange('day')}
             >
@@ -112,20 +112,20 @@ function DashboardFilterBar({
         </section>
 
         <div className='grid gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]'>
-          <section className='rounded-2xl border border-border bg-slate-50/80 p-4'>
+          <section className='rounded-2xl border border-border bg-canvas/80 p-4'>
             <div className='flex flex-wrap items-start justify-between gap-3'>
               <div className='space-y-1'>
-                <div className='flex items-center gap-2 text-sm font-semibold text-slate-900'>
-                  <CalendarRange className='h-4 w-4 text-blue-600' />
+                <div className='flex items-center gap-2 text-sm font-semibold text-foreground'>
+                  <CalendarRange className='h-4 w-4 text-info' />
                   기간
                 </div>
-                <p className='text-xs leading-5 text-slate-600'>
+                <p className='text-xs leading-5 text-muted-foreground'>
                   {granularity === 'day'
                     ? '아래 성장 KPI, 차트, 로케일 비교에만 적용되는 기준 날짜 범위를 선택하세요.'
                     : '아래 성장 KPI, 차트, 로케일 비교에만 적용되는 기준 월 범위를 선택하세요.'}
                 </p>
               </div>
-              <div className='rounded-full border border-border bg-white px-3 py-1 text-xs font-medium text-slate-600'>
+              <div className='rounded-full border border-border bg-white px-3 py-1 text-xs font-medium text-muted-foreground'>
                 {granularity === 'day' ? '일 단위 집계' : '월 단위 집계'}
               </div>
             </div>
@@ -144,8 +144,8 @@ function DashboardFilterBar({
                       className={cn(
                         'h-10 rounded-full px-4 text-sm transition-all',
                         active
-                          ? 'bg-blue-600 text-white hover:bg-blue-700'
-                          : 'border-border bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700',
+                          ? 'bg-info text-white hover:bg-info'
+                          : 'border-border bg-white text-foreground hover:border-info/25 hover:bg-info/10 hover:text-info',
                       )}
                       onClick={() => onPresetChange(option.value)}
                     >
@@ -165,14 +165,14 @@ function DashboardFilterBar({
               ) : (
                 <div className='grid gap-3 sm:grid-cols-2'>
                   <div className='space-y-1.5'>
-                    <p className='text-xs font-medium text-slate-600'>시작 월</p>
+                    <p className='text-xs font-medium text-muted-foreground'>시작 월</p>
                     <Select
                       value={startedMonthValue}
                       onValueChange={(value) => {
                         setStartedAt(dayjs(value).startOf('month'));
                       }}
                     >
-                      <SelectTrigger className='h-10 w-full border-border bg-white text-sm text-slate-700'>
+                      <SelectTrigger className='h-10 w-full border-border bg-white text-sm text-foreground'>
                         <SelectValue placeholder='시작 월 선택' />
                       </SelectTrigger>
                       <SelectContent>
@@ -186,14 +186,14 @@ function DashboardFilterBar({
                   </div>
 
                   <div className='space-y-1.5'>
-                    <p className='text-xs font-medium text-slate-600'>종료 월</p>
+                    <p className='text-xs font-medium text-muted-foreground'>종료 월</p>
                     <Select
                       value={endedMonthValue}
                       onValueChange={(value) => {
                         setEndedAt(dayjs(value).endOf('month'));
                       }}
                     >
-                      <SelectTrigger className='h-10 w-full border-border bg-white text-sm text-slate-700'>
+                      <SelectTrigger className='h-10 w-full border-border bg-white text-sm text-foreground'>
                         <SelectValue placeholder='종료 월 선택' />
                       </SelectTrigger>
                       <SelectContent>
@@ -208,7 +208,7 @@ function DashboardFilterBar({
                 </div>
               )}
 
-              <p className='text-xs leading-5 text-slate-600'>
+              <p className='text-xs leading-5 text-muted-foreground'>
                 {granularity === 'day'
                   ? '대시보드 성장 지표는 종료일 기준 누적과 일별 증가 기준으로 집계되며, 선택한 기간 동안 얼마나 늘었는지 함께 보여줍니다.'
                   : '대시보드 성장 지표는 월말 누적과 월별 증가 기준으로 집계되며, 선택한 월 범위 동안 얼마나 늘었는지 함께 보여줍니다.'}
@@ -219,15 +219,15 @@ function DashboardFilterBar({
           <section className='rounded-2xl border border-border bg-white p-4'>
             <div className='flex flex-wrap items-start justify-between gap-3'>
               <div className='space-y-1'>
-                <div className='flex items-center gap-2 text-sm font-semibold text-slate-900'>
-                  <Globe2 className='h-4 w-4 text-blue-600' />
+                <div className='flex items-center gap-2 text-sm font-semibold text-foreground'>
+                  <Globe2 className='h-4 w-4 text-info' />
                   국가 / 로케일
                 </div>
-                <p className='text-xs leading-5 text-slate-600'>
+                <p className='text-xs leading-5 text-muted-foreground'>
                   비교할 시장을 좁혀서 리더보드를 빠르게 읽을 수 있습니다.
                 </p>
               </div>
-              <div className='rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700'>
+              <div className='rounded-full border border-info/25 bg-info/10 px-3 py-1 text-xs font-medium text-info'>
                 {selectedLocales.length}개 선택
               </div>
             </div>
@@ -241,8 +241,8 @@ function DashboardFilterBar({
                 className={cn(
                   'h-10 rounded-full border px-4 text-sm transition-all',
                   allSelected
-                    ? 'border-slate-900 bg-slate-900 text-white hover:bg-slate-800'
-                    : 'border-border bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700',
+                    ? 'border-foreground bg-foreground text-white hover:bg-foreground'
+                    : 'border-border bg-white text-foreground hover:border-info/25 hover:bg-info/10 hover:text-info',
                 )}
                 onClick={onSelectAllLocales}
               >
@@ -262,8 +262,8 @@ function DashboardFilterBar({
                     className={cn(
                       'h-10 rounded-full border px-4 text-sm transition-all',
                       active
-                        ? 'border-blue-600 bg-blue-50 text-blue-700 hover:bg-blue-100'
-                        : 'border-border bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700',
+                        ? 'border-info bg-info/10 text-info hover:bg-info/10'
+                        : 'border-border bg-white text-foreground hover:border-info/25 hover:bg-info/10 hover:text-info',
                     )}
                     onClick={() => onToggleLocale(locale)}
                   >

@@ -17,8 +17,8 @@ export const createPdfExportHistoryColumns = (actions: PdfExportHistoryActionsPr
     size: 200,
     cell: ({ row }) => (
       <div className='min-w-0'>
-        <div className='truncate font-medium text-slate-900'>{row.original.spaceName || '(이름 없음)'}</div>
-        <div className='truncate font-mono text-xs text-slate-600'>{row.original.spaceId}</div>
+        <div className='truncate font-medium text-foreground'>{row.original.spaceName || '(이름 없음)'}</div>
+        <div className='truncate font-mono text-xs text-muted-foreground'>{row.original.spaceId}</div>
       </div>
     ),
   },
@@ -28,8 +28,8 @@ export const createPdfExportHistoryColumns = (actions: PdfExportHistoryActionsPr
     size: 190,
     cell: ({ row }) => (
       <div className='min-w-0'>
-        <div className='truncate text-slate-900'>{row.original.nickname}</div>
-        <div className='truncate font-mono text-xs text-slate-600'>{row.original.username}</div>
+        <div className='truncate text-foreground'>{row.original.nickname}</div>
+        <div className='truncate font-mono text-xs text-muted-foreground'>{row.original.username}</div>
       </div>
     ),
   },
@@ -38,7 +38,7 @@ export const createPdfExportHistoryColumns = (actions: PdfExportHistoryActionsPr
     header: '카드 범위',
     size: 108,
     cell: ({ row }) => (
-      <span className='tabular-nums text-slate-700'>
+      <span className='tabular-nums text-foreground'>
         {row.original.startOrder}–{row.original.endOrder}
       </span>
     ),
@@ -47,20 +47,20 @@ export const createPdfExportHistoryColumns = (actions: PdfExportHistoryActionsPr
     accessorKey: 'count',
     header: '포함 카드',
     size: 92,
-    cell: ({ row }) => <span className='font-medium tabular-nums text-slate-900'>{row.original.count}</span>,
+    cell: ({ row }) => <span className='font-medium tabular-nums text-foreground'>{row.original.count}</span>,
   },
   {
     accessorKey: 'cost',
     header: '차감 코인',
     size: 92,
-    cell: ({ row }) => <span className='tabular-nums text-slate-700'>{row.original.cost}</span>,
+    cell: ({ row }) => <span className='tabular-nums text-foreground'>{row.original.cost}</span>,
   },
   {
     id: 'download',
     header: '다운로드',
     size: 104,
     cell: ({ row }) => (
-      <span className='tabular-nums text-slate-700'>
+      <span className='tabular-nums text-foreground'>
         {row.original.downloadCount} / {row.original.maxDownloadCount}
       </span>
     ),
@@ -76,7 +76,7 @@ export const createPdfExportHistoryColumns = (actions: PdfExportHistoryActionsPr
     header: '발급일',
     size: 150,
     cell: ({ row }) => (
-      <span className='text-sm text-slate-500'>{dayjs(row.original.createdAt).format('YY.MM.DD HH:mm')}</span>
+      <span className='text-sm text-muted-foreground'>{dayjs(row.original.createdAt).format('YY.MM.DD HH:mm')}</span>
     ),
   },
   {
@@ -84,7 +84,7 @@ export const createPdfExportHistoryColumns = (actions: PdfExportHistoryActionsPr
     header: '만료일',
     size: 132,
     cell: ({ row }) => (
-      <span className='text-sm text-slate-500'>{dayjs(row.original.expiresAt).format('YY.MM.DD')}</span>
+      <span className='text-sm text-muted-foreground'>{dayjs(row.original.expiresAt).format('YY.MM.DD')}</span>
     ),
   },
   {

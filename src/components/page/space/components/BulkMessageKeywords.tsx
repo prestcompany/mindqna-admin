@@ -43,7 +43,7 @@ function BulkMessageKeywords({ onPick }: BulkMessageKeywordsProps) {
   const remove = (word: string) => persist(keywords.filter((k) => k !== word));
 
   const chipBase =
-    'inline-flex items-center rounded-full border border-border bg-white text-xs font-medium text-slate-600';
+    'inline-flex items-center rounded-full border border-border bg-white text-xs font-medium text-muted-foreground';
 
   return (
     <div className='flex flex-wrap items-center gap-1.5'>
@@ -52,7 +52,7 @@ function BulkMessageKeywords({ onPick }: BulkMessageKeywordsProps) {
           <button
             type='button'
             onClick={() => onPick(keyword)}
-            className='transition-colors hover:text-slate-900'
+            className='transition-colors hover:text-foreground'
             title='메시지에 입력'
           >
             {keyword}
@@ -61,7 +61,7 @@ function BulkMessageKeywords({ onPick }: BulkMessageKeywordsProps) {
             type='button'
             aria-label={`${keyword} 키워드 삭제`}
             onClick={() => remove(keyword)}
-            className='ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700'
+            className='ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full text-faint transition-colors hover:bg-muted hover:text-foreground'
           >
             <X className='h-3 w-3' />
           </button>
@@ -84,13 +84,13 @@ function BulkMessageKeywords({ onPick }: BulkMessageKeywordsProps) {
           }}
           onBlur={commitDraft}
           placeholder='키워드 입력 후 Enter'
-          className='h-7 w-40 rounded-full border border-slate-300 px-3 text-xs outline-none focus:border-slate-400'
+          className='h-7 w-40 rounded-full border border-border px-3 text-xs outline-none focus:border-mute'
         />
       ) : (
         <button
           type='button'
           onClick={() => setAdding(true)}
-          className={cn(chipBase, 'gap-1 border-dashed py-1 pl-2 pr-3 text-slate-500 hover:text-slate-700')}
+          className={cn(chipBase, 'gap-1 border-dashed py-1 pl-2 pr-3 text-muted-foreground hover:text-foreground')}
         >
           <Plus className='h-3 w-3' />
           키워드 등록

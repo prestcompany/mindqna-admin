@@ -19,9 +19,7 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-export type PurchaseDetailContext =
-  | { type: 'purchase'; purchaseId: number }
-  | { type: 'ticket'; ticket: IAPProduct };
+export type PurchaseDetailContext = { type: 'purchase'; purchaseId: number } | { type: 'ticket'; ticket: IAPProduct };
 
 interface PurchaseDetailSheetProps {
   open: boolean;
@@ -34,8 +32,8 @@ const PLATFORM_LABEL: Record<string, string> = { IOS: 'iOS', AOS: 'Android', EVE
 function SummaryField({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className='space-y-1'>
-      <div className='text-xs font-medium text-slate-600'>{label}</div>
-      <div className='flex min-h-6 items-center text-sm text-slate-900'>{children}</div>
+      <div className='text-xs font-medium text-muted-foreground'>{label}</div>
+      <div className='flex min-h-6 items-center text-sm text-foreground'>{children}</div>
     </div>
   );
 }
@@ -43,11 +41,11 @@ function SummaryField({ label, children }: { label: string; children: ReactNode 
 function CopyableValue({ value, label }: { value: string; label: string }) {
   return (
     <div className='flex items-center gap-1'>
-      <span className='truncate font-mono text-sm text-slate-700'>{value}</span>
+      <span className='truncate font-mono text-sm text-foreground'>{value}</span>
       <Button
         variant='ghost'
         size='sm'
-        className='h-6 w-6 shrink-0 p-0 hover:bg-slate-100'
+        className='h-6 w-6 shrink-0 p-0 hover:bg-muted'
         aria-label={`${label} 복사`}
         onClick={() => {
           navigator.clipboard.writeText(value);
@@ -63,7 +61,7 @@ function CopyableValue({ value, label }: { value: string; label: string }) {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className='space-y-2 border-t border-border pt-4'>
-      <h4 className='text-xs font-semibold text-slate-600'>{title}</h4>
+      <h4 className='text-xs font-semibold text-muted-foreground'>{title}</h4>
       {children}
     </section>
   );
@@ -106,7 +104,7 @@ function UserContextSections({ username }: { username: string }) {
               <EntitlementRow key={`g-${t.id}`} label='골드클럽' t={t} />
             ))}
             {tickets.length === 0 && golds.length === 0 ? (
-              <div className='text-xs text-slate-600'>DB에 저장된 이용권이 없습니다.</div>
+              <div className='text-xs text-muted-foreground'>DB에 저장된 이용권이 없습니다.</div>
             ) : null}
           </div>
         )}
@@ -118,7 +116,7 @@ function UserContextSections({ username }: { username: string }) {
             <Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />
           </div>
         ) : historyItems.length === 0 ? (
-          <div className='text-xs text-slate-600'>결제 이력이 없습니다.</div>
+          <div className='text-xs text-muted-foreground'>결제 이력이 없습니다.</div>
         ) : (
           <div className='space-y-2'>
             {historyItems.map((row) => (
@@ -213,7 +211,11 @@ function PurchaseSummary({ context }: { context: PurchaseDetailContext }) {
 
       <div className='grid grid-cols-2 gap-3'>
         <SummaryField label='유저'>
-          {p.username ? <CopyableValue value={p.username} label='유저' /> : <CopyableValue value={p.userId} label='유저 ID' />}
+          {p.username ? (
+            <CopyableValue value={p.username} label='유저' />
+          ) : (
+            <CopyableValue value={p.userId} label='유저 ID' />
+          )}
         </SummaryField>
         {p.price ? <SummaryField label='가격 (이력 기준)'>{p.price}</SummaryField> : null}
         <SummaryField label='상품 ID'>
@@ -257,8 +259,7 @@ function PurchaseSummary({ context }: { context: PurchaseDetailContext }) {
 function PurchaseDetailSheet({ open, context, onClose }: PurchaseDetailSheetProps) {
   if (!context) return null;
 
-  const username =
-    context.type === 'purchase' ? undefined : context.ticket.owner?.username;
+  const username = context.type === 'purchase' ? undefined : context.ticket.owner?.username;
 
   return (
     <Sheet open={open} onOpenChange={(next) => !next && onClose()}>
@@ -274,7 +275,7 @@ function PurchaseDetailSheet({ open, context, onClose }: PurchaseDetailSheetProp
           ) : username ? (
             <UserContextSections username={username} />
           ) : (
-            <div className='rounded-lg border border-border bg-slate-50 p-3 text-xs text-slate-600'>
+            <div className='rounded-lg border border-border bg-canvas p-3 text-xs text-muted-foreground'>
               탈퇴한 유저입니다. 이용권/이력 조회를 사용할 수 없습니다.
             </div>
           )}
@@ -290,7 +291,7 @@ function PurchaseUserSections({ purchaseId }: { purchaseId: number }) {
   if (!detail.data) return null;
   if (!detail.data.username) {
     return (
-      <div className='rounded-lg border border-border bg-slate-50 p-3 text-xs text-slate-600'>
+      <div className='rounded-lg border border-border bg-canvas p-3 text-xs text-muted-foreground'>
         탈퇴한 유저입니다. 이용권/이력 조회를 사용할 수 없습니다.
       </div>
     );

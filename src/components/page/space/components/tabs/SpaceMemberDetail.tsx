@@ -7,9 +7,9 @@ import { getMemberStatus } from '../../utils/space-display';
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className='rounded-lg bg-slate-50 px-3 py-2 text-center'>
-      <div className='text-sm font-semibold tabular-nums text-slate-900'>{value.toLocaleString()}</div>
-      <div className='text-xs text-slate-600'>{label}</div>
+    <div className='rounded-lg bg-canvas px-3 py-2 text-center'>
+      <div className='text-sm font-semibold tabular-nums text-foreground'>{value.toLocaleString()}</div>
+      <div className='text-xs text-muted-foreground'>{label}</div>
     </div>
   );
 }
@@ -52,10 +52,10 @@ function SpaceMemberDetail({ spaceId, profileId, copyId }: SpaceMemberDetailProp
       </div>
       {status.badgeVariant ? (
         <div className='flex flex-wrap items-center gap-2'>
-          <span className='truncate text-sm font-medium text-slate-900'>{data.profile.nickname}</span>
+          <span className='truncate text-sm font-medium text-foreground'>{data.profile.nickname}</span>
           <Badge variant={status.badgeVariant}>{status.label}</Badge>
           {status.date ? (
-            <span className='text-xs text-slate-600'>
+            <span className='text-xs text-muted-foreground'>
               {status.label} {dayjs(status.date).format('YY.MM.DD')}
             </span>
           ) : null}
@@ -69,29 +69,36 @@ function SpaceMemberDetail({ spaceId, profileId, copyId }: SpaceMemberDetailProp
         <Stat label='일기 댓글' value={data.counts.diaryCommentCount} />
       </div>
       <div className='flex items-center gap-2 text-sm'>
-        <span className='text-xs text-slate-600'>재화</span>
-        <span className='tabular-nums text-emerald-600'>지급 {data.coin.given.toLocaleString()}</span>
-        <span className='text-slate-300'>·</span>
-        <span className='tabular-nums text-rose-600'>사용 {data.coin.used.toLocaleString()}</span>
+        <span className='text-xs text-muted-foreground'>재화</span>
+        <span className='tabular-nums text-success'>지급 {data.coin.given.toLocaleString()}</span>
+        <span className='text-faint'>·</span>
+        <span className='tabular-nums text-destructive'>사용 {data.coin.used.toLocaleString()}</span>
       </div>
       <div>
-        <div className='mb-1 text-xs font-medium text-slate-600'>프리미엄 티켓 ({data.premiumTickets.length})</div>
+        <div className='mb-1 text-xs font-medium text-muted-foreground'>
+          프리미엄 티켓 ({data.premiumTickets.length})
+        </div>
         {data.premiumTickets.length ? (
           <div className='space-y-1'>
             {data.premiumTickets.map((t) => (
-              <div key={t.id} className='flex items-center justify-between rounded-lg border border-border bg-white px-3 py-2 text-xs'>
-                <span className='truncate text-slate-700'>
+              <div
+                key={t.id}
+                className='flex items-center justify-between rounded-lg border border-border bg-white px-3 py-2 text-xs'
+              >
+                <span className='truncate text-foreground'>
                   {t.platform} · {t.productId}
                 </span>
                 <div className='flex shrink-0 items-center gap-2'>
                   <Badge variant={t.isActive ? 'softSuccess' : 'softNeutral'}>{t.isActive ? '활성' : '만료'}</Badge>
-                  <span className='text-slate-500'>{t.dueAt ? `~${dayjs(t.dueAt).format('YY.MM.DD')}` : '-'}</span>
+                  <span className='text-muted-foreground'>
+                    {t.dueAt ? `~${dayjs(t.dueAt).format('YY.MM.DD')}` : '-'}
+                  </span>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className='text-xs text-slate-600'>프리미엄 티켓 없음</div>
+          <div className='text-xs text-muted-foreground'>프리미엄 티켓 없음</div>
         )}
       </div>
     </div>

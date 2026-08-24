@@ -24,14 +24,11 @@ function UserPushesTab({ username, active }: { username: string; active: boolean
       onPageChange={setPage}
     >
       {items.map((row) => (
-        <div
-          key={row.id}
-          className='flex items-start gap-3 rounded-lg border border-border bg-white px-4 py-3'
-        >
+        <div key={row.id} className='flex items-start gap-3 rounded-lg border border-border bg-white px-4 py-3'>
           <div className='min-w-0 flex-1'>
-            <div className='truncate text-sm font-medium text-slate-900'>{row.title}</div>
-            {row.desc ? <div className='truncate text-xs text-slate-600'>{row.desc}</div> : null}
-            <div className='text-xs text-slate-600'>{dayjs(row.createdAt).format('YYYY.MM.DD HH:mm')}</div>
+            <div className='truncate text-sm font-medium text-foreground'>{row.title}</div>
+            {row.desc ? <div className='truncate text-xs text-muted-foreground'>{row.desc}</div> : null}
+            <div className='text-xs text-muted-foreground'>{dayjs(row.createdAt).format('YYYY.MM.DD HH:mm')}</div>
           </div>
           <Badge variant={row.isChecked ? 'softSuccess' : 'softNeutral'} className='shrink-0'>
             {row.isChecked ? '확인' : '미확인'}

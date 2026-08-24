@@ -16,14 +16,14 @@ export function FilterChips({ chips, onRemove }: { chips: FilterChipItem[]; onRe
       {chips.map((chip) => (
         <span
           key={chip.key}
-          className='inline-flex items-center gap-1 rounded-full border border-border bg-white py-0.5 pl-2.5 pr-1 text-xs font-medium text-slate-600'
+          className='inline-flex items-center gap-1 rounded-full border border-border bg-white py-0.5 pl-2.5 pr-1 text-xs font-medium text-muted-foreground'
         >
           {chip.label}
           <button
             type='button'
             aria-label={`${chip.label} 필터 제거`}
             onClick={() => onRemove(chip.key)}
-            className='-my-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-slate-500 transition-colors duration-fast hover:bg-slate-100 hover:text-slate-700'
+            className='-my-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground transition-colors duration-fast hover:bg-muted hover:text-foreground'
           >
             <X className='h-3 w-3' />
           </button>

@@ -135,7 +135,7 @@ function CouponCodeList({ batch }: { batch: CouponBatch }) {
               ? '미사용 코드가 없습니다.'
               : '표시할 코드가 없습니다.';
 
-      return <div className='px-3 py-6 text-center text-sm text-slate-500'>{message}</div>;
+      return <div className='px-3 py-6 text-center text-sm text-muted-foreground'>{message}</div>;
     }
 
     return visible.map((item: CouponCode, index) => (
@@ -144,19 +144,19 @@ function CouponCodeList({ batch }: { batch: CouponBatch }) {
         type='button'
         onClick={() => copyOne(item.code)}
         aria-label={`코드 ${item.code} 복사`}
-        className={`group h-9 rounded-md px-2 text-left text-sm transition-colors duration-fast hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${gridClass}`}
+        className={`group h-9 rounded-md px-2 text-left text-sm transition-colors duration-fast hover:bg-canvas focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${gridClass}`}
       >
-        {!isShared && <span className='truncate font-mono text-slate-900'>{item.code}</span>}
+        {!isShared && <span className='truncate font-mono text-foreground'>{item.code}</span>}
         {!isShared && (
           <span>
             <Badge variant={item.usedAt ? 'dotSuccess' : 'dotNeutral'}>{item.usedAt ? '사용' : '미사용'}</Badge>
           </span>
         )}
-        <span className='truncate text-slate-700'>{item.username ?? ''}</span>
-        <span className='tabular-nums text-xs text-slate-500'>
+        <span className='truncate text-foreground'>{item.username ?? ''}</span>
+        <span className='tabular-nums text-xs text-muted-foreground'>
           {item.usedAt ? dayjs(item.usedAt).format('YY.MM.DD HH:mm') : ''}
         </span>
-        <Copy className='h-3.5 w-3.5 shrink-0 text-slate-400 opacity-0 transition-opacity duration-fast group-hover:opacity-100 group-focus-visible:opacity-100' />
+        <Copy className='h-3.5 w-3.5 shrink-0 text-faint opacity-0 transition-opacity duration-fast group-hover:opacity-100 group-focus-visible:opacity-100' />
       </button>
     ));
   };
@@ -167,11 +167,11 @@ function CouponCodeList({ batch }: { batch: CouponBatch }) {
           which row they opened. It also holds the 발급일 and 모드 the table no longer shows. */}
       <div className='flex flex-wrap items-start gap-3 border-b border-border px-3 py-2.5'>
         <div className='min-w-0'>
-          <div className='truncate text-sm font-semibold tracking-heading text-slate-900'>{batch.name}</div>
-          <div className='truncate text-xs text-slate-600'>
+          <div className='truncate text-sm font-semibold tracking-heading text-foreground'>{batch.name}</div>
+          <div className='truncate text-xs text-muted-foreground'>
             {isShared ? (
               <>
-                공용 코드 <span className='font-mono text-slate-900'>{batch.code}</span>
+                공용 코드 <span className='font-mono text-foreground'>{batch.code}</span>
               </>
             ) : (
               '개별 코드'
@@ -208,7 +208,7 @@ function CouponCodeList({ batch }: { batch: CouponBatch }) {
                 onClick={() => setFilter(option.value)}
                 aria-pressed={filter === option.value}
                 className={`h-8 border-r border-border px-3 text-xs font-medium transition-colors duration-fast last:border-r-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring ${
-                  filter === option.value ? 'bg-slate-900 text-white' : 'bg-card text-slate-700 hover:bg-slate-50'
+                  filter === option.value ? 'bg-foreground text-white' : 'bg-card text-foreground hover:bg-canvas'
                 }`}
               >
                 {option.label}
@@ -247,7 +247,7 @@ function CouponCodeList({ batch }: { batch: CouponBatch }) {
 
       {isError ? (
         <div className='flex items-center justify-between gap-3 px-3 py-4 text-sm'>
-          <span className='text-slate-500'>코드를 불러오지 못했습니다.</span>
+          <span className='text-muted-foreground'>코드를 불러오지 못했습니다.</span>
           <div className='flex items-center gap-1'>
             {/* 다시 시도 re-requests the page that just failed, so a deep page needs a way out. */}
             {page > 1 && (
@@ -262,7 +262,9 @@ function CouponCodeList({ batch }: { batch: CouponBatch }) {
         </div>
       ) : (
         <>
-          <div className={`grid ${gridClass} h-7 border-b border-border bg-muted/40 px-2 text-xs text-muted-foreground`}>
+          <div
+            className={`grid ${gridClass} h-7 border-b border-border bg-muted/40 px-2 text-xs text-muted-foreground`}
+          >
             {!isShared && <span>코드</span>}
             {!isShared && <span>상태</span>}
             <span>사용자</span>
@@ -277,7 +279,7 @@ function CouponCodeList({ batch }: { batch: CouponBatch }) {
       )}
 
       {!isError && (
-        <div className='flex items-center gap-2 border-t border-border px-3 py-2 text-xs text-slate-500'>
+        <div className='flex items-center gap-2 border-t border-border px-3 py-2 text-xs text-muted-foreground'>
           {canLoadAll ? (
             <span>
               전체 {batch.codeCount}개 중 {visible.length}개 표시
@@ -295,7 +297,7 @@ function CouponCodeList({ batch }: { batch: CouponBatch }) {
                 >
                   이전
                 </Button>
-                <span className='px-2 tabular-nums text-slate-600'>
+                <span className='px-2 tabular-nums text-muted-foreground'>
                   {page} / {totalPage}
                 </span>
                 <Button

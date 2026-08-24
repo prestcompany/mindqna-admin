@@ -130,7 +130,7 @@ function DataTable<TData, TValue>({
         'sticky right-0 border-l border-border bg-card',
         variant === 'head'
           ? 'z-30 shadow-[-10px_0_18px_-18px_rgba(0,0,0,0.35)]'
-          : 'z-20 group-hover:bg-slate-50 group-data-[state=selected]:bg-muted shadow-[-10px_0_18px_-18px_rgba(0,0,0,0.18)]',
+          : 'z-20 group-hover:bg-canvas group-data-[state=selected]:bg-muted shadow-[-10px_0_18px_-18px_rgba(0,0,0,0.18)]',
       );
     }
 
@@ -139,7 +139,7 @@ function DataTable<TData, TValue>({
         'sticky left-0 border-r border-border bg-card',
         variant === 'head'
           ? 'z-30 shadow-[10px_0_18px_-18px_rgba(0,0,0,0.35)]'
-          : 'z-20 group-hover:bg-slate-50 group-data-[state=selected]:bg-muted shadow-[10px_0_18px_-18px_rgba(0,0,0,0.18)]',
+          : 'z-20 group-hover:bg-canvas group-data-[state=selected]:bg-muted shadow-[10px_0_18px_-18px_rgba(0,0,0,0.18)]',
       );
     }
 
@@ -208,7 +208,7 @@ function DataTable<TData, TValue>({
   return (
     <div className='space-y-4'>
       {countLabel !== undefined && (
-        <div className='text-sm font-medium text-slate-600'>{numeral(countLabel).format('0,0')}건</div>
+        <div className='text-sm font-medium text-muted-foreground'>{numeral(countLabel).format('0,0')}건</div>
       )}
       <TooltipProvider delayDuration={150}>
         {/* Geist: 흰 카드 + 헤어라인. 캔버스(#fafafa)와의 명도 차가 분리를 만들므로 그림자 없음 */}
@@ -221,7 +221,7 @@ function DataTable<TData, TValue>({
                     <TableHead
                       key={header.id}
                       className={cn(
-                        'h-9 overflow-hidden whitespace-nowrap text-ellipsis text-xs font-medium text-slate-600',
+                        'h-9 overflow-hidden whitespace-nowrap text-ellipsis text-xs font-medium text-muted-foreground',
                         getStickyColumnClassName(header.column.columnDef, 'head'),
                       )}
                       style={getColumnStyle(header.column.columnDef.size)}
@@ -279,8 +279,8 @@ function DataTable<TData, TValue>({
                         className={cn(
                           'group transition-colors duration-fast',
                           handleRowClick &&
-                            'cursor-pointer hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring',
-                          row.getIsExpanded() && 'bg-slate-50',
+                            'cursor-pointer hover:bg-canvas focus-visible:bg-canvas focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring',
+                          row.getIsExpanded() && 'bg-canvas',
                           rowProps?.className,
                         )}
                       >
@@ -288,7 +288,7 @@ function DataTable<TData, TValue>({
                           <TableCell
                             key={cell.id}
                             className={cn(
-                              'max-w-0 overflow-hidden py-2 text-sm tabular-nums text-slate-700',
+                              'max-w-0 overflow-hidden py-2 text-sm tabular-nums text-foreground',
                               getStickyColumnClassName(cell.column.columnDef, 'cell'),
                             )}
                             style={getColumnStyle(cell.column.columnDef.size)}
@@ -302,7 +302,7 @@ function DataTable<TData, TValue>({
                           {/* Same tint as the expanded parent row so the pair reads as one
                               unit, and the bottom hairline stays so the panel closes inside
                               the table instead of bleeding into the page. */}
-                          <TableCell colSpan={row.getVisibleCells().length} className='bg-slate-50 p-3'>
+                          <TableCell colSpan={row.getVisibleCells().length} className='bg-canvas p-3'>
                             {expandable.expandedRowRender(row.original)}
                           </TableCell>
                         </TableRow>
@@ -312,7 +312,7 @@ function DataTable<TData, TValue>({
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={columns.length} className='h-24 text-center text-sm text-slate-500'>
+                  <TableCell colSpan={columns.length} className='h-24 text-center text-sm text-muted-foreground'>
                     {emptyState ?? '데이터가 없습니다'}
                   </TableCell>
                 </TableRow>

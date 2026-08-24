@@ -112,7 +112,7 @@ export function AssetsPickerPanel({ onSelect, onBack, selectedImage, className }
                   onClick={() => onSelect(item)}
                   className={cn(
                     'group relative overflow-hidden rounded-lg border bg-card text-left transition-colors duration-fast focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
-                    isSelected ? 'border-primary ring-1 ring-primary' : 'border-border hover:border-slate-300',
+                    isSelected ? 'border-primary ring-1 ring-primary' : 'border-border hover:border-border',
                   )}
                 >
                   {isSelected && (

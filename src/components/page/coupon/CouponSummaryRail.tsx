@@ -27,8 +27,8 @@ type Props = {
 function Line({ label, value }: { label: string; value: string }) {
   return (
     <div className='flex items-baseline justify-between gap-3 border-b border-border py-1.5 last:border-b-0'>
-      <span className='shrink-0 text-xs text-slate-500'>{label}</span>
-      <span className='truncate text-right text-xs font-medium text-slate-900'>{value}</span>
+      <span className='shrink-0 text-xs text-muted-foreground'>{label}</span>
+      <span className='truncate text-right text-xs font-medium text-foreground'>{value}</span>
     </div>
   );
 }
@@ -72,8 +72,8 @@ function CouponSummaryRail({ values, mode = 'create', notices }: Props) {
         <div className='text-xs text-muted-foreground'>
           {mode === 'edit' ? '이렇게 저장됩니다' : '이렇게 발급됩니다'}
         </div>
-        <div className='mt-1.5 break-words text-sm font-semibold tracking-heading text-slate-900'>
-          {values.name.trim() || <span className='font-normal text-slate-400'>이름 없음</span>}
+        <div className='mt-1.5 break-words text-sm font-semibold tracking-heading text-foreground'>
+          {values.name.trim() || <span className='font-normal text-faint'>이름 없음</span>}
         </div>
       </div>
 

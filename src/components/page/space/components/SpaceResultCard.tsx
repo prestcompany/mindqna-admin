@@ -29,16 +29,16 @@ function SpaceResultCard({ space, onOpenDetail, onOpenCoin, copyId }: SpaceResul
           onOpenDetail(space);
         }
       }}
-      className='flex cursor-pointer items-center gap-4 rounded-lg border border-border bg-white px-4 py-3 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300'
+      className='flex cursor-pointer items-center gap-4 rounded-lg border border-border bg-white px-4 py-3 transition-colors hover:bg-canvas focus:outline-none focus-visible:ring-2 focus-visible:ring-border'
     >
       <div className='min-w-0 flex-1'>
         <div className='flex flex-wrap items-center gap-2'>
-          <span className='truncate font-semibold text-slate-900'>{space.spaceInfo?.name ?? '-'}</span>
+          <span className='truncate font-semibold text-foreground'>{space.spaceInfo?.name ?? '-'}</span>
           <Badge variant={typeConfig.variant}>{typeConfig.text}</Badge>
           <Badge variant='softNeutral'>{space.spaceInfo?.locale?.toUpperCase() ?? '-'}</Badge>
           <SpaceStatusDot active={space.isActive} />
         </div>
-        <div className='mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-600'>
+        <div className='mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground'>
           <button
             type='button'
             onClick={(event) => {
@@ -46,18 +46,26 @@ function SpaceResultCard({ space, onOpenDetail, onOpenCoin, copyId }: SpaceResul
               copyId(space.id);
             }}
             onKeyDown={(event) => event.stopPropagation()}
-            className='font-mono transition-colors hover:text-slate-900'
+            className='font-mono transition-colors hover:text-foreground'
           >
             {space.id}
           </button>
           <span>멤버 {memberCount}</span>
           <span>답변 {replies}</span>
-          <span className='tabular-nums'>하트 {space.coin} · 스타 {space.coinPaid}</span>
+          <span className='tabular-nums'>
+            하트 {space.coin} · 스타 {space.coinPaid}
+          </span>
           <span>{createdLabel}</span>
         </div>
       </div>
       <div className='shrink-0' onClick={(event) => event.stopPropagation()}>
-        <Button type='button' variant='outline' size='sm' onClick={() => onOpenCoin(space)} onKeyDown={(event) => event.stopPropagation()}>
+        <Button
+          type='button'
+          variant='outline'
+          size='sm'
+          onClick={() => onOpenCoin(space)}
+          onKeyDown={(event) => event.stopPropagation()}
+        >
           코인 관리
         </Button>
       </div>

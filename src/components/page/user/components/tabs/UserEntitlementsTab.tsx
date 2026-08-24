@@ -12,8 +12,8 @@ function Section({ title, count, children }: { title: string; count: number; chi
   if (count === 0) return null;
   return (
     <section className='space-y-2'>
-      <h4 className='text-xs font-semibold text-slate-600'>
-        {title} <span className='tabular-nums text-slate-500'>{count}</span>
+      <h4 className='text-xs font-semibold text-muted-foreground'>
+        {title} <span className='tabular-nums text-muted-foreground'>{count}</span>
       </h4>
       <div className='space-y-3'>{children}</div>
     </section>
@@ -73,16 +73,13 @@ function UserEntitlementsTab({ username, active }: { username: string; active: b
 
       <Section title='구독 이력' count={subs.length}>
         {subs.map((s) => (
-          <div
-            key={`s-${s.id}`}
-            className='flex items-center gap-3 rounded-lg border border-border bg-white px-4 py-3'
-          >
+          <div key={`s-${s.id}`} className='flex items-center gap-3 rounded-lg border border-border bg-white px-4 py-3'>
             <Badge variant='softNeutral' className='w-16 shrink-0 justify-center'>
               구독
             </Badge>
             <div className='min-w-0 flex-1'>
-              <div className='truncate text-sm font-medium text-slate-900'>{s.productId}</div>
-              <div className='truncate text-xs text-slate-600'>
+              <div className='truncate text-sm font-medium text-foreground'>{s.productId}</div>
+              <div className='truncate text-xs text-muted-foreground'>
                 {s.platform.toUpperCase()} · {dayjs(s.createdAt).format('YYYY.MM.DD')}
               </div>
             </div>

@@ -42,7 +42,7 @@ function LocaleGrowthTable({
       size: 160,
       cell: ({ row }) => (
         <div className='flex items-center gap-2'>
-          <span className='font-medium text-slate-900'>{row.original.label}</span>
+          <span className='font-medium text-foreground'>{row.original.label}</span>
           <Badge variant='softNeutral'>{row.original.isTotal ? '합산' : row.original.locale}</Badge>
         </div>
       ),

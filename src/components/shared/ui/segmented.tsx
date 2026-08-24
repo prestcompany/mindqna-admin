@@ -4,7 +4,13 @@ import { cn } from '@/lib/utils';
 
 /**
  * A small set of mutually exclusive options, shown as one object: a track with the chosen
- * option raised out of it.
+ * option filled.
+ *
+ * The chosen option used to be a white "thumb" (bg-card) lifted off the track with a
+ * shadow. That reads well on a dark ground — which is where it was drawn — but this admin
+ * is light-only (theme-provider force-removes `dark`), so it was white on #f2f2f2: a
+ * selection you had to look for. It now uses the same ink inversion as SelectableChip, so
+ * "chosen" means one thing everywhere in the admin. The track still does the grouping.
  *
  * Use this for two or three options that are the same KIND of thing — 전체 / 개인,
  * 즉시 / 예약, 지급 / 회수. The track says "these are alternatives, pick one" before the
@@ -50,8 +56,7 @@ export function Segmented<T extends string>({
               'flex h-8 cursor-pointer items-center justify-center rounded-md px-4',
               'text-sm font-medium text-muted-foreground transition-colors duration-fast',
               'peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-1',
-              'peer-data-[state=checked]:bg-card peer-data-[state=checked]:text-foreground',
-              'peer-data-[state=checked]:shadow-sm',
+              'peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground',
             )}
           >
             {option.label}

@@ -180,15 +180,15 @@ function UserList() {
                   <p>
                     <strong>{confirmTarget?.username}</strong> 사용자를 삭제하시겠습니까?
                   </p>
-                  <div className='mt-2 text-sm text-slate-600'>
+                  <div className='mt-2 text-sm text-muted-foreground'>
                     <p>• 이메일: {confirmTarget?.socialAccount.email}</p>
                     <p>• 가입일: {confirmTarget ? new Date(confirmTarget.createdAt).toLocaleDateString() : ''}</p>
                     <p>• 공간 수: {confirmTarget?._count.profiles}개</p>
                   </div>
                 </div>
-                <div className='p-3 bg-red-50 rounded'>
-                  <p className='font-medium text-red-600'>이 작업은 되돌릴 수 없습니다</p>
-                  <p className='mt-1 text-sm text-red-500'>사용자와 관련된 모든 데이터가 영구적으로 삭제됩니다.</p>
+                <div className='p-3 bg-destructive/10 rounded'>
+                  <p className='font-medium text-destructive'>이 작업은 되돌릴 수 없습니다</p>
+                  <p className='mt-1 text-sm text-destructive'>사용자와 관련된 모든 데이터가 영구적으로 삭제됩니다.</p>
                 </div>
               </div>
             </AlertDialogDescription>

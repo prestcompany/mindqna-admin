@@ -28,32 +28,29 @@ function SpaceCoinsTab({ spaceId, active }: { spaceId: string; active: boolean }
         onPageChange={setPage}
       >
         {items.map((meta) => {
-        const isSpend = meta.isUse || meta.amount < 0;
-        const actor = meta.profile?.nickname ?? meta.profile?.user?.username ?? '-';
-        return (
-          <div
-            key={meta.id}
-            className='flex items-center gap-3 rounded-lg border border-border bg-white px-3 py-2.5'
-          >
-            <Badge variant={meta.isPaid ? 'softWarning' : 'softDanger'} className='w-11 shrink-0 justify-center'>
-              {meta.isPaid ? '스타' : '하트'}
-            </Badge>
-            <div className='min-w-0 flex-1'>
-              <div className='truncate text-sm font-medium text-slate-900'>{actor}</div>
-              <div className='truncate text-xs text-slate-600'>
-                {isSpend ? '사용' : '지급'} · {meta.description || '사유 없음'}
+          const isSpend = meta.isUse || meta.amount < 0;
+          const actor = meta.profile?.nickname ?? meta.profile?.user?.username ?? '-';
+          return (
+            <div key={meta.id} className='flex items-center gap-3 rounded-lg border border-border bg-white px-3 py-2.5'>
+              <Badge variant={meta.isPaid ? 'softWarning' : 'softDanger'} className='w-11 shrink-0 justify-center'>
+                {meta.isPaid ? '스타' : '하트'}
+              </Badge>
+              <div className='min-w-0 flex-1'>
+                <div className='truncate text-sm font-medium text-foreground'>{actor}</div>
+                <div className='truncate text-xs text-muted-foreground'>
+                  {isSpend ? '사용' : '지급'} · {meta.description || '사유 없음'}
+                </div>
+              </div>
+              <div className='shrink-0 text-right'>
+                <div className={cn('text-sm font-bold tabular-nums', isSpend ? 'text-destructive' : 'text-success')}>
+                  {isSpend ? '-' : '+'}
+                  {Math.abs(meta.amount)}
+                </div>
+                <div className='text-xs text-muted-foreground'>{dayjs(meta.createdAt).format('MM.DD HH:mm')}</div>
               </div>
             </div>
-            <div className='shrink-0 text-right'>
-              <div className={cn('text-sm font-bold tabular-nums', isSpend ? 'text-rose-600' : 'text-emerald-600')}>
-                {isSpend ? '-' : '+'}
-                {Math.abs(meta.amount)}
-              </div>
-              <div className='text-xs text-slate-600'>{dayjs(meta.createdAt).format('MM.DD HH:mm')}</div>
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
       </SpaceTabList>
     </div>
   );
