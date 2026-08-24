@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Sheet } from '@/components/ui/sheet';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowDownUp, Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type MouseEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -90,7 +90,12 @@ function UserMigrationModal({ open, onClose, onSuccess }: UserMigrationModalProp
     form.reset();
   };
 
-  const handleConfirmTransfer = () => {
+  // AlertDialogAction renders Radix's DialogPrimitive.Close, which calls onOpenChange(false)
+  // right after this handler — before the awaited transferUser call even starts. Without
+  // preventDefault the confirm surface would vanish mid-request, which is the opposite of
+  // what a confirm step in front of an irreversible transfer is for.
+  const handleConfirmTransfer = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
     if (!pendingValues) return;
     executeTransfer(pendingValues);
   };
@@ -201,8 +206,8 @@ function UserMigrationModal({ open, onClose, onSuccess }: UserMigrationModalProp
             <AlertDialogDescription>
               {pendingValues && (
                 <>
-                  <strong>{pendingValues.newUserName}</strong> 계정의 로그인 수단(제공자, 소셜 계정 ID, 이메일
-                  주소)이 <strong>{pendingValues.oldUserName}</strong> 계정으로 이동합니다.{' '}
+                  <strong>{pendingValues.newUserName}</strong> 계정의 로그인 수단(제공자, 소셜 계정 ID, 이메일 주소)이{' '}
+                  <strong>{pendingValues.oldUserName}</strong> 계정으로 이동합니다.{' '}
                   <strong>{pendingValues.oldUserName}</strong> 계정의 기존 데이터는 그대로 유지되며,{' '}
                   <strong>{pendingValues.newUserName}</strong> 계정은 임시 상태로 전환됩니다. 이 작업은 되돌릴 수
                   없습니다.
