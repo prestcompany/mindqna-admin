@@ -334,7 +334,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                             <RadioGroupItem value={opt.value} id={`type-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`type-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -365,7 +365,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                             <RadioGroupItem value={opt.value} id={`cat-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`cat-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -396,7 +396,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                             <RadioGroupItem value={opt.value} id={`room-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`room-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -429,7 +429,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                             <RadioGroupItem value={opt.value} id={`premium-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`premium-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -506,7 +506,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                             <RadioGroupItem value={opt.value} id={`active-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`active-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>

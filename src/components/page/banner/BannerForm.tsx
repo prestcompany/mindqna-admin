@@ -174,7 +174,7 @@ function BannerForm({ init, reload, close }: Props) {
                             />
                             <Label
                               htmlFor={`banner-locale-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -218,7 +218,7 @@ function BannerForm({ init, reload, close }: Props) {
                             <RadioGroupItem value={opt.value} id={`location-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`location-${opt.value}`}
-                              className='flex min-h-10 cursor-pointer items-center rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                              className='flex min-h-10 cursor-pointer items-center rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -312,7 +312,7 @@ function BannerForm({ init, reload, close }: Props) {
                             <RadioGroupItem value={opt.value} id={`isActive-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`isActive-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>

@@ -153,7 +153,7 @@ function BubbleForm({ init, reload, close }: Props) {
                             <RadioGroupItem value={opt.value} id={`locale-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`locale-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -194,7 +194,7 @@ function BubbleForm({ init, reload, close }: Props) {
                         {typeOptions.map((option) => (
                           <label
                             key={option.value}
-                            className='flex h-10 w-full cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 text-sm transition-colors hover:bg-muted/70'
+                            className='flex h-10 w-full cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 text-sm transition-colors hover:bg-muted'
                           >
                             <Checkbox
                               checked={field.value?.includes(option.value)}
@@ -229,7 +229,7 @@ function BubbleForm({ init, reload, close }: Props) {
                         {levelOptions.map((option) => (
                           <label
                             key={option.value}
-                            className='flex h-10 w-full cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 text-sm transition-colors hover:bg-muted/70'
+                            className='flex h-10 w-full cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 text-sm transition-colors hover:bg-muted'
                           >
                             <Checkbox
                               checked={field.value?.includes(option.value)}

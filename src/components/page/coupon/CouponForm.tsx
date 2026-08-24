@@ -122,7 +122,7 @@ function Segmented<T extends string>({
           <Label
             htmlFor={`${name}-${option.value}`}
             // peer-* only reaches siblings of the input, so the checked style lives here.
-            className='flex h-8 cursor-pointer items-center justify-center rounded-md text-sm font-medium text-slate-600 transition-colors duration-fast peer-focus-visible:ring-1 peer-focus-visible:ring-ring peer-data-[state=checked]:bg-card peer-data-[state=checked]:text-slate-900'
+            className='flex h-8 cursor-pointer items-center justify-center rounded-md text-sm font-medium text-muted-foreground transition-colors duration-fast peer-focus-visible:ring-1 peer-focus-visible:ring-ring peer-data-[state=checked]:bg-card peer-data-[state=checked]:text-foreground peer-data-[state=checked]:shadow-sm'
           >
             {option.label}
           </Label>
