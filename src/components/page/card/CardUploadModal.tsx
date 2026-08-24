@@ -48,63 +48,65 @@ export const CardUploadModal = ({ close }: Props) => {
 
   return (
     <div>
-      <DefinitionRow label='언어'>
-        <ShadSelect
-          value={locale ?? ''}
-          onValueChange={(v: string) => {
-            setLocale(v || undefined);
-          }}
-        >
-          <SelectTrigger className='w-full'>
-            <SelectValue placeholder='언어' />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='ko'>ko</SelectItem>
-            <SelectItem value='en'>en</SelectItem>
-            <SelectItem value='ja'>ja</SelectItem>
-            <SelectItem value='zh'>zh</SelectItem>
-            <SelectItem value='zhTw'>zhTw</SelectItem>
-            <SelectItem value='es'>es</SelectItem>
-            <SelectItem value='id'>id</SelectItem>
-          </SelectContent>
-        </ShadSelect>
-      </DefinitionRow>
+      <div className='-mx-6'>
+        <DefinitionRow label='언어'>
+          <ShadSelect
+            value={locale ?? ''}
+            onValueChange={(v: string) => {
+              setLocale(v || undefined);
+            }}
+          >
+            <SelectTrigger className='w-full'>
+              <SelectValue placeholder='언어' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='ko'>ko</SelectItem>
+              <SelectItem value='en'>en</SelectItem>
+              <SelectItem value='ja'>ja</SelectItem>
+              <SelectItem value='zh'>zh</SelectItem>
+              <SelectItem value='zhTw'>zhTw</SelectItem>
+              <SelectItem value='es'>es</SelectItem>
+              <SelectItem value='id'>id</SelectItem>
+            </SelectContent>
+          </ShadSelect>
+        </DefinitionRow>
 
-      <DefinitionRow label='질문타입'>
-        <ShadSelect
-          value={cardType ?? ''}
-          onValueChange={(v: string) => {
-            setCardType((v || undefined) as CardTemplateType | undefined);
-          }}
-        >
-          <SelectTrigger className='w-full'>
-            <SelectValue placeholder='질문타입' />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='basic'>basic</SelectItem>
-            <SelectItem value='bonus'>bonus</SelectItem>
-          </SelectContent>
-        </ShadSelect>
-      </DefinitionRow>
+        <DefinitionRow label='질문타입'>
+          <ShadSelect
+            value={cardType ?? ''}
+            onValueChange={(v: string) => {
+              setCardType((v || undefined) as CardTemplateType | undefined);
+            }}
+          >
+            <SelectTrigger className='w-full'>
+              <SelectValue placeholder='질문타입' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='basic'>basic</SelectItem>
+              <SelectItem value='bonus'>bonus</SelectItem>
+            </SelectContent>
+          </ShadSelect>
+        </DefinitionRow>
 
-      <DefinitionRow label='공간타입'>
-        <ShadSelect
-          value={spaceType ?? ''}
-          onValueChange={(v: string) => {
-            setSpaceType((v || undefined) as SpaceType | undefined);
-          }}
-        >
-          <SelectTrigger className='w-full'>
-            <SelectValue placeholder='공간타입' />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='alone'>혼자</SelectItem>
-            <SelectItem value='couple'>커플</SelectItem>
-            <SelectItem value='family'>가족</SelectItem>
-            <SelectItem value='friends'>친구</SelectItem>
-          </SelectContent>
-        </ShadSelect>
-      </DefinitionRow>
+        <DefinitionRow label='공간타입'>
+          <ShadSelect
+            value={spaceType ?? ''}
+            onValueChange={(v: string) => {
+              setSpaceType((v || undefined) as SpaceType | undefined);
+            }}
+          >
+            <SelectTrigger className='w-full'>
+              <SelectValue placeholder='공간타입' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='alone'>혼자</SelectItem>
+              <SelectItem value='couple'>커플</SelectItem>
+              <SelectItem value='family'>가족</SelectItem>
+              <SelectItem value='friends'>친구</SelectItem>
+            </SelectContent>
+          </ShadSelect>
+        </DefinitionRow>
+      </div>
 
       <div className='pt-4'>
         <CardUploader setFile={handleFile} accept='.xls,.xlsx' />

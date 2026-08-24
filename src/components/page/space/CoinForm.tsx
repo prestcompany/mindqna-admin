@@ -115,7 +115,7 @@ function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
       )}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(save)} className='flex flex-col gap-4 pb-2'>
-          <div className='flex gap-4'>
+          <div className='-mx-6 flex gap-4'>
             <div className='min-w-0 flex-1'>
               <DefinitionRow label='공간 ID'>
                 <div className='rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm font-medium text-foreground'>
@@ -238,7 +238,7 @@ function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
             </div>
 
             {currentCoins && (
-              <aside className='w-[220px] shrink-0 space-y-3 border-l border-border pl-4'>
+              <aside className='w-[220px] shrink-0 space-y-3 border-l border-border py-1 pl-4 pr-6'>
                 <div className='text-sm font-medium text-foreground'>현재 잔액</div>
                 <div className='rounded-lg border border-border bg-muted/30 px-4 py-3 text-center'>
                   <div className='text-xs text-muted-foreground'>하트</div>
