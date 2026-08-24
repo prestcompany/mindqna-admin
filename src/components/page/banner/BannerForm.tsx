@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import AssetsDrawer from '../assets/AssetsDrawer';
+import { AssetsPickerButton, AssetsPickerPanel } from '../assets/AssetsPicker';
 import { useBannerLocations } from './useBannerLocations';
 
 type Props = {
@@ -42,6 +42,9 @@ type BannerFormValues = z.infer<typeof bannerSchema>;
 function BannerForm({ init, reload, close }: Props) {
   const [isLoading, setLoading] = useState(false);
   const [imageUri, setImageUri] = useState<string>('');
+  // A step inside this same sheet, not a second overlay on top of it — picking swaps this
+  // whole body for the grid, and the form's own state isn't touched by the swap.
+  const [pickingImage, setPickingImage] = useState(false);
   const locationOptions = useBannerLocations();
   const focusedId = init?.id;
 
@@ -116,6 +119,18 @@ function BannerForm({ init, reload, close }: Props) {
     setLoading(false);
   };
 
+  if (pickingImage) {
+    return (
+      <AssetsPickerPanel
+        onSelect={(img) => {
+          setImageUri(img.uri);
+          setPickingImage(false);
+        }}
+        onBack={() => setPickingImage(false)}
+      />
+    );
+  }
+
   return (
     <>
       {isLoading && (
@@ -133,7 +148,7 @@ function BannerForm({ init, reload, close }: Props) {
                     <img src={imageUri} alt='banner-preview' className='h-full w-full object-contain' />
                   </div>
                 )}
-                <AssetsDrawer onClick={(img) => setImageUri(img.uri)} />
+                <AssetsPickerButton onOpen={() => setPickingImage(true)} />
               </div>
             </FormGroup>
 

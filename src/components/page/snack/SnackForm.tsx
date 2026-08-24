@@ -13,7 +13,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import AssetsDrawer from '../assets/AssetsDrawer';
+import { AssetsPickerButton, AssetsPickerPanel } from '../assets/AssetsPicker';
 
 type Props = {
   initialSnack?: Snack;
@@ -55,6 +55,10 @@ type SnackFormValues = z.infer<typeof snackSchema>;
 function SnackForm({ initialSnack, close, reload }: Props) {
   const [isLoading, setLoading] = useState(false);
   const [image, setImage] = useState<ImgItem>();
+  // A step inside this same sheet, not a second overlay on top of it — picking swaps this
+  // whole body for the grid, and the form's own state (react-hook-form, `image`, ...)
+  // isn't touched by the swap, so it's exactly as it was when the operator comes back.
+  const [pickingImage, setPickingImage] = useState(false);
 
   const form = useForm<SnackFormValues>({
     resolver: zodResolver(snackSchema),
@@ -125,6 +129,19 @@ function SnackForm({ initialSnack, close, reload }: Props) {
     }
   };
 
+  if (pickingImage) {
+    return (
+      <AssetsPickerPanel
+        selectedImage={image}
+        onSelect={(img) => {
+          setImage(img);
+          setPickingImage(false);
+        }}
+        onBack={() => setPickingImage(false)}
+      />
+    );
+  }
+
   return (
     <>
       {isLoading && (
@@ -146,7 +163,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                     <img src={image.uri} alt='img' className='h-full w-full object-contain' />
                   </div>
                 )}
-                <AssetsDrawer onClick={setImage} />
+                <AssetsPickerButton onOpen={() => setPickingImage(true)} />
               </div>
             </FormGroup>
 

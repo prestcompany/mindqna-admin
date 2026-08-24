@@ -23,7 +23,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import AssetsDrawer from '../assets/AssetsDrawer';
+import { AssetsPickerButton, AssetsPickerPanel } from '../assets/AssetsPicker';
 
 const schema = z.object({
   name: z.string().min(1, '필수'),
@@ -79,6 +79,9 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
   const [isLoading, setLoading] = useState(false);
   const [focusedId, setFocusedId] = useState<number | undefined>(undefined);
   const [image, setImage] = useState<ImgItem>();
+  // A step inside this same sheet, not a second overlay on top of it — picking swaps this
+  // whole body for the grid, and the form's own state isn't touched by the swap.
+  const [pickingImage, setPickingImage] = useState(false);
   const [coords, setCoords] = useState<{ x: number; y: number }[]>([
     { x: 0, y: 5 }, { x: 1, y: 5 }, { x: 2, y: 5 }, { x: 3, y: 5 }, { x: 4, y: 5 }, { x: 5, y: 5 }, { x: 6, y: 5 },
     { x: 0, y: 7 }, { x: 1, y: 7 }, { x: 2, y: 7 }, { x: 3, y: 7 }, { x: 4, y: 7 }, { x: 5, y: 7 }, { x: 6, y: 7 },
@@ -195,6 +198,19 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
     }
   };
 
+  if (pickingImage) {
+    return (
+      <AssetsPickerPanel
+        selectedImage={image}
+        onSelect={(img) => {
+          setImage(img);
+          setPickingImage(false);
+        }}
+        onBack={() => setPickingImage(false)}
+      />
+    );
+  }
+
   return (
     <>
       {isLoading && (
@@ -212,7 +228,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                     <img src={image.uri} alt='interior-preview' className='h-full w-full object-contain' />
                   </div>
                 )}
-                <AssetsDrawer onClick={setImage} />
+                <AssetsPickerButton onOpen={() => setPickingImage(true)} />
               </div>
             </FormGroup>
 
