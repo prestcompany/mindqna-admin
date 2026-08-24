@@ -6,7 +6,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { zodResolver } from '@hookform/resolvers/zod';
 import dayjs from 'dayjs';
 import { Loader2 } from 'lucide-react';
@@ -14,6 +13,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm, type FieldErrors } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { Segmented } from '@/components/shared/ui/segmented';
 import CouponSummaryRail from './CouponSummaryRail';
 import { errorMessage } from './errorMessage';
 
@@ -94,44 +94,6 @@ const makeCouponSchema = (isEdit: boolean) =>
 type CouponFormValues = z.infer<ReturnType<typeof makeCouponSchema>>;
 
 /** Two choices on one track — no shadow, the selected item just takes the card surface. */
-function Segmented<T extends string>({
-  name,
-  value,
-  onChange,
-  options,
-  disabled,
-  className,
-}: {
-  name: string;
-  value: T;
-  onChange: (value: T) => void;
-  options: { value: T; label: string }[];
-  disabled?: boolean;
-  className?: string;
-}) {
-  return (
-    <RadioGroup
-      value={value}
-      onValueChange={(next) => onChange(next as T)}
-      disabled={disabled}
-      className={`grid auto-cols-fr grid-flow-col gap-1 rounded-lg border border-border bg-muted/60 p-1 ${className ?? ''}`}
-    >
-      {options.map((option) => (
-        <div key={option.value}>
-          <RadioGroupItem value={option.value} id={`${name}-${option.value}`} className='peer sr-only' />
-          <Label
-            htmlFor={`${name}-${option.value}`}
-            // peer-* only reaches siblings of the input, so the checked style lives here.
-            className='flex h-8 cursor-pointer items-center justify-center rounded-md text-sm font-medium text-muted-foreground transition-colors duration-fast peer-focus-visible:ring-1 peer-focus-visible:ring-ring peer-data-[state=checked]:bg-card peer-data-[state=checked]:text-foreground peer-data-[state=checked]:shadow-sm'
-          >
-            {option.label}
-          </Label>
-        </div>
-      ))}
-    </RadioGroup>
-  );
-}
-
 function CouponForm({ init, reload, close }: Props) {
   const [isLoading, setLoading] = useState(false);
   const isEdit = !!init;

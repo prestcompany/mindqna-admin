@@ -8,7 +8,8 @@ import {
 import type { Locale } from '@/client/types';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import { DefinitionRow, PanelBand } from '@/components/shared/ui/definition-row';
-import { LOCALE_OPTIONS } from '@/components/shared/form/constants/locale-options';
+import { LOCALE_DISPLAY_NAME, LOCALE_OPTIONS } from '@/components/shared/form/constants/locale-options';
+import { Segmented } from '@/components/shared/ui/segmented';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,8 +22,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
@@ -169,9 +168,7 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
   const broadcastEstimate = targetCount ? estimateDurationMs(targetCount.count) : null;
   const confirmDescription = [
     `${values.locale} 사용자 ${targetCount ? `약 ${targetCount.count.toLocaleString()}명` : '집계 중인 인원'}에게 ${when} 발송을 시작합니다.`,
-    broadcastEstimate
-      ? `예상 소요 ${minutes(broadcastEstimate.minMs)}~${minutes(broadcastEstimate.maxMs)}분.`
-      : null,
+    broadcastEstimate ? `예상 소요 ${minutes(broadcastEstimate.minMs)}~${minutes(broadcastEstimate.maxMs)}분.` : null,
     '시작하면 되돌릴 수 없습니다. 중단해도 이미 도달한 사람에게는 취소되지 않습니다.',
   ]
     .filter(Boolean)
@@ -225,14 +222,15 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                 <PanelBand title='수신' />
 
                 <DefinitionRow label='발송 대상*'>
-                  <RadioGroup
+                  <Segmented
+                    name='push-target'
                     value={values.target}
-                    onValueChange={(v) => set('target', v as PushFormValues['target'])}
-                    className='flex gap-4'
-                  >
-                    <Choice id='target-all' value='ALL' label='전체' />
-                    <Choice id='target-user' value='USER' label='개인' />
-                  </RadioGroup>
+                    onChange={(v) => set('target', v as PushFormValues['target'])}
+                    options={[
+                      { value: 'ALL', label: '전체' },
+                      { value: 'USER', label: '개인' },
+                    ]}
+                  />
                 </DefinitionRow>
 
                 {/* Exclusive on purpose: a per-user send ignores locale, so showing it would lie.
@@ -250,7 +248,7 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                       <SelectContent>
                         {LOCALE_OPTIONS.map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
+                            {LOCALE_DISPLAY_NAME[opt.value] ?? opt.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -273,14 +271,15 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                   label='발송 시점*'
                   hint={values.sendMode === 'now' ? '최대 1분 내에 시작됩니다' : undefined}
                 >
-                  <RadioGroup
+                  <Segmented
+                    name='push-send-mode'
                     value={values.sendMode}
-                    onValueChange={(v) => set('sendMode', v as PushFormValues['sendMode'])}
-                    className='flex gap-4'
-                  >
-                    <Choice id='send-now' value='now' label='즉시 발송' />
-                    <Choice id='send-schedule' value='schedule' label='예약' />
-                  </RadioGroup>
+                    onChange={(v) => set('sendMode', v as PushFormValues['sendMode'])}
+                    options={[
+                      { value: 'now', label: '즉시' },
+                      { value: 'schedule', label: '예약' },
+                    ]}
+                  />
                   {values.sendMode === 'schedule' && (
                     <Input
                       type='datetime-local'
@@ -321,7 +320,9 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                   mode='compose'
                   target={values.target}
                   locale={values.locale}
-                  recipientCount={values.target === 'ALL' ? (targetCount ? targetCount.count : null) : recipients.length}
+                  recipientCount={
+                    values.target === 'ALL' ? (targetCount ? targetCount.count : null) : recipients.length
+                  }
                   when={when}
                   title={values.title}
                   message={values.message}
@@ -356,15 +357,6 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
         </AlertDialogContent>
       </AlertDialog>
     </>
-  );
-}
-
-function Choice({ id, value, label }: { id: string; value: string; label: string }) {
-  return (
-    <div className='flex items-center gap-2'>
-      <RadioGroupItem value={value} id={id} />
-      <Label htmlFor={id}>{label}</Label>
-    </div>
   );
 }
 
