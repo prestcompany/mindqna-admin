@@ -118,7 +118,10 @@ function NotificationPreview({ title, message, imgUrl }: { title: string; messag
   return (
     <div className='rounded-xl bg-foreground/[0.06] p-2.5'>
       <div className='mb-2 text-center text-[11px] font-medium tabular-nums text-muted-foreground'>
-        {dayjs().format('A h:mm')}
+        {/* dayjs has no locale registered project-wide, so `A` would render AM/PM. Building
+            the meridiem here keeps the fix inside the preview rather than changing every
+            date format in the admin. */}
+        {`${dayjs().hour() < 12 ? '오전' : '오후'} ${dayjs().format('h:mm')}`}
       </div>
 
       <div className='rounded-lg bg-card p-2.5 shadow-whisper'>
