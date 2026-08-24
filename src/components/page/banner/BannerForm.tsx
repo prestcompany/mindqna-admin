@@ -1,8 +1,7 @@
 import { Banner, createBanner, updateBanner } from '@/client/banner';
 import { Locale } from '@/client/types';
 import { LOCALE_OPTIONS } from '@/components/shared/form/constants/locale-options';
-import FormGroup from '@/components/shared/form/ui/form-group';
-import FormSection from '@/components/shared/form/ui/form-section';
+import { DefinitionRow, PanelBand } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -140,8 +139,10 @@ function BannerForm({ init, reload, close }: Props) {
       )}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
-          <FormSection title={focusedId ? '배너 수정' : '배너 추가'} description='배너 기본 정보와 노출 위치를 설정합니다.'>
-            <FormGroup title='대표 이미지*' description='권장 비율을 유지하면 리스트/상세에서 안정적으로 노출됩니다.'>
+          <div className='-mx-6'>
+            <PanelBand title={focusedId ? '배너 수정' : '배너 추가'} />
+
+            <DefinitionRow label='대표 이미지*' hint='권장 비율을 유지하면 리스트/상세에서 안정적으로 노출됩니다.'>
               <div className='flex flex-col items-start gap-2'>
                 {imageUri && (
                   <div className='flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border bg-transparent p-2'>
@@ -150,19 +151,27 @@ function BannerForm({ init, reload, close }: Props) {
                 )}
                 <AssetsPickerButton onOpen={() => setPickingImage(true)} />
               </div>
-            </FormGroup>
+            </DefinitionRow>
 
-            <FormGroup title='언어*'>
+            <DefinitionRow label='언어*'>
               <FormField
                 control={form.control}
                 name='locale'
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <RadioGroup value={field.value} onValueChange={field.onChange} className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
+                      <RadioGroup
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        className='grid grid-cols-2 gap-2 sm:grid-cols-4'
+                      >
                         {LOCALE_OPTIONS.map((opt) => (
                           <div key={opt.value}>
-                            <RadioGroupItem value={opt.value} id={`banner-locale-${opt.value}`} className='peer sr-only' />
+                            <RadioGroupItem
+                              value={opt.value}
+                              id={`banner-locale-${opt.value}`}
+                              className='peer sr-only'
+                            />
                             <Label
                               htmlFor={`banner-locale-${opt.value}`}
                               className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted/70 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 peer-data-[state=checked]:text-primary'
@@ -177,9 +186,9 @@ function BannerForm({ init, reload, close }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
+            </DefinitionRow>
 
-            <FormGroup title='이름*' description='운영자가 배너를 구분하기 위한 명칭'>
+            <DefinitionRow label='이름*' hint='운영자가 배너를 구분하기 위한 명칭'>
               <FormField
                 control={form.control}
                 name='name'
@@ -192,11 +201,11 @@ function BannerForm({ init, reload, close }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
-          </FormSection>
+            </DefinitionRow>
 
-          <FormSection title='노출 정책'>
-            <FormGroup title='노출 위치*'>
+            <PanelBand title='노출 정책' />
+
+            <DefinitionRow label='노출 위치*'>
               <FormField
                 control={form.control}
                 name='location'
@@ -222,11 +231,11 @@ function BannerForm({ init, reload, close }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
+            </DefinitionRow>
 
-            <FormGroup
-              title='노출 순서*'
-              description='같은 위치/언어 그룹 안에서 순서를 관리합니다. 비활성 배너도 순서를 유지합니다.'
+            <DefinitionRow
+              label='노출 순서*'
+              hint='같은 위치/언어 그룹 안에서 순서를 관리합니다. 비활성 배너도 순서를 유지합니다.'
             >
               <FormField
                 control={form.control}
@@ -268,9 +277,9 @@ function BannerForm({ init, reload, close }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
+            </DefinitionRow>
 
-            <FormGroup title='링크*' description='클릭 시 이동할 URL'>
+            <DefinitionRow label='링크*' hint='클릭 시 이동할 URL'>
               <FormField
                 control={form.control}
                 name='link'
@@ -283,9 +292,9 @@ function BannerForm({ init, reload, close }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
+            </DefinitionRow>
 
-            <FormGroup title='활성화'>
+            <DefinitionRow label='활성화'>
               <FormField
                 control={form.control}
                 name='isActive'
@@ -316,8 +325,8 @@ function BannerForm({ init, reload, close }: Props) {
                   </FormItem>
                 )}
               />
-            </FormGroup>
-          </FormSection>
+            </DefinitionRow>
+          </div>
 
           <div className='sticky bottom-0 z-10 -mx-6 border-t bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
             <div className='flex justify-end gap-2'>
