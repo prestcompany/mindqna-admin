@@ -49,7 +49,7 @@ function AdminSideSheetContent({
     >
       <div className='grid h-full grid-rows-[auto_1fr]'>
         <SheetHeader className='border-b bg-card px-6 py-3 text-left'>
-          <SheetTitle className='pr-8 text-base font-semibold tracking-heading'>{title}</SheetTitle>
+          <SheetTitle className='pr-8 text-lg font-semibold tracking-heading'>{title}</SheetTitle>
           {description ? <SheetDescription className='pr-8 text-xs'>{description}</SheetDescription> : null}
         </SheetHeader>
         {/* Canvas ground, per DESIGN.md §Surface: white cards float on #fafafa. On a white
