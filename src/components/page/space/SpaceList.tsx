@@ -194,10 +194,17 @@ function SpaceList() {
   // confirm AlertDialog instead of calling the API directly.
   const handleBulkCoinSubmit = () => {
     const parsedBulkAmount = bulkAmountInput ? Number(bulkAmountInput) : 0;
-    const spaceIds = bulkSpaceIds
-      .split(',')
-      .map((id) => id.trim())
-      .filter(Boolean);
+    // Deduped before it ever reaches the confirm: an operator retrying a partial failure
+    // pastes the failed IDs back onto the end of the original list, and without this the
+    // confirm's 공간 N곳 count (and the payload) would double-count every retried ID.
+    const spaceIds = [
+      ...new Set(
+        bulkSpaceIds
+          .split(',')
+          .map((id) => id.trim())
+          .filter(Boolean),
+      ),
+    ];
 
     if (!spaceIds.length) {
       toast.error('공간 ID를 입력해주세요');
