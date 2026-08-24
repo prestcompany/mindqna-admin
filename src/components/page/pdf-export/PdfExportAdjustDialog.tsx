@@ -1,4 +1,5 @@
 import { updatePdfExportRecord } from '@/client/pdf-export';
+import { DatePicker } from '@/components/shared/ui/date-picker';
 import type { PdfExportRecord } from '@/client/types';
 import { DefinitionRow } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
@@ -68,7 +69,7 @@ function PdfExportAdjustDialog({ record, onClose, onChanged }: Props) {
           />
         </DefinitionRow>
         <DefinitionRow label='만료일'>
-          <Input type='date' value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
+          <DatePicker value={expiresAt} onChange={setExpiresAt} placeholder='만료일 선택' />
         </DefinitionRow>
       </div>
 

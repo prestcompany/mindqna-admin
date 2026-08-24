@@ -1,4 +1,5 @@
 import { createCoupon, updateCouponBatch, type CouponBatch } from '@/client/coupon';
+import { DatePicker } from '@/components/shared/ui/date-picker';
 import { DefinitionRow, PanelBand } from '@/components/shared/ui/definition-row';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -368,7 +369,7 @@ function CouponForm({ init, reload, close }: Props) {
                     render={({ field }) => (
                       <FormItem className='space-y-1.5'>
                         <FormControl>
-                          <Input type='date' {...field} />
+                          <DatePicker value={field.value ?? ''} onChange={field.onChange} placeholder='날짜 선택' />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -380,7 +381,7 @@ function CouponForm({ init, reload, close }: Props) {
                     render={({ field }) => (
                       <FormItem className='space-y-1.5'>
                         <FormControl>
-                          <Input type='date' {...field} />
+                          <DatePicker value={field.value ?? ''} onChange={field.onChange} placeholder='날짜 선택' />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

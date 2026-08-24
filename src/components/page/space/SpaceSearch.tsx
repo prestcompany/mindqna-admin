@@ -1,6 +1,7 @@
 import { removeProfile, removeSpace, searchSpaces, type SearchSpacesParams } from '@/client/space';
 import { Space, SpaceType } from '@/client/types';
 import FormGroup from '@/components/shared/form/ui/form-group';
+import { DatePickerWithRange } from '@/components/ui/DatePickerWithRange';
 import FormSection from '@/components/shared/form/ui/form-section';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import DataTable from '@/components/shared/ui/data-table';
@@ -394,37 +395,12 @@ function SpaceSearch() {
           </FormGroup>
 
           <FormGroup title='생성일 범위'>
-            <div className='flex items-center gap-2'>
-              <Input
-                type='date'
-                value={searchParams.dateRange.start?.format('YYYY-MM-DD') ?? ''}
-                onChange={(e) => {
-                  setSearchParams((prev) => ({
-                    ...prev,
-                    dateRange: {
-                      ...prev.dateRange,
-                      start: e.target.value ? dayjs(e.target.value) : null,
-                    },
-                  }));
-                }}
-                className='w-full sm:w-[180px]'
-              />
-              <span className='text-sm text-muted-foreground'>~</span>
-              <Input
-                type='date'
-                value={searchParams.dateRange.end?.format('YYYY-MM-DD') ?? ''}
-                onChange={(e) => {
-                  setSearchParams((prev) => ({
-                    ...prev,
-                    dateRange: {
-                      ...prev.dateRange,
-                      end: e.target.value ? dayjs(e.target.value) : null,
-                    },
-                  }));
-                }}
-                className='w-full sm:w-[180px]'
-              />
-            </div>
+            <DatePickerWithRange
+              startedAt={searchParams.dateRange.start}
+              endedAt={searchParams.dateRange.end}
+              setStartedAt={(d) => setSearchParams((prev) => ({ ...prev, dateRange: { ...prev.dateRange, start: d } }))}
+              setEndedAt={(d) => setSearchParams((prev) => ({ ...prev, dateRange: { ...prev.dateRange, end: d } }))}
+            />
           </FormGroup>
 
           <div className='flex justify-end gap-2 pt-2'>

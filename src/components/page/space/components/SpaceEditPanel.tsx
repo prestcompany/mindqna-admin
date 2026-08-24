@@ -1,4 +1,5 @@
 import { updateSpace } from '@/client/space';
+import { DatePicker } from '@/components/shared/ui/date-picker';
 import type { Locale, SpaceDetail, SpaceType, UpdateSpaceParams } from '@/client/types';
 import {
   AlertDialog,
@@ -184,7 +185,11 @@ function SpaceEditPanel({ detail, onCancel, onSaved }: SpaceEditPanelProps) {
           </Select>
         </DefinitionRow>
         <DefinitionRow label='시작일'>
-          <Input value={form.startedAt} placeholder='예: 2024-01-01' onChange={(e) => set('startedAt', e.target.value)} />
+          <Input
+            value={form.startedAt}
+            placeholder='예: 2024-01-01'
+            onChange={(e) => set('startedAt', e.target.value)}
+          />
         </DefinitionRow>
 
         <PanelBand title='동작 설정' />
@@ -215,16 +220,13 @@ function SpaceEditPanel({ detail, onCancel, onSaved }: SpaceEditPanelProps) {
         >
           <Switch checked={form.isActive} onCheckedChange={(v) => set('isActive', v)} />
         </DefinitionRow>
-        <DefinitionRow
-          label='삭제 예약일'
-          hint='날짜를 비우거나 "예약 취소"를 누르면 삭제 예약이 해제됩니다.'
-        >
+        <DefinitionRow label='삭제 예약일' hint='날짜를 비우거나 "예약 취소"를 누르면 삭제 예약이 해제됩니다.'>
           <div className='flex items-center gap-2'>
-            <Input
-              type='date'
+            <DatePicker
               min={TODAY}
               value={form.dueRemovedAt}
-              onChange={(e) => set('dueRemovedAt', e.target.value)}
+              onChange={(v) => set('dueRemovedAt', v)}
+              placeholder='삭제 예약일 선택'
               className='flex-1'
             />
             {form.dueRemovedAt ? (

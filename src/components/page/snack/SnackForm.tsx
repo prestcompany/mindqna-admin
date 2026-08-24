@@ -214,7 +214,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                             <RadioGroupItem value={opt.value} id={`kind-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`kind-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -245,7 +245,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                             <RadioGroupItem value={opt.value} id={`type-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`type-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -323,7 +323,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                               <RadioGroupItem value={opt.value} id={`isPaid-${opt.value}`} className='peer sr-only' />
                               <Label
                                 htmlFor={`isPaid-${opt.value}`}
-                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                               >
                                 {opt.label}
                               </Label>
@@ -374,7 +374,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                             <RadioGroupItem value={opt.value} id={`isActive-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`isActive-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>

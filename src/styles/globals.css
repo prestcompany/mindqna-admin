@@ -140,7 +140,10 @@
     --info-foreground: 0 0% 98%;
     --border: 0 0% 18%;
     --input: 0 0% 18%;
-    --ring: 0 0% 72%;
+    /* Focus must not be a neutral in dark mode: --primary is 98% white there, so a 72%
+       grey ring read as the same "whitish" as a selected chip's fill. Blue is the one hue
+       the palette already reserves for links, and it cannot be confused with a selection. */
+    --ring: 212 100% 62%;
     --chart-1: 0 0% 96%;
     --chart-2: 0 0% 74%;
     --chart-3: 212 100% 47.6%;
@@ -200,8 +203,8 @@
   }
 }
 
-@import "./_spinner.css";
-@import "./_custom_quill.css";
+@import './_spinner.css';
+@import './_custom_quill.css';
 
 @layer base {
   * {

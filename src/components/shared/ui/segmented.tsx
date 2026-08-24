@@ -49,7 +49,7 @@ export function Segmented<T extends string>({
             className={cn(
               'flex h-8 cursor-pointer items-center justify-center rounded-md px-4',
               'text-sm font-medium text-muted-foreground transition-colors duration-fast',
-              'peer-focus-visible:ring-1 peer-focus-visible:ring-ring',
+              'peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-1',
               'peer-data-[state=checked]:bg-card peer-data-[state=checked]:text-foreground',
               'peer-data-[state=checked]:shadow-sm',
             )}

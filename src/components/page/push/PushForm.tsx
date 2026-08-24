@@ -6,6 +6,7 @@ import {
   type AdminPushItem,
 } from '@/client/push';
 import type { Locale } from '@/client/types';
+import { DatePicker } from '@/components/shared/ui/date-picker';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import { DefinitionRow, PanelBand } from '@/components/shared/ui/definition-row';
 import { LOCALE_DISPLAY_NAME, LOCALE_OPTIONS } from '@/components/shared/form/constants/locale-options';
@@ -281,12 +282,13 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                     ]}
                   />
                   {values.sendMode === 'schedule' && (
-                    <Input
-                      type='datetime-local'
+                    <DatePicker
+                      withTime
                       className='mt-2'
-                      min={dayjs().format('YYYY-MM-DDTHH:mm')}
+                      min={dayjs().format('YYYY-MM-DD')}
                       value={values.pushAt}
-                      onChange={(e) => set('pushAt', e.target.value)}
+                      onChange={(v) => set('pushAt', v)}
+                      placeholder='발송 일시 선택'
                     />
                   )}
                 </DefinitionRow>

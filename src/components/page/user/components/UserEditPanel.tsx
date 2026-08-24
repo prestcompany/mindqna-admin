@@ -1,4 +1,5 @@
 import { updateUser } from '@/client/user';
+import { DatePicker } from '@/components/shared/ui/date-picker';
 import type { Locale, UpdateUserParams, UserDetail } from '@/client/types';
 import {
   AlertDialog,
@@ -143,16 +144,13 @@ function UserEditPanel({ user, onCancel, onSaved }: UserEditPanelProps) {
             onChange={(e) => set('spaceMaxCount', e.target.value.replace(/[^\d]/g, ''))}
           />
         </DefinitionRow>
-        <DefinitionRow
-          label='탈퇴 예약일'
-          hint='날짜를 비우거나 "예약 취소"를 누르면 탈퇴 예약이 해제됩니다.'
-        >
+        <DefinitionRow label='탈퇴 예약일' hint='날짜를 비우거나 "예약 취소"를 누르면 탈퇴 예약이 해제됩니다.'>
           <div className='flex items-center gap-2'>
-            <Input
-              type='date'
+            <DatePicker
               min={TODAY}
               value={form.reserveUnregisterAt}
-              onChange={(e) => set('reserveUnregisterAt', e.target.value)}
+              onChange={(v) => set('reserveUnregisterAt', v)}
+              placeholder='탈퇴 예약일 선택'
               className='flex-1'
             />
             {form.reserveUnregisterAt ? (
