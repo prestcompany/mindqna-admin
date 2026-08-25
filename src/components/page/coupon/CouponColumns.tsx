@@ -53,7 +53,7 @@ export const createCouponColumns = (actions: CouponRowActions): ColumnDef<Coupon
         type='button'
         aria-label={row.getIsExpanded() ? '코드 접기' : '코드 펼치기'}
         onClick={row.getToggleExpandedHandler()}
-        className='inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition-colors duration-fast hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+        className='inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors duration-fast hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
       >
         {row.getIsExpanded() ? <ChevronDown className='h-4 w-4' /> : <ChevronRight className='h-4 w-4' />}
       </button>
@@ -65,10 +65,10 @@ export const createCouponColumns = (actions: CouponRowActions): ColumnDef<Coupon
     size: 220,
     cell: ({ row }) => (
       <div className='min-w-0'>
-        <div className='truncate font-medium text-slate-900'>{row.original.name}</div>
-        <div className='truncate text-xs text-slate-600'>
+        <div className='truncate font-medium text-foreground'>{row.original.name}</div>
+        <div className='truncate text-xs text-muted-foreground'>
           {row.original.issueMode === 'SHARED' ? (
-            <span className='font-mono text-slate-700'>{row.original.code}</span>
+            <span className='font-mono text-foreground'>{row.original.code}</span>
           ) : (
             `코드 ${row.original.codeCount}개`
           )}
@@ -112,7 +112,7 @@ export const createCouponColumns = (actions: CouponRowActions): ColumnDef<Coupon
     cell: ({ row }) => (
       <div className='min-w-0'>
         <CouponStatusBadge status={row.original.status} />
-        <div className='mt-0.5 truncate text-xs text-slate-600'>{describePeriod(row.original)}</div>
+        <div className='mt-0.5 truncate text-xs text-muted-foreground'>{describePeriod(row.original)}</div>
       </div>
     ),
   },

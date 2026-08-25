@@ -55,22 +55,22 @@ function PdfExportPolicyTab() {
   return (
     <div className='max-w-xl space-y-6 rounded-lg border border-border bg-white p-6'>
       <div className='flex items-center justify-between'>
-        <h3 className='text-base font-semibold text-slate-900'>PDF 내보내기 정책</h3>
-        <span className='text-xs text-slate-600'>
+        <h3 className='text-base font-semibold text-foreground'>PDF 내보내기 정책</h3>
+        <span className='text-xs text-muted-foreground'>
           {data?.updatedAt ? `수정: ${new Date(data.updatedAt).toLocaleString('ko-KR')}` : '기본값 적용 중'}
         </span>
       </div>
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
         {FIELDS.map((field) => (
           <div key={field.key} className='space-y-2'>
-            <Label className='text-sm font-medium text-slate-600'>{field.label}</Label>
+            <Label className='text-sm font-medium text-muted-foreground'>{field.label}</Label>
             <Input
               type='text'
               inputMode='numeric'
               value={form[field.key] || ''}
               onChange={(e) => setForm((p) => ({ ...p, [field.key]: Number(e.target.value.replace(/[^\d]/g, '')) }))}
             />
-            <p className='text-xs text-slate-600'>{field.hint}</p>
+            <p className='text-xs text-muted-foreground'>{field.hint}</p>
           </div>
         ))}
       </div>

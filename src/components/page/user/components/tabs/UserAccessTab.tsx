@@ -25,18 +25,17 @@ function UserAccessTab({ username, active }: { username: string; active: boolean
       onPageChange={setPage}
     >
       {items.map((row) => (
-        <div
-          key={row.id}
-          className='flex items-center gap-3 rounded-lg border border-border bg-white px-4 py-3'
-        >
+        <div key={row.id} className='flex items-center gap-3 rounded-lg border border-border bg-white px-4 py-3'>
           <div className='min-w-0 flex-1'>
-            <div className='truncate text-sm font-medium text-slate-900'>{row.spaceName ?? row.spaceId}</div>
-            <div className='truncate text-xs text-slate-600'>{dayjs(row.createdAt).format('YYYY.MM.DD HH:mm')}</div>
+            <div className='truncate text-sm font-medium text-foreground'>{row.spaceName ?? row.spaceId}</div>
+            <div className='truncate text-xs text-muted-foreground'>
+              {dayjs(row.createdAt).format('YYYY.MM.DD HH:mm')}
+            </div>
           </div>
           <div
             className={cn(
               'flex shrink-0 items-center gap-1 text-sm tabular-nums',
-              row.heart > 0 ? 'text-rose-600' : 'text-slate-500',
+              row.heart > 0 ? 'text-destructive' : 'text-muted-foreground',
             )}
           >
             <Heart className='h-3.5 w-3.5' />

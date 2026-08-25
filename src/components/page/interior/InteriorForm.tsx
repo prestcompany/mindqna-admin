@@ -264,7 +264,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
           <div className='-mx-6'>
             <PanelBand title='기본 정보' />
 
-            <DefinitionRow label='대표 이미지*'>
+            <DefinitionRow label='대표 이미지' required>
               <div className='flex flex-col items-start gap-2'>
                 {image && (
                   <div className='flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border bg-transparent p-2'>
@@ -275,7 +275,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
               </div>
             </DefinitionRow>
 
-            <DefinitionRow label='이름*' hint='다국어 키로도 사용됩니다.'>
+            <DefinitionRow label='이름' required hint='다국어 키로도 사용됩니다.'>
               <FormField
                 control={form.control}
                 name='name'
@@ -317,7 +317,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
 
             <PanelBand title='템플릿 옵션' />
 
-            <DefinitionRow label='타입*'>
+            <DefinitionRow label='타입' required>
               <FormField
                 control={form.control}
                 name='type'
@@ -334,7 +334,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                             <RadioGroupItem value={opt.value} id={`type-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`type-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -348,7 +348,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='카테고리*'>
+            <DefinitionRow label='카테고리' required>
               <FormField
                 control={form.control}
                 name='category'
@@ -365,7 +365,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                             <RadioGroupItem value={opt.value} id={`cat-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`cat-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -379,7 +379,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='방 타입*'>
+            <DefinitionRow label='방 타입' required>
               <FormField
                 control={form.control}
                 name='room'
@@ -396,7 +396,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                             <RadioGroupItem value={opt.value} id={`room-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`room-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -412,7 +412,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
 
             <PanelBand title='가격/사이즈 및 운영' />
 
-            <DefinitionRow label='코인 타입*'>
+            <DefinitionRow label='코인 타입' required>
               <FormField
                 control={form.control}
                 name='isPremium'
@@ -429,7 +429,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                             <RadioGroupItem value={opt.value} id={`premium-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`premium-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -443,7 +443,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='가격*'>
+            <DefinitionRow label='가격' required>
               <FormField
                 control={form.control}
                 name='price'
@@ -458,7 +458,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='사이즈 (W x H)*'>
+            <DefinitionRow label='사이즈 (W x H)' required>
               <div className='grid grid-cols-2 gap-3 sm:max-w-[320px]'>
                 <FormField
                   control={form.control}
@@ -506,7 +506,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                             <RadioGroupItem value={opt.value} id={`active-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`active-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -588,7 +588,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                             'px-1 text-xs',
                             isSelected &&
                               'border-sky-500 bg-sky-500 text-white hover:border-sky-600 hover:bg-sky-600 hover:text-white',
-                            !isSelected && option.value.y >= 5 && 'bg-slate-100 hover:bg-slate-200',
+                            !isSelected && option.value.y >= 5 && 'bg-muted hover:bg-border',
                           )}
                         >
                           {option.label}

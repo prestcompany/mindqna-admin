@@ -191,7 +191,7 @@ const GameFormSheet = ({ game, isOpen, close, refetch }: GameFormProps) => {
             <div className='min-h-0 flex-1 overflow-y-auto'>
               <PanelBand title='기본 정보' />
 
-              <DefinitionRow label='게임 타입*'>
+              <DefinitionRow label='게임 타입' required>
                 <FormField
                   control={form.control}
                   name='type'
@@ -217,7 +217,7 @@ const GameFormSheet = ({ game, isOpen, close, refetch }: GameFormProps) => {
                 />
               </DefinitionRow>
 
-              <DefinitionRow label='게임명*'>
+              <DefinitionRow label='게임명' required>
                 <FormField
                   control={form.control}
                   name='name'

@@ -154,7 +154,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
           <div className='-mx-6'>
             <PanelBand title='기본 정보' />
 
-            <DefinitionRow label='대표 이미지*' hint='리스트와 상세 화면에 노출됩니다.'>
+            <DefinitionRow label='대표 이미지' required hint='리스트와 상세 화면에 노출됩니다.'>
               <div className='flex flex-col gap-2 items-start'>
                 {image && (
                   <div className='flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border bg-transparent p-2'>
@@ -165,7 +165,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
               </div>
             </DefinitionRow>
 
-            <DefinitionRow label='이름*'>
+            <DefinitionRow label='이름' required>
               <FormField
                 control={form.control}
                 name='name'
@@ -197,7 +197,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
 
             <PanelBand title='노출/타입 설정' />
 
-            <DefinitionRow label='종류*'>
+            <DefinitionRow label='종류' required>
               <FormField
                 control={form.control}
                 name='kind'
@@ -214,7 +214,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                             <RadioGroupItem value={opt.value} id={`kind-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`kind-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -245,7 +245,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                             <RadioGroupItem value={opt.value} id={`type-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`type-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -323,7 +323,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                               <RadioGroupItem value={opt.value} id={`isPaid-${opt.value}`} className='peer sr-only' />
                               <Label
                                 htmlFor={`isPaid-${opt.value}`}
-                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                               >
                                 {opt.label}
                               </Label>
@@ -374,7 +374,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                             <RadioGroupItem value={opt.value} id={`isActive-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`isActive-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>

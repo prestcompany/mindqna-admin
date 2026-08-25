@@ -105,7 +105,7 @@ function CardForm({ init, reload, close }: Props) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className='space-y-4 pb-2'>
         <div className='-mx-6'>
-          <DefinitionRow label='카드 제목*' hint='관리자에서 구분할 수 있는 명칭'>
+          <DefinitionRow label='카드 제목' required hint='관리자에서 구분할 수 있는 명칭'>
             <FormField
               control={form.control}
               name='name'
@@ -137,7 +137,7 @@ function CardForm({ init, reload, close }: Props) {
             </DefinitionRow>
           )}
 
-          <DefinitionRow label='언어*'>
+          <DefinitionRow label='언어' required>
             <FormField
               control={form.control}
               name='locale'
@@ -154,7 +154,7 @@ function CardForm({ init, reload, close }: Props) {
                           <RadioGroupItem value={opt.value} id={`locale-${opt.value}`} className='peer sr-only' />
                           <Label
                             htmlFor={`locale-${opt.value}`}
-                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                           >
                             {opt.label}
                           </Label>
@@ -168,7 +168,7 @@ function CardForm({ init, reload, close }: Props) {
             />
           </DefinitionRow>
 
-          <DefinitionRow label='질문 타입*'>
+          <DefinitionRow label='질문 타입' required>
             <FormField
               control={form.control}
               name='type'
@@ -185,7 +185,7 @@ function CardForm({ init, reload, close }: Props) {
                           <RadioGroupItem value={opt.value} id={`type-${opt.value}`} className='peer sr-only' />
                           <Label
                             htmlFor={`type-${opt.value}`}
-                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium capitalize transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium capitalize transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                           >
                             {opt.label}
                           </Label>
@@ -199,7 +199,7 @@ function CardForm({ init, reload, close }: Props) {
             />
           </DefinitionRow>
 
-          <DefinitionRow label='공간 타입*' hint='템플릿이 노출될 공간 범위'>
+          <DefinitionRow label='공간 타입' required hint='템플릿이 노출될 공간 범위'>
             <FormField
               control={form.control}
               name='spaceTypes'

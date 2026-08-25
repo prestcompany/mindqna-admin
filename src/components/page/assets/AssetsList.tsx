@@ -118,7 +118,7 @@ function AssetsList() {
             return (
               <div
                 key={item.id}
-                className='group relative overflow-hidden rounded-lg border border-border bg-card transition-colors duration-fast hover:border-slate-300'
+                className='group relative overflow-hidden rounded-lg border border-border bg-card transition-colors duration-fast hover:border-border'
               >
                 <div className='relative aspect-square'>
                   <ClickableImagePreview

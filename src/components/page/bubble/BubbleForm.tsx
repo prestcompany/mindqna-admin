@@ -135,7 +135,7 @@ function BubbleForm({ init, reload, close }: Props) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
           <div className='-mx-6'>
-            <DefinitionRow label='언어*'>
+            <DefinitionRow label='언어' required>
               <FormField
                 control={form.control}
                 name='locale'
@@ -153,7 +153,7 @@ function BubbleForm({ init, reload, close }: Props) {
                             <RadioGroupItem value={opt.value} id={`locale-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`locale-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -168,7 +168,7 @@ function BubbleForm({ init, reload, close }: Props) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='메시지*'>
+            <DefinitionRow label='메시지' required>
               <FormField
                 control={form.control}
                 name='message'
@@ -183,7 +183,7 @@ function BubbleForm({ init, reload, close }: Props) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='타입*' hint='복수 선택 시 선택 타입별로 생성됩니다.'>
+            <DefinitionRow label='타입' required hint='복수 선택 시 선택 타입별로 생성됩니다.'>
               <FormField
                 control={form.control}
                 name='types'
@@ -218,7 +218,7 @@ function BubbleForm({ init, reload, close }: Props) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='레벨*' hint='0은 전체 레벨 대상으로 처리됩니다.'>
+            <DefinitionRow label='레벨' required hint='0은 전체 레벨 대상으로 처리됩니다.'>
               <FormField
                 control={form.control}
                 name='levels'

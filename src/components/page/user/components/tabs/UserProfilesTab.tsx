@@ -30,26 +30,22 @@ function UserProfilesTab({ username, active }: { username: string; active: boole
   return (
     <div className='space-y-3'>
       {(data ?? []).map((profile) => (
-        <div
-          key={profile.id}
-          className='flex items-center gap-3 rounded-lg border border-border bg-white px-4 py-3'
-        >
+        <div key={profile.id} className='flex items-center gap-3 rounded-lg border border-border bg-white px-4 py-3'>
           <div className='min-w-0 flex-1'>
             <div className='flex items-center gap-2'>
-              <span className='truncate text-sm font-medium text-slate-900'>
-                {profile.spaceName ?? (
-                  profile.spaceId ? (
-                    <span className='font-mono text-slate-500'>{profile.spaceId.slice(0, 8)}…</span>
+              <span className='truncate text-sm font-medium text-foreground'>
+                {profile.spaceName ??
+                  (profile.spaceId ? (
+                    <span className='font-mono text-muted-foreground'>{profile.spaceId.slice(0, 8)}…</span>
                   ) : (
                     '-'
-                  )
-                )}
+                  ))}
               </span>
               {profile.isPremium ? <Badge variant='softSuccess'>PREMIUM</Badge> : null}
               {profile.isGoldClub ? <Badge variant='softWarning'>GOLD CLUB</Badge> : null}
               {profile.disabled || profile.removed ? <Badge variant='softNeutral'>비활성</Badge> : null}
             </div>
-            <div className='truncate text-xs text-slate-600'>
+            <div className='truncate text-xs text-muted-foreground'>
               {profile.nickname} · 가입 {dayjs(profile.createdAt).format('YYYY.MM.DD')}
             </div>
           </div>

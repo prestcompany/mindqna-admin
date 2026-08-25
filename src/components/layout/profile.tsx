@@ -21,7 +21,7 @@ const Profile = () => {
       <div className='ml-2'>{session.user.name}</div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className='flex items-center px-2 text-slate-600 rounded hover:bg-slate-200 enable-transition'>
+          <button className='flex items-center px-2 text-muted-foreground rounded hover:bg-border enable-transition'>
             <span className='sm:max-w-[10rem] ellipsis-text'>{session.user.login}</span>
             <ChevronDown className='w-5 h-5' />
           </button>

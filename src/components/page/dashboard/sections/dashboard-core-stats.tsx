@@ -51,26 +51,30 @@ function DashboardCoreStats({ users, profiles, removedProfiles, spaces, isLoadin
     <section className='space-y-3'>
       <div className='flex flex-wrap items-start justify-between gap-3'>
         <div className='flex flex-col gap-1.5'>
-          <p className='text-base font-semibold text-slate-900 sm:text-lg'>전체 누적 현황</p>
+          <p className='text-base font-semibold text-foreground sm:text-lg'>전체 누적 현황</p>
           <p className='text-sm leading-6 text-muted-foreground sm:text-base'>
             이 영역은 서비스 전체 스냅샷으로, 아래 기간과 국가 설정의 영향을 받지 않습니다.
           </p>
         </div>
-        <div className='rounded-full border border-border bg-white px-3 py-1 text-xs font-medium text-slate-600'>기간 영향 없음</div>
+        <div className='rounded-full border border-border bg-white px-3 py-1 text-xs font-medium text-muted-foreground'>
+          기간 영향 없음
+        </div>
       </div>
 
       <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-4'>
         {statItems.map((item) => (
           <Card key={item.key} className='border-border bg-white'>
             <CardHeader className='pb-3'>
-              <CardTitle className='text-base text-slate-950'>{item.title}</CardTitle>
+              <CardTitle className='text-base text-foreground'>{item.title}</CardTitle>
               <CardDescription>{item.description}</CardDescription>
             </CardHeader>
             <CardContent className='pt-0'>
               {isLoading ? (
-                <div className='h-9 w-28 animate-pulse rounded-lg bg-slate-100' />
+                <div className='h-9 w-28 animate-pulse rounded-lg bg-muted' />
               ) : (
-                <div className='text-3xl font-semibold tracking-tight tabular-nums text-slate-950'>{formatValue(values[item.key])}</div>
+                <div className='text-3xl font-semibold tracking-tight tabular-nums text-foreground'>
+                  {formatValue(values[item.key])}
+                </div>
               )}
             </CardContent>
           </Card>

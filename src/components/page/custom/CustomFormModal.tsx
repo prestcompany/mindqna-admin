@@ -221,7 +221,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
               <div className='min-h-0 flex-1 overflow-y-auto'>
                 <PanelBand title='기본 정보' />
 
-                <DefinitionRow label='이름*'>
+                <DefinitionRow label='이름' required>
                   <FormField
                     control={form.control}
                     name='name'
@@ -244,12 +244,12 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
                 </DefinitionRow>
 
                 {!focusedId && (
-                  <DefinitionRow label='다국어*'>
+                  <DefinitionRow label='다국어' required>
                     <LocaleInputGroup locale={localeData} onLocaleChange={handleLocaleChange} />
                   </DefinitionRow>
                 )}
 
-                <DefinitionRow label='타입*'>
+                <DefinitionRow label='타입' required>
                   <FormField
                     control={form.control}
                     name='type'
@@ -269,7 +269,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
                                 <RadioGroupItem value={opt.value} id={`type-${opt.value}`} className='peer sr-only' />
                                 <Label
                                   htmlFor={`type-${opt.value}`}
-                                  className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                                  className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                                 >
                                   {opt.label}
                                 </Label>
@@ -283,7 +283,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
                   />
                 </DefinitionRow>
 
-                <DefinitionRow label='펫 타입*'>
+                <DefinitionRow label='펫 타입' required>
                   <FormField
                     control={form.control}
                     name='petType'
@@ -307,7 +307,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
                                 />
                                 <Label
                                   htmlFor={`petType-${opt.value}`}
-                                  className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                                  className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                                 >
                                   {opt.label}
                                 </Label>
@@ -321,7 +321,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
                   />
                 </DefinitionRow>
 
-                <DefinitionRow label='펫 레벨*'>
+                <DefinitionRow label='펫 레벨' required>
                   <FormField
                     control={form.control}
                     name='petLevel'
@@ -348,7 +348,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
                   />
                 </DefinitionRow>
 
-                <DefinitionRow label='키 값*' hint='신규 생성 시 로티 파일 업로드 이름으로 자동 입력됩니다.'>
+                <DefinitionRow label='키 값' required hint='신규 생성 시 로티 파일 업로드 이름으로 자동 입력됩니다.'>
                   <FormField
                     control={form.control}
                     name='fileKey'
@@ -373,7 +373,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
 
                 <PanelBand title='판매/노출 설정' />
 
-                <DefinitionRow label='결제 설정*'>
+                <DefinitionRow label='결제 설정' required>
                   <FormField
                     control={form.control}
                     name='isPremium'
@@ -397,7 +397,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
                                 />
                                 <Label
                                   htmlFor={`isPremium-${opt.value}`}
-                                  className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                                  className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                                 >
                                   {opt.label}
                                 </Label>
@@ -411,7 +411,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
                   />
                 </DefinitionRow>
 
-                <DefinitionRow label='가격*'>
+                <DefinitionRow label='가격' required>
                   <FormField
                     control={form.control}
                     name='price'
@@ -438,7 +438,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
                   />
                 </DefinitionRow>
 
-                <DefinitionRow label='활성화*'>
+                <DefinitionRow label='활성화' required>
                   <FormField
                     control={form.control}
                     name='isActive'
@@ -457,7 +457,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
                               <RadioGroupItem value='true' id='isActive-true' className='peer sr-only' />
                               <Label
                                 htmlFor='isActive-true'
-                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                               >
                                 활성화
                               </Label>
@@ -466,7 +466,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
                               <RadioGroupItem value='false' id='isActive-false' className='peer sr-only' />
                               <Label
                                 htmlFor='isActive-false'
-                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                               >
                                 비활성화
                               </Label>
@@ -481,7 +481,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
 
                 <PanelBand title='미디어' />
 
-                <DefinitionRow label='썸네일*'>
+                <DefinitionRow label='썸네일' required>
                   <FormField
                     control={form.control}
                     name='img'
@@ -522,7 +522,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
                   )}
                 </DefinitionRow>
 
-                <DefinitionRow label='로티 파일*'>
+                <DefinitionRow label='로티 파일' required>
                   <FormField
                     control={form.control}
                     name='file'

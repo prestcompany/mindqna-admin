@@ -1,6 +1,7 @@
 import { removeProfile, removeSpace, searchSpaces, type SearchSpacesParams } from '@/client/space';
 import { Space, SpaceType } from '@/client/types';
 import FormGroup from '@/components/shared/form/ui/form-group';
+import { DatePickerWithRange } from '@/components/ui/DatePickerWithRange';
 import FormSection from '@/components/shared/form/ui/form-section';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import DataTable from '@/components/shared/ui/data-table';
@@ -233,7 +234,7 @@ function SpaceSearch() {
       header: '멤버',
       size: 60,
       cell: ({ row }) => (
-        <span className='text-sm font-medium tabular-nums text-slate-900'>{row.original.profiles?.length ?? 0}</span>
+        <span className='text-sm font-medium tabular-nums text-foreground'>{row.original.profiles?.length ?? 0}</span>
       ),
     },
     {
@@ -242,9 +243,9 @@ function SpaceSearch() {
       size: 120,
       cell: ({ row }) => (
         <div className='flex items-center gap-2 whitespace-nowrap text-sm font-semibold tabular-nums'>
-          <span className='text-rose-600'>하트 {row.original.coin}</span>
-          <span className='text-slate-300'>·</span>
-          <span className='text-amber-600'>스타 {row.original.coinPaid}</span>
+          <span className='text-destructive'>하트 {row.original.coin}</span>
+          <span className='text-faint'>·</span>
+          <span className='text-warning-foreground'>스타 {row.original.coinPaid}</span>
         </div>
       ),
     },
@@ -254,9 +255,9 @@ function SpaceSearch() {
       header: '펫 EXP',
       size: 120,
       cell: ({ row }) => (
-        <div className='flex items-center gap-2 whitespace-nowrap text-sm font-medium tabular-nums text-slate-900'>
+        <div className='flex items-center gap-2 whitespace-nowrap text-sm font-medium tabular-nums text-foreground'>
           <span>EXP {row.original.pet?.exp ?? 0}</span>
-          <span className='text-slate-300'>·</span>
+          <span className='text-faint'>·</span>
           <span>Lv.{row.original.pet?.level ?? 0}</span>
         </div>
       ),
@@ -272,7 +273,7 @@ function SpaceSearch() {
         return (
           <div className='space-y-1'>
             <Badge variant={getRecencyVariant(diffFromNow)}>D+{diffFromNow}</Badge>
-            <div className='text-xs text-slate-600'>{day.format('MM.DD')}</div>
+            <div className='text-xs text-muted-foreground'>{day.format('MM.DD')}</div>
           </div>
         );
       },
@@ -394,37 +395,12 @@ function SpaceSearch() {
           </FormGroup>
 
           <FormGroup title='생성일 범위'>
-            <div className='flex items-center gap-2'>
-              <Input
-                type='date'
-                value={searchParams.dateRange.start?.format('YYYY-MM-DD') ?? ''}
-                onChange={(e) => {
-                  setSearchParams((prev) => ({
-                    ...prev,
-                    dateRange: {
-                      ...prev.dateRange,
-                      start: e.target.value ? dayjs(e.target.value) : null,
-                    },
-                  }));
-                }}
-                className='w-full sm:w-[180px]'
-              />
-              <span className='text-sm text-muted-foreground'>~</span>
-              <Input
-                type='date'
-                value={searchParams.dateRange.end?.format('YYYY-MM-DD') ?? ''}
-                onChange={(e) => {
-                  setSearchParams((prev) => ({
-                    ...prev,
-                    dateRange: {
-                      ...prev.dateRange,
-                      end: e.target.value ? dayjs(e.target.value) : null,
-                    },
-                  }));
-                }}
-                className='w-full sm:w-[180px]'
-              />
-            </div>
+            <DatePickerWithRange
+              startedAt={searchParams.dateRange.start}
+              endedAt={searchParams.dateRange.end}
+              setStartedAt={(d) => setSearchParams((prev) => ({ ...prev, dateRange: { ...prev.dateRange, start: d } }))}
+              setEndedAt={(d) => setSearchParams((prev) => ({ ...prev, dateRange: { ...prev.dateRange, end: d } }))}
+            />
           </FormGroup>
 
           <div className='flex justify-end gap-2 pt-2'>

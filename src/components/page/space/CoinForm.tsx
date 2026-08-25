@@ -123,7 +123,7 @@ function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
                 </div>
               </DefinitionRow>
 
-              <DefinitionRow label='작업 유형*'>
+              <DefinitionRow label='작업 유형' required>
                 <FormField
                   control={form.control}
                   name='operation'
@@ -140,7 +140,7 @@ function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
                               <RadioGroupItem value={opt.value} id={`op-${opt.value}`} className='peer sr-only' />
                               <Label
                                 htmlFor={`op-${opt.value}`}
-                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                               >
                                 {opt.label}
                               </Label>
@@ -154,7 +154,7 @@ function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
                 />
               </DefinitionRow>
 
-              <DefinitionRow label='코인 타입*'>
+              <DefinitionRow label='코인 타입' required>
                 <FormField
                   control={form.control}
                   name='isStar'
@@ -171,7 +171,7 @@ function CoinForm({ spaceId, currentCoins, reload, close }: CoinFormProps) {
                               <RadioGroupItem value={opt.value} id={`coin-${opt.value}`} className='peer sr-only' />
                               <Label
                                 htmlFor={`coin-${opt.value}`}
-                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                               >
                                 {opt.label}
                               </Label>

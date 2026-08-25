@@ -1,4 +1,5 @@
 import { createCoupon, updateCouponBatch, type CouponBatch } from '@/client/coupon';
+import { DatePicker } from '@/components/shared/ui/date-picker';
 import { DefinitionRow, PanelBand } from '@/components/shared/ui/definition-row';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { zodResolver } from '@hookform/resolvers/zod';
 import dayjs from 'dayjs';
 import { Loader2 } from 'lucide-react';
@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm, type FieldErrors } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { Segmented } from '@/components/shared/ui/segmented';
 import CouponSummaryRail from './CouponSummaryRail';
 import { errorMessage } from './errorMessage';
 
@@ -94,44 +95,6 @@ const makeCouponSchema = (isEdit: boolean) =>
 type CouponFormValues = z.infer<ReturnType<typeof makeCouponSchema>>;
 
 /** Two choices on one track — no shadow, the selected item just takes the card surface. */
-function Segmented<T extends string>({
-  name,
-  value,
-  onChange,
-  options,
-  disabled,
-  className,
-}: {
-  name: string;
-  value: T;
-  onChange: (value: T) => void;
-  options: { value: T; label: string }[];
-  disabled?: boolean;
-  className?: string;
-}) {
-  return (
-    <RadioGroup
-      value={value}
-      onValueChange={(next) => onChange(next as T)}
-      disabled={disabled}
-      className={`grid auto-cols-fr grid-flow-col gap-1 rounded-lg border border-border bg-muted/60 p-1 ${className ?? ''}`}
-    >
-      {options.map((option) => (
-        <div key={option.value}>
-          <RadioGroupItem value={option.value} id={`${name}-${option.value}`} className='peer sr-only' />
-          <Label
-            htmlFor={`${name}-${option.value}`}
-            // peer-* only reaches siblings of the input, so the checked style lives here.
-            className='flex h-8 cursor-pointer items-center justify-center rounded-md text-sm font-medium text-muted-foreground transition-colors duration-fast peer-focus-visible:ring-1 peer-focus-visible:ring-ring peer-data-[state=checked]:bg-card peer-data-[state=checked]:text-foreground peer-data-[state=checked]:shadow-sm'
-          >
-            {option.label}
-          </Label>
-        </div>
-      ))}
-    </RadioGroup>
-  );
-}
-
 function CouponForm({ init, reload, close }: Props) {
   const [isLoading, setLoading] = useState(false);
   const isEdit = !!init;
@@ -247,7 +210,7 @@ function CouponForm({ init, reload, close }: Props) {
   // Constraints belong beside the outcome they constrain, not buried in the field list.
   const notices =
     isClosed || isLocked ? (
-      <div className='space-y-2 border-t border-border pt-3 text-xs leading-relaxed text-slate-600'>
+      <div className='space-y-2 border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground'>
         {isClosed && <p>이미 종료된 쿠폰입니다. 만료일을 오늘 이후로 바꿔야 다시 사용할 수 있습니다.</p>}
         {isLocked && (
           <p>
@@ -298,7 +261,7 @@ function CouponForm({ init, reload, close }: Props) {
                             ]}
                           />
                         </FormControl>
-                        <p className='text-xs text-slate-500'>
+                        <p className='text-xs text-muted-foreground'>
                           {isShared ? '코드 하나를 여러 사람이 사용합니다.' : '서로 다른 코드를 1인 1장씩 사용합니다.'}
                         </p>
                         <FormMessage />
@@ -406,7 +369,7 @@ function CouponForm({ init, reload, close }: Props) {
                     render={({ field }) => (
                       <FormItem className='space-y-1.5'>
                         <FormControl>
-                          <Input type='date' {...field} />
+                          <DatePicker value={field.value ?? ''} onChange={field.onChange} placeholder='날짜 선택' />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -418,7 +381,7 @@ function CouponForm({ init, reload, close }: Props) {
                     render={({ field }) => (
                       <FormItem className='space-y-1.5'>
                         <FormControl>
-                          <Input type='date' {...field} />
+                          <DatePicker value={field.value ?? ''} onChange={field.onChange} placeholder='날짜 선택' />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -434,7 +397,7 @@ function CouponForm({ init, reload, close }: Props) {
                       key={days}
                       type='button'
                       onClick={() => applyQuickRange(days)}
-                      className='inline-flex h-8 items-center rounded-full border border-border bg-card px-3 text-xs font-medium text-slate-600 transition-colors duration-fast hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                      className='inline-flex h-8 items-center rounded-full border border-border bg-card px-3 text-xs font-medium text-muted-foreground transition-colors duration-fast hover:bg-canvas focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
                     >
                       오늘부터 {days}일
                     </button>
@@ -533,7 +496,7 @@ function CouponForm({ init, reload, close }: Props) {
           </div>
 
           <div className='flex items-center gap-3 border-t bg-card px-4 py-3'>
-            <p className='min-w-0 truncate text-xs text-slate-500'>
+            <p className='min-w-0 truncate text-xs text-muted-foreground'>
               {isEdit ? '변경 내용은 이 배치의 모든 코드에 적용됩니다.' : '발급 후 코드는 목록에서 펼쳐 복사합니다.'}
             </p>
             <div className='ml-auto flex shrink-0 gap-2'>

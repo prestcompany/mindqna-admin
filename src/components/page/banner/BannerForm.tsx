@@ -142,7 +142,11 @@ function BannerForm({ init, reload, close }: Props) {
           <div className='-mx-6'>
             <PanelBand title='기본 정보' />
 
-            <DefinitionRow label='대표 이미지*' hint='권장 비율을 유지하면 리스트/상세에서 안정적으로 노출됩니다.'>
+            <DefinitionRow
+              label='대표 이미지'
+              required
+              hint='권장 비율을 유지하면 리스트/상세에서 안정적으로 노출됩니다.'
+            >
               <div className='flex flex-col items-start gap-2'>
                 {imageUri && (
                   <div className='flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border bg-transparent p-2'>
@@ -153,7 +157,7 @@ function BannerForm({ init, reload, close }: Props) {
               </div>
             </DefinitionRow>
 
-            <DefinitionRow label='언어*'>
+            <DefinitionRow label='언어' required>
               <FormField
                 control={form.control}
                 name='locale'
@@ -174,7 +178,7 @@ function BannerForm({ init, reload, close }: Props) {
                             />
                             <Label
                               htmlFor={`banner-locale-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -188,7 +192,7 @@ function BannerForm({ init, reload, close }: Props) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='이름*' hint='운영자가 배너를 구분하기 위한 명칭'>
+            <DefinitionRow label='이름' required hint='운영자가 배너를 구분하기 위한 명칭'>
               <FormField
                 control={form.control}
                 name='name'
@@ -205,7 +209,7 @@ function BannerForm({ init, reload, close }: Props) {
 
             <PanelBand title='노출 정책' />
 
-            <DefinitionRow label='노출 위치*'>
+            <DefinitionRow label='노출 위치' required>
               <FormField
                 control={form.control}
                 name='location'
@@ -218,7 +222,7 @@ function BannerForm({ init, reload, close }: Props) {
                             <RadioGroupItem value={opt.value} id={`location-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`location-${opt.value}`}
-                              className='flex min-h-10 cursor-pointer items-center rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex min-h-10 cursor-pointer items-center rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -234,7 +238,8 @@ function BannerForm({ init, reload, close }: Props) {
             </DefinitionRow>
 
             <DefinitionRow
-              label='노출 순서*'
+              label='노출 순서'
+              required
               hint='같은 위치/언어 그룹 안에서 순서를 관리합니다. 비활성 배너도 순서를 유지합니다.'
             >
               <FormField
@@ -279,7 +284,7 @@ function BannerForm({ init, reload, close }: Props) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='링크*' hint='클릭 시 이동할 URL'>
+            <DefinitionRow label='링크' required hint='클릭 시 이동할 URL'>
               <FormField
                 control={form.control}
                 name='link'
@@ -312,7 +317,7 @@ function BannerForm({ init, reload, close }: Props) {
                             <RadioGroupItem value={opt.value} id={`isActive-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`isActive-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>

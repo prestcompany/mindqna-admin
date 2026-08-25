@@ -49,18 +49,20 @@ function UserResultCard({ user, onOpenDetail, copyId }: UserResultCardProps) {
           onOpenDetail(user);
         }
       }}
-      className='flex cursor-pointer items-center gap-4 rounded-lg border border-border bg-white px-4 py-3 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300'
+      className='flex cursor-pointer items-center gap-4 rounded-lg border border-border bg-white px-4 py-3 transition-colors hover:bg-canvas focus:outline-none focus-visible:ring-2 focus-visible:ring-border'
     >
       <div className='min-w-0 flex-1'>
         <div className='flex flex-wrap items-center gap-2'>
-          <span className='truncate font-semibold text-slate-900'>{user.username}</span>
-          {typeof user.code === 'number' ? <span className='font-mono text-xs text-slate-600'>#{user.code}</span> : null}
+          <span className='truncate font-semibold text-foreground'>{user.username}</span>
+          {typeof user.code === 'number' ? (
+            <span className='font-mono text-xs text-muted-foreground'>#{user.code}</span>
+          ) : null}
           <Badge variant='softNeutral'>{getLocaleLabel(user.locale)}</Badge>
           {user.representativeNickname?.trim() ? (
-            <span className='truncate text-xs text-slate-600'>{user.representativeNickname}</span>
+            <span className='truncate text-xs text-muted-foreground'>{user.representativeNickname}</span>
           ) : null}
         </div>
-        <div className='mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-600'>
+        <div className='mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground'>
           <button
             type='button'
             onClick={(event) => {
@@ -68,7 +70,7 @@ function UserResultCard({ user, onOpenDetail, copyId }: UserResultCardProps) {
               copyId(user.id);
             }}
             onKeyDown={(event) => event.stopPropagation()}
-            className='inline-flex items-center gap-1 font-mono transition-colors hover:text-slate-900'
+            className='inline-flex items-center gap-1 font-mono transition-colors hover:text-foreground'
           >
             <Copy className='h-3 w-3' />
             {user.id}
@@ -250,7 +252,7 @@ function UserSearch() {
       {!data && !isLoading && isFetched && (
         <Card className='border-border bg-white py-8 text-center'>
           <CardContent>
-            <div className='text-slate-500'>
+            <div className='text-muted-foreground'>
               <p>{error ? '검색을 완료하지 못했습니다' : '검색 결과가 없습니다'}</p>
               <p className='mt-1 text-sm'>{getErrorMessage()}</p>
             </div>
@@ -303,7 +305,7 @@ function UserSearch() {
                 <p>
                   <strong>{confirmTarget?.username}</strong> 사용자를 삭제하시겠습니까?
                 </p>
-                <div className='text-sm text-slate-600'>
+                <div className='text-sm text-muted-foreground'>
                   <p>• 이메일: {confirmTarget?.socialAccount.email}</p>
                   <p>• 가입일: {confirmTarget ? dayjs(confirmTarget.createdAt).format('YYYY-MM-DD') : ''}</p>
                   <p>• 공간 수: {confirmTarget?._count.profiles}개</p>

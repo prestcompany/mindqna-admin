@@ -148,7 +148,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
           <div className='-mx-6'>
             <PanelBand title='기본 정보' />
 
-            <DefinitionRow label='이미지 URL*'>
+            <DefinitionRow label='이미지 URL' required>
               <FormField
                 control={form.control}
                 name='img'
@@ -163,7 +163,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='타입*'>
+            <DefinitionRow label='타입' required>
               <FormField
                 control={form.control}
                 name='subCategory'
@@ -180,7 +180,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
                             <RadioGroupItem value={opt.value} id={`subcat-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`subcat-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -194,7 +194,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='이름*'>
+            <DefinitionRow label='이름' required>
               <FormField
                 control={form.control}
                 name='name'
@@ -211,7 +211,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
 
             <PanelBand title='콘텐츠 정보' />
 
-            <DefinitionRow label='제목 키*'>
+            <DefinitionRow label='제목 키' required>
               <FormField
                 control={form.control}
                 name='title'
@@ -258,7 +258,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
 
             <PanelBand title='운영 설정' />
 
-            <DefinitionRow label='언어*'>
+            <DefinitionRow label='언어' required>
               <FormField
                 control={form.control}
                 name='locale'
@@ -275,7 +275,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
                             <RadioGroupItem value={opt.value} id={`locale-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`locale-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -305,7 +305,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
                           <RadioGroupItem value='true' id='active-true' className='peer sr-only' />
                           <Label
                             htmlFor='active-true'
-                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                           >
                             활성화
                           </Label>
@@ -314,7 +314,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
                           <RadioGroupItem value='false' id='active-false' className='peer sr-only' />
                           <Label
                             htmlFor='active-false'
-                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                           >
                             비활성화
                           </Label>
@@ -343,7 +343,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
                           <RadioGroupItem value='true' id='fixed-true' className='peer sr-only' />
                           <Label
                             htmlFor='fixed-true'
-                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                           >
                             고정
                           </Label>
@@ -352,7 +352,7 @@ function LibraryForm({ init, type, reload, close }: Props) {
                           <RadioGroupItem value='false' id='fixed-false' className='peer sr-only' />
                           <Label
                             htmlFor='fixed-false'
-                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                            className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                           >
                             고정 안함
                           </Label>

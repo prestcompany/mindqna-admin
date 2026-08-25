@@ -122,7 +122,7 @@ function RoomForm({ init, reload, close }: Props) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(save)} className='space-y-4 pb-2'>
           <div className='-mx-6'>
-            <DefinitionRow label='이름*'>
+            <DefinitionRow label='이름' required>
               <FormField
                 control={form.control}
                 name='name'
@@ -137,7 +137,7 @@ function RoomForm({ init, reload, close }: Props) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='카테고리*'>
+            <DefinitionRow label='카테고리' required>
               <FormField
                 control={form.control}
                 name='category'
@@ -154,7 +154,7 @@ function RoomForm({ init, reload, close }: Props) {
                             <RadioGroupItem value={opt.value} id={`cat-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`cat-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -168,7 +168,7 @@ function RoomForm({ init, reload, close }: Props) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='코인 타입*'>
+            <DefinitionRow label='코인 타입' required>
               <FormField
                 control={form.control}
                 name='isPaid'
@@ -185,7 +185,7 @@ function RoomForm({ init, reload, close }: Props) {
                             <RadioGroupItem value={opt.value} id={`paid-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`paid-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -199,7 +199,7 @@ function RoomForm({ init, reload, close }: Props) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='가격*'>
+            <DefinitionRow label='가격' required>
               <FormField
                 control={form.control}
                 name='price'
@@ -232,7 +232,7 @@ function RoomForm({ init, reload, close }: Props) {
                             <RadioGroupItem value={opt.value} id={`active-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`active-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>

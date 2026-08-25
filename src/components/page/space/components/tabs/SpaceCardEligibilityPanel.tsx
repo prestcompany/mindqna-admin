@@ -32,7 +32,11 @@ const STATUS_META: Record<CardEligibilityStatus, { label: string; variant: Statu
     desc: '직전 카드 참여가 부족해 멤버 답변을 기다리는 중입니다.',
   },
   inactive: { label: '비활성', variant: 'softWarning', desc: 'owner 첫 답변 전이라 공간이 비활성 상태입니다.' },
-  needsMembers: { label: '멤버 부족', variant: 'softWarning', desc: '그룹 공간은 활성 멤버 2명 이상이어야 발급됩니다.' },
+  needsMembers: {
+    label: '멤버 부족',
+    variant: 'softWarning',
+    desc: '그룹 공간은 활성 멤버 2명 이상이어야 발급됩니다.',
+  },
   noTemplate: { label: '템플릿 소진', variant: 'softDanger', desc: '발급할 다음 카드 템플릿이 없습니다. (조치 필요)' },
   scheduledRemoval: { label: '삭제 예정', variant: 'softDanger', desc: '삭제 예정 공간이라 발급되지 않습니다.' },
   error: { label: '공간 정보 없음', variant: 'softDanger', desc: '공간 정보가 없어 발급 판정이 불가합니다.' },
@@ -41,8 +45,8 @@ const STATUS_META: Record<CardEligibilityStatus, { label: string; variant: Statu
 function Metric({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className='min-w-0'>
-      <div className='text-xs text-slate-600'>{label}</div>
-      <div className='mt-0.5 truncate text-sm font-medium tabular-nums text-slate-900'>{value}</div>
+      <div className='text-xs text-muted-foreground'>{label}</div>
+      <div className='mt-0.5 truncate text-sm font-medium tabular-nums text-foreground'>{value}</div>
     </div>
   );
 }
@@ -97,9 +101,9 @@ function SpaceCardEligibilityPanel({
     <section className='space-y-3'>
       <div className='flex items-start justify-between gap-3'>
         <div className='flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1'>
-          <h3 className='text-base font-semibold text-slate-900'>카드 발급 상태</h3>
+          <h3 className='text-base font-semibold text-foreground'>카드 발급 상태</h3>
           <Badge variant={meta.variant}>{meta.label}</Badge>
-          <span className='text-xs text-slate-600'>{meta.desc}</span>
+          <span className='text-xs text-muted-foreground'>{meta.desc}</span>
         </div>
         {FORCE_ISSUABLE_STATUSES.includes(data.status) ? (
           <Button
@@ -121,13 +125,14 @@ function SpaceCardEligibilityPanel({
           <AlertDialogHeader>
             <AlertDialogTitle>카드 강제 발급</AlertDialogTitle>
             <AlertDialogDescription>
-              게이트(시간·참여·멤버)를 우회해 카드를 즉시 발급합니다. 멤버 전원에게 푸시 알림이 전송되며 이 작업은 되돌릴 수 없습니다.
+              게이트(시간·참여·멤버)를 우회해 카드를 즉시 발급합니다. 멤버 전원에게 푸시 알림이 전송되며 이 작업은
+              되돌릴 수 없습니다.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={mutation.isPending}>취소</AlertDialogCancel>
             <AlertDialogAction
-              className='bg-rose-600 text-white hover:bg-rose-700'
+              className='bg-destructive text-white hover:bg-destructive'
               onClick={() => mutation.mutate()}
               disabled={mutation.isPending}
             >
@@ -140,7 +145,7 @@ function SpaceCardEligibilityPanel({
       <div className='grid gap-4 lg:grid-cols-2'>
         {/* 카드 현황 — 상세 정보에 흩어져 있던 카드 항목을 취합 */}
         <div className='rounded-lg border border-border bg-white p-4'>
-          <div className='mb-3 text-xs font-medium text-slate-600'>카드 현황</div>
+          <div className='mb-3 text-xs font-medium text-muted-foreground'>카드 현황</div>
           <div className='grid grid-cols-2 gap-x-4 gap-y-3'>
             <Metric label='현재 카드' value={`#${data.cardOrder}`} />
             <Metric label='활성 멤버' value={`${data.activeMembers}명`} />
@@ -153,33 +158,35 @@ function SpaceCardEligibilityPanel({
 
         {/* 발급 조건 — 차단 사유 + 게이트 체크리스트 */}
         <div className='rounded-lg border border-border bg-white'>
-          <div className='px-4 pt-3 text-xs font-medium text-slate-600'>발급 조건</div>
+          <div className='px-4 pt-3 text-xs font-medium text-muted-foreground'>발급 조건</div>
           {blockedReasons.length ? (
-            <div className='mx-4 mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2'>
+            <div className='mx-4 mt-2 rounded-lg border border-warning/35 bg-warning/15 px-3 py-2'>
               <ul className='space-y-0.5'>
                 {blockedReasons.map((c) => (
-                  <li key={c.key} className='text-sm font-medium text-amber-800'>
+                  <li key={c.key} className='text-sm font-medium text-warning-foreground'>
                     {c.detail ?? c.label}
                   </li>
                 ))}
               </ul>
             </div>
           ) : null}
-          <div className='mt-1 divide-y divide-slate-100 px-4'>
+          <div className='mt-1 divide-y divide-border px-4'>
             {data.checks.map((check) => (
               <div key={check.key} className='flex items-start gap-3 py-2.5'>
                 <span
                   className={
                     check.passed
-                      ? 'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600'
-                      : 'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-600'
+                      ? 'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-success/10 text-success'
+                      : 'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive'
                   }
                 >
                   {check.passed ? <Check className='h-3 w-3' /> : <X className='h-3 w-3' />}
                 </span>
                 <div className='min-w-0'>
-                  <div className='text-sm font-medium text-slate-900'>{check.label}</div>
-                  {!check.passed && check.detail ? <div className='text-xs text-slate-600'>{check.detail}</div> : null}
+                  <div className='text-sm font-medium text-foreground'>{check.label}</div>
+                  {!check.passed && check.detail ? (
+                    <div className='text-xs text-muted-foreground'>{check.detail}</div>
+                  ) : null}
                 </div>
               </div>
             ))}

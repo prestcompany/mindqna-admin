@@ -100,7 +100,7 @@ function GameRankingList() {
       size: 150,
       cell: ({ row }) => {
         const space = row.original.space as Space;
-        return <span className='font-mono text-slate-700'>{space.id}</span>;
+        return <span className='font-mono text-foreground'>{space.id}</span>;
       },
     },
   ];

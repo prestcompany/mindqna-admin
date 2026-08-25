@@ -24,12 +24,16 @@ interface CopyInlineCellProps {
 function CopyInlineCell({ text, copyValue, maxWidthClassName, monospace = false, copyId }: CopyInlineCellProps) {
   return (
     <div className='flex min-w-0 items-center gap-1'>
-      <span className={`${maxWidthClassName} truncate ${monospace ? 'font-mono text-xs text-muted-foreground' : 'font-medium text-foreground'}`}>{text}</span>
+      <span
+        className={`${maxWidthClassName} truncate ${monospace ? 'font-mono text-xs text-muted-foreground' : 'font-medium text-foreground'}`}
+      >
+        {text}
+      </span>
       <Button
         type='button'
         variant='ghost'
         size='icon'
-        className='h-8 w-8 shrink-0 text-slate-500 hover:text-slate-900'
+        className='h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground'
         onClick={(event) => {
           event.stopPropagation();
           copyId(copyValue);
@@ -74,7 +78,9 @@ export const createUserTableColumns = (actions: UserTableActionsProps): ColumnDe
     header: '닉네임',
     size: 140,
     cell: ({ row }) => (
-      <span className='block truncate text-sm text-slate-900'>{row.original.representativeNickname?.trim() || '-'}</span>
+      <span className='block truncate text-sm text-foreground'>
+        {row.original.representativeNickname?.trim() || '-'}
+      </span>
     ),
   },
   {
@@ -91,7 +97,9 @@ export const createUserTableColumns = (actions: UserTableActionsProps): ColumnDe
     id: 'email',
     header: '이메일',
     size: 260,
-    cell: ({ row }) => <span className='block truncate text-slate-700'>{row.original.socialAccount?.email ?? '-'}</span>,
+    cell: ({ row }) => (
+      <span className='block truncate text-foreground'>{row.original.socialAccount?.email ?? '-'}</span>
+    ),
   },
   {
     accessorFn: (row) => row.socialAccount?.provider,
@@ -119,7 +127,7 @@ export const createUserTableColumns = (actions: UserTableActionsProps): ColumnDe
       return (
         <div className='flex flex-row gap-1 items-center whitespace-nowrap'>
           <Badge variant={getRecencyVariant(diffFromNow)}>D+{diffFromNow}</Badge>
-          <div className='text-sm text-slate-500'>{day.format('YY.MM.DD HH:mm:ss')}</div>
+          <div className='text-sm text-muted-foreground'>{day.format('YY.MM.DD HH:mm:ss')}</div>
         </div>
       );
     },
@@ -140,7 +148,7 @@ export const createUserTableColumns = (actions: UserTableActionsProps): ColumnDe
       return (
         <div className='flex flex-row gap-1 items-center whitespace-nowrap'>
           <Badge variant={isUrgent ? 'softDanger' : 'softWarning'}>{gap}만에 삭제</Badge>
-          <div className='text-sm text-slate-500'>{day.format('YY.MM.DD HH:mm:ss')}</div>
+          <div className='text-sm text-muted-foreground'>{day.format('YY.MM.DD HH:mm:ss')}</div>
         </div>
       );
     },
@@ -190,10 +198,7 @@ export const defaultColumnConfig: ColumnConfig[] = [
   { key: 'actions', visible: true, width: 90 },
 ];
 
-export const filterColumns = (
-  columns: ColumnDef<UserSummary>[],
-  config: ColumnConfig[],
-): ColumnDef<UserSummary>[] => {
+export const filterColumns = (columns: ColumnDef<UserSummary>[], config: ColumnConfig[]): ColumnDef<UserSummary>[] => {
   const visibleKeys = new Set(config.filter((c) => c.visible).map((c) => c.key));
   return columns.filter((col) => {
     const key = col.id || ('accessorKey' in col ? (col.accessorKey as string) : undefined);

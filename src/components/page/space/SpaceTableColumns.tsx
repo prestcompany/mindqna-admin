@@ -63,7 +63,9 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
     id: 'members',
     header: '멤버',
     size: 88,
-    cell: ({ row }) => <span className='text-sm font-medium tabular-nums text-slate-900'>{row.original.spaceInfo?.members || 0}</span>,
+    cell: ({ row }) => (
+      <span className='text-sm font-medium tabular-nums text-foreground'>{row.original.spaceInfo?.members || 0}</span>
+    ),
   },
   {
     id: 'membership',
@@ -71,10 +73,11 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
     size: 150,
     cell: ({ row }) => {
       const hasPremium = row.original.hasPremiumMember ?? row.original.profiles?.some((profile) => profile.isPremium);
-      const hasGoldClub = row.original.hasGoldClubMember ?? row.original.profiles?.some((profile) => profile.isGoldClub);
+      const hasGoldClub =
+        row.original.hasGoldClubMember ?? row.original.profiles?.some((profile) => profile.isGoldClub);
 
       if (!hasPremium && !hasGoldClub) {
-        return <span className='text-sm text-slate-500'>-</span>;
+        return <span className='text-sm text-muted-foreground'>-</span>;
       }
 
       return (
@@ -94,7 +97,7 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
       return (
         <div className='space-y-1 whitespace-nowrap'>
           <Badge variant='softNeutral'>카드 {row.original.cardOrder || 0}</Badge>
-          <div className='text-xs text-slate-600'>
+          <div className='text-xs text-muted-foreground'>
             {latestCardIssuedAt ? dayjs(latestCardIssuedAt).format('YY.MM.DD HH:mm') : '발급 기록 없음'}
           </div>
         </div>
@@ -107,9 +110,9 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
     size: 146,
     cell: ({ row }) => (
       <div className='flex items-center gap-2 whitespace-nowrap text-sm font-semibold tabular-nums'>
-        <span className='text-rose-600'>하트 {row.original.coin}</span>
-        <span className='text-slate-300'>·</span>
-        <span className='text-amber-600'>스타 {row.original.coinPaid}</span>
+        <span className='text-destructive'>하트 {row.original.coin}</span>
+        <span className='text-faint'>·</span>
+        <span className='text-warning-foreground'>스타 {row.original.coinPaid}</span>
       </div>
     ),
   },
@@ -119,9 +122,9 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
     header: '펫 EXP',
     size: 130,
     cell: ({ row }) => (
-      <div className='flex items-center gap-2 whitespace-nowrap text-sm font-medium tabular-nums text-slate-900'>
+      <div className='flex items-center gap-2 whitespace-nowrap text-sm font-medium tabular-nums text-foreground'>
         <span>EXP {row.original.pet?.exp?.toFixed(1) ?? '0.0'}</span>
-        <span className='text-slate-300'>·</span>
+        <span className='text-faint'>·</span>
         <span>Lv.{row.original.pet?.level ?? 0}</span>
       </div>
     ),
@@ -131,9 +134,9 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
     header: '방/인테리어',
     size: 140,
     cell: ({ row }) => (
-      <div className='flex items-center gap-2 whitespace-nowrap text-sm font-medium tabular-nums text-slate-900'>
+      <div className='flex items-center gap-2 whitespace-nowrap text-sm font-medium tabular-nums text-foreground'>
         <span>방 {row.original.rooms?.length || 0}</span>
-        <span className='text-slate-300'>·</span>
+        <span className='text-faint'>·</span>
         <span>인테리어 {row.original.InteriorItem?.length || 0}</span>
       </div>
     ),
@@ -149,7 +152,7 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
       return (
         <div className='flex flex-row gap-1 items-center whitespace-nowrap'>
           <Badge variant={getRecencyVariant(diffFromNow)}>D+{diffFromNow}</Badge>
-          <div className='text-sm text-slate-500'>{day.format('YY.MM.DD HH:mm:ss')}</div>
+          <div className='text-sm text-muted-foreground'>{day.format('YY.MM.DD HH:mm:ss')}</div>
         </div>
       );
     },
@@ -176,7 +179,7 @@ export const createSpaceTableColumns = (actions: SpaceTableActionsProps): Column
       return (
         <div className='whitespace-nowrap'>
           <Badge variant={isUrgent ? 'softDanger' : 'softWarning'}>{gap}만에 삭제</Badge>
-          <div className='text-xs text-slate-600'>{day.format('YY.MM.DD HH:mm:ss')}</div>
+          <div className='text-xs text-muted-foreground'>{day.format('YY.MM.DD HH:mm:ss')}</div>
         </div>
       );
     },
@@ -234,10 +237,7 @@ export const defaultColumnConfig: ColumnConfig[] = [
   { key: 'actions', visible: true, width: 92 },
 ];
 
-export const filterColumns = (
-  columns: ColumnDef<Space>[],
-  config: ColumnConfig[],
-): ColumnDef<Space>[] => {
+export const filterColumns = (columns: ColumnDef<Space>[], config: ColumnConfig[]): ColumnDef<Space>[] => {
   const visibleKeys = new Set(config.filter((c) => c.visible).map((c) => c.key));
   return columns.filter((col) => {
     const key = col.id || ('accessorKey' in col ? (col.accessorKey as string) : undefined);

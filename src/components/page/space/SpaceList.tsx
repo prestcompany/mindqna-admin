@@ -471,11 +471,11 @@ function SpaceList() {
           </div>
 
           {bulkResult?.status === 'partial' ? (
-            <div className='mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4'>
+            <div className='mt-4 rounded-lg border border-warning/35 bg-warning/15 p-4'>
               <div className='flex items-start justify-between gap-3'>
                 <div className='space-y-1'>
-                  <p className='text-sm font-semibold text-amber-900'>부분 실패</p>
-                  <p className='text-sm text-amber-800'>
+                  <p className='text-sm font-semibold text-warning-foreground'>부분 실패</p>
+                  <p className='text-sm text-warning-foreground'>
                     총 {bulkResult.totalCount}개 중 {bulkResult.successCount}개 성공, {bulkResult.failedSpaces.length}개
                     실패
                   </p>
@@ -493,7 +493,7 @@ function SpaceList() {
                 </Button>
               </div>
 
-              <div className='mt-3 max-h-40 overflow-y-auto rounded-lg border border-amber-200 bg-white'>
+              <div className='mt-3 max-h-40 overflow-y-auto rounded-lg border border-warning/35 bg-white'>
                 <div className='divide-y divide-border/60'>
                   {bulkResult.failedSpaces.map((item) => (
                     <div key={item.spaceId} className='flex items-center justify-between gap-3 px-3 py-2 text-sm'>
@@ -509,7 +509,7 @@ function SpaceList() {
           ) : null}
 
           {bulkResult?.status === 'error' ? (
-            <div className='mt-4 rounded-lg border border-destructive/20 bg-red-50 p-4'>
+            <div className='mt-4 rounded-lg border border-destructive/20 bg-destructive/10 p-4'>
               <p className='text-sm font-semibold text-destructive'>처리 실패</p>
               <p className='mt-1 break-words text-sm text-destructive/80'>{bulkResult.message}</p>
             </div>

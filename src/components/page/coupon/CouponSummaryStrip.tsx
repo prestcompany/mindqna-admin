@@ -23,11 +23,11 @@ function CouponSummaryStrip({ summary, isLoading }: { summary?: CouponSummary; i
     <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
       {TILES.map((tile) => (
         <div key={tile.key} className='rounded-lg border border-border bg-card px-4 py-3'>
-          <div className='text-xs text-slate-600'>
+          <div className='text-xs text-muted-foreground'>
             {tile.label}
-            {tile.hint && <span className='ml-1 text-slate-400'>{tile.hint}</span>}
+            {tile.hint && <span className='ml-1 text-faint'>{tile.hint}</span>}
           </div>
-          <div className='mt-0.5 text-2xl font-semibold tabular-nums tracking-heading text-slate-900'>
+          <div className='mt-0.5 text-2xl font-semibold tabular-nums tracking-heading text-foreground'>
             {isLoading || !summary ? (
               <span className='inline-block h-6 w-10 rounded bg-muted align-middle' />
             ) : (

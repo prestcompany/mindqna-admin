@@ -27,9 +27,9 @@ function LiveStatusBlock({ username }: { username: string }) {
   });
 
   return (
-    <div className='space-y-3 rounded-lg border border-border bg-slate-50 p-3'>
+    <div className='space-y-3 rounded-lg border border-border bg-canvas p-3'>
       <div className='space-y-2'>
-        <div className='text-xs text-slate-600'>
+        <div className='text-xs text-muted-foreground'>
           평상시 값은 5분 주기 동기화입니다. 현재 스토어 상태를 확인하려면 아래 버튼을 누르세요.
         </div>
         <Button
@@ -46,16 +46,16 @@ function LiveStatusBlock({ username }: { username: string }) {
       </div>
 
       {live.isError ? (
-        <div className='text-xs text-rose-600'>실시간 조회에 실패했습니다. 잠시 후 다시 시도하세요.</div>
+        <div className='text-xs text-destructive'>실시간 조회에 실패했습니다. 잠시 후 다시 시도하세요.</div>
       ) : live.data ? (
         live.data.length === 0 ? (
-          <div className='text-xs text-slate-600'>구독 레코드가 없습니다.</div>
+          <div className='text-xs text-muted-foreground'>구독 레코드가 없습니다.</div>
         ) : (
           <div className='space-y-2'>
             <div className='flex items-center justify-between'>
-              <h4 className='text-xs font-semibold text-slate-600'>스토어 실시간</h4>
+              <h4 className='text-xs font-semibold text-muted-foreground'>스토어 실시간</h4>
               {live.dataUpdatedAt > 0 ? (
-                <span className='text-xs tabular-nums text-slate-600'>
+                <span className='text-xs tabular-nums text-muted-foreground'>
                   {dayjs(live.dataUpdatedAt).format('HH:mm:ss')} 기준
                 </span>
               ) : null}
@@ -71,8 +71,8 @@ function LiveStatusBlock({ username }: { username: string }) {
                     {row.platform}
                   </Badge>
                   <div className='min-w-0 flex-1'>
-                    <div className='truncate text-sm font-medium text-slate-900'>{row.productId}</div>
-                    <div className='truncate text-xs text-slate-600'>
+                    <div className='truncate text-sm font-medium text-foreground'>{row.productId}</div>
+                    <div className='truncate text-xs text-muted-foreground'>
                       {row.expiresAt ? `만료 ${dayjs(row.expiresAt).format('YYYY.MM.DD')}` : '만료 정보 없음'}
                       {row.autoRenew === null ? '' : row.autoRenew ? ' · 자동갱신 ON' : ' · 자동갱신 OFF'}
                     </div>

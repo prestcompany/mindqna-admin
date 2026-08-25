@@ -220,10 +220,10 @@ function CouponList() {
         emptyState={
           hasFilters ? (
             <div className='space-y-2 py-4'>
-              <div className='text-slate-900'>
+              <div className='text-foreground'>
                 {effectiveSearch ? `‘${effectiveSearch}’에 해당하는 쿠폰이 없습니다` : '조건에 맞는 쿠폰이 없습니다'}
               </div>
-              <div className='text-slate-500'>쿠폰명 · 코드 · 사용자명으로 검색합니다.</div>
+              <div className='text-muted-foreground'>쿠폰명 · 코드 · 사용자명으로 검색합니다.</div>
               <Button
                 variant='outline'
                 size='sm'
@@ -238,8 +238,8 @@ function CouponList() {
             </div>
           ) : (
             <div className='space-y-2 py-4'>
-              <div className='text-slate-900'>아직 발급한 쿠폰이 없습니다</div>
-              <div className='text-slate-500'>개별 코드는 1인 1코드, 공용 코드는 하나를 여럿이 사용합니다.</div>
+              <div className='text-foreground'>아직 발급한 쿠폰이 없습니다</div>
+              <div className='text-muted-foreground'>개별 코드는 1인 1코드, 공용 코드는 하나를 여럿이 사용합니다.</div>
               <Button
                 size='sm'
                 className='h-8'

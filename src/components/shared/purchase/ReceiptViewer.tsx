@@ -37,19 +37,19 @@ function ReceiptViewer({ title, raw }: { title: string; raw: string }) {
         <button
           type='button'
           onClick={() => setOpen((prev) => !prev)}
-          className='flex items-center gap-1 text-xs font-semibold text-slate-600'
+          className='flex items-center gap-1 text-xs font-semibold text-muted-foreground'
         >
           {open ? <ChevronDown className='h-3.5 w-3.5' /> : <ChevronRight className='h-3.5 w-3.5' />}
           {title}
-          {pretty === null ? <span className='ml-1 font-normal text-slate-500'>(원문)</span> : null}
+          {pretty === null ? <span className='ml-1 font-normal text-muted-foreground'>(원문)</span> : null}
         </button>
-        <Button variant='ghost' size='sm' className='px-2 text-xs text-slate-600' onClick={copyRaw}>
+        <Button variant='ghost' size='sm' className='px-2 text-xs text-muted-foreground' onClick={copyRaw}>
           <Copy className='mr-1 h-3 w-3' />
           복사
         </Button>
       </div>
       {open ? (
-        <pre className='max-h-80 overflow-auto whitespace-pre-wrap border-t border-border bg-slate-50 p-3 text-xs text-slate-700'>
+        <pre className='max-h-80 overflow-auto whitespace-pre-wrap border-t border-border bg-canvas p-3 text-xs text-foreground'>
           {pretty ?? raw}
         </pre>
       ) : null}

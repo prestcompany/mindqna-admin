@@ -17,27 +17,27 @@ function CouponRewardCell({ heart, star, ticketCount, ticketDueDayNum }: Props) 
   const hasCoin = heart > 0 || star > 0;
 
   if (!hasCoin && ticketCount === 0) {
-    return <span className='text-slate-500'>—</span>;
+    return <span className='text-muted-foreground'>—</span>;
   }
 
   return (
     <div className='flex min-w-0 items-center gap-2'>
       {heart > 0 && (
         <span className='flex shrink-0 items-center gap-1'>
-          <Heart className='h-3.5 w-3.5 text-rose-600' aria-label='하트' />
-          <span className='tabular-nums text-slate-900'>{heart}</span>
+          <Heart className='h-3.5 w-3.5 text-destructive' aria-label='하트' />
+          <span className='tabular-nums text-foreground'>{heart}</span>
         </span>
       )}
       {star > 0 && (
         <span className='flex shrink-0 items-center gap-1'>
-          <Star className='h-3.5 w-3.5 text-amber-600' aria-label='스타' />
-          <span className='tabular-nums text-slate-900'>{star}</span>
+          <Star className='h-3.5 w-3.5 text-warning-foreground' aria-label='스타' />
+          <span className='tabular-nums text-foreground'>{star}</span>
         </span>
       )}
       {ticketCount > 0 && (
-        <span className='flex min-w-0 items-center gap-1 text-xs text-slate-600'>
-          {hasCoin && <span className='text-slate-400'>·</span>}
-          <Ticket className='h-3.5 w-3.5 shrink-0 text-slate-500' aria-label='프리미엄 티켓' />
+        <span className='flex min-w-0 items-center gap-1 text-xs text-muted-foreground'>
+          {hasCoin && <span className='text-faint'>·</span>}
+          <Ticket className='h-3.5 w-3.5 shrink-0 text-muted-foreground' aria-label='프리미엄 티켓' />
           <span className='truncate tabular-nums'>
             {ticketCount} · {ticketDueDayNum > 0 ? `${ticketDueDayNum}일` : '평생'}
           </span>

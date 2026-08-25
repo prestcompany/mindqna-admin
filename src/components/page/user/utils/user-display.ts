@@ -32,7 +32,7 @@ export function getRecencyVariant(diffDays: number) {
 
 // 0/빈 값은 중립색으로 (의미색은 양수 신호에만)
 export function getMetricAccent(value: number | null | undefined, activeClass: string) {
-  return value && value > 0 ? activeClass : 'text-slate-500';
+  return value && value > 0 ? activeClass : 'text-muted-foreground';
 }
 
 export function getDaysSince(value?: string | null) {

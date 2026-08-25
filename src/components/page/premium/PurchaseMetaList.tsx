@@ -95,7 +95,8 @@ function PurchaseMetaList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetail
   const chips: FilterChipItem[] = [];
   if (searchFilters.username) chips.push({ key: 'username', label: `유저: ${searchFilters.username}` });
   if (searchFilters.status) chips.push({ key: 'status', label: `상태: ${CHIP_VALUE_LABELS[searchFilters.status]}` });
-  if (searchFilters.platform) chips.push({ key: 'platform', label: `플랫폼: ${CHIP_VALUE_LABELS[searchFilters.platform]}` });
+  if (searchFilters.platform)
+    chips.push({ key: 'platform', label: `플랫폼: ${CHIP_VALUE_LABELS[searchFilters.platform]}` });
   if (searchFilters.isProduction !== undefined)
     chips.push({ key: 'env', label: `환경: ${searchFilters.isProduction ? 'PROD' : 'TEST'}` });
   if (searchFilters.startDate || searchFilters.endDate) {
@@ -153,7 +154,7 @@ function PurchaseMetaList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetail
           <div className='flex items-center gap-1'>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className='max-w-[120px] truncate text-sm font-medium text-slate-900'>{username || userId}</span>
+                <span className='max-w-[120px] truncate text-sm font-medium text-foreground'>{username || userId}</span>
               </TooltipTrigger>
               <TooltipContent>{userId}</TooltipContent>
             </Tooltip>
@@ -178,12 +179,12 @@ function PurchaseMetaList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetail
       size: 150,
       cell: ({ row }) => {
         const value = row.original.productId;
-        if (!value) return <span className='text-xs text-slate-600'>없음</span>;
+        if (!value) return <span className='text-xs text-muted-foreground'>없음</span>;
         return (
           <div className='flex items-center gap-1'>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className='max-w-[120px] truncate font-mono text-sm text-slate-700'>{value}</span>
+                <span className='max-w-[120px] truncate font-mono text-sm text-foreground'>{value}</span>
               </TooltipTrigger>
               <TooltipContent>{value}</TooltipContent>
             </Tooltip>
@@ -208,12 +209,12 @@ function PurchaseMetaList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetail
       size: 160,
       cell: ({ row }) => {
         const value = row.original.transactionId;
-        if (!value) return <span className='text-xs text-slate-600'>없음</span>;
+        if (!value) return <span className='text-xs text-muted-foreground'>없음</span>;
         return (
           <div className='flex items-center gap-1'>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className='max-w-[120px] truncate font-mono text-sm text-slate-700'>{value}</span>
+                <span className='max-w-[120px] truncate font-mono text-sm text-foreground'>{value}</span>
               </TooltipTrigger>
               <TooltipContent>{value}</TooltipContent>
             </Tooltip>
@@ -260,8 +261,8 @@ function PurchaseMetaList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetail
         const diff = dayjs().diff(day, 'day');
         return (
           <div className='space-y-0.5'>
-            <div className='text-sm tabular-nums text-slate-900'>{day.format('YYYY.MM.DD')}</div>
-            <div className='text-xs tabular-nums text-slate-600'>
+            <div className='text-sm tabular-nums text-foreground'>{day.format('YYYY.MM.DD')}</div>
+            <div className='text-xs tabular-nums text-muted-foreground'>
               {day.format('HH:mm')} · {diff}일 전
             </div>
           </div>
@@ -274,12 +275,12 @@ function PurchaseMetaList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetail
       size: 140,
       cell: ({ row }) => {
         const value = row.original.completedAt;
-        if (!value) return <span className='text-xs text-slate-600'>—</span>;
+        if (!value) return <span className='text-xs text-muted-foreground'>—</span>;
         const day = dayjs(value);
         return (
           <div className='space-y-0.5'>
-            <div className='text-sm tabular-nums text-slate-900'>{day.format('YYYY.MM.DD')}</div>
-            <div className='text-xs tabular-nums text-slate-600'>{day.format('HH:mm')}</div>
+            <div className='text-sm tabular-nums text-foreground'>{day.format('YYYY.MM.DD')}</div>
+            <div className='text-xs tabular-nums text-muted-foreground'>{day.format('HH:mm')}</div>
           </div>
         );
       },

@@ -107,17 +107,21 @@ function CardTab() {
 
   // getProgressBarColor는 CardTemplateType을 기준으로 색상을 결정합니다.
   const getProgressBarColor = (spaceType: SpaceType | undefined, userCount: number, adminTarget: number) => {
-    if (needsCardTypeWarning(userCount, adminTarget)) return 'bg-red-500';
+    if (needsCardTypeWarning(userCount, adminTarget)) return 'bg-destructive';
     // CardTemplateType 문자열 리터럴과 직접 비교
-    if (spaceType === 'couple') return 'bg-blue-500';
+    if (spaceType === 'couple') return 'bg-info';
     if (spaceType === 'family') return 'bg-indigo-500';
-    if (spaceType === 'friends') return 'bg-green-500';
-    if (spaceType === 'alone') return 'bg-amber-500';
-    return 'bg-slate-500';
+    if (spaceType === 'friends') return 'bg-success';
+    if (spaceType === 'alone') return 'bg-warning';
+    return 'bg-mute';
   };
 
   if (isLoading) {
-    return <div className='rounded-2xl border border-border bg-white p-8 text-center text-sm text-slate-500'>로딩 중...</div>;
+    return (
+      <div className='rounded-2xl border border-border bg-white p-8 text-center text-sm text-muted-foreground'>
+        로딩 중...
+      </div>
+    );
   }
 
   return (
@@ -125,40 +129,42 @@ function CardTab() {
       <div className='grid gap-4 md:grid-cols-3'>
         <Card className='border-border bg-white'>
           <CardHeader className='pb-3'>
-            <CardTitle className='text-base text-slate-950'>활성 로케일</CardTitle>
+            <CardTitle className='text-base text-foreground'>활성 로케일</CardTitle>
           </CardHeader>
           <CardContent className='pt-0'>
-            <p className='text-2xl font-semibold tracking-tight text-slate-950'>{displayData.length.toLocaleString('ko-KR')}</p>
-            <p className='mt-1 text-sm text-slate-500'>현재 카드 발급 현황을 추적 중인 로케일 수</p>
+            <p className='text-2xl font-semibold tracking-tight text-foreground'>
+              {displayData.length.toLocaleString('ko-KR')}
+            </p>
+            <p className='mt-1 text-sm text-muted-foreground'>현재 카드 발급 현황을 추적 중인 로케일 수</p>
           </CardContent>
         </Card>
         <Card className='border-border bg-white'>
           <CardHeader className='pb-3'>
-            <CardTitle className='text-base text-slate-950'>전체 관리자 목표</CardTitle>
+            <CardTitle className='text-base text-foreground'>전체 관리자 목표</CardTitle>
           </CardHeader>
           <CardContent className='pt-0'>
-            <p className='text-2xl font-semibold tracking-tight text-slate-950'>
+            <p className='text-2xl font-semibold tracking-tight text-foreground'>
               {displayData.reduce((sum, country) => sum + country.adminTotalQuestions, 0).toLocaleString('ko-KR')}
             </p>
-            <p className='mt-1 text-sm text-slate-500'>로케일별 카드 목표치 합계</p>
+            <p className='mt-1 text-sm text-muted-foreground'>로케일별 카드 목표치 합계</p>
           </CardContent>
         </Card>
         <Card className='border-border bg-white'>
           <CardHeader className='pb-3'>
-            <CardTitle className='text-base text-slate-950'>전체 사용자 발급</CardTitle>
+            <CardTitle className='text-base text-foreground'>전체 사용자 발급</CardTitle>
           </CardHeader>
           <CardContent className='pt-0'>
-            <p className='text-2xl font-semibold tracking-tight text-slate-950'>
+            <p className='text-2xl font-semibold tracking-tight text-foreground'>
               {displayData.reduce((sum, country) => sum + country.userTotalQuestions, 0).toLocaleString('ko-KR')}
             </p>
-            <p className='mt-1 text-sm text-slate-500'>누적 사용자 카드 발급 수</p>
+            <p className='mt-1 text-sm text-muted-foreground'>누적 사용자 카드 발급 수</p>
           </CardContent>
         </Card>
       </div>
 
       <Card className='border-border bg-white'>
         <CardHeader>
-          <CardTitle className='text-base text-slate-950'>질문 운영 현황</CardTitle>
+          <CardTitle className='text-base text-foreground'>질문 운영 현황</CardTitle>
           <CardDescription>언어별 카드 목표 대비 발급 현황을 같은 시각 체계로 정리했습니다.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -167,14 +173,12 @@ function CardTab() {
               <div key={country.code} className='border-b border-border pb-6 last:border-0'>
                 <div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
                   <div className='flex items-center gap-2'>
-                    <span className='text-lg font-medium text-slate-950'>
+                    <span className='text-lg font-medium text-foreground'>
                       {country.name} ({country.code})
                     </span>
-                    {needsOverallWarning(country) && (
-                      <Badge variant='dotWarning'>주의 필요</Badge>
-                    )}
+                    {needsOverallWarning(country) && <Badge variant='dotWarning'>주의 필요</Badge>}
                   </div>
-                  <div className='text-sm text-slate-500'>
+                  <div className='text-sm text-muted-foreground'>
                     관리자 목표 {country.adminTotalQuestions.toLocaleString('ko-KR')} / 사용자 발급{' '}
                     {country.userTotalQuestions.toLocaleString('ko-KR')}
                   </div>
@@ -187,13 +191,13 @@ function CardTab() {
 
                     return (
                       <div key={spaceTypeKey}>
-                        <div className='mb-1 flex justify-between text-sm text-slate-600'>
-                          <span className='font-medium text-slate-900'>{SPACE_TYPE_MAP[spaceTypeKey]}</span>
+                        <div className='mb-1 flex justify-between text-sm text-muted-foreground'>
+                          <span className='font-medium text-foreground'>{SPACE_TYPE_MAP[spaceTypeKey]}</span>
                           <span>
                             {typeStat.userCount}/{typeStat.adminTarget}
                           </span>
                         </div>
-                        <div className='h-3 w-full overflow-hidden rounded-full bg-slate-100'>
+                        <div className='h-3 w-full overflow-hidden rounded-full bg-muted'>
                           <div
                             className={`h-full ${getProgressBarColor(typeStat.spaceType, typeStat.userCount, typeStat.adminTarget)}`}
                             style={{
@@ -210,14 +214,16 @@ function CardTab() {
                   const typeStat = country.types[spaceTypeKey];
                   return typeStat && needsCardTypeWarning(typeStat.userCount, typeStat.adminTarget);
                 }) && (
-                  <div className='mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900'>
+                  <div className='mt-4 rounded-lg border border-warning/35 bg-warning/15 px-3 py-2 text-sm text-warning-foreground'>
                     <AlertCircle className='mr-1 inline h-4 w-4' />
                     일부 카드 타입이 목표치의 80% 이상 소진되었습니다. 추가 질문 등록을 검토해주세요.
                   </div>
                 )}
               </div>
             ))}
-            {displayData.length === 0 && !isLoading && <p className='text-center text-slate-500'>표시할 데이터가 없습니다.</p>}
+            {displayData.length === 0 && !isLoading && (
+              <p className='text-center text-muted-foreground'>표시할 데이터가 없습니다.</p>
+            )}
           </div>
         </CardContent>
       </Card>

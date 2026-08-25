@@ -135,7 +135,7 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
           </FormSection>
 
           <div className='-mx-6'>
-            <DefinitionRow label='작업 유형*'>
+            <DefinitionRow label='작업 유형' required>
               <FormField
                 control={form.control}
                 name='operation'
@@ -152,7 +152,7 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
                             <RadioGroupItem value={opt.value} id={`ticket-op-${opt.value}`} className='peer sr-only' />
                             <Label
                               htmlFor={`ticket-op-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -167,7 +167,7 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
             </DefinitionRow>
 
             {operation === 'give' ? (
-              <DefinitionRow label='티켓 종류*'>
+              <DefinitionRow label='티켓 종류' required>
                 <FormField
                   control={form.control}
                   name='type'
@@ -188,7 +188,7 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
                               />
                               <Label
                                 htmlFor={`ticket-type-${opt.value}`}
-                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                               >
                                 {opt.label}
                               </Label>
@@ -229,7 +229,7 @@ function TicketForm({ username, reload, close }: TicketFormProps) {
             </DefinitionRow>
 
             {operation === 'give' && ticketType === 'sub' && (
-              <DefinitionRow label='유효 기간(일)*'>
+              <DefinitionRow label='유효 기간(일)' required>
                 <FormField
                   control={form.control}
                   name='dueDayNum'

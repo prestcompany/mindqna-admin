@@ -19,24 +19,24 @@ function SpaceCardReplies({ spaceId, cardId }: { spaceId: string; cardId: number
   if (!data) return null;
   return (
     <div className='space-y-3'>
-      <div className='rounded-lg bg-slate-50 px-3 py-2'>
-        <div className='text-xs font-medium text-slate-600'>질문</div>
-        <div className='text-sm font-medium text-slate-900'>{data.templateName ?? `카드 #${data.order}`}</div>
+      <div className='rounded-lg bg-canvas px-3 py-2'>
+        <div className='text-xs font-medium text-muted-foreground'>질문</div>
+        <div className='text-sm font-medium text-foreground'>{data.templateName ?? `카드 #${data.order}`}</div>
       </div>
       {data.replies.length ? (
         <div className='space-y-2'>
           {data.replies.map((reply) => (
             <div key={reply.id} className='rounded-lg border border-border bg-white px-3 py-2'>
               <div className='flex items-center justify-between gap-2'>
-                <span className='text-sm font-medium text-slate-900'>{reply.profile?.nickname ?? '-'}</span>
-                <span className='text-xs text-slate-600'>{dayjs(reply.createdAt).format('YY.MM.DD HH:mm')}</span>
+                <span className='text-sm font-medium text-foreground'>{reply.profile?.nickname ?? '-'}</span>
+                <span className='text-xs text-muted-foreground'>{dayjs(reply.createdAt).format('YY.MM.DD HH:mm')}</span>
               </div>
-              <p className='mt-1 whitespace-pre-wrap break-words text-sm text-slate-600'>{reply.content}</p>
+              <p className='mt-1 whitespace-pre-wrap break-words text-sm text-muted-foreground'>{reply.content}</p>
             </div>
           ))}
         </div>
       ) : (
-        <div className='px-1 text-sm text-slate-500'>아직 답변이 없습니다.</div>
+        <div className='px-1 text-sm text-muted-foreground'>아직 답변이 없습니다.</div>
       )}
     </div>
   );

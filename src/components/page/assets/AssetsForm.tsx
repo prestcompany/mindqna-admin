@@ -61,7 +61,7 @@ function AssetsForm() {
         <div
           role='button'
           tabIndex={0}
-          className='cursor-pointer rounded-lg border border-dashed border-border transition-colors duration-fast hover:border-slate-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+          className='cursor-pointer rounded-lg border border-dashed border-border transition-colors duration-fast hover:border-mute focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}

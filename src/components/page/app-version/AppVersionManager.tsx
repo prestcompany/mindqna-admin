@@ -58,9 +58,9 @@ function PlatformCard({ platform, label }: { platform: AppPlatform; label: strin
   return (
     <div className='space-y-4 rounded-lg border border-border bg-white p-5'>
       <div className='flex items-center justify-between'>
-        <h3 className='text-base font-semibold text-slate-900'>{label}</h3>
+        <h3 className='text-base font-semibold text-foreground'>{label}</h3>
         <div className='flex items-center gap-2'>
-          <Label htmlFor={`force-${platform}`} className='text-sm text-slate-600'>
+          <Label htmlFor={`force-${platform}`} className='text-sm text-muted-foreground'>
             강제 업데이트
           </Label>
           <Switch
@@ -72,7 +72,7 @@ function PlatformCard({ platform, label }: { platform: AppPlatform; label: strin
       </div>
       <div className='grid grid-cols-2 gap-4'>
         <div className='space-y-1.5'>
-          <Label className='text-xs text-slate-600'>최소 버전 코드</Label>
+          <Label className='text-xs text-muted-foreground'>최소 버전 코드</Label>
           <Input
             type='text'
             inputMode='numeric'
@@ -81,7 +81,7 @@ function PlatformCard({ platform, label }: { platform: AppPlatform; label: strin
           />
         </div>
         <div className='space-y-1.5'>
-          <Label className='text-xs text-slate-600'>최소 버전 이름 (표시용)</Label>
+          <Label className='text-xs text-muted-foreground'>최소 버전 이름 (표시용)</Label>
           <Input
             value={form.minVersionName}
             onChange={(e) => setForm((p) => ({ ...p, minVersionName: e.target.value }))}
@@ -89,20 +89,23 @@ function PlatformCard({ platform, label }: { platform: AppPlatform; label: strin
           />
         </div>
       </div>
-      <div className='rounded-lg bg-slate-50 p-3'>
-        <div className='mb-2 text-xs font-medium text-slate-600'>이렇게 동작합니다 (설치된 앱의 versionCode 기준)</div>
-        <ul className='space-y-1.5 text-xs text-slate-700'>
+      <div className='rounded-lg bg-canvas p-3'>
+        <div className='mb-2 text-xs font-medium text-muted-foreground'>
+          이렇게 동작합니다 (설치된 앱의 versionCode 기준)
+        </div>
+        <ul className='space-y-1.5 text-xs text-foreground'>
           <li className='flex items-center gap-2'>
             <span
-              className={`h-2 w-2 shrink-0 rounded-full ${form.forceEnabled ? 'bg-rose-500' : 'bg-slate-300'}`}
+              className={`h-2 w-2 shrink-0 rounded-full ${form.forceEnabled ? 'bg-destructive' : 'bg-faint'}`}
               aria-hidden
             />
             코드 <span className='font-semibold tabular-nums'>{form.minVersionCode || 0}</span> 미만 →{' '}
             {form.forceEnabled ? '강제 업데이트(차단, 닫기 불가)' : '강제 꺼짐 — 차단하지 않음'}
           </li>
           <li className='flex items-center gap-2'>
-            <span className='h-2 w-2 shrink-0 rounded-full bg-emerald-500' aria-hidden />
-            코드 <span className='font-semibold tabular-nums'>{form.minVersionCode || 0}</span> 이상 → 정상 (업데이트 안내 없음)
+            <span className='h-2 w-2 shrink-0 rounded-full bg-success' aria-hidden />
+            코드 <span className='font-semibold tabular-nums'>{form.minVersionCode || 0}</span> 이상 → 정상 (업데이트
+            안내 없음)
           </li>
         </ul>
       </div>
