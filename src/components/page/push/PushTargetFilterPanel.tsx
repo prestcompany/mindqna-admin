@@ -1,14 +1,10 @@
-import { searchPushTargets, type PushTargetFilter } from '@/client/push';
+import type { PushTargetFilter } from '@/client/push';
 import type { Locale, SpaceType } from '@/client/types';
 import { LOCALE_DISPLAY_NAME, LOCALE_OPTIONS } from '@/components/shared/form/constants/locale-options';
 import { DefinitionRow } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { Loader2 } from 'lucide-react';
-import { useState } from 'react';
-import { toast } from 'sonner';
 
 const SPACE_TYPE_OPTIONS: { value: SpaceType; label: string }[] = [
   { value: 'alone', label: '혼자' },
@@ -37,70 +33,54 @@ function ToggleChip({ on, onClick, children }: { on: boolean; onClick: () => voi
   );
 }
 
-/**
- * Turns space-level conditions into the concrete username list the per-user send path takes.
- *
- * It deliberately does NOT introduce a third kind of target. The filter runs, the operator
- * sees who matched, and the names land in the same 개인 발송 field a hand-typed send uses —
- * so everything downstream (validation, the confirm dialog, the sender, cancel rules)
- * behaves exactly as it already does.
- */
-export default function PushTargetFilterPanel({ onApply }: { onApply: (userNames: string[]) => void }) {
-  const [spaceTypes, setSpaceTypes] = useState<SpaceType[]>([]);
-  const [spaceLocales, setSpaceLocales] = useState<Locale[]>([]);
-  const [minCardCount, setMinCardCount] = useState('');
-  const [minPetLevel, setMinPetLevel] = useState('');
-  const [searching, setSearching] = useState(false);
-  const [result, setResult] = useState<{ count: number; names: string[]; limit: number; truncated: boolean } | null>(
-    null,
+/** Empty string means "not set". Number('') is 0, which would read as a real "0개 이상". */
+export function parseThreshold(raw: string): number | undefined {
+  return raw.trim() === '' ? undefined : Number(raw);
+}
+
+export function isEmptyPushFilter(filter: PushTargetFilter): boolean {
+  return (
+    !filter.spaceTypes?.length &&
+    !filter.spaceLocales?.length &&
+    filter.minCardCount == null &&
+    filter.minPetLevel == null
   );
+}
 
-  const toggle = <T,>(list: T[], value: T, set: (next: T[]) => void) =>
-    set(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
-
-  // Parsed once so the empty check and the request agree on what counts as "set".
-  // Number('') is 0, which would read as a real "0개 이상" filter and match everyone.
-  const cards = minCardCount.trim() === '' ? undefined : Number(minCardCount);
-  const level = minPetLevel.trim() === '' ? undefined : Number(minPetLevel);
-  const isEmpty = !spaceTypes.length && !spaceLocales.length && cards == null && level == null;
-
-  const filter: PushTargetFilter = {
-    ...(spaceTypes.length ? { spaceTypes } : {}),
-    ...(spaceLocales.length ? { spaceLocales } : {}),
-    ...(cards == null ? {} : { minCardCount: cards }),
-    ...(level == null ? {} : { minPetLevel: level }),
-  };
-
-  const search = async () => {
-    setSearching(true);
-    try {
-      const res = await searchPushTargets(filter);
-      setResult({ count: res.count, names: res.userNames, limit: res.limit, truncated: res.truncated });
-      if (res.count === 0) toast.info('조건에 맞는 사용자가 없습니다');
-    } catch (err) {
-      toast.error(`대상 조회 실패: ${err}`);
-    } finally {
-      setSearching(false);
-    }
-  };
-
-  const reset = () => {
-    setSpaceTypes([]);
-    setSpaceLocales([]);
-    setMinCardCount('');
-    setMinPetLevel('');
-    setResult(null);
+/**
+ * Conditions on the space a recipient belongs to, applied to a broadcast.
+ *
+ * These are stored on the push, not resolved into a name list: the audiences run to tens of
+ * thousands and the per-user list caps at 1000. The sender re-runs the same conditions per
+ * batch, so what ships is what the filter says at send time.
+ */
+export default function PushTargetFilterPanel({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: PushTargetFilter;
+  onChange: (next: PushTargetFilter) => void;
+  disabled?: boolean;
+}) {
+  const toggle = <T,>(key: 'spaceTypes' | 'spaceLocales', list: T[] | undefined, item: T) => {
+    const current = (list ?? []) as T[];
+    const next = current.includes(item) ? current.filter((v) => v !== item) : [...current, item];
+    onChange({ ...value, [key]: next.length ? next : undefined });
   };
 
   return (
     <div>
-      <DefinitionRow label='공간 유형' hint='선택한 유형 중 하나라도 해당하면 포함됩니다'>
+      <DefinitionRow
+        label='공간 유형'
+        hint='선택한 유형 중 하나라도 해당하면 포함됩니다. 비우면 유형을 가리지 않습니다'
+      >
         <div className='flex flex-wrap gap-2'>
           {SPACE_TYPE_OPTIONS.map((opt) => (
             <ToggleChip
               key={opt.value}
-              on={spaceTypes.includes(opt.value)}
-              onClick={() => toggle(spaceTypes, opt.value, setSpaceTypes)}
+              on={(value.spaceTypes ?? []).includes(opt.value)}
+              onClick={() => !disabled && toggle('spaceTypes', value.spaceTypes, opt.value)}
             >
               {opt.label}
             </ToggleChip>
@@ -108,13 +88,13 @@ export default function PushTargetFilterPanel({ onApply }: { onApply: (userNames
         </div>
       </DefinitionRow>
 
-      <DefinitionRow label='공간 언어' hint='공간의 언어입니다. 위 언어 항목(계정의 앱 언어)과 다릅니다'>
+      <DefinitionRow label='공간 언어' hint='공간의 언어입니다. 위 언어 항목은 계정의 앱 언어라 서로 다릅니다'>
         <div className='flex flex-wrap gap-2'>
           {LOCALE_OPTIONS.map((opt) => (
             <ToggleChip
               key={opt.value}
-              on={spaceLocales.includes(opt.value)}
-              onClick={() => toggle(spaceLocales, opt.value, setSpaceLocales)}
+              on={(value.spaceLocales ?? []).includes(opt.value as Locale)}
+              onClick={() => !disabled && toggle('spaceLocales', value.spaceLocales, opt.value as Locale)}
             >
               {LOCALE_DISPLAY_NAME[opt.value] ?? opt.label}
             </ToggleChip>
@@ -130,10 +110,11 @@ export default function PushTargetFilterPanel({ onApply }: { onApply: (userNames
             inputMode='numeric'
             className='w-[120px]'
             placeholder='예: 10'
-            value={minCardCount}
-            onChange={(e) => setMinCardCount(e.target.value)}
+            disabled={disabled}
+            value={value.minCardCount ?? ''}
+            onChange={(e) => onChange({ ...value, minCardCount: parseThreshold(e.target.value) })}
           />
-          <Label className='text-sm text-muted-foreground'>개 이상</Label>
+          <span className='text-sm text-muted-foreground'>개 이상</span>
         </div>
       </DefinitionRow>
 
@@ -145,55 +126,21 @@ export default function PushTargetFilterPanel({ onApply }: { onApply: (userNames
             inputMode='numeric'
             className='w-[120px]'
             placeholder='예: 5'
-            value={minPetLevel}
-            onChange={(e) => setMinPetLevel(e.target.value)}
+            disabled={disabled}
+            value={value.minPetLevel ?? ''}
+            onChange={(e) => onChange({ ...value, minPetLevel: parseThreshold(e.target.value) })}
           />
-          <Label className='text-sm text-muted-foreground'>레벨 이상</Label>
+          <span className='text-sm text-muted-foreground'>레벨 이상</span>
         </div>
       </DefinitionRow>
 
-      <DefinitionRow
-        label='대상 조회'
-        hint={
-          isEmpty
-            ? '조건을 하나 이상 선택해야 조회할 수 있습니다'
-            : '모든 조건을 동시에 만족하는 공간을 가진 사용자를 찾습니다'
-        }
-      >
-        <div className='flex flex-wrap items-center gap-2'>
-          <Button type='button' variant='outline' onClick={search} disabled={isEmpty || searching}>
-            {searching && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-            대상 조회
+      {!isEmptyPushFilter(value) && (
+        <DefinitionRow label='조건 해제' hint='조건을 모두 비우면 해당 언어의 전체 사용자에게 발송됩니다'>
+          <Button type='button' variant='outline' size='sm' disabled={disabled} onClick={() => onChange({})}>
+            조건 모두 지우기
           </Button>
-          {result && (
-            <Button type='button' onClick={() => onApply(result.names)} disabled={result.names.length === 0}>
-              {result.names.length.toLocaleString()}명 대상에 넣기
-            </Button>
-          )}
-          <Button type='button' variant='ghost' onClick={reset} disabled={searching}>
-            초기화
-          </Button>
-        </div>
-
-        {result && (
-          <div className='mt-2 space-y-1 text-xs'>
-            <p className='text-muted-foreground'>
-              조건에 맞는 사용자{' '}
-              <strong className='tabular-nums text-foreground'>{result.count.toLocaleString()}</strong>명
-            </p>
-            {/* Truncation is stated rather than implied: a filter that matched 4,120 people
-                and a send that reaches 1,000 are different facts, and the operator has to
-                see both before they decide the campaign is covered. */}
-            {result.truncated && (
-              <p className='rounded-md border border-warning/35 bg-warning/15 p-2 text-warning-foreground'>
-                한 번에 보낼 수 있는 최대 인원은 {result.limit.toLocaleString()}명입니다. 조건에 맞는{' '}
-                {result.count.toLocaleString()}명 중 앞의 {result.names.length.toLocaleString()}
-                명만 담깁니다 — 조건을 좁히거나 나눠 보내세요.
-              </p>
-            )}
-          </div>
-        )}
-      </DefinitionRow>
+        </DefinitionRow>
+      )}
     </div>
   );
 }
