@@ -1,5 +1,5 @@
 import client from './@base';
-import { Locale, QueryResultWithPagination } from './types';
+import { Locale, QueryResultWithPagination, SpaceType } from './types';
 
 export type AdminPushStatus = 'SCHEDULED' | 'SENDING' | 'SENT' | 'FAILED' | 'CANCELED' | 'ABORTED';
 export type AdminPushTarget = 'ALL' | 'USER';
@@ -69,6 +69,34 @@ export async function getPushTargetCount(locale: Locale) {
   const res = await client.get<{ count: number; isApproximate: boolean }>('/push/target-count', {
     params: { locale },
   });
+  return res.data;
+}
+
+/**
+ * Narrows an audience by the properties of the space a user belongs to.
+ *
+ * Every field is optional and an omitted one drops its condition, but at least one must be
+ * present — the server refuses an empty filter rather than quietly resolving to everybody.
+ */
+export type PushTargetFilter = {
+  spaceTypes?: SpaceType[];
+  /** The SPACE's language, which is not the same as the user's app language. */
+  spaceLocales?: Locale[];
+  minCardCount?: number;
+  minPetLevel?: number;
+};
+
+export type PushTargetSearchResult = {
+  /** Everyone the filter matched. Not capped, so it can exceed `userNames.length`. */
+  count: number;
+  userNames: string[];
+  limit: number;
+  /** True when `count` exceeded `limit` and the list is only the first slice. */
+  truncated: boolean;
+};
+
+export async function searchPushTargets(filter: PushTargetFilter) {
+  const res = await client.post<PushTargetSearchResult>('/push/search-targets', filter);
   return res.data;
 }
 

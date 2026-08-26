@@ -32,6 +32,7 @@ import { Loader2 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import PushSummaryRail from './PushSummaryRail';
+import PushTargetFilterPanel from './PushTargetFilterPanel';
 import {
   parseUserNamesInput,
   pushUrlError,
@@ -257,16 +258,23 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                     </Select>
                   </DefinitionRow>
                 ) : (
-                  <DefinitionRow label='사용자' required hint={`${recipients.length}명 인식됨`}>
-                    <Textarea
-                      placeholder='username 을 콤마로 구분해 입력하세요'
-                      value={values.userNames}
-                      onChange={(e) => set('userNames', e.target.value)}
-                    />
-                    {unknown.length > 0 && (
-                      <p className='mt-1 text-xs text-destructive'>존재하지 않는 사용자: {unknown.join(', ')}</p>
-                    )}
-                  </DefinitionRow>
+                  <>
+                    <DefinitionRow label='사용자' required hint={`${recipients.length}명 인식됨`}>
+                      <Textarea
+                        placeholder='username 을 콤마로 구분해 입력하세요'
+                        value={values.userNames}
+                        onChange={(e) => set('userNames', e.target.value)}
+                      />
+                      {unknown.length > 0 && (
+                        <p className='mt-1 text-xs text-destructive'>존재하지 않는 사용자: {unknown.join(', ')}</p>
+                      )}
+                    </DefinitionRow>
+
+                    {/* The filter writes into the same field above rather than replacing it,
+                        so a searched list can still be edited by hand before saving. */}
+                    <PanelBand title='조건으로 대상 찾기' />
+                    <PushTargetFilterPanel onApply={(names) => set('userNames', names.join(', '))} />
+                  </>
                 )}
 
                 <DefinitionRow
