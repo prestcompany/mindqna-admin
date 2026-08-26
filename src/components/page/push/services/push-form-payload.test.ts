@@ -13,7 +13,6 @@ const base = {
   message: '내용',
   link: '',
   imgUrl: '',
-  filter: {},
 };
 
 test('an immediate broadcast sends sendNow and omits pushAt', () => {
@@ -87,32 +86,4 @@ test('pushUrlError accepts an https link and the mindqna:// deep link', () => {
 test('pushUrlError leaves both optional — empty stays valid', () => {
   assert.equal(pushUrlError({ link: '', imgUrl: '' }), null);
   assert.equal(pushUrlError({ link: '  ', imgUrl: '  ' }), null);
-});
-
-test('an unfiltered broadcast sends no filter rather than an empty object', () => {
-  // An empty object would reach the server as a filter, and the server refuses one — the
-  // absence has to survive the payload builder.
-  assert.equal(toCreatePushParams(base).filter, undefined);
-});
-
-test('a broadcast carries its conditions', () => {
-  const dto = toCreatePushParams({ ...base, filter: { spaceTypes: ['couple'], minPetLevel: 5 } });
-  assert.deepEqual(dto.filter, { spaceTypes: ['couple'], minPetLevel: 5 });
-});
-
-test('a zero question minimum is a real condition, not an unset field', () => {
-  // 0 is falsy; treating it as unset would widen a narrow send to the whole locale.
-  const dto = toCreatePushParams({ ...base, filter: { minCardCount: 0 } });
-  assert.deepEqual(dto.filter, { minCardCount: 0 });
-});
-
-test('a per-user send drops conditions it cannot use', () => {
-  const dto = toCreatePushParams({
-    ...base,
-    target: 'USER',
-    userNames: 'alice, bob',
-    filter: { spaceTypes: ['couple'] },
-  });
-  assert.equal(dto.filter, undefined);
-  assert.deepEqual(dto.userNames, ['alice', 'bob']);
 });

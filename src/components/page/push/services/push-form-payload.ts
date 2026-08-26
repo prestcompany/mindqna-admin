@@ -1,9 +1,3 @@
-import type { PushTargetFilter } from '@/client/push';
-
-/** Local copy so the payload builder does not import a component. */
-function isEmptyFilter(f: PushTargetFilter): boolean {
-  return !f.spaceTypes?.length && !f.spaceLocales?.length && f.minCardCount == null && f.minPetLevel == null;
-}
 import type { CreatePushParams } from '@/client/push';
 import type { Locale } from '@/client/types';
 
@@ -13,8 +7,6 @@ export type PushFormValues = {
   pushAt: string;
   target: 'ALL' | 'USER';
   locale: string;
-  /** Space conditions for a broadcast. Empty object means no narrowing. */
-  filter: PushTargetFilter;
   userNames: string;
   title: string;
   message: string;
@@ -82,9 +74,6 @@ export function toCreatePushParams(values: PushFormValues): CreatePushParams {
     // A per-user send ignores locale; sending one would put a value in the column that means nothing.
     locale: isBroadcast ? (values.locale as Locale) : undefined,
     userNames: isBroadcast ? undefined : parseUserNamesInput(values.userNames),
-    // Only a broadcast carries conditions; a per-user send already names its recipients, so
-    // sending a filter would put a value on the row that describes nothing.
-    filter: isBroadcast && !isEmptyFilter(values.filter) ? values.filter : undefined,
     link: optional(values.link),
     imgUrl: optional(values.imgUrl),
   };

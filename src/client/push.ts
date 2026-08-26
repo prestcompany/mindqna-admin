@@ -13,7 +13,6 @@ export type AdminPushItem = {
   target: AdminPushTarget;
   locale: Locale | null;
   userNames: string[] | null;
-  filter: PushTargetFilter | null;
   pushAt: string;
   status: AdminPushStatus;
   targetCount: number | null;
@@ -36,8 +35,6 @@ export type CreatePushParams = {
   pushAt?: string;
   locale?: Locale;
   userNames?: string[];
-  /** Narrows a target-ALL broadcast. Ignored for USER, which names its recipients. */
-  filter?: PushTargetFilter;
   link?: string;
   imgUrl?: string;
 };
@@ -89,10 +86,17 @@ export type PushTargetFilter = {
   minPetLevel?: number;
 };
 
-/** Count only. The audience is resolved again at send time from the filter stored on the
- *  push, so a name list handed back here would only be able to drift from what ships. */
-export async function previewPushTargets(filter: PushTargetFilter & { locale?: Locale }) {
-  const res = await client.post<{ count: number; isApproximate: boolean }>('/push/preview-targets', filter);
+export type PushTargetSearchResult = {
+  /** Everyone the filter matched. Not capped, so it can exceed `userNames.length`. */
+  count: number;
+  userNames: string[];
+  limit: number;
+  /** True when `count` exceeded `limit` and the list is only the first slice. */
+  truncated: boolean;
+};
+
+export async function searchPushTargets(filter: PushTargetFilter) {
+  const res = await client.post<PushTargetSearchResult>('/push/search-targets', filter);
   return res.data;
 }
 
