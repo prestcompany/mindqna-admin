@@ -15,11 +15,12 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import usePushes from '@/hooks/usePushes';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { createPushColumns } from './PushColumns';
 import PushForm from './PushForm';
 import { PUSH_STATUS_META } from './services/push-status';
+import { groupPushes } from './services/push-grouping';
 
 type Pending = { kind: 'cancel' | 'abort' | 'delete'; row: AdminPushItem } | null;
 
@@ -51,7 +52,11 @@ function PushList() {
   const [sheet, setSheet] = useState<{ mode: 'create' | 'edit' | 'view'; row?: AdminPushItem } | null>(null);
   const [pending, setPending] = useState<Pending>(null);
 
-  const { items, totalPage, isLoading } = usePushes({
+  const {
+    items: rawItems,
+    totalPage,
+    isLoading,
+  } = usePushes({
     page,
     locale: locale === ALL ? undefined : [locale],
     status: status === ALL ? undefined : [status],
@@ -62,6 +67,11 @@ function PushList() {
   useEffect(() => {
     setPage(1);
   }, [locale, status]);
+
+  // A filtered campaign is stored as many rows; the list shows it as one so a single send
+  // does not fill a page. Row actions still act on a real row, and cancel reaches the whole
+  // group server-side.
+  const items = useMemo(() => groupPushes(rawItems), [rawItems]);
 
   // view/edit track the live, polled row so a SENDING sheet's counts and countdown move
   // the same way the list behind it does. A duplicate is a snapshot the operator is

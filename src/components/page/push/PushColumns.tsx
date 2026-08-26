@@ -47,12 +47,25 @@ export const createPushColumns = (actions: PushRowActions): ColumnDef<AdminPushI
   {
     accessorKey: 'title',
     header: '제목',
-    cell: ({ row }) => (
-      <div className='min-w-0'>
-        <div className='truncate text-foreground'>{row.original.title}</div>
-        <div className='truncate text-xs text-muted-foreground'>{row.original.message}</div>
-      </div>
-    ),
+    cell: ({ row }) => {
+      // Present only on a folded campaign. A single send has one part and says nothing,
+      // so the ordinary row is unchanged.
+      const parts = (row.original as { parts?: unknown[] }).parts?.length ?? 1;
+      const done = (row.original as { finishedParts?: number }).finishedParts ?? 0;
+      return (
+        <div className='min-w-0'>
+          <div className='flex min-w-0 items-center gap-1.5'>
+            <span className='truncate text-foreground'>{row.original.title}</span>
+            {parts > 1 && (
+              <span className='shrink-0 rounded border border-border px-1.5 py-px text-[11px] tabular-nums text-muted-foreground'>
+                {done}/{parts}
+              </span>
+            )}
+          </div>
+          <div className='truncate text-xs text-muted-foreground'>{row.original.message}</div>
+        </div>
+      );
+    },
   },
   {
     accessorKey: 'pushAt',

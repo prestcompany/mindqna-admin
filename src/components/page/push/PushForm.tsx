@@ -1,6 +1,9 @@
 import {
   createPush,
   getPushTargetCount,
+  previewPushTargets,
+  PushFilterNoMatchError,
+  PushFilterTooManyError,
   PushUnknownUserNamesError,
   updatePush,
   type AdminPushItem,
@@ -32,7 +35,7 @@ import { Loader2 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import PushSummaryRail from './PushSummaryRail';
-import PushTargetFilterPanel from './PushTargetFilterPanel';
+import PushTargetFilterPanel, { isEmptyPushFilter } from './PushTargetFilterPanel';
 import {
   parseUserNamesInput,
   pushUrlError,
@@ -55,6 +58,8 @@ function toValues(mode: Props['mode'], initial?: AdminPushItem): PushFormValues 
   // FAILED or CANCELED, so its old pushAt has already passed and reusing it would be a lie.
   const isEditingSchedule = mode === 'edit' && !!initial;
   return {
+    // Conditions are resolved server-side at save, so a saved row has no filter to restore.
+    filter: {},
     sendMode: isEditingSchedule ? 'schedule' : 'now',
     pushAt: isEditingSchedule ? dayjs(initial!.pushAt).format('YYYY-MM-DDTHH:mm') : '',
     target: initial?.target ?? 'ALL',
@@ -89,9 +94,16 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
 
   // Hardcoding a broadcast size guarantees it drifts; ask the server, which counts the
   // same way the sender does. Only meaningful for ALL, so it is disabled otherwise.
+  // A filtered send has to be counted through the same conditions the server will resolve.
+  // The unfiltered endpoint counts the whole locale, so it would have shown ~445,000 beside
+  // an audience of 16,500 and the operator would have approved the wrong number.
+  const hasFilter = !isEmptyPushFilter(values.filter);
   const { data: targetCount } = useQuery({
-    queryKey: ['push-target-count', values.locale],
-    queryFn: () => getPushTargetCount(values.locale as Locale),
+    queryKey: ['push-target-count', values.locale, values.filter],
+    queryFn: () =>
+      hasFilter
+        ? previewPushTargets({ ...values.filter, locale: values.locale as Locale })
+        : getPushTargetCount(values.locale as Locale),
     enabled: !isReadOnly && values.target === 'ALL' && !!values.locale,
     staleTime: 5 * 60_000,
   });
@@ -118,14 +130,25 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
     setUnknown([]);
     try {
       const payload = toCreatePushParams({ ...values, title, message });
-      if (mode === 'edit' && initial) await updatePush({ id: initial.id, ...payload });
-      else await createPush(payload);
-      toast.success(mode === 'edit' ? '수정되었습니다' : '등록되었습니다');
+      if (mode === 'edit' && initial) {
+        await updatePush({ id: initial.id, ...payload });
+        toast.success('수정되었습니다');
+      } else {
+        const created = await createPush(payload);
+        // A filtered campaign becomes several rows. Saying so is the difference between the
+        // operator understanding the list and thinking a duplicate got saved.
+        const parts = created?.length ?? 1;
+        toast.success(parts > 1 ? `${parts}개로 나뉘어 등록되었습니다` : '등록되었습니다');
+      }
       await onSaved();
     } catch (error) {
       if (error instanceof PushUnknownUserNamesError) {
         setUnknown(error.unknownUserNames);
         toast.error('존재하지 않는 사용자가 있습니다');
+      } else if (error instanceof PushFilterNoMatchError) {
+        toast.error('조건에 맞는 사용자가 없습니다');
+      } else if (error instanceof PushFilterTooManyError) {
+        toast.error(`조건에 맞는 사용자가 너무 많습니다. 최대 ${error.max.toLocaleString()}명까지 보낼 수 있습니다`);
       } else {
         toast.error('저장하지 못했습니다');
       }
@@ -269,11 +292,19 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                         <p className='mt-1 text-xs text-destructive'>존재하지 않는 사용자: {unknown.join(', ')}</p>
                       )}
                     </DefinitionRow>
+                  </>
+                )}
 
-                    {/* The filter writes into the same field above rather than replacing it,
-                        so a searched list can still be edited by hand before saving. */}
-                    <PanelBand title='조건으로 대상 찾기' />
-                    <PushTargetFilterPanel onApply={(names) => set('userNames', names.join(', '))} />
+                {/* Conditions belong to a broadcast: a per-user send already names its
+                    recipients, so there is nothing left for them to narrow. */}
+                {values.target === 'ALL' && (
+                  <>
+                    <PanelBand title='대상 조건' />
+                    <PushTargetFilterPanel
+                      value={values.filter}
+                      onChange={(next) => set('filter', next)}
+                      disabled={isReadOnly}
+                    />
                   </>
                 )}
 
