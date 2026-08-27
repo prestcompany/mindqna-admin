@@ -108,7 +108,8 @@ function PushList() {
       onAbort: (row) => setPending({ kind: 'abort', row }),
       onDelete: (row) => setPending({ kind: 'delete', row }),
     },
-    (page - 1) * 10 + 1,
+    // The number of the page's first entry, counting down from the newest.
+    total - (page - 1) * 10,
   );
 
   const confirmContent = pending ? confirmCopy[pending.kind](pending.row) : null;
