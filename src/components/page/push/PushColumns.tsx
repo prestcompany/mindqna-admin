@@ -34,25 +34,56 @@ function relativeTime(iso: string, now = dayjs()): string {
   return `${Math.round(past / (60 * 24))}일 전`;
 }
 
-export const createPushColumns = (actions: PushRowActions): ColumnDef<AdminPushItem>[] => [
-  { accessorKey: 'id', header: '번호', size: 64 },
+export const createPushColumns = (actions: PushRowActions, firstNumber = 1): ColumnDef<AdminPushItem>[] => [
+  {
+    id: 'no',
+    header: '번호',
+    size: 64,
+    // A running number, not the row id. The table is ordered by 발송 시각 while ids follow
+    // creation, and a folded campaign can only show one of its parts' ids — together those
+    // produced a column reading 10, 24, 15, 8. The id is still how a push is addressed; it
+    // is just not what a column called 번호 should show.
+    cell: ({ row }) => firstNumber + row.index,
+  },
   {
     id: 'target',
     header: '대상',
     cell: ({ row }) => {
       const item = row.original;
-      return item.target === 'ALL' ? `전체 · ${item.locale ?? '—'}` : `개인 · ${(item.userNames ?? []).length}명`;
+      if (item.target === 'ALL') return `전체 · ${item.locale ?? '—'}`;
+
+      // A folded campaign's own userNames are its FIRST chunk's, so reading them here reports
+      // one row's worth beside a progress column that already sums the whole campaign — the
+      // list said "개인 · 2000명" and "0 / 8,014" on the same line. The audience is the sum,
+      // and it was selected by conditions rather than typed in, so it is not "개인" either.
+      const parts = (item as { parts?: unknown[] }).parts?.length ?? 1;
+      if (parts > 1) return `조건 · ${(item.targetCount ?? 0).toLocaleString()}명`;
+
+      return `개인 · ${(item.userNames ?? []).length}명`;
     },
   },
   {
     accessorKey: 'title',
     header: '제목',
-    cell: ({ row }) => (
-      <div className='min-w-0'>
-        <div className='truncate text-foreground'>{row.original.title}</div>
-        <div className='truncate text-xs text-muted-foreground'>{row.original.message}</div>
-      </div>
-    ),
+    cell: ({ row }) => {
+      // Present only on a folded campaign. A single send has one part and says nothing,
+      // so the ordinary row is unchanged.
+      const parts = (row.original as { parts?: unknown[] }).parts?.length ?? 1;
+      const done = (row.original as { finishedParts?: number }).finishedParts ?? 0;
+      return (
+        <div className='min-w-0'>
+          <div className='flex min-w-0 items-center gap-1.5'>
+            <span className='truncate text-foreground'>{row.original.title}</span>
+            {parts > 1 && (
+              <span className='shrink-0 rounded border border-border px-1.5 py-px text-[11px] tabular-nums text-muted-foreground'>
+                {done}/{parts}
+              </span>
+            )}
+          </div>
+          <div className='truncate text-xs text-muted-foreground'>{row.original.message}</div>
+        </div>
+      );
+    },
   },
   {
     accessorKey: 'pushAt',
