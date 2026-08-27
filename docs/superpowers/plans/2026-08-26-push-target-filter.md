@@ -149,24 +149,21 @@ Run: `NODE_ENV=development npx ts-node --compiler-options '{"module":"commonjs"}
 
 - [x] **Step 3: `EXPLAIN`으로 인덱스가 실제로 쓰이는지 확인**
 
+쿼리를 손으로 다시 적지 않는다. 손으로 적으면 조인 순서나 조건이 코드와 어긋나 **측정 대상이 실제 쿼리가 아니게 된다.** `selectMatchingUserNames`가 만든 SQL을 그대로 `EXPLAIN`한다.
+
 ```ts
-const rows = await prisma.$queryRaw<any[]>(Prisma.sql`
-  EXPLAIN SELECT DISTINCT u.username
-  FROM \`User\` u
-  JOIN \`Profile\` p ON p.userId = u.id AND p.removed = 0 AND p.disabled = 0
-  JOIN \`SpaceInfo\` si ON si.spaceId = p.spaceId
-  LEFT JOIN \`Pet\` pt ON pt.spaceId = p.spaceId
-  WHERE u.fcmToken IS NOT NULL
-    AND si.type IN ('couple') AND si.locale IN ('ko') AND pt.level >= 5
-    AND EXISTS (SELECT 1 FROM \`Card\` c WHERE c.spaceId = p.spaceId AND c.\`order\` >= 10)
-  ORDER BY u.username LIMIT 50001
-`);
-for (const r of rows) { const v = Object.values(r); console.log(`tbl=${v[2]} type=${v[4]} key=${v[6]} rows=${v[9]}`); }
+import { selectMatchingUserNames, PUSH_FILTER_MAX_RESULTS } from './src/admin/push/push-target-filter';
+
+const sql = selectMatchingUserNames(
+  { spaceTypes: ['couple'], spaceLocales: ['ko'], minCardCount: 10, minPetLevel: 5 } as any,
+  null,
+  PUSH_FILTER_MAX_RESULTS + 1,
+);
+const plan = await prisma.$queryRawUnsafe<any[]>('EXPLAIN ' + sql.sql, ...sql.values);
+for (const r of plan) { const v = Object.values(r); console.log(`tbl=${v[2]} type=${v[4]} key=${v[6]} rows=${v[9]}`); }
 ```
 
-Expected: `si` 행의 `type`이 `ALL`이 아니고 `key`가 `idx_spaceinfo_type_locale`.
-
-`ALL`이 그대로면 인덱스가 선택되지 않은 것이다. `ANALYZE TABLE SpaceInfo` 를 사용자에게 요청한다.
+Expected: **첫 행이 `si`**이고 `key`가 `idx_spaceinfo_type_locale`. 선두가 `p`(`Profile`)면 옵티마이저가 순서를 거꾸로 고른 것이고, 그때는 인덱스가 붙어 있어도 느리다 — 실측이 그랬다.
 
 - [x] **Step 4: 실측치를 스펙에 기록하고 커밋**
 
@@ -281,6 +278,18 @@ Step 1·2가 통과하면 커밋 없음. 버그가 나오면 수정 후 해당 �
 
 **Interfaces:**
 - Consumes: Task 1의 DDL, Task 2의 성능.
+
+**브라우저가 없으면 절반은 여전히 갈 수 있다.** 확장이 끊겨 있거나 화면을 볼 수 없을 때, 아래 단계는 API 직접 호출로 대체한다.
+
+| 단계 | 화면 없이 |
+|---|---|
+| Step 2 조건 패널 렌더 | **불가** — 사람이 봐야 한다 |
+| Step 3 레일 숫자 | `POST /admin/push/preview-targets`를 조건별로 호출해 개수만 확인 |
+| Step 4 저장 | `POST /admin/push`에 `filter`를 담아 호출. 응답 배열 길이가 행 수다 |
+| Step 5 DB 행 확인 | 그대로 가능 |
+| Step 6 그룹 취소 | `DELETE`/취소 엔드포인트를 그룹의 아무 행 id로 호출 |
+
+이렇게 하면 **서버 쪽 전부와 어드민의 렌더만 남는다.** 화면 확인은 Task 6과 함께 사람이 한 번에 처리한다. 어느 쪽으로 갔는지 완료 보고에 명시한다 — "확인했다"와 "API로만 확인했다"는 다른 말이다.
 
 - [ ] **Step 1: 서버와 어드민을 띄운다**
 
@@ -458,7 +467,150 @@ git commit -m "docs(push): record the list folding page-boundary limit"
 
 ---
 
-### Task 7: 전체 게이트와 브랜치 마무리
+### Task 7: 캠페인 한 건이 유예창 안에 끝나는지 따진다
+
+**리뷰에서 드러난 것.** 계획서에도 스펙에도 캠페인의 총 소요를 계산한 곳이 없었다. 숫자를 이어 붙이면 여유가 생각보다 얇다.
+
+| | |
+|---|---|
+| 크론 주기 | `EVERY_MINUTE` (`src/fcm/cron/fcm-admin.cron.ts:20`) |
+| 한 틱이 처리하는 행 | `findFirst` — 한 개 (`src/fcm/admin-push/admin-push-sender.ts:75`) |
+| 캠페인 최대 행 수 | `PUSH_FILTER_MAX_RESULTS 50,000` ÷ `PUSH_CHUNK_SIZE 1,000` = **50행** |
+| 캠페인 총 소요 | 약 **50분** |
+| 유예창 | `GRACE_WINDOW_MS = 60분` (`src/fcm/admin-push/admin-push-rules.ts:4`) |
+| 초과 시 | 발송이 아니라 **`FAILED`** (`admin-push-sender.ts:80-90`) |
+
+여유는 10분이다. 캠페인 뒤쪽 행이 유예창을 넘으면 조용히 `FAILED`가 되고 운영자는 `43/50`에서 멈춘 캠페인을 본다. 실패가 아니라 시간 초과인데 메시지는 그렇게 읽히지 않는다.
+
+**Files:**
+- Modify: `server: src/admin/push/push-target-filter.ts` (`PUSH_CHUNK_SIZE`)
+- Modify: `server: src/admin/push/push-target-filter.spec.ts` (분할 경계 테스트의 기대값)
+
+**Interfaces:**
+- Consumes: `PUSH_CHUNK_SIZE`, `chunk(items, size)`.
+
+- [ ] **Step 1: 청크를 2,000으로 올릴 수 있는지 저장 한계로 확인한다**
+
+`AdminPush.userNames`는 `@db.Text`(65,535바이트)에 쉼표로 이어 붙인다. dev 실측으로 username은 최대 13자, 평균 8자다.
+
+| 청크 | 최악 바이트 | TEXT 한계 대비 |
+|---|---|---|
+| 1,000 | 14,000 | 21% |
+| 2,000 | 28,000 | 43% |
+
+2,000이면 캠페인이 25행·25분이 되어 여유가 10분에서 35분으로 늘어난다. 저장 비용은 없다.
+
+`MAX_USER_NAMES = 1000`은 **수기 입력**의 상한이라 함께 올리지 않는다. 운영자가 손으로 붙여넣는 양의 상한과, 서버가 스스로 쪼개는 단위는 같아야 할 이유가 없다.
+
+- [ ] **Step 2: 상수를 올리고 주석에 이유를 남긴다**
+
+```ts
+/**
+ * 한 행이 담는 인원. 크론은 1분에 한 행씩 처리하므로 이 값이 캠페인의 총 소요를 정한다.
+ * 상한 50,000명이면 25행 = 약 25분이고, 유예창 60분(GRACE_WINDOW_MS) 안에 끝난다.
+ * 1,000이던 시절에는 50행 = 50분으로 여유가 10분뿐이었다. 더 키우지 않는 이유는
+ * userNames가 TEXT(65,535바이트)이고 2,000명이 최악 28,000바이트이기 때문이다.
+ */
+export const PUSH_CHUNK_SIZE = 2000;
+```
+
+- [ ] **Step 3: 분할 경계 테스트를 새 값에 맞춘다**
+
+`push-target-filter.spec.ts`의 2,501명 케이스는 청크가 1,000일 때 `[1000, 1000, 501]`을 기대한다. 2,000이면 `[2000, 501]`이다. **숫자만 바꾸지 말고 꼬리가 남는 성질이 그대로인지 확인한다** — 여기가 조용히 틀리면 캠페인 꼬리가 사라진다.
+
+```ts
+it('splits 50,000 into 25 rows with no tail', () => {
+  expect(chunk(Array.from({ length: 50_000 }, (_, i) => `u${i}`), PUSH_CHUNK_SIZE).map((c) => c.length))
+    .toEqual(Array.from({ length: 25 }, () => 2000));
+});
+
+it('keeps the tail when the count is not a multiple', () => {
+  expect(chunk(Array.from({ length: 2501 }, (_, i) => `u${i}`), PUSH_CHUNK_SIZE).map((c) => c.length))
+    .toEqual([2000, 501]);
+});
+```
+
+Run: `npx jest src/admin/push/push-target-filter.spec.ts`
+Expected: 전부 통과.
+
+- [ ] **Step 4: 머리 막힘을 스펙에 한계로 기록한다**
+
+행 선택은 `orderBy: { pushAt: 'asc' }`이고 캠페인의 모든 행은 `pushAt`이 같다. 그래서 캠페인 뒤에 예약된 일반 공지는 캠페인이 다 빠질 때까지 기다린다. 운영자에게 보이지 않는 결과이므로 적어 둔다.
+
+스펙 §8 끝에 추가한다.
+
+```markdown
+**알려진 한계 — 캠페인이 대기열을 점유한다.** 발송기는 `pushAt`이 이른 행부터 1분에
+하나씩 처리한다. 캠페인의 모든 행은 `pushAt`이 같으므로, 캠페인 뒤에 예약된 다른 푸시는
+캠페인이 전부 빠질 때까지 기다린다. 25행 캠페인이면 최대 25분이다. 급한 공지를 캠페인과
+같은 시각에 예약하지 않는 것으로 운영에서 피한다.
+```
+
+- [ ] **Step 5: 게이트와 커밋**
+
+```bash
+cd ~/Documents/backend/mindqna-server
+npx tsc --noEmit -p tsconfig.json && npx jest src/admin/push src/fcm
+git add src/admin/push/push-target-filter.ts src/admin/push/push-target-filter.spec.ts
+git commit -m "fix(push): size the chunk so a campaign finishes inside the grace window"
+
+cd ~/Documents/frontend/mindqna-admin
+git add docs/superpowers/specs/2026-08-26-push-target-filter-design.md
+git commit -m "docs(push): record that a campaign occupies the send queue"
+```
+
+---
+
+### Task 8: 그룹 행이 실제로 발송되는지 확인한다
+
+**리뷰에서 드러난 것.** Task 4·6은 저장한 캠페인을 반드시 취소한다. 옳은 안전 규칙이지만, 그 결과 이 계획의 핵심 전제 — "발송기는 그룹 행을 평범한 개인 발송으로 처리하므로 변경이 없다" — 가 **한 번도 실행되지 않는다.** 코드를 읽어 뒷받침했을 뿐이다.
+
+**이 태스크는 실제 발송을 한다. 사용자의 명시적 승인 없이 시작하지 않는다.**
+
+**Files:**
+- 없음(확인). 문제가 나오면 해당 파일 수정.
+
+**Interfaces:**
+- Consumes: Task 4의 저장 경로, `runAdminPushTick`.
+
+- [ ] **Step 1: 사용자에게 승인을 받는다**
+
+무엇을 보낼지 먼저 합의한다: 본인 계정 등 **알고 있는 소수**에게만 닿는 조건, 2행 이상이 나오도록 `PUSH_CHUNK_SIZE`보다 많은 인원. 조건으로 그렇게 좁히기 어려우면 이 태스크는 dev에서 청크를 임시로 2로 낮춰 진행하고, 확인 후 되돌린다.
+
+승인 없이는 Step 2로 가지 않는다.
+
+- [ ] **Step 2: 예약으로 저장하고 크론이 잡을 시각까지 기다린다**
+
+dev 서버에서 크론이 도는지 먼저 확인한다. `CRON_DISABLED = NODE_ENV !== 'production' || NODE_APP_INSTANCE !== '0'`이므로 **로컬 `nest start`에서는 크론이 아예 돌지 않는다.** 이 태스크는 크론이 도는 환경에서만 의미가 있다 — 어디서 돌릴지 사용자와 정한다.
+
+- [ ] **Step 3: 행이 하나씩 순서대로 빠지는지 본다**
+
+```ts
+const rows = await prisma.adminPush.findMany({
+  where: { groupId: '<확인할 groupId>' },
+  select: { id: true, status: true, sentCount: true, startedAt: true, finishedAt: true },
+  orderBy: { id: 'asc' },
+});
+console.table(rows);
+```
+
+Expected: 한 번에 한 행만 `SENDING`. 앞 행이 `SENT`가 된 뒤 다음 행이 시작한다. 두 행이 동시에 `SENDING`이면 `isRunning` 가드가 듣지 않는 것이다.
+
+- [ ] **Step 4: 목록 배지가 진행을 따라가는지 본다**
+
+`0/N` → `1/N` → … → `N/N`. 마지막 행이 끝나기 전에 `N/N`이 되면 `finishedParts` 집계가 틀린 것이다.
+
+- [ ] **Step 5: 실제 기기에서 알림을 확인한다**
+
+푸시 재작업 전체의 미결 항목이 여기서 함께 닫힌다. 제목·내용·딥링크가 의도대로 보이는지 본다.
+
+- [ ] **Step 6: 임시로 바꾼 것을 되돌리고 커밋**
+
+Step 1에서 청크를 낮췄다면 되돌린다. 발견한 문제는 회귀 테스트와 함께 커밋한다.
+
+---
+
+### Task 9: 전체 게이트와 브랜치 마무리
 
 **Files:**
 - 없음(검증).
