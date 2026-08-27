@@ -36,6 +36,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import PushSummaryRail from './PushSummaryRail';
 import PushTargetFilterPanel, { isEmptyPushFilter } from './PushTargetFilterPanel';
+import PushTestSendPanel, { reachableCount } from './PushTestSendPanel';
+import type { ResolveTestEmailsResult } from '@/client/push';
 import {
   parseUserNamesInput,
   pushUrlError,
@@ -79,6 +81,8 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
   // A broadcast has no recovery path once it starts sending, so it gets one more step than
   // every other send here — the confirm stops the click, the rail notice only informs it.
   const [confirmingBroadcast, setConfirmingBroadcast] = useState(false);
+  /** Set while the operator is confirming a staff test send; null the rest of the time. */
+  const [testSend, setTestSend] = useState<{ userNames: string[]; resolved: ResolveTestEmailsResult } | null>(null);
 
   const set = <K extends keyof PushFormValues>(key: K, value: PushFormValues[K]) =>
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -201,6 +205,43 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
       : estimateDurationMs(targetCount.count);
   const campaignRows =
     campaignChunkSize && targetCount ? Math.max(1, Math.ceil(targetCount.count / campaignChunkSize)) : null;
+  /**
+   * Sends the message as composed to the resolved staff accounts, immediately. It goes
+   * through the ordinary create path as a per-user push, so nothing downstream needs to know
+   * a test send exists — and it appears in the list, because it is a real send.
+   */
+  const sendTest = async () => {
+    if (!testSend) return;
+    const title = values.title.trim();
+    const message = values.message.trim();
+    if (!title || !message) {
+      toast.error('제목과 내용을 입력해주세요');
+      setTestSend(null);
+      return;
+    }
+    setSaving(true);
+    try {
+      await createPush({
+        target: 'USER',
+        userNames: testSend.userNames,
+        locale: undefined,
+        title,
+        message,
+        imgUrl: values.imgUrl.trim() || undefined,
+        link: values.link.trim() || undefined,
+        sendNow: true,
+        pushAt: undefined,
+      });
+      toast.success(`${reachableCount(testSend.resolved).toLocaleString()}명에게 테스트 발송했습니다`);
+      await onSaved();
+    } catch {
+      toast.error('테스트 발송에 실패했습니다');
+    } finally {
+      setSaving(false);
+      setTestSend(null);
+    }
+  };
+
   const confirmDescription = [
     `${values.locale} 사용자 ${targetCount ? `약 ${targetCount.count.toLocaleString()}명` : '집계 중인 인원'}에게 ${when} 발송을 시작합니다.`,
     campaignRows && campaignRows > 1 ? `${campaignRows}개로 나뉘어 순서대로 나갑니다.` : null,
@@ -367,6 +408,18 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                     onChange={(e) => set('link', e.target.value)}
                   />
                 </DefinitionRow>
+
+                {/* Last, and only when composing: the point is to check the finished message
+                    on a real device before anyone else gets it. */}
+                {mode !== 'edit' && (
+                  <>
+                    <PanelBand title='내부 테스트' />
+                    <PushTestSendPanel
+                      disabled={saving}
+                      onSend={(userNames, resolved) => setTestSend({ userNames, resolved })}
+                    />
+                  </>
+                )}
               </div>
 
               <aside className='min-h-0 overflow-y-auto border-l border-border p-4'>
@@ -412,6 +465,48 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
           <AlertDialogFooter>
             <AlertDialogCancel>취소</AlertDialogCancel>
             <AlertDialogAction onClick={confirmBroadcast}>발송</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Names everyone, including the accounts that will not receive it. A test send whose
+          silent misses go unmentioned teaches the operator the wrong thing about the real
+          send that follows. */}
+      <AlertDialog open={!!testSend} onOpenChange={(open) => !open && setTestSend(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>테스트로 먼저 보낼까요?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className='space-y-2 text-sm'>
+                <p>
+                  지금 작성한 내용이 아래 {testSend ? reachableCount(testSend.resolved).toLocaleString() : 0}명에게 즉시
+                  발송됩니다. 1분 내에 실제 기기로 갑니다.
+                </p>
+                <ul className='space-y-1'>
+                  {testSend?.resolved.resolved
+                    .filter((r) => r.recipients.length > 0)
+                    .map((r) => (
+                      <li key={r.email}>
+                        <span className='text-foreground'>{r.email}</span>{' '}
+                        <span className='text-muted-foreground'>
+                          {r.recipients.filter((p) => p.hasToken).length}명
+                          {r.recipients.some((p) => !p.hasToken) &&
+                            ` (기기 없는 계정 ${r.recipients.filter((p) => !p.hasToken).length}개 제외)`}
+                        </span>
+                      </li>
+                    ))}
+                </ul>
+                {!!testSend?.resolved.unmatched.length && (
+                  <p className='text-destructive'>
+                    받지 못합니다 — 계정을 찾을 수 없음: {testSend.resolved.unmatched.join(', ')}
+                  </p>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={sendTest}>테스트 발송</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

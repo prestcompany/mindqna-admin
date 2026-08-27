@@ -39,11 +39,13 @@ export const createPushColumns = (actions: PushRowActions, firstNumber = 1): Col
     id: 'no',
     header: '번호',
     size: 64,
-    // A running number, not the row id. The table is ordered by 발송 시각 while ids follow
-    // creation, and a folded campaign can only show one of its parts' ids — together those
-    // produced a column reading 10, 24, 15, 8. The id is still how a push is addressed; it
-    // is just not what a column called 번호 should show.
-    cell: ({ row }) => firstNumber + row.index,
+    // A running number, not the row id: ids follow creation while a folded campaign can only
+    // show one of its parts', which together produced a column reading 10, 24, 15, 8.
+    //
+    // It counts down, because the list runs newest first. Numbering 1 at the top would put
+    // the oldest push at the largest number and make the count read backwards against the
+    // "총 N건" beneath it.
+    cell: ({ row }) => firstNumber - row.index,
   },
   {
     id: 'target',
