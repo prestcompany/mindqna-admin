@@ -48,7 +48,7 @@ DDL이 없으면 Prisma 클라이언트가 `groupId`를 기대하는데 컬럼�
 **Interfaces:**
 - Produces: `AdminPush.groupId` 컬럼과 인덱스 두 개가 dev DB에 존재.
 
-- [ ] **Step 1: 사용자에게 DDL을 전달하고 적용을 기다린다**
+- [x] **Step 1: 사용자에게 DDL을 전달하고 적용을 기다린다**
 
 아래를 그대로 전달한다. 직접 실행하지 않는다.
 
@@ -60,7 +60,7 @@ CREATE INDEX `idx_adminpush_group` ON `AdminPush` (`groupId`);
 CREATE INDEX `idx_spaceinfo_type_locale` ON `SpaceInfo` (`type`, `locale`);
 ```
 
-- [ ] **Step 2: 컬럼이 실제로 생겼는지 확인**
+- [x] **Step 2: 컬럼이 실제로 생겼는지 확인**
 
 `~/Documents/backend/mindqna-server`에서 임시 스크립트로 확인한다.
 
@@ -82,7 +82,7 @@ Expected: `groupId column: OK` / `spaceinfo index: OK`
 
 둘 중 하나라도 MISSING이면 멈추고 사용자에게 알린다. 이후 태스크는 전부 이것에 의존한다.
 
-- [ ] **Step 3: Prisma 클라이언트가 컬럼을 읽는지 확인**
+- [x] **Step 3: Prisma 클라이언트가 컬럼을 읽는지 확인**
 
 ```ts
 // probe.ts
@@ -92,7 +92,7 @@ console.log('prisma read:', row === null ? 'empty table (OK)' : 'OK');
 
 Expected: 예외 없이 통과. 예외가 나면 `npx prisma generate` 후 재시도.
 
-- [ ] **Step 4: 임시 스크립트 삭제**
+- [x] **Step 4: 임시 스크립트 삭제**
 
 ```bash
 rm -f probe.ts
@@ -113,7 +113,7 @@ rm -f probe.ts
 - Consumes: Task 1의 `idx_spaceinfo_type_locale`.
 - Produces: 저장 경로 실측치. 다음 태스크가 이 숫자에 의존한다.
 
-- [ ] **Step 1: 저장 경로 쿼리를 측정한다**
+- [x] **Step 1: 저장 경로 쿼리를 측정한다**
 
 ```ts
 // probe.ts — 확인 후 삭제
@@ -139,7 +139,7 @@ Run: `NODE_ENV=development npx ts-node --compiler-options '{"module":"commonjs"}
 
 인덱스 적용 전 기준값 — 22.0초 / 10.4초 / 24.8초.
 
-- [ ] **Step 2: 결과를 판정한다**
+- [x] **Step 2: 결과를 판정한다**
 
 | 실측 | 판정 |
 |---|---|
@@ -147,7 +147,7 @@ Run: `NODE_ENV=development npx ts-node --compiler-options '{"module":"commonjs"}
 | 3~10초 | 통과하되 스펙 §5에 실측치를 기록하고 사용자에게 알린다. |
 | 10초 초과 | **멈춘다.** 스펙 §11 "비동기 해석"으로 돌아가야 한다. 사용자에게 숫자와 함께 알리고 계획 재작성을 제안한다. |
 
-- [ ] **Step 3: `EXPLAIN`으로 인덱스가 실제로 쓰이는지 확인**
+- [x] **Step 3: `EXPLAIN`으로 인덱스가 실제로 쓰이는지 확인**
 
 ```ts
 const rows = await prisma.$queryRaw<any[]>(Prisma.sql`
@@ -168,7 +168,7 @@ Expected: `si` 행의 `type`이 `ALL`이 아니고 `key`가 `idx_spaceinfo_type_
 
 `ALL`이 그대로면 인덱스가 선택되지 않은 것이다. `ANALYZE TABLE SpaceInfo` 를 사용자에게 요청한다.
 
-- [ ] **Step 4: 실측치를 스펙에 기록하고 커밋**
+- [x] **Step 4: 실측치를 스펙에 기록하고 커밋**
 
 `docs/superpowers/specs/2026-08-26-push-target-filter-design.md` §5 끝의 "인덱스 적용 후 재측정은 구현 계획의 검증 항목이다." 를 실측 표로 교체한다.
 
@@ -177,6 +177,22 @@ rm -f probe.ts
 git add docs/superpowers/specs/2026-08-26-push-target-filter-design.md
 git commit -m "docs(push): record the measured effect of idx_spaceinfo_type_locale"
 ```
+
+---
+
+**Task 1·2 결과 (2026-08-27):**
+
+DDL 세 줄 모두 dev에 적용 확인. `groupId` 컬럼·`idx_adminpush_group`·`idx_spaceinfo_type_locale` 존재, Prisma 읽기 정상.
+
+인덱스만으로는 부족했다. 22.0초가 18.0초가 됐을 뿐이고, `EXPLAIN`을 보니 스캔이 사라진 게 아니라 `SpaceInfo`(295,535행)에서 `Profile`(581,549행)로 **옮겨간** 것이었다. 원인은 옵티마이저가 `(type, locale)` 인덱스의 행 수를 선두 컬럼만 보고 추정하기 때문이다 — 295,535/4 ≈ 75,102으로 잡지만 실제 매칭은 37,702행이다. `STRAIGHT_JOIN`으로 `SpaceInfo`부터 읽도록 고정하자 **0.6초**가 됐다 (서버 `d33fdc0`).
+
+| 조건 | 인덱스 전 | 인덱스만 | +조인 고정 |
+|---|---|---|---|
+| 커플+ko+질문10+펫5 (16,517명) | 22.0초 | 18.0초 | **0.6초** |
+| 커플만 (상한 초과) | 10.4초 | 8.2초 | 2.4초 |
+| 질문≥10 (상한 초과) | 24.8초 | 23.3초 | 16.5초 |
+
+미리보기 집계는 0.4초. 상한 초과 조건이 느린 것은 상한(50,000)까지 세어야 하기 때문이고, 그 경로는 저장을 거부하므로 운영에서 반복되지 않는다.
 
 ---
 
