@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { computeProgress, estimateDurationMs, estimateRemainingMs } from './push-progress';
+import {
+  computeProgress,
+  estimateCampaignDurationMs,
+  estimateDurationMs,
+  estimateRemainingMs,
+  formatMinuteRange,
+  minutes,
+} from './push-progress';
 
 test('progress counts both delivered and failed as processed', () => {
   assert.deepEqual(computeProgress({ sentCount: 30, failedCount: 10, targetCount: 200 }), {
@@ -68,4 +75,36 @@ test('the pre-send estimate brackets the real ko broadcast at 15 to 44 minutes',
   const { minMs, maxMs } = estimateDurationMs(442_953);
   assert.equal(Math.round(minMs / 60_000), 15);
   assert.equal(Math.round(maxMs / 60_000), 44);
+});
+
+test('a campaign is timed by its queue, not by FCM', () => {
+  // 16,342 people at 2,000 a row is nine rows, and the sender claims one a minute. The
+  // eight-minute wait is the whole answer; the last row's own draining is seconds.
+  const { rows, minMs, maxMs } = estimateCampaignDurationMs(16_342, 2_000);
+  assert.equal(rows, 9);
+  assert.equal(minMs, 8 * 60_000 + 4 * 1_000);
+  assert.equal(maxMs, 8 * 60_000 + 4 * 3_000);
+  assert.equal(minutes(minMs), 8);
+});
+
+test('a campaign that fits one row is not charged a queue wait', () => {
+  const { rows, minMs } = estimateCampaignDurationMs(500, 2_000);
+  assert.equal(rows, 1);
+  assert.equal(minMs, estimateDurationMs(500).minMs);
+});
+
+test('the campaign estimate never undercuts the single-send estimate', () => {
+  // The bug this replaces: 16,342 people reported as one or two minutes.
+  const plain = estimateDurationMs(16_342);
+  const campaign = estimateCampaignDurationMs(16_342, 2_000);
+  assert.ok(campaign.minMs > plain.maxMs);
+});
+
+test('an empty audience still reads as one row rather than zero', () => {
+  assert.equal(estimateCampaignDurationMs(0, 2_000).rows, 1);
+});
+
+test('a range that rounds to one minute is said once', () => {
+  assert.equal(formatMinuteRange(8 * 60_000 + 4_000, 8 * 60_000 + 12_000), '8분');
+  assert.equal(formatMinuteRange(60_000, 3 * 60_000), '1~3분');
 });

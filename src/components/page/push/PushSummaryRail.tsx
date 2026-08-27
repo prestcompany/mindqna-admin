@@ -2,7 +2,13 @@ import type { AdminPushItem } from '@/client/push';
 import { LOCALE_DISPLAY_NAME } from '@/components/shared/form/constants/locale-options';
 import dayjs from 'dayjs';
 import { useState } from 'react';
-import { estimateDurationMs, estimateRemainingMs, minutes } from './services/push-progress';
+import {
+  estimateCampaignDurationMs,
+  estimateDurationMs,
+  estimateRemainingMs,
+  formatMinuteRange,
+  minutes,
+} from './services/push-progress';
 
 type ComposeProps = {
   mode: 'compose';
@@ -10,6 +16,12 @@ type ComposeProps = {
   locale: string;
   /** null while a broadcast's server-side count is still in flight — never a placeholder 0. */
   recipientCount: number | null;
+  /**
+   * Set only for a filtered campaign, and then to the server's own chunk size. A campaign
+   * is split across rows the sender claims one per minute, so its wait is the queue rather
+   * than FCM — null means an ordinary send, which drains in one go.
+   */
+  campaignChunkSize?: number | null;
   when: string;
   title: string;
   message: string;
@@ -55,10 +67,19 @@ function PushSummaryRail(props: ComposeProps | ResultProps) {
     );
   }
 
-  const { target, locale, recipientCount, when, title, message, imgUrl } = props;
+  const { target, locale, recipientCount, campaignChunkSize, when, title, message, imgUrl } = props;
   // A flashed "1~1분" while the real count is still loading is worse than no number at
   // all — it teaches the operator that a forty-minute broadcast is a one-minute one.
-  const estimate = recipientCount === null ? null : estimateDurationMs(recipientCount);
+  const estimate =
+    recipientCount === null
+      ? null
+      : campaignChunkSize
+        ? estimateCampaignDurationMs(recipientCount, campaignChunkSize)
+        : estimateDurationMs(recipientCount);
+  const campaignRows =
+    campaignChunkSize && recipientCount !== null
+      ? Math.max(1, Math.ceil(recipientCount / campaignChunkSize))
+      : null;
   // The headcount is the number this rail exists to put in front of the operator: 약 for a
   // broadcast, whose count is a locale-wide estimate, and bare for a per-user send, whose
   // count is the list they just typed. While a broadcast's count is still in flight the
@@ -81,7 +102,10 @@ function PushSummaryRail(props: ComposeProps | ResultProps) {
         <Row label='대상' value={who} />
         <Row label='발송' value={when} />
         {/* Tens of minutes is the fact an operator most needs before pressing save. */}
-        {estimate && <Row label='예상 소요' value={`${minutes(estimate.minMs)}~${minutes(estimate.maxMs)}분`} />}
+        {estimate && <Row label='예상 소요' value={formatMinuteRange(estimate.minMs, estimate.maxMs)} />}
+        {/* The row count is why a campaign takes minutes rather than seconds; showing the
+            wait without it invites "why is this so slow". */}
+        {campaignRows !== null && campaignRows > 1 && <Row label='분할' value={`${campaignRows}개로 나뉘어 발송`} />}
       </dl>
 
       {/* Resident for the whole compose session, not just a line in a confirm step the

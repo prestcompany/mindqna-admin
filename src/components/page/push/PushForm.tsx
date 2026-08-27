@@ -42,7 +42,7 @@ import {
   toCreatePushParams,
   type PushFormValues,
 } from './services/push-form-payload';
-import { estimateDurationMs, minutes } from './services/push-progress';
+import { estimateCampaignDurationMs, estimateDurationMs, formatMinuteRange } from './services/push-progress';
 
 type Props = {
   mode: 'create' | 'edit' | 'view';
@@ -190,10 +190,21 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
       : values.pushAt
         ? dayjs(values.pushAt).format('YYYY.MM.DD HH:mm')
         : '시간 미설정';
-  const broadcastEstimate = targetCount ? estimateDurationMs(targetCount.count) : null;
+  // The rail and this dialog must not disagree about the wait. A filtered campaign is split
+  // across rows the sender claims one a minute, so estimateDurationMs alone reports a
+  // fraction of the real time — the dialog once said 1분 beside a rail saying 4분.
+  const campaignChunkSize = hasFilter ? ((targetCount as { chunkSize?: number } | undefined)?.chunkSize ?? null) : null;
+  const broadcastEstimate = !targetCount
+    ? null
+    : campaignChunkSize
+      ? estimateCampaignDurationMs(targetCount.count, campaignChunkSize)
+      : estimateDurationMs(targetCount.count);
+  const campaignRows =
+    campaignChunkSize && targetCount ? Math.max(1, Math.ceil(targetCount.count / campaignChunkSize)) : null;
   const confirmDescription = [
     `${values.locale} 사용자 ${targetCount ? `약 ${targetCount.count.toLocaleString()}명` : '집계 중인 인원'}에게 ${when} 발송을 시작합니다.`,
-    broadcastEstimate ? `예상 소요 ${minutes(broadcastEstimate.minMs)}~${minutes(broadcastEstimate.maxMs)}분.` : null,
+    campaignRows && campaignRows > 1 ? `${campaignRows}개로 나뉘어 순서대로 나갑니다.` : null,
+    broadcastEstimate ? `예상 소요 ${formatMinuteRange(broadcastEstimate.minMs, broadcastEstimate.maxMs)}.` : null,
     '시작하면 되돌릴 수 없습니다. 중단해도 이미 도달한 사람에게는 취소되지 않습니다.',
   ]
     .filter(Boolean)
@@ -365,6 +376,11 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                   locale={values.locale}
                   recipientCount={
                     values.target === 'ALL' ? (targetCount ? targetCount.count : null) : recipients.length
+                  }
+                  /* Only a filtered campaign splits across rows, and only then does the
+                     queue wait dominate the estimate. */
+                  campaignChunkSize={
+                    hasFilter ? ((targetCount as { chunkSize?: number } | undefined)?.chunkSize ?? null) : null
                   }
                   when={when}
                   title={values.title}

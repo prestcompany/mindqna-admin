@@ -111,7 +111,7 @@ export type PushTargetFilter = {
 
 /** Count only. The names are resolved again when the campaign is saved. */
 export async function previewPushTargets(filter: PushTargetFilter & { locale?: Locale }) {
-  const res = await client.post<{ count: number; isApproximate: boolean; max: number }>(
+  const res = await client.post<{ count: number; isApproximate: boolean; max: number; chunkSize: number }>(
     '/push/preview-targets',
     filter,
   );
