@@ -477,28 +477,32 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
           <AlertDialogHeader>
             <AlertDialogTitle>테스트로 먼저 보낼까요?</AlertDialogTitle>
             <AlertDialogDescription asChild>
-              <div className='space-y-2 text-sm'>
-                <p>
-                  지금 작성한 내용이 아래 {testSend ? reachableCount(testSend.resolved).toLocaleString() : 0}명에게 즉시
-                  발송됩니다. 1분 내에 실제 기기로 갑니다.
+              <div className='space-y-3 text-sm'>
+                <p className='leading-relaxed'>
+                  지금 작성한 내용이 {testSend ? reachableCount(testSend.resolved).toLocaleString() : 0}명에게 즉시
+                  발송됩니다. 1분 안에 실제 기기로 도착합니다.
                 </p>
-                <ul className='space-y-1'>
+
+                <ul className='divide-y divide-hairline-soft rounded-lg border border-border'>
                   {testSend?.resolved.resolved
                     .filter((r) => r.recipients.length > 0)
-                    .map((r) => (
-                      <li key={r.email}>
-                        <span className='text-foreground'>{r.email}</span>{' '}
-                        <span className='text-muted-foreground'>
-                          {r.recipients.filter((p) => p.hasToken).length}명
-                          {r.recipients.some((p) => !p.hasToken) &&
-                            ` (기기 없는 계정 ${r.recipients.filter((p) => !p.hasToken).length}개 제외)`}
-                        </span>
-                      </li>
-                    ))}
+                    .map((r) => {
+                      const missing = r.recipients.filter((p) => !p.hasToken).length;
+                      return (
+                        <li key={r.email} className='flex items-baseline justify-between gap-3 px-3 py-2'>
+                          <span className='truncate font-mono text-xs text-foreground'>{r.email}</span>
+                          <span className='shrink-0 tabular-nums text-muted-foreground'>
+                            {r.recipients.filter((p) => p.hasToken).length}명
+                            {missing > 0 && ` (${missing}명 제외)`}
+                          </span>
+                        </li>
+                      );
+                    })}
                 </ul>
+
                 {!!testSend?.resolved.unmatched.length && (
-                  <p className='text-destructive'>
-                    받지 못합니다 — 계정을 찾을 수 없음: {testSend.resolved.unmatched.join(', ')}
+                  <p className='leading-relaxed text-destructive'>
+                    계정을 찾지 못해 발송되지 않습니다: {testSend.resolved.unmatched.join(', ')}
                   </p>
                 )}
               </div>
