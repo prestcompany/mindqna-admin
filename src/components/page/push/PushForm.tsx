@@ -34,6 +34,7 @@ import dayjs from 'dayjs';
 import { Loader2 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import PushRecipientList from './PushRecipientList';
 import PushSummaryRail from './PushSummaryRail';
 import PushTargetFilterPanel, { isEmptyPushFilter } from './PushTargetFilterPanel';
 import PushTestSendPanel, { reachableCount } from './PushTestSendPanel';
@@ -260,18 +261,52 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
               <PanelBand title='수신' />
               <DefinitionRow label='대상'>
                 {initial.target === 'ALL'
-                  ? `전체 · ${initial.locale ?? '—'}`
-                  : `개인 · ${(initial.userNames ?? []).join(', ') || '—'}`}
+                  ? `전체 · ${initial.locale ? (LOCALE_DISPLAY_NAME[initial.locale] ?? initial.locale) : '-'}`
+                  : `개인 · ${(initial.userNames ?? []).length.toLocaleString()}명`}
               </DefinitionRow>
+              {initial.target === 'USER' && (
+                <DefinitionRow label='받는 사람'>
+                  <PushRecipientList userNames={initial.userNames ?? []} />
+                </DefinitionRow>
+              )}
+              {initial.groupId && (
+                <DefinitionRow label='캠페인' hint='조건으로 만들어진 발송입니다. 목록에서는 한 줄로 묶여 보입니다'>
+                  <span className='font-mono text-xs text-muted-foreground'>{initial.groupId}</span>
+                </DefinitionRow>
+              )}
               <DefinitionRow label='발송 시각'>{dayjs(initial.pushAt).format('YYYY.MM.DD HH:mm')}</DefinitionRow>
+
+              {/* Results in the main column, not only in the narrow rail. The reason a send
+                  fell short is the thing an operator opens this view to find, and a muted
+                  box in a 220px sidebar is where it went unread. */}
+              <PanelBand title='발송 결과' />
+              <DefinitionRow label='도달'>
+                <span className='tabular-nums'>{initial.sentCount.toLocaleString()}명</span>
+              </DefinitionRow>
+              <DefinitionRow label='실패'>
+                <span className={initial.failedCount > 0 ? 'tabular-nums text-destructive' : 'tabular-nums'}>
+                  {initial.failedCount.toLocaleString()}명
+                </span>
+              </DefinitionRow>
+              {initial.lastError && (
+                <DefinitionRow label='실패 사유'>
+                  <p className='whitespace-pre-wrap leading-relaxed text-destructive'>{initial.lastError}</p>
+                </DefinitionRow>
+              )}
+              <DefinitionRow label='시작'>
+                {initial.startedAt ? dayjs(initial.startedAt).format('YYYY.MM.DD HH:mm:ss') : '-'}
+              </DefinitionRow>
+              <DefinitionRow label='종료'>
+                {initial.finishedAt ? dayjs(initial.finishedAt).format('YYYY.MM.DD HH:mm:ss') : '-'}
+              </DefinitionRow>
 
               <PanelBand title='메시지' />
               <DefinitionRow label='제목'>{initial.title}</DefinitionRow>
               <DefinitionRow label='내용'>
                 <p className='whitespace-pre-wrap'>{initial.message}</p>
               </DefinitionRow>
-              <DefinitionRow label='이미지'>{initial.imgUrl ?? '—'}</DefinitionRow>
-              <DefinitionRow label='링크'>{initial.link ?? '—'}</DefinitionRow>
+              <DefinitionRow label='이미지'>{initial.imgUrl ?? '-'}</DefinitionRow>
+              <DefinitionRow label='링크'>{initial.link ?? '-'}</DefinitionRow>
             </div>
             <aside className='min-h-0 overflow-y-auto border-l border-border p-4'>
               <PushSummaryRail mode='result' row={initial} />
@@ -477,28 +512,32 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
           <AlertDialogHeader>
             <AlertDialogTitle>테스트로 먼저 보낼까요?</AlertDialogTitle>
             <AlertDialogDescription asChild>
-              <div className='space-y-2 text-sm'>
-                <p>
-                  지금 작성한 내용이 아래 {testSend ? reachableCount(testSend.resolved).toLocaleString() : 0}명에게 즉시
-                  발송됩니다. 1분 내에 실제 기기로 갑니다.
+              <div className='space-y-3 text-sm'>
+                <p className='leading-relaxed'>
+                  지금 작성한 내용이 {testSend ? reachableCount(testSend.resolved).toLocaleString() : 0}명에게 즉시
+                  발송됩니다. 1분 안에 실제 기기로 도착합니다.
                 </p>
-                <ul className='space-y-1'>
+
+                <ul className='divide-y divide-hairline-soft rounded-lg border border-border'>
                   {testSend?.resolved.resolved
                     .filter((r) => r.recipients.length > 0)
-                    .map((r) => (
-                      <li key={r.email}>
-                        <span className='text-foreground'>{r.email}</span>{' '}
-                        <span className='text-muted-foreground'>
-                          {r.recipients.filter((p) => p.hasToken).length}명
-                          {r.recipients.some((p) => !p.hasToken) &&
-                            ` (기기 없는 계정 ${r.recipients.filter((p) => !p.hasToken).length}개 제외)`}
-                        </span>
-                      </li>
-                    ))}
+                    .map((r) => {
+                      const missing = r.recipients.filter((p) => !p.hasToken).length;
+                      return (
+                        <li key={r.email} className='flex items-baseline justify-between gap-3 px-3 py-2'>
+                          <span className='truncate font-mono text-xs text-foreground'>{r.email}</span>
+                          <span className='shrink-0 tabular-nums text-muted-foreground'>
+                            {r.recipients.filter((p) => p.hasToken).length}명
+                            {missing > 0 && ` (${missing}명 제외)`}
+                          </span>
+                        </li>
+                      );
+                    })}
                 </ul>
+
                 {!!testSend?.resolved.unmatched.length && (
-                  <p className='text-destructive'>
-                    받지 못합니다 — 계정을 찾을 수 없음: {testSend.resolved.unmatched.join(', ')}
+                  <p className='leading-relaxed text-destructive'>
+                    계정을 찾지 못해 발송되지 않습니다: {testSend.resolved.unmatched.join(', ')}
                   </p>
                 )}
               </div>

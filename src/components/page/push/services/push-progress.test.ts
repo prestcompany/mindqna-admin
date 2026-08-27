@@ -10,17 +10,27 @@ import {
   minutes,
 } from './push-progress';
 
-test('progress counts both delivered and failed as processed', () => {
-  assert.deepEqual(computeProgress({ sentCount: 30, failedCount: 10, targetCount: 200 }), {
-    ratio: 0.2,
-    percent: 20,
+test('the percentage counts deliveries, not attempts', () => {
+  // The bug this replaces: 5 delivered and 1 failed out of 6 rendered as "5 / 6 · 100%",
+  // which tells the operator everyone got it beside a number saying one did not.
+  assert.deepEqual(computeProgress({ sentCount: 5, failedCount: 1, targetCount: 6 }), {
+    ratio: 5 / 6,
+    percent: 83,
+    doneRatio: 1,
   });
+});
+
+test('doneRatio still counts failures, because they are worked through', () => {
+  const { ratio, doneRatio } = computeProgress({ sentCount: 30, failedCount: 10, targetCount: 200 });
+  assert.equal(ratio, 0.15);
+  assert.equal(doneRatio, 0.2);
 });
 
 test('progress is unknown when the target is unknown', () => {
   assert.deepEqual(computeProgress({ sentCount: 30, failedCount: 0, targetCount: null }), {
     ratio: null,
     percent: null,
+    doneRatio: null,
   });
 });
 
@@ -28,6 +38,7 @@ test('progress never exceeds 100 percent, since the broadcast target is approxim
   assert.deepEqual(computeProgress({ sentCount: 250, failedCount: 0, targetCount: 200 }), {
     ratio: 1,
     percent: 100,
+    doneRatio: 1,
   });
 });
 
@@ -35,6 +46,7 @@ test('progress is zero, not NaN, when the target is zero', () => {
   assert.deepEqual(computeProgress({ sentCount: 0, failedCount: 0, targetCount: 0 }), {
     ratio: 0,
     percent: 0,
+    doneRatio: 0,
   });
 });
 

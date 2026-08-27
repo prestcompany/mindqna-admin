@@ -16,9 +16,14 @@ function PushProgressMeter({ sentCount, failedCount, targetCount, isApproximate 
         {sentCount.toLocaleString()}
         <span className='text-muted-foreground'>
           {' / '}
-          {targetCount === null ? '—' : `${isApproximate ? '약 ' : ''}${targetCount.toLocaleString()}`}
+          {targetCount === null ? '-' : `${isApproximate ? '약 ' : ''}${targetCount.toLocaleString()}`}
           {percent !== null && ` · ${percent}%`}
         </span>
+        {/* Failures are their own number. Folding them into the percentage is what made a
+            partial delivery read as a complete one. */}
+        {failedCount > 0 && (
+          <span className='ml-1.5 text-destructive'>실패 {failedCount.toLocaleString()}</span>
+        )}
       </div>
       {ratio !== null && (
         // Bounded width, matching CouponUsageMeter: a full-cell bar reads as an input underline.

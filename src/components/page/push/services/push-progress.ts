@@ -7,14 +7,19 @@ export function computeProgress(input: {
   sentCount: number;
   failedCount: number;
   targetCount: number | null;
-}): { ratio: number | null; percent: number | null } {
+}): { ratio: number | null; percent: number | null; doneRatio: number | null } {
   const { sentCount, failedCount, targetCount } = input;
-  if (targetCount === null) return { ratio: null, percent: null };
-  if (targetCount === 0) return { ratio: 0, percent: 0 };
+  if (targetCount === null) return { ratio: null, percent: null, doneRatio: null };
+  if (targetCount === 0) return { ratio: 0, percent: 0, doneRatio: 0 };
 
-  // A broadcast target is approximate, so processed can overshoot it. Clamp.
-  const ratio = Math.min(1, (sentCount + failedCount) / targetCount);
-  return { ratio, percent: Math.round(ratio * 100) };
+  // The percentage counts deliveries, not attempts. Counting failures as progress made a
+  // send of 5 delivered out of 6 read "5 / 6 · 100%", which says everyone got it beside a
+  // number saying one did not. A broadcast target is approximate, so clamp both.
+  const ratio = Math.min(1, sentCount / targetCount);
+  // How much of the audience the sender has worked through, delivered or not. Only useful
+  // for knowing whether a send is still moving.
+  const doneRatio = Math.min(1, (sentCount + failedCount) / targetCount);
+  return { ratio, percent: Math.round(ratio * 100), doneRatio };
 }
 
 export function estimateRemainingMs(input: {

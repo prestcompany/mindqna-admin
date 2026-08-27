@@ -57,12 +57,9 @@ function PushSummaryRail(props: ComposeProps | ResultProps) {
         />
         <Row label='도달' value={row.sentCount.toLocaleString()} />
         <Row label='실패' value={row.failedCount.toLocaleString()} />
+        {/* The full result, including why anything failed, is in the main column. The rail
+            keeps only what is worth glancing at while a send is still moving. */}
         {remainingMs !== null && <Row label='예상 잔여' value={`${minutes(remainingMs)}분 남음`} />}
-        <Row label='시작' value={row.startedAt ? dayjs(row.startedAt).format('MM.DD HH:mm') : '—'} />
-        <Row label='종료' value={row.finishedAt ? dayjs(row.finishedAt).format('MM.DD HH:mm') : '—'} />
-        {row.lastError && (
-          <div className='rounded-md border border-border p-2 text-xs text-muted-foreground'>{row.lastError}</div>
-        )}
       </dl>
     );
   }
