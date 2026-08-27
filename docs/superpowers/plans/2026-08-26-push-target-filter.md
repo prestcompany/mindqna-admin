@@ -19,10 +19,12 @@
 ## Global Constraints
 
 - DDL은 **사람이 수기로 적용한다.** 계획의 어떤 단계도 `prisma migrate`, `prisma db push`, `ALTER TABLE`을 실행하지 않는다.
-- dev DB에 대한 **쓰기 금지.** 조회·`EXPLAIN`은 허용. 캠페인 저장 테스트는 어드민 UI를 통해서만 하고, 저장한 캠페인은 즉시 취소한다.
-- 실제 푸시를 **발송하지 않는다.** 저장한 캠페인은 예약으로 만들고 검증 후 취소한다. 즉시 발송으로 저장하면 1분 내에 실제 기기로 나간다.
+- dev DB에 대한 **임의 쓰기 금지.** 조회·`EXPLAIN`은 자유. 쓰기는 **캠페인을 저장하고 취소하는 것 하나뿐**이고, 그것도 어드민 UI 또는 어드민 API를 통해서만 한다 — `prisma.adminPush.create`/`update`를 직접 부르지 않는다. 저장한 캠페인은 그 태스크 안에서 반드시 취소한다.
+- 실제 푸시를 **발송하지 않는다. 단 하나의 예외는 Task 8이고, 그 태스크는 사용자의 명시적 승인 없이 시작하지 않는다.** 나머지 태스크에서 저장한 캠페인은 예약으로 만들고 검증 후 취소한다. 즉시 발송으로 저장하면 1분 내에 실제 기기로 나간다.
+- **취소는 `POST /admin/push/:id/cancel`이다.** `DELETE /admin/push/:id`는 취소가 아니라 행 삭제(`removePush`)다. 캠페인의 한 행만 지우면 나머지 형제 행은 예약된 채 남아 예정대로 발송된다.
+- 어드민 API는 전부 `AdminGuard` 뒤에 있다 — `Authorization: Bearer <token>` 헤더가 필요하고 토큰 페이로드의 `userId`가 `'admin'`이어야 한다. 브라우저로 어드민에 로그인한 뒤 개발자 도구에서 토큰을 꺼내 쓴다. 새로 발급하지 않는다.
 - 서버 테스트: `npx jest <path>`. 어드민 테스트: `npx tsx --test <path>`.
-- 게이트: 서버는 `npx tsc --noEmit -p tsconfig.json` + `npx jest src/admin/push src/fcm`. 어드민은 `npx tsc --noEmit` + `pnpm lint` + `pnpm build`.
+- 게이트: 서버는 `npx tsc --noEmit -p tsconfig.json` + `npx jest src/admin/push src/fcm`. 어드민은 `npx tsc --noEmit` + `pnpm lint` + `pnpm build` + `npx tsx --test "src/components/page/push/services/*.test.ts"`.
 - 어드민 브랜치 `feat/push-target-filter`, 서버 브랜치 `feat/push-target-filter`.
 
 ## File Structure
@@ -281,13 +283,15 @@ Step 1·2가 통과하면 커밋 없음. 버그가 나오면 수정 후 해당 �
 
 **브라우저가 없으면 절반은 여전히 갈 수 있다.** 확장이 끊겨 있거나 화면을 볼 수 없을 때, 아래 단계는 API 직접 호출로 대체한다.
 
+모든 호출에 `Authorization: Bearer <admin token>`이 필요하다(Global Constraints 참고).
+
 | 단계 | 화면 없이 |
 |---|---|
 | Step 2 조건 패널 렌더 | **불가** — 사람이 봐야 한다 |
-| Step 3 레일 숫자 | `POST /admin/push/preview-targets`를 조건별로 호출해 개수만 확인 |
-| Step 4 저장 | `POST /admin/push`에 `filter`를 담아 호출. 응답 배열 길이가 행 수다 |
+| Step 3 레일 숫자 | `POST /admin/push/preview-targets` — 본문은 조건 + `locale`. 개수만 돌아온다 |
+| Step 4 저장 | `POST /admin/push` — 본문에 `filter`를 담는다. **응답 배열의 길이가 행 수다** |
 | Step 5 DB 행 확인 | 그대로 가능 |
-| Step 6 그룹 취소 | `DELETE`/취소 엔드포인트를 그룹의 아무 행 id로 호출 |
+| Step 6 그룹 취소 | `POST /admin/push/:id/cancel` — 그룹의 아무 행 id면 된다. **`DELETE`가 아니다**; 그것은 행을 지울 뿐이라 형제 행이 예약된 채 남는다 |
 
 이렇게 하면 **서버 쪽 전부와 어드민의 렌더만 남는다.** 화면 확인은 Task 6과 함께 사람이 한 번에 처리한다. 어느 쪽으로 갔는지 완료 보고에 명시한다 — "확인했다"와 "API로만 확인했다"는 다른 말이다.
 
@@ -669,13 +673,24 @@ PR 본문에 담을 것: 스펙 링크, 적용해야 할 DDL(운영 반영 전 �
 | §7 에러 코드 | Task 5 Step 1·2 |
 | §8 조건 패널·대상 수 | Task 4 Step 2·3 |
 | §8 목록 접기 | Task 6 |
-| §9 테스트 | Task 7 Step 1·2 |
+| §8 발송 대기열 한계 | Task 7 Step 4 |
+| §9 테스트 | Task 9 Step 1·2 |
 | §10 화면 미확인 | Task 4·6이 해소 |
 | §10 인덱스 후 재측정 | Task 2가 해소 |
-| §10 실기기 발송 | Task 7 Step 5로 이관(범위 밖) |
+| §10 실기기 발송 | **Task 8 Step 5가 해소** — 더는 범위 밖이 아니다 |
+| (스펙에 없음) 유예창 대비 캠페인 소요 | Task 7 |
+| (스펙에 없음) 그룹 행의 실제 발송 | Task 8 |
 
 **플레이스홀더:** 없음. 모든 확인 단계에 실행할 코드와 기대값이 있다.
 
 **타입 일관성:** `selectMatchingUserNames(filter, userLocale, limit)`, `PUSH_FILTER_MAX_RESULTS`, `groupPushes(items)`, `PUSH_FILTER_NO_MATCH` / `PUSH_FILTER_TOO_MANY` — 전부 구현된 시그니처와 일치함을 확인했다.
 
-**자체 리뷰가 찾은 것:** Task 6 Step 3의 페이지 경계 문제는 스펙에 없던 항목이다. 구현이 페이지 안에서만 접기 때문에 10행 넘는 캠페인은 여러 줄로 보인다. 태스크를 지우는 대신 한계로 기록하게 했다 — 서버 페이지네이션을 그룹 단위로 바꾸는 것은 이번 범위보다 크고, 모르고 넘어가는 것이 더 나쁘다.
+**리뷰가 찾은 것**
+
+*1차 — 계획을 발송기와 대조.* 계획서에도 스펙에도 캠페인의 총 소요를 계산한 곳이 없었다. 크론이 1분에 한 행이고 캠페인이 최대 50행이면 50분인데 유예창이 60분이다. Task 7이 청크를 2,000으로 올려 25행·25분으로 줄였다. 같은 대조에서 캠페인이 발송 대기열을 점유한다는 사실도 나왔다 — 스펙 §8에 한계로 기록.
+
+*1차 — 검증되지 않는 전제.* Task 4·6이 저장분을 반드시 취소하므로 "발송기는 그룹 행을 평범한 개인 발송으로 처리한다"는 이 계획의 핵심 전제가 끝까지 실행되지 않았다. Task 8이 이를 닫는다. 실제 발송이므로 승인 게이트를 붙였다.
+
+*2차 — 계획서 자체의 정합성.* 1차에서 추가한 태스크가 Global Constraints와 충돌했다("UI를 통해서만", "발송하지 않는다"). 규칙 쪽을 정확하게 고쳤다 — 예외를 인정하지 않으면 실행자가 Task 8에서 옳게 멈춘다. 같은 편집에서 취소를 "`DELETE`/취소 엔드포인트"라고 뭉뚱그린 것도 잡았다. `DELETE`는 행을 지울 뿐이고 형제 행은 예약된 채 남아 실제로 발송된다 — 계획서가 유도할 수 있었던 가장 나쁜 사고다. API 갈래에 인증 요건도 빠져 있었다.
+
+*확인했으나 문제 아님:* 엔드포인트 경로, 에러 코드와 토스트 문구, `hasFilter`, 개발 포트 4000, 목록 경로, `selectMatchingUserNames`/`groupPushes` 시그니처, `userNames` TEXT 용량.
