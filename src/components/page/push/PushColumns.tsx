@@ -34,8 +34,17 @@ function relativeTime(iso: string, now = dayjs()): string {
   return `${Math.round(past / (60 * 24))}일 전`;
 }
 
-export const createPushColumns = (actions: PushRowActions): ColumnDef<AdminPushItem>[] => [
-  { accessorKey: 'id', header: '번호', size: 64 },
+export const createPushColumns = (actions: PushRowActions, firstNumber = 1): ColumnDef<AdminPushItem>[] => [
+  {
+    id: 'no',
+    header: '번호',
+    size: 64,
+    // A running number, not the row id. The table is ordered by 발송 시각 while ids follow
+    // creation, and a folded campaign can only show one of its parts' ids — together those
+    // produced a column reading 10, 24, 15, 8. The id is still how a push is addressed; it
+    // is just not what a column called 번호 should show.
+    cell: ({ row }) => firstNumber + row.index,
+  },
   {
     id: 'target',
     header: '대상',

@@ -55,6 +55,7 @@ function PushList() {
   const {
     items: rawItems,
     totalPage,
+    total,
     isLoading,
   } = usePushes({
     page,
@@ -98,14 +99,17 @@ function PushList() {
     }
   };
 
-  const columns = createPushColumns({
-    onView: (row) => setSheet({ mode: 'view', row }),
-    onEdit: (row) => setSheet({ mode: 'edit', row }),
-    onDuplicate: (row) => setSheet({ mode: 'create', row }),
-    onCancel: (row) => setPending({ kind: 'cancel', row }),
-    onAbort: (row) => setPending({ kind: 'abort', row }),
-    onDelete: (row) => setPending({ kind: 'delete', row }),
-  });
+  const columns = createPushColumns(
+    {
+      onView: (row) => setSheet({ mode: 'view', row }),
+      onEdit: (row) => setSheet({ mode: 'edit', row }),
+      onDuplicate: (row) => setSheet({ mode: 'create', row }),
+      onCancel: (row) => setPending({ kind: 'cancel', row }),
+      onAbort: (row) => setPending({ kind: 'abort', row }),
+      onDelete: (row) => setPending({ kind: 'delete', row }),
+    },
+    (page - 1) * 10 + 1,
+  );
 
   const confirmContent = pending ? confirmCopy[pending.kind](pending.row) : null;
 
@@ -155,7 +159,7 @@ function PushList() {
         columns={columns}
         data={items}
         loading={isLoading}
-        pagination={{ total: totalPage * 10, page, pageSize: 10, onChange: setPage }}
+        pagination={{ total, page, pageSize: 10, onChange: setPage }}
       />
 
       {sheet && (
