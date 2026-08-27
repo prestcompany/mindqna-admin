@@ -205,7 +205,7 @@ DDL 세 줄 모두 dev에 적용 확인. `groupId` 컬럼·`idx_adminpush_group`
 **Interfaces:**
 - Consumes: `selectMatchingUserNames(filter, userLocale, limit)`.
 
-- [ ] **Step 1: 조건 하나로 뽑은 사용자가 정말 그 조건을 만족하는지 역검증**
+- [x] **Step 1: 조건 하나로 뽑은 사용자가 정말 그 조건을 만족하는지 역검증**
 
 ```ts
 // probe.ts
@@ -236,21 +236,29 @@ const prisma = new PrismaClient();
 
 Expected: 10명 전원 `OK`. 하나라도 `MISMATCH`면 조건 조립에 버그가 있다 — 멈추고 보고한다.
 
-- [ ] **Step 2: 한 공간 앵커링이 실제로 걸리는지 확인**
+- [x] **Step 2: 한 공간 앵커링이 실제로 걸리는지 확인**
 
 조건을 서로 다른 공간이 나눠 만족하는 사용자가 **제외되는지** 본다.
 
+탐지 쿼리를 정확히 써야 한다. "couple 공간이 있고, 그와 다른 공간에 pet>=5가 있다"로 잡으면 **두 번째 공간도 couple인 사용자가 걸려들어 오경보가 난다** — 그런 사용자는 한 공간이 두 조건을 동시에 만족하므로 포함되는 것이 맞다. 조건은 "어떤 공간도 두 조건을 동시에 만족하지 않는다"여야 한다.
+
 ```ts
-// couple 공간이 있지만 그 공간의 펫 레벨은 낮고, 다른 공간의 펫 레벨이 높은 사용자
 const split = await prisma.$queryRaw<any[]>(Prisma.sql`
   SELECT u.username FROM \`User\` u
-  JOIN \`Profile\` p1 ON p1.userId = u.id AND p1.removed = 0
-  JOIN \`SpaceInfo\` s1 ON s1.spaceId = p1.spaceId AND s1.type = 'couple'
-  LEFT JOIN \`Pet\` t1 ON t1.spaceId = s1.spaceId
-  JOIN \`Profile\` p2 ON p2.userId = u.id AND p2.spaceId <> p1.spaceId AND p2.removed = 0
-  LEFT JOIN \`Pet\` t2 ON t2.spaceId = p2.spaceId
-  WHERE u.fcmToken IS NOT NULL AND (t1.level IS NULL OR t1.level < 5) AND t2.level >= 5
-  LIMIT 3
+  WHERE u.fcmToken IS NOT NULL
+    AND EXISTS (
+      SELECT 1 FROM \`Profile\` p JOIN \`SpaceInfo\` si ON si.spaceId = p.spaceId
+      WHERE p.userId = u.id AND p.removed = 0 AND p.disabled = 0 AND si.type = 'couple')
+    AND EXISTS (
+      SELECT 1 FROM \`Profile\` p JOIN \`Pet\` pt ON pt.spaceId = p.spaceId
+      WHERE p.userId = u.id AND p.removed = 0 AND p.disabled = 0 AND pt.level >= 5)
+    AND NOT EXISTS (
+      SELECT 1 FROM \`Profile\` p
+      JOIN \`SpaceInfo\` si ON si.spaceId = p.spaceId
+      JOIN \`Pet\` pt ON pt.spaceId = p.spaceId
+      WHERE p.userId = u.id AND p.removed = 0 AND p.disabled = 0
+        AND si.type = 'couple' AND pt.level >= 5)
+  LIMIT 10
 `);
 const picked = await prisma.$queryRaw<Array<{ username: string }>>(
   selectMatchingUserNames({ spaceTypes: ['couple'], minPetLevel: 5 } as any, null, 50000),
@@ -261,13 +269,20 @@ for (const s of split) console.log(`${s.username}: ${names.has(s.username) ? 'WR
 
 Expected: 전부 `correctly excluded`. 해당하는 사용자가 dev에 없으면 `split`이 빈 배열이고, 그 사실을 보고한다(검증 불가).
 
-- [ ] **Step 3: 결과를 보고하고 임시 스크립트 삭제**
+- [x] **Step 3: 결과를 보고하고 임시 스크립트 삭제**
 
 ```bash
 rm -f probe.ts
 ```
 
 Step 1·2가 통과하면 커밋 없음. 버그가 나오면 수정 후 해당 파일과 회귀 테스트를 함께 커밋한다.
+
+**Task 3 결과 (2026-08-27):** 통과.
+
+- Step 1 — 표본 10명 전원 `OK`. `EXISTS(Card.order >= N)`로 조립한 조건을 `MAX(order)`라는 다른 형태로 되짚어도 같은 답이 나온다.
+- Step 2 — 진짜 분할 만족 사용자 10명 전원 `correctly excluded`. 한 공간 앵커링이 실제로 걸린다.
+
+**계획서에 적혀 있던 탐지 쿼리가 틀렸다.** 처음 돌렸을 때 2명이 `WRONGLY INCLUDED`로 나왔는데, 확인해 보니 둘 다 **두 번째 커플 공간이 스스로 펫 5 이상**을 만족하는 사용자였다. 정당한 포함이고 구현은 옳았다. 위 Step 2의 쿼리는 그 결함을 고친 것이다.
 
 ---
 
