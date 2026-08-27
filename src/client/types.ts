@@ -23,6 +23,12 @@ export type CardTemplateType = 'basic' | 'random' | 'bonus';
 
 export type TotalPageInfo = {
   totalPage: number;
+  /**
+   * Entries on all pages. Optional because most list endpoints do not send it yet; where it
+   * is present, prefer it over `totalPage × pageSize`, which overcounts a short last page
+   * and is simply wrong wherever the client folds rows into fewer entries.
+   */
+  total?: number;
 };
 
 export type CardTemplate = {

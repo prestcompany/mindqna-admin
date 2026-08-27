@@ -24,6 +24,10 @@ function usePushes({ page, locale, status }: Props) {
   return {
     items: data?.items ?? [],
     totalPage: data?.pageInfo.totalPage ?? 1,
+    // Entries, not rows: the server counts a folded campaign once, so the footer can stop
+    // deriving a count from totalPage × page size and be wrong whenever the last page is
+    // short or a campaign spans several rows.
+    total: data?.pageInfo.total ?? 0,
     isLoading,
   };
 }
