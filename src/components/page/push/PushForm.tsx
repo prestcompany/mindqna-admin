@@ -34,6 +34,7 @@ import dayjs from 'dayjs';
 import { Loader2 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import PushRecipientList from './PushRecipientList';
 import PushSummaryRail from './PushSummaryRail';
 import PushTargetFilterPanel, { isEmptyPushFilter } from './PushTargetFilterPanel';
 import PushTestSendPanel, { reachableCount } from './PushTestSendPanel';
@@ -260,18 +261,52 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
               <PanelBand title='수신' />
               <DefinitionRow label='대상'>
                 {initial.target === 'ALL'
-                  ? `전체 · ${initial.locale ?? '—'}`
-                  : `개인 · ${(initial.userNames ?? []).join(', ') || '—'}`}
+                  ? `전체 · ${initial.locale ? (LOCALE_DISPLAY_NAME[initial.locale] ?? initial.locale) : '-'}`
+                  : `개인 · ${(initial.userNames ?? []).length.toLocaleString()}명`}
               </DefinitionRow>
+              {initial.target === 'USER' && (
+                <DefinitionRow label='받는 사람'>
+                  <PushRecipientList userNames={initial.userNames ?? []} />
+                </DefinitionRow>
+              )}
+              {initial.groupId && (
+                <DefinitionRow label='캠페인' hint='조건으로 만들어진 발송입니다. 목록에서는 한 줄로 묶여 보입니다'>
+                  <span className='font-mono text-xs text-muted-foreground'>{initial.groupId}</span>
+                </DefinitionRow>
+              )}
               <DefinitionRow label='발송 시각'>{dayjs(initial.pushAt).format('YYYY.MM.DD HH:mm')}</DefinitionRow>
+
+              {/* Results in the main column, not only in the narrow rail. The reason a send
+                  fell short is the thing an operator opens this view to find, and a muted
+                  box in a 220px sidebar is where it went unread. */}
+              <PanelBand title='발송 결과' />
+              <DefinitionRow label='도달'>
+                <span className='tabular-nums'>{initial.sentCount.toLocaleString()}명</span>
+              </DefinitionRow>
+              <DefinitionRow label='실패'>
+                <span className={initial.failedCount > 0 ? 'tabular-nums text-destructive' : 'tabular-nums'}>
+                  {initial.failedCount.toLocaleString()}명
+                </span>
+              </DefinitionRow>
+              {initial.lastError && (
+                <DefinitionRow label='실패 사유'>
+                  <p className='whitespace-pre-wrap leading-relaxed text-destructive'>{initial.lastError}</p>
+                </DefinitionRow>
+              )}
+              <DefinitionRow label='시작'>
+                {initial.startedAt ? dayjs(initial.startedAt).format('YYYY.MM.DD HH:mm:ss') : '-'}
+              </DefinitionRow>
+              <DefinitionRow label='종료'>
+                {initial.finishedAt ? dayjs(initial.finishedAt).format('YYYY.MM.DD HH:mm:ss') : '-'}
+              </DefinitionRow>
 
               <PanelBand title='메시지' />
               <DefinitionRow label='제목'>{initial.title}</DefinitionRow>
               <DefinitionRow label='내용'>
                 <p className='whitespace-pre-wrap'>{initial.message}</p>
               </DefinitionRow>
-              <DefinitionRow label='이미지'>{initial.imgUrl ?? '—'}</DefinitionRow>
-              <DefinitionRow label='링크'>{initial.link ?? '—'}</DefinitionRow>
+              <DefinitionRow label='이미지'>{initial.imgUrl ?? '-'}</DefinitionRow>
+              <DefinitionRow label='링크'>{initial.link ?? '-'}</DefinitionRow>
             </div>
             <aside className='min-h-0 overflow-y-auto border-l border-border p-4'>
               <PushSummaryRail mode='result' row={initial} />
