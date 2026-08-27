@@ -87,6 +87,33 @@ export async function getPushes(page: number, locale?: string[], status?: string
   return res.data;
 }
 
+export type TestRecipient = {
+  username: string;
+  provider: string;
+  locale: string | null;
+  /** The account exists but has no registered device; nothing will arrive. */
+  hasToken: boolean;
+};
+
+export type ResolvedTestEmail = { email: string; recipients: TestRecipient[] };
+
+export type ResolveTestEmailsResult = {
+  resolved: ResolvedTestEmail[];
+  /** Addresses with no account. Surfaced rather than dropped — a silent skip looks like a
+   *  successful test. */
+  unmatched: string[];
+  userNames: string[];
+};
+
+/**
+ * Staff emails to the usernames a test send should target. One address routinely fronts
+ * several accounts, so this returns them all rather than picking one.
+ */
+export async function resolveTestEmails(emails: string[]) {
+  const res = await client.post<ResolveTestEmailsResult>('/push/resolve-test-emails', { emails });
+  return res.data;
+}
+
 /** Feeds the compose-time estimate; the admin has no other way to know the size. */
 export async function getPushTargetCount(locale: Locale) {
   const res = await client.get<{ count: number; isApproximate: boolean }>('/push/target-count', {
