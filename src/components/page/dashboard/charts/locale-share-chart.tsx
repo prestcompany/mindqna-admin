@@ -1,0 +1,229 @@
+import { DashboardLocaleRow } from '../types/growth';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  Chart as ChartJS,
+  ChartData,
+  ChartOptions,
+  Legend,
+  LinearScale,
+  Tooltip,
+} from 'chart.js';
+import { Bar, Doughnut } from 'react-chartjs-2';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend);
+
+interface LocaleShareChartProps {
+  rows: DashboardLocaleRow[];
+  metric: 'users' | 'spaces';
+  mode?: 'cumulative' | 'delta';
+  variant?: 'bar' | 'doughnut';
+  title?: string;
+  description?: string;
+}
+
+const colors = ['#0f172a', '#0ea5e9', '#10b981', '#f59e0b', '#14b8a6', '#f97316', '#94a3b8'];
+
+function LocaleShareChart({
+  rows,
+  metric,
+  mode = 'cumulative',
+  variant = 'bar',
+  title = '로케일 분포',
+  description = '현재 누적 규모 기준의 로케일 분포와 순위를 비교합니다.',
+}: LocaleShareChartProps) {
+  const rankedRows = [...rows].sort((left, right) => {
+    const leftValue =
+      metric === 'users'
+        ? mode === 'delta'
+          ? left.users.delta
+          : left.users.cumulative
+        : mode === 'delta'
+          ? left.spaces.delta
+          : left.spaces.cumulative;
+    const rightValue =
+      metric === 'users'
+        ? mode === 'delta'
+          ? right.users.delta
+          : right.users.cumulative
+        : mode === 'delta'
+          ? right.spaces.delta
+          : right.spaces.cumulative;
+
+    return rightValue - leftValue;
+  });
+  const values = rankedRows.map((row) =>
+    metric === 'users'
+      ? mode === 'delta'
+        ? row.users.delta
+        : row.users.cumulative
+      : mode === 'delta'
+        ? row.spaces.delta
+        : row.spaces.cumulative,
+  );
+  const total = values.reduce((sum, value) => sum + value, 0);
+
+  if (!rankedRows.length || total <= 0) {
+    return (
+      <Card className='border-border bg-white'>
+        <CardHeader className='space-y-2'>
+          <CardTitle className='text-base text-foreground'>{title}</CardTitle>
+          <CardDescription>{description}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className='flex h-[320px] items-center justify-center rounded-2xl border border-dashed border-border bg-canvas/70 text-sm text-muted-foreground'>
+            표시할 로케일 비중이 없습니다.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const metricLabel =
+    metric === 'users'
+      ? mode === 'delta'
+        ? '선택 기간 증가 가입자'
+        : '누적 가입자'
+      : mode === 'delta'
+        ? '선택 기간 증가 공간'
+        : '누적 공간';
+  const data: ChartData<'bar', number[], string> = {
+    labels: rankedRows.map((row) => row.label),
+    datasets: [
+      {
+        label: metricLabel,
+        data: values,
+        backgroundColor: rankedRows.map((_, index) => colors[index % colors.length]),
+        borderRadius: 999,
+        borderSkipped: false,
+        maxBarThickness: 20,
+      },
+    ],
+  };
+  const doughnutData: ChartData<'doughnut', number[], string> = {
+    labels: rankedRows.map((row) => row.label),
+    datasets: [
+      {
+        label: metricLabel,
+        data: values,
+        backgroundColor: rankedRows.map((_, index) => colors[index % colors.length]),
+        borderColor: '#ffffff',
+        borderWidth: 3,
+        hoverOffset: 8,
+      },
+    ],
+  };
+
+  const options: ChartOptions<'bar'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const share = total ? (Number(context.raw || 0) / total) * 100 : 0;
+            return `${metricLabel}: ${Number(context.raw || 0).toLocaleString('ko-KR')} (${share.toFixed(1)}%)`;
+          },
+        },
+      },
+    },
+    scales: {
+      x: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(148, 163, 184, 0.18)',
+        },
+        ticks: {
+          color: '#64748b',
+          callback: (value) => Number(value).toLocaleString('ko-KR'),
+        },
+      },
+      y: {
+        grid: {
+          display: false,
+        },
+        ticks: {
+          color: '#334155',
+        },
+      },
+    },
+  };
+  const doughnutOptions: ChartOptions<'doughnut'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '62%',
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const value = Number(context.raw || 0);
+            const share = total ? (value / total) * 100 : 0;
+            return `${context.label}: ${value.toLocaleString('ko-KR')} (${share.toFixed(1)}%)`;
+          },
+        },
+      },
+    },
+  };
+
+  return (
+    <Card className='border-border bg-white'>
+      <CardHeader className='space-y-2'>
+        <CardTitle className='text-base text-foreground'>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent className='space-y-4'>
+        <div className='h-[320px]'>
+          {variant === 'doughnut' ? (
+            <Doughnut data={doughnutData} options={doughnutOptions} />
+          ) : (
+            <Bar data={data} options={options} />
+          )}
+        </div>
+
+        <div className='grid gap-2 sm:grid-cols-2'>
+          {rankedRows.map((row, index) => {
+            const value =
+              metric === 'users'
+                ? mode === 'delta'
+                  ? row.users.delta
+                  : row.users.cumulative
+                : mode === 'delta'
+                  ? row.spaces.delta
+                  : row.spaces.cumulative;
+            const share = total ? (value / total) * 100 : 0;
+
+            return (
+              <div
+                key={row.locale}
+                className='flex items-center justify-between rounded-lg border border-border bg-canvas/70 px-3 py-2'
+              >
+                <div className='flex items-center gap-2'>
+                  <span
+                    className='h-2.5 w-2.5 rounded-full'
+                    style={{ backgroundColor: colors[index % colors.length] }}
+                  />
+                  <span className='text-sm font-medium text-foreground'>{row.label}</span>
+                </div>
+                <div className='text-right'>
+                  <p className='text-sm font-semibold text-foreground'>{value.toLocaleString('ko-KR')}</p>
+                  <p className='text-xs text-muted-foreground'>{share.toFixed(1)}%</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default LocaleShareChart;

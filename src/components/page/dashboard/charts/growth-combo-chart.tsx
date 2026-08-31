@@ -1,0 +1,204 @@
+import { DashboardTrendSeries } from '../types/growth';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  BarElement,
+  BarController,
+  CategoryScale,
+  Chart as ChartJS,
+  ChartData,
+  ChartOptions,
+  Legend,
+  LineController,
+  LineElement,
+  LinearScale,
+  PointElement,
+  Plugin,
+  Tooltip,
+} from 'chart.js';
+import { Chart } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  BarController,
+  LineController,
+  Tooltip,
+  Legend,
+);
+
+const stackedBarTotalLabelPlugin: Plugin<'bar' | 'line'> = {
+  id: 'stackedBarTotalLabel',
+  afterDatasetsDraw: (chart) => {
+    const yScale = chart.scales.y;
+    const labels = chart.data.labels ?? [];
+    const barDatasets = chart.data.datasets
+      .map((dataset, datasetIndex) => ({ dataset, datasetIndex }))
+      .filter(({ dataset, datasetIndex }) => dataset.type === 'bar' && chart.isDatasetVisible(datasetIndex));
+
+    if (!yScale || !labels.length || !barDatasets.length) {
+      return;
+    }
+
+    const { ctx } = chart;
+    ctx.save();
+    ctx.font = '600 11px ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillStyle = '#0f172a';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.92)';
+    ctx.lineWidth = 4;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+
+    labels.forEach((_, dataIndex) => {
+      const total = barDatasets.reduce((sum, { dataset }) => {
+        const value = Number(dataset.data[dataIndex] ?? 0);
+
+        return Number.isFinite(value) ? sum + value : sum;
+      }, 0);
+
+      if (total <= 0) {
+        return;
+      }
+
+      const visibleBar = barDatasets.find(({ dataset }) => Number(dataset.data[dataIndex] ?? 0) > 0);
+      const barElement = visibleBar ? chart.getDatasetMeta(visibleBar.datasetIndex).data[dataIndex] : undefined;
+
+      if (!barElement) {
+        return;
+      }
+
+      const y = Math.max(yScale.getPixelForValue(total) - 6, 14);
+      const label = total.toLocaleString('ko-KR');
+
+      ctx.strokeText(label, barElement.x, y);
+      ctx.fillText(label, barElement.x, y);
+    });
+
+    ctx.restore();
+  },
+};
+
+interface GrowthComboChartProps {
+  series: DashboardTrendSeries;
+}
+
+function GrowthComboChart({ series }: GrowthComboChartProps) {
+  if (!series.labels.length) {
+    return (
+      <Card className='border-border bg-white'>
+        <CardHeader className='space-y-2'>
+          <CardTitle className='text-base text-foreground'>{series.title}</CardTitle>
+          <CardDescription>{series.description}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className='flex h-[320px] items-center justify-center rounded-2xl border border-dashed border-border bg-canvas/70 text-sm text-muted-foreground'>
+            표시할 집계 데이터가 없습니다.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const data: ChartData<'bar' | 'line', number[], string> = {
+    labels: series.labels,
+    datasets: series.datasets.map((dataset) => ({
+      type: dataset.type,
+      label: dataset.label,
+      data: dataset.values,
+      backgroundColor: dataset.type === 'bar' ? `${dataset.color}cc` : dataset.color,
+      borderColor: dataset.color,
+      borderWidth: dataset.type === 'line' ? 2.5 : 1,
+      pointRadius: dataset.type === 'line' ? 2 : 0,
+      pointHoverRadius: dataset.type === 'line' ? 4 : 0,
+      tension: dataset.type === 'line' ? 0.3 : 0,
+      yAxisID: dataset.yAxisID,
+      stack: dataset.stack,
+      maxBarThickness: 24,
+      order: dataset.type === 'bar' ? 2 : 1,
+    })),
+  };
+
+  const options: ChartOptions<'bar' | 'line'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'index',
+      intersect: false,
+    },
+    plugins: {
+      legend: {
+        position: 'top',
+        align: 'start',
+        labels: {
+          usePointStyle: true,
+          boxWidth: 8,
+          boxHeight: 8,
+          color: '#334155',
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: (context) => `${context.dataset.label}: ${Number(context.raw || 0).toLocaleString('ko-KR')}`,
+        },
+      },
+    },
+    scales: {
+      x: {
+        stacked: series.stackedBars,
+        grid: {
+          display: false,
+        },
+        ticks: {
+          color: '#64748b',
+        },
+      },
+      y: {
+        stacked: series.stackedBars,
+        position: 'left',
+        beginAtZero: true,
+        grace: series.showStackedBarTotals ? '18%' : undefined,
+        grid: {
+          color: 'rgba(148, 163, 184, 0.18)',
+        },
+        ticks: {
+          color: '#64748b',
+          callback: (value) => Number(value).toLocaleString('ko-KR'),
+        },
+      },
+      y1: {
+        position: 'right',
+        beginAtZero: true,
+        grid: {
+          drawOnChartArea: false,
+        },
+        ticks: {
+          color: '#64748b',
+          callback: (value) => Number(value).toLocaleString('ko-KR'),
+        },
+      },
+    },
+  };
+
+  return (
+    <Card className='border-border bg-white'>
+      <CardHeader className='space-y-2'>
+        <CardTitle className='text-base text-foreground'>{series.title}</CardTitle>
+        <CardDescription>{series.description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className='h-[320px]'>
+          <Chart
+            type='bar'
+            data={data}
+            options={options}
+            plugins={series.showStackedBarTotals ? [stackedBarTotalLabelPlugin] : undefined}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default GrowthComboChart;

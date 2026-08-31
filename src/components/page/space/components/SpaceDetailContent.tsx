@@ -1,0 +1,224 @@
+import { SpaceCoinHistoryMeta, SpaceDetail } from '@/client/types';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { Cat, Flag, History, Home, Trash2, type LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
+import {
+  buildRoomCategorySummary,
+  formatDate,
+  formatDueRemovedAt,
+  getMemberStatus,
+  getMetricAccent,
+  getPetTypeLabel,
+} from '../utils/space-display';
+import SpaceStatTile from './SpaceStatTile';
+
+interface SpaceDetailContentProps {
+  detail: SpaceDetail;
+  copyId: (id: string) => void;
+}
+
+function buildCoinMetaLabel(meta: SpaceCoinHistoryMeta) {
+  // amount는 양수 크기로 저장되고 isUse 플래그가 방향(사용/지급)을 결정한다.
+  // 부호를 isUse 기준으로 계산해 "사용"이 +로 표기되는 오류를 막는다.
+  const isSpend = meta.isUse || meta.amount < 0;
+  const magnitude = Math.abs(meta.amount);
+  return `${isSpend ? '-' : '+'}${magnitude}`;
+}
+
+function DetailField({
+  icon: Icon,
+  label,
+  value,
+  valueClassName,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: ReactNode;
+  valueClassName?: string;
+}) {
+  return (
+    <div className='flex items-start gap-3'>
+      <span className='mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground'>
+        <Icon className='h-4 w-4' />
+      </span>
+      <div className='min-w-0'>
+        <div className='text-xs text-muted-foreground'>{label}</div>
+        <div className={cn('mt-0.5 break-words text-sm font-medium text-foreground', valueClassName)}>{value}</div>
+      </div>
+    </div>
+  );
+}
+
+function SectionTitle({ children }: { children: ReactNode }) {
+  return <h3 className='mb-2 text-base font-semibold text-foreground'>{children}</h3>;
+}
+
+function SpaceDetailContent({ detail, copyId }: SpaceDetailContentProps) {
+  const hasPremiumMember = detail.hasPremiumMember ?? detail.profiles?.some((profile) => profile.isPremium);
+  const dueRemovedMeta = formatDueRemovedAt(detail.dueRemovedAt, detail.createdAt, hasPremiumMember);
+
+  const memberCount = detail.spaceInfo?.members ?? detail.profiles?.length ?? 0;
+  const replies = detail.spaceInfo?.replies ?? 0;
+  const petLevel = detail.pet?.level ?? 0;
+  const petExp = detail.pet?.exp ?? 0;
+  const roomCount = detail.rooms?.length ?? 0;
+  const interiorCount = detail.InteriorItem?.length ?? 0;
+  const petTypeLabel = getPetTypeLabel(detail.pet?.type);
+  const petNameValue = `${detail.spaceInfo?.petName || '-'}${petTypeLabel ? ` · ${petTypeLabel}` : ''}`;
+  const roomSummary = buildRoomCategorySummary(detail.rooms);
+
+  return (
+    <div className='space-y-6'>
+      {/* KPI 그리드 — 숫자가 주인공. 0은 회색으로 */}
+      <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6'>
+        <SpaceStatTile label='하트' value={detail.coin} accent={getMetricAccent(detail.coin, 'text-destructive')} />
+        <SpaceStatTile
+          label='스타'
+          value={detail.coinPaid}
+          accent={getMetricAccent(detail.coinPaid, 'text-warning-foreground')}
+        />
+        <SpaceStatTile label='멤버' value={memberCount} accent={getMetricAccent(memberCount, 'text-foreground')} />
+        <SpaceStatTile label='답변' value={replies} accent={getMetricAccent(replies, 'text-foreground')} />
+        <SpaceStatTile label='펫' value={`Lv.${petLevel}`} sub={`EXP ${petExp.toFixed(1)}`} />
+        <SpaceStatTile label='방 / 인테리어' value={`${roomCount} / ${interiorCount}`} />
+      </div>
+
+      {/* 3. 상세 정보 — 아이콘 기반 필드 그리드 */}
+      <section>
+        <SectionTitle>상세 정보</SectionTitle>
+        <div className='grid grid-cols-1 gap-x-6 gap-y-6 rounded-lg border border-border bg-white p-6 sm:grid-cols-2 xl:grid-cols-3'>
+          <DetailField icon={Cat} label='펫 이름 / 종류' value={petNameValue} />
+          <DetailField
+            icon={Flag}
+            label='시작일'
+            value={detail.spaceInfo?.startedAt ? formatDate(detail.spaceInfo.startedAt, 'YY.MM.DD') : '-'}
+          />
+          <DetailField icon={Home} label='방 구성' value={roomSummary ?? `방 ${roomCount}`} />
+          <DetailField
+            icon={History}
+            label='최근 수정일'
+            value={detail.updatedAt ? formatDate(detail.updatedAt) : '-'}
+          />
+          <DetailField
+            icon={Trash2}
+            label='삭제예정일'
+            value={dueRemovedMeta ? `${dueRemovedMeta.dateText} (${dueRemovedMeta.gapLabel})` : '예정 없음'}
+            valueClassName={dueRemovedMeta ? 'text-destructive' : undefined}
+          />
+        </div>
+      </section>
+
+      {/* 4. 멤버 */}
+      <section>
+        <SectionTitle>멤버 {memberCount > 0 ? `(${memberCount})` : ''}</SectionTitle>
+        {detail.profiles?.length ? (
+          <div className='space-y-2'>
+            {detail.profiles.map((profile) => {
+              const isOwner = profile.userId === detail.spaceInfo?.ownerId;
+              const initial = (profile.nickname ?? '?').trim().charAt(0).toUpperCase() || '?';
+              const userCode = profile.user?.code;
+              const latestAccessAt = profile.user?.latestAccessAt;
+              const status = getMemberStatus(profile);
+              const showAccessLine = Boolean(latestAccessAt) || Boolean(status.date);
+              return (
+                <div
+                  key={profile.id}
+                  className='flex items-start gap-3 rounded-lg border border-border bg-white px-3 py-2.5'
+                >
+                  <Avatar className='h-9 w-9 shrink-0'>
+                    {profile.img?.uri ? (
+                      <AvatarImage src={profile.img.uri} alt={profile.nickname} className='object-cover' />
+                    ) : null}
+                    <AvatarFallback className='bg-muted text-sm font-semibold text-muted-foreground'>
+                      {initial}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className='min-w-0 flex-1 space-y-1'>
+                    <div className='flex flex-wrap items-center gap-2'>
+                      <span className='truncate font-medium text-foreground'>{profile.nickname}</span>
+                      {isOwner ? <Badge variant='softNeutral'>OWNER</Badge> : null}
+                      {profile.isPremium ? <Badge variant='softSuccess'>PREMIUM</Badge> : null}
+                      {profile.isGoldClub ? <Badge variant='softWarning'>GOLD CLUB</Badge> : null}
+                      {profile.isAccepted === false ? <Badge variant='softWarning'>수락대기</Badge> : null}
+                      {status.badgeVariant ? <Badge variant={status.badgeVariant}>{status.label}</Badge> : null}
+                    </div>
+                    <div className='truncate text-xs text-muted-foreground'>
+                      @{profile.user?.username ?? '-'}
+                      {userCode ? ` · #${userCode}` : ''}
+                    </div>
+                    {showAccessLine ? (
+                      <div className='flex flex-wrap gap-x-3 text-xs text-muted-foreground'>
+                        {latestAccessAt ? <span>최근 접속 {formatDate(latestAccessAt, 'YY.MM.DD HH:mm')}</span> : null}
+                        {status.date ? (
+                          <span>
+                            {status.label} {formatDate(status.date, 'YY.MM.DD')}
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='sm'
+                    className='h-9 shrink-0'
+                    onClick={() => copyId(profile.user?.username ?? profile.id)}
+                  >
+                    복사
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className='rounded-lg border border-border bg-white px-4 py-6 text-center text-sm text-muted-foreground'>
+            멤버 정보가 없습니다.
+          </div>
+        )}
+      </section>
+
+      {/* 5. 최근 재화 이용 내역 — 타임라인 */}
+      <section>
+        <SectionTitle>최근 재화 이용 내역</SectionTitle>
+        {detail.recentCoinMetas?.length ? (
+          <div className='max-h-[420px] divide-y divide-border overflow-y-auto rounded-lg border border-border bg-white px-4'>
+            {detail.recentCoinMetas.map((meta) => {
+              const actorName = meta.profile?.nickname ?? meta.profile?.user?.username ?? '-';
+              const isSpend = meta.isUse || meta.amount < 0;
+              return (
+                <div key={meta.id} className='flex items-center gap-3 py-3'>
+                  <Badge variant={meta.isPaid ? 'softWarning' : 'softDanger'} className='w-11 shrink-0 justify-center'>
+                    {meta.isPaid ? '스타' : '하트'}
+                  </Badge>
+                  <div className='min-w-0 flex-1'>
+                    <div className='truncate text-sm font-medium text-foreground'>{actorName}</div>
+                    <div className='truncate text-xs text-muted-foreground'>
+                      {isSpend ? '사용' : '지급'} · {meta.description || '사유 없음'}
+                    </div>
+                  </div>
+                  <div className='shrink-0 text-right'>
+                    <div
+                      className={cn('text-sm font-bold tabular-nums', isSpend ? 'text-destructive' : 'text-success')}
+                    >
+                      {buildCoinMetaLabel(meta)}
+                    </div>
+                    <div className='text-xs text-muted-foreground'>{formatDate(meta.createdAt, 'MM.DD HH:mm')}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className='rounded-lg border border-border bg-white px-4 py-6 text-center text-sm text-muted-foreground'>
+            최근 재화 이용 내역이 없습니다.
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+export default SpaceDetailContent;

@@ -1,473 +1,614 @@
-import { removeProfile, removeSpace, searchSpaces } from '@/client/space';
+import { removeProfile, removeSpace, searchSpaces, type SearchSpacesParams } from '@/client/space';
 import { Space, SpaceType } from '@/client/types';
-import { useQuery } from '@tanstack/react-query';
+import FormGroup from '@/components/shared/form/ui/form-group';
+import { DatePickerWithRange } from '@/components/ui/DatePickerWithRange';
+import FormSection from '@/components/shared/form/ui/form-section';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
+import DataTable from '@/components/shared/ui/data-table';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
 import {
-  Button,
-  Card,
-  Collapse,
-  DatePicker,
-  Drawer,
-  Image,
-  Input,
-  Modal,
-  Radio,
-  Select,
-  Table,
-  Tag,
-  message,
-} from 'antd';
-import { TableProps } from 'antd/lib';
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Sheet } from '@/components/ui/sheet';
+import { useQuery } from '@tanstack/react-query';
+import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
-import isBetween from 'dayjs/plugin/isBetween';
 import { useState } from 'react';
+import { ChevronLeft, ChevronRight, Loader2, Search } from 'lucide-react';
+import { toast } from 'sonner';
 import CoinForm from './CoinForm';
-
-dayjs.extend(isBetween);
-
-const { RangePicker } = DatePicker;
-const { Panel } = Collapse;
+import SpaceActiveFilterChips from './components/SpaceActiveFilterChips';
+import SpaceDetailSheet from './components/SpaceDetailSheet';
+import SpaceResultCard from './components/SpaceResultCard';
+import { getRecencyVariant, getSpaceTypeConfig } from './utils/space-display';
 
 function SpaceSearch() {
-  const [modal, holder] = Modal.useModal();
-  const [api, contextHolder] = message.useMessage();
-
-  // 검색 상태
   const [searchParams, setSearchParams] = useState({
-    id: '',
-    username: '',
+    searchKey: 'spaceId' as 'spaceId' | 'name' | 'username' | 'nickname',
+    searchValue: '',
     type: undefined as SpaceType | undefined,
     locale: undefined as string | undefined,
-    dateRange: null as [dayjs.Dayjs, dayjs.Dayjs] | null,
+    dateRange: {
+      start: null as dayjs.Dayjs | null,
+      end: null as dayjs.Dayjs | null,
+    },
   });
+  const [submittedSearchParams, setSubmittedSearchParams] = useState<SearchSpacesParams | null>(null);
 
-  // UI 상태
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
   const [isOpenCoin, setOpenCoin] = useState(false);
   const [focused, setFocused] = useState<Space | undefined>(undefined);
+  const [detailTarget, setDetailTarget] = useState<Space | null>(null);
 
-  const { data, refetch, isLoading } = useQuery({
-    queryKey: ['space-search', searchParams],
-    queryFn: () =>
-      searchSpaces({
-        spaceId: searchParams.id || '',
-        username: searchParams.username || '',
-      }),
-    enabled: false,
-  });
+  const [deleteTarget, setDeleteTarget] = useState<Space | null>(null);
+  const [deleteProfileTarget, setDeleteProfileTarget] = useState<{
+    profileId: string;
+    nickname: string;
+  } | null>(null);
 
-  // 필터링된 데이터
-  const filteredData =
-    data?.filter((space) => {
-      if (searchParams.type && space.spaceInfo.type !== searchParams.type) return false;
-      if (searchParams.locale && space.spaceInfo.locale !== searchParams.locale) return false;
-      if (searchParams.dateRange) {
-        const created = dayjs(space.spaceInfo.createdAt);
-        if (!created.isBetween(searchParams.dateRange[0], searchParams.dateRange[1], 'day', '[]')) return false;
+  const getSearchParams = (page: number): SearchSpacesParams | null => {
+    const value = searchParams.searchValue.trim();
+
+    if (!value) {
+      return null;
+    }
+
+    return {
+      page,
+      spaceId: searchParams.searchKey === 'spaceId' ? value : undefined,
+      name: searchParams.searchKey === 'name' ? value : undefined,
+      username: searchParams.searchKey === 'username' ? value : undefined,
+      nickname: searchParams.searchKey === 'nickname' ? value : undefined,
+      type: searchParams.type,
+      locale: searchParams.locale,
+      startDate: searchParams.dateRange.start?.format('YYYY-MM-DD'),
+      endDate: searchParams.dateRange.end?.format('YYYY-MM-DD'),
+    };
+  };
+
+  const { data, refetch, isFetching, isFetched } = useQuery({
+    queryKey: ['space-search', submittedSearchParams],
+    queryFn: async () => {
+      if (!submittedSearchParams) {
+        throw new Error('검색어를 입력해주세요.');
       }
-      return true;
-    }) || [];
 
+      return searchSpaces(submittedSearchParams);
+    },
+    enabled: !!submittedSearchParams,
+  });
+  const hasSubmittedSearch = !!submittedSearchParams;
+  const isResultLoading = hasSubmittedSearch && isFetching;
+  const isInitialResultLoading = isResultLoading && !data;
+  const items = data?.items ?? [];
+  const currentPage = submittedSearchParams?.page ?? 1;
+  const totalCount = data?.totalCount ?? 0;
   const copyId = (id: string) => {
     navigator.clipboard.writeText(id);
-    api.success(`${id} 복사`);
+    toast.success(`${id} 복사`);
+  };
+
+  const openCoinForSpace = (space: Space) => {
+    setFocused(space);
+    setOpenCoin(true);
   };
 
   const handleSearch = () => {
-    if (!searchParams.id && !searchParams.username) {
-      message.warning('검색어를 입력해주세요');
+    const params = getSearchParams(1);
+
+    if (!params) {
+      toast.warning('검색어를 입력해주세요.');
       return;
     }
-    refetch();
+
+    setViewMode('card');
+    setSubmittedSearchParams(params);
   };
 
-  const handleRemoveSpace = (space: Space) => {
-    modal.confirm({
-      title: `삭제 (${space.spaceInfo.name})`,
-      onOk: async () => {
-        try {
-          await removeSpace(space.id);
-          await refetch();
-        } catch (err) {
-          message.error(`${err}`);
-        }
+  const handleResetFilters = () => {
+    setSearchParams({
+      searchKey: 'spaceId',
+      searchValue: '',
+      type: undefined,
+      locale: undefined,
+      dateRange: {
+        start: null,
+        end: null,
       },
+    });
+    setSubmittedSearchParams(null);
+  };
+
+  const handleChangePage = (page: number) => {
+    if (!submittedSearchParams) return;
+    setSubmittedSearchParams({ ...submittedSearchParams, page });
+  };
+
+  const handleRemoveFilterChip = (key: 'type' | 'locale' | 'date') => {
+    setSearchParams((prev) => ({
+      ...prev,
+      type: key === 'type' ? undefined : prev.type,
+      locale: key === 'locale' ? undefined : prev.locale,
+      dateRange: key === 'date' ? { start: null, end: null } : prev.dateRange,
+    }));
+    setSubmittedSearchParams((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, page: 1 };
+      if (key === 'type') next.type = undefined;
+      if (key === 'locale') next.locale = undefined;
+      if (key === 'date') {
+        next.startDate = undefined;
+        next.endDate = undefined;
+      }
+      return next;
     });
   };
 
-  // 테이블 컬럼 정의
-  const columns: TableProps<Space>['columns'] = [
+  const handleRemoveSpace = (space: Space) => {
+    setDeleteTarget(space);
+  };
+
+  const confirmRemoveSpace = async () => {
+    if (!deleteTarget) return;
+    try {
+      await removeSpace(deleteTarget.id);
+      await refetch();
+      toast.success('공간이 삭제되었습니다');
+    } catch (err) {
+      toast.error(`${err}`);
+    }
+    setDeleteTarget(null);
+  };
+
+  const confirmRemoveProfile = async () => {
+    if (!deleteProfileTarget) return;
+    try {
+      await removeProfile(deleteProfileTarget.profileId);
+      await refetch();
+      toast.success('프로필이 삭제되었습니다');
+    } catch (err) {
+      toast.error(`${err}`);
+    }
+    setDeleteProfileTarget(null);
+  };
+
+  const columns: ColumnDef<Space>[] = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 120,
-      render: (id) => (
-        <Button size='small' onClick={() => copyId(id)}>
-          {id}
+      accessorKey: 'id',
+      header: 'ID',
+      size: 120,
+      cell: ({ row }) => (
+        <Button
+          size='sm'
+          variant='outline'
+          className='h-9'
+          onClick={(event) => {
+            event.stopPropagation();
+            copyId(row.original.id);
+          }}
+        >
+          <span className='max-w-[120px] truncate'>{row.original.id}</span>
         </Button>
       ),
     },
     {
-      title: '이름',
-      dataIndex: ['spaceInfo', 'name'],
-      key: 'name',
-      width: 150,
+      accessorFn: (row) => row.spaceInfo?.name,
+      id: 'name',
+      header: '이름',
+      size: 150,
     },
     {
-      title: '타입',
-      dataIndex: ['spaceInfo', 'type'],
-      key: 'type',
-      width: 80,
-      render: (type) => <Tag>{type}</Tag>,
+      accessorFn: (row) => row.spaceInfo?.type,
+      id: 'type',
+      header: '타입',
+      size: 80,
+      cell: ({ row }) => {
+        const config = getSpaceTypeConfig(row.original.spaceInfo?.type);
+        return <Badge variant={config.variant}>{config.text}</Badge>;
+      },
     },
     {
-      title: '언어',
-      dataIndex: ['spaceInfo', 'locale'],
-      key: 'locale',
-      width: 60,
-      render: (locale) => <Tag>{locale}</Tag>,
+      accessorFn: (row) => row.spaceInfo?.locale,
+      id: 'locale',
+      header: '언어',
+      size: 60,
+      cell: ({ row }) => <Badge variant='softNeutral'>{row.original.spaceInfo?.locale?.toUpperCase()}</Badge>,
     },
     {
-      title: '멤버',
-      dataIndex: ['profiles', 'length'],
-      key: 'members',
-      width: 60,
+      accessorFn: (row) => row.profiles?.length,
+      id: 'members',
+      header: '멤버',
+      size: 60,
+      cell: ({ row }) => (
+        <span className='text-sm font-medium tabular-nums text-foreground'>{row.original.profiles?.length ?? 0}</span>
+      ),
     },
     {
-      title: '하트/스타',
-      key: 'coins',
-      width: 120,
-      render: (_, space) => (
-        <div className='flex gap-1'>
-          <Tag color='red'>{space.coin}</Tag>
-          <Tag color='gold'>{space.coinPaid}</Tag>
+      id: 'coins',
+      header: '하트/스타',
+      size: 120,
+      cell: ({ row }) => (
+        <div className='flex items-center gap-2 whitespace-nowrap text-sm font-semibold tabular-nums'>
+          <span className='text-destructive'>하트 {row.original.coin}</span>
+          <span className='text-faint'>·</span>
+          <span className='text-warning-foreground'>스타 {row.original.coinPaid}</span>
         </div>
       ),
     },
     {
-      title: '펫 LV',
-      dataIndex: ['pet', 'level'],
-      key: 'level',
-      width: 60,
+      accessorFn: (row) => row.pet?.exp,
+      id: 'petExp',
+      header: '펫 EXP',
+      size: 120,
+      cell: ({ row }) => (
+        <div className='flex items-center gap-2 whitespace-nowrap text-sm font-medium tabular-nums text-foreground'>
+          <span>EXP {row.original.pet?.exp ?? 0}</span>
+          <span className='text-faint'>·</span>
+          <span>Lv.{row.original.pet?.level ?? 0}</span>
+        </div>
+      ),
     },
     {
-      title: '생성일',
-      dataIndex: ['spaceInfo', 'createdAt'],
-      key: 'createdAt',
-      width: 100,
-      render: (value) => {
-        const day = dayjs(value);
-        const diffFromNow = dayjs().diff(day, 'day');
+      accessorKey: 'createdAt',
+      id: 'createdAt',
+      header: '생성일',
+      size: 100,
+      cell: ({ row }) => {
+        const day = dayjs(row.original.createdAt);
+        const diffFromNow = Math.max(dayjs().diff(day, 'day'), 0);
         return (
-          <div>
-            <Tag>D+{diffFromNow}</Tag>
-            <div className='text-xs'>{day.format('MM.DD')}</div>
+          <div className='space-y-1'>
+            <Badge variant={getRecencyVariant(diffFromNow)}>D+{diffFromNow}</Badge>
+            <div className='text-xs text-muted-foreground'>{day.format('MM.DD')}</div>
           </div>
         );
       },
     },
     {
-      title: '작업',
-      key: 'actions',
-      width: 120,
-      render: (_, space) => (
-        <div className='flex gap-1'>
-          <Button
-            size='small'
-            type='primary'
-            onClick={() => {
-              setOpenCoin(true);
-              setFocused(space);
-            }}
-          >
-            코인
-          </Button>
-          <Button size='small' danger onClick={() => handleRemoveSpace(space)}>
-            삭제
-          </Button>
+      id: 'actions',
+      header: '작업',
+      size: 120,
+      cell: ({ row }) => (
+        <div onClick={(event) => event.stopPropagation()}>
+          <TableRowActions
+            items={[
+              {
+                label: '상세 보기',
+                onClick: () => setDetailTarget(row.original),
+              },
+              {
+                label: '코인 관리',
+                onClick: () => openCoinForSpace(row.original),
+              },
+              {
+                label: '삭제',
+                onClick: () => handleRemoveSpace(row.original),
+                destructive: true,
+              },
+            ]}
+          />
         </div>
       ),
     },
   ];
 
-  const renderCardItem = (space: Space) => {
-    const { coin, coinPaid, dueRemovedAt, rooms, cardOrder } = space;
-    const { type, name, locale, petName, noticeTime, ownerId, createdAt } = space.spaceInfo;
-    const { level } = space.pet;
-
-    const created = dayjs(createdAt);
-    const diffFromNow = dayjs().diff(created, 'day');
-
-    const handleRemove = () => {
-      modal.confirm({
-        title: `삭제 (${name})`,
-        onOk: async () => {
-          try {
-            await removeSpace(space.id);
-            await refetch();
-          } catch (err) {
-            message.error(`${err}`);
-          }
-        },
-      });
-    };
-
-    return (
-      <Card
-        key={space.id}
-        title={name}
-        size='small'
-        className='mb-4'
-        extra={
-          <div className='flex gap-2'>
-            <Button size='small' onClick={() => copyId(space.id)}>
-              ID 복사
-            </Button>
-            <Button
-              size='small'
-              type='primary'
-              onClick={() => {
-                setOpenCoin(true);
-                setFocused(space);
-              }}
-            >
-              코인 지급
-            </Button>
-            <Button size='small' danger onClick={handleRemove}>
-              삭제
-            </Button>
-          </div>
-        }
-      >
-        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-          {/* 공간 정보 */}
-          <div className='space-y-2'>
-            <div className='flex gap-2 items-center'>
-              <Tag>{type}</Tag>
-              <Tag>언어 {locale}</Tag>
-              <Tag>질문 {cardOrder}개</Tag>
-            </div>
-
-            <div className='flex gap-2 items-center'>
-              <Tag color='red'>하트 {coin}</Tag>
-              <Tag color='gold'>스타 {coinPaid}</Tag>
-            </div>
-
-            <div className='flex gap-2 items-center'>
-              <Tag>펫이름: {petName}</Tag>
-              <Tag>LV. {level}</Tag>
-            </div>
-
-            <div className='flex gap-2 items-center'>
-              <Tag>생성일: D+{diffFromNow}</Tag>
-              <span className='text-sm text-gray-500'>{created.format('YY.MM.DD HH:mm')}</span>
-            </div>
-
-            {dueRemovedAt && <Tag color='error'>삭제 예정일 {dueRemovedAt}</Tag>}
-          </div>
-
-          {/* 멤버 정보 */}
-          <div>
-            <div className='mb-2 font-semibold'>멤버 {space.profiles.length}명</div>
-            <div className='grid overflow-y-auto grid-cols-1 gap-2 max-h-48'>
-              {space.profiles.map((profile) => {
-                const { isPremium, isGoldClub, userId } = profile;
-                const isOwner = userId === ownerId;
-
-                const removePro = async () => {
-                  modal.confirm({
-                    title: `삭제 (${profile.nickname})`,
-                    onOk: async () => {
-                      try {
-                        await removeProfile(profile.id);
-                        await refetch();
-                      } catch (err) {
-                        message.error(`${err}`);
-                      }
-                    },
-                  });
-                };
-
-                return (
-                  <div key={profile.id} className='flex gap-2 items-center p-2 bg-gray-50 rounded'>
-                    <Image
-                      src={profile.img?.uri}
-                      alt={profile.nickname}
-                      style={{ width: 32, height: 32 }}
-                      className='rounded'
-                    />
-                    <div className='flex-1'>
-                      <div className='flex gap-1 items-center'>
-                        <span className='text-sm font-medium'>{profile.nickname}</span>
-                        {isOwner && <Tag color='black'>OWNER</Tag>}
-                        {isPremium && <Tag color='green'>PREMIUM</Tag>}
-                        {isGoldClub && <Tag color='gold'>STAR</Tag>}
-                      </div>
-                      <div className='flex gap-1 mt-1'>
-                        <Button size='small' type='link' onClick={() => copyId(profile.user.username)}>
-                          {profile.user.username}
-                        </Button>
-                        <Button size='small' type='link' danger onClick={removePro}>
-                          삭제
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </Card>
-    );
-  };
-
   return (
     <>
-      {holder}
-      {contextHolder}
-
       <div className='space-y-4'>
-        {/* 검색 및 필터 섹션 */}
-        <Collapse defaultActiveKey={['search']} className='bg-white'>
-          <Panel header='검색 및 필터' key='search'>
-            <div className='grid grid-cols-1 gap-4 mb-4 md:grid-cols-2 lg:grid-cols-4'>
-              <div>
-                <label className='block mb-1 text-sm font-medium'>공간 ID</label>
-                <Input
-                  placeholder='공간 ID'
-                  value={searchParams.id}
-                  onChange={(e) => setSearchParams((prev) => ({ ...prev, id: e.target.value }))}
-                />
-              </div>
-
-              <div>
-                <label className='block mb-1 text-sm font-medium'>사용자명</label>
-                <Input
-                  placeholder='사용자명'
-                  value={searchParams.username}
-                  onChange={(e) => setSearchParams((prev) => ({ ...prev, username: e.target.value }))}
-                />
-              </div>
-
-              <div>
-                <label className='block mb-1 text-sm font-medium'>공간 타입</label>
-                <Select
-                  placeholder='공간 타입'
-                  style={{ width: '100%' }}
-                  options={[
-                    { label: '혼자', value: 'alone' },
-                    { label: '커플', value: 'couple' },
-                    { label: '가족', value: 'family' },
-                    { label: '친구', value: 'friends' },
-                  ]}
-                  value={searchParams.type}
-                  onChange={(v: SpaceType) => setSearchParams((prev) => ({ ...prev, type: v }))}
-                  allowClear
-                />
-              </div>
-
-              <div>
-                <label className='block mb-1 text-sm font-medium'>언어</label>
-                <Select
-                  placeholder='언어'
-                  style={{ width: '100%' }}
-                  options={[
-                    { label: 'ko', value: 'ko' },
-                    { label: 'en', value: 'en' },
-                    { label: 'ja', value: 'ja' },
-                    { label: 'zh', value: 'zh' },
-                    { label: 'zhTw', value: 'zhTw' },
-                    { label: 'es', value: 'es' },
-                    { label: 'id', value: 'id' },
-                  ]}
-                  value={searchParams.locale}
-                  onChange={(v: string) => setSearchParams((prev) => ({ ...prev, locale: v }))}
-                  allowClear
-                />
-              </div>
+        <FormSection
+          title='공간 검색 및 필터'
+          description='검색 기준을 선택해 해당 항목으로 조회합니다. 사용자명/공간 ID는 정확히 일치해야 합니다.'
+        >
+          <FormGroup title='검색 기준'>
+            <div className='flex flex-col gap-2 sm:flex-row'>
+              <Select
+                value={searchParams.searchKey}
+                onValueChange={(v) =>
+                  setSearchParams((prev) => ({
+                    ...prev,
+                    searchKey: v as 'spaceId' | 'name' | 'username' | 'nickname',
+                  }))
+                }
+              >
+                <SelectTrigger className='w-full sm:w-[160px]'>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='spaceId'>공간 ID</SelectItem>
+                  <SelectItem value='name'>공간 이름</SelectItem>
+                  <SelectItem value='username'>사용자명</SelectItem>
+                  <SelectItem value='nickname'>프로필 닉네임</SelectItem>
+                </SelectContent>
+              </Select>
+              <Input
+                className='flex-1'
+                placeholder={
+                  searchParams.searchKey === 'username'
+                    ? '사용자명 정확히 입력'
+                    : searchParams.searchKey === 'spaceId'
+                      ? '공간 ID 정확히 입력'
+                      : '검색어 입력'
+                }
+                value={searchParams.searchValue}
+                onChange={(e) => setSearchParams((prev) => ({ ...prev, searchValue: e.target.value }))}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              />
             </div>
+          </FormGroup>
 
-            <div className='grid grid-cols-1 gap-4 mb-4 md:grid-cols-2'>
-              <div>
-                <label className='block mb-1 text-sm font-medium'>생성일 범위</label>
-                <RangePicker
-                  value={searchParams.dateRange}
-                  onChange={(dates) =>
-                    setSearchParams((prev) => ({ ...prev, dateRange: dates as [dayjs.Dayjs, dayjs.Dayjs] | null }))
-                  }
-                  style={{ width: '100%' }}
-                />
-              </div>
-            </div>
+          <FormGroup title='공간 타입'>
+            <Select
+              value={searchParams.type || '__all__'}
+              onValueChange={(v) =>
+                setSearchParams((prev) => ({
+                  ...prev,
+                  type: (v === '__all__' ? undefined : v) as SpaceType | undefined,
+                }))
+              }
+            >
+              <SelectTrigger className='w-full sm:w-[220px]'>
+                <SelectValue placeholder='공간 타입' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='__all__'>전체</SelectItem>
+                <SelectItem value='alone'>혼자</SelectItem>
+                <SelectItem value='couple'>커플</SelectItem>
+                <SelectItem value='family'>가족</SelectItem>
+                <SelectItem value='friends'>친구</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormGroup>
 
-            <Button onClick={handleSearch} type='primary' loading={isLoading}>
-              검색
+          <FormGroup title='언어'>
+            <Select
+              value={searchParams.locale || '__all__'}
+              onValueChange={(v) => setSearchParams((prev) => ({ ...prev, locale: v === '__all__' ? undefined : v }))}
+            >
+              <SelectTrigger className='w-full sm:w-[220px]'>
+                <SelectValue placeholder='언어' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='__all__'>전체</SelectItem>
+                <SelectItem value='ko'>KO</SelectItem>
+                <SelectItem value='en'>EN</SelectItem>
+                <SelectItem value='ja'>JA</SelectItem>
+                <SelectItem value='zh'>ZH</SelectItem>
+                <SelectItem value='zhTw'>ZH-TW</SelectItem>
+                <SelectItem value='es'>ES</SelectItem>
+                <SelectItem value='id'>ID</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormGroup>
+
+          <FormGroup title='생성일 범위'>
+            <DatePickerWithRange
+              startedAt={searchParams.dateRange.start}
+              endedAt={searchParams.dateRange.end}
+              setStartedAt={(d) => setSearchParams((prev) => ({ ...prev, dateRange: { ...prev.dateRange, start: d } }))}
+              setEndedAt={(d) => setSearchParams((prev) => ({ ...prev, dateRange: { ...prev.dateRange, end: d } }))}
+            />
+          </FormGroup>
+
+          <div className='flex justify-end gap-2 pt-2'>
+            <Button type='button' variant='outline' onClick={handleResetFilters} disabled={isResultLoading}>
+              초기화
             </Button>
-          </Panel>
-        </Collapse>
+            <Button type='button' onClick={handleSearch} disabled={isResultLoading}>
+              {isResultLoading ? <Loader2 className='h-4 w-4 animate-spin' /> : <Search className='w-4 h-4' />}
+              {isResultLoading ? '검색 중' : '검색'}
+            </Button>
+          </div>
+        </FormSection>
 
-        {/* 뷰 모드 선택 */}
-        {data && (
+        {hasSubmittedSearch && (
           <div className='flex justify-between items-center'>
-            <div>총 {filteredData.length}개 검색됨</div>
-            <Radio.Group value={viewMode} onChange={(e) => setViewMode(e.target.value)} buttonStyle='solid'>
-              <Radio.Button value='card'>카드 뷰</Radio.Button>
-              <Radio.Button value='table'>테이블 뷰</Radio.Button>
-            </Radio.Group>
+            <div className='flex items-center gap-2'>
+              {isResultLoading ? <Loader2 className='h-4 w-4 animate-spin text-muted-foreground' /> : null}
+              <span>{data ? `총 ${totalCount.toLocaleString()}개 검색됨` : '검색 결과를 불러오는 중입니다.'}</span>
+            </div>
+            <RadioGroup
+              value={viewMode}
+              onValueChange={(v) => setViewMode(v as 'card' | 'table')}
+              className='flex gap-0'
+            >
+              <div className='flex items-center'>
+                <RadioGroupItem value='card' id='view-card' className='sr-only peer' />
+                <Label
+                  htmlFor='view-card'
+                  className='cursor-pointer rounded-l-md border px-3 py-1.5 text-sm peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                >
+                  카드 뷰
+                </Label>
+              </div>
+              <div className='flex items-center'>
+                <RadioGroupItem value='table' id='view-table' className='sr-only peer' />
+                <Label
+                  htmlFor='view-table'
+                  className='cursor-pointer rounded-r-md border border-l-0 px-3 py-1.5 text-sm peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                >
+                  테이블 뷰
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
         )}
 
-        {/* 결과 표시 */}
+        {hasSubmittedSearch && (
+          <SpaceActiveFilterChips params={submittedSearchParams} onRemove={handleRemoveFilterChip} />
+        )}
+
+        {isInitialResultLoading && (
+          <Card className='bg-card'>
+            <CardContent className='flex min-h-[220px] flex-col items-center justify-center gap-3 py-10 text-center'>
+              <Loader2 className='h-6 w-6 animate-spin text-muted-foreground' />
+              <div className='space-y-1'>
+                <p className='font-medium text-foreground'>검색 중입니다.</p>
+                <p className='text-sm text-muted-foreground'>공간 목록을 불러올 때까지 잠시만 기다려주세요.</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {data && (
           <>
             {viewMode === 'table' ? (
-              <Table
-                dataSource={filteredData}
+              <DataTable
                 columns={columns}
-                rowKey='id'
-                size='small'
-                scroll={{ x: 800 }}
+                data={items}
+                countLabel={totalCount}
+                loading={isResultLoading}
                 pagination={{
-                  pageSize: 20,
-                  showSizeChanger: true,
-                  showQuickJumper: true,
-                  showTotal: (total) => `총 ${total}개`,
+                  total: totalCount,
+                  page: currentPage,
+                  pageSize: 10,
+                  onChange: (page) => handleChangePage(page),
                 }}
-                loading={isLoading}
+                onRow={(space) => ({
+                  onClick: () => setDetailTarget(space),
+                })}
               />
             ) : (
-              <div className='space-y-4'>{filteredData.map((space) => renderCardItem(space))}</div>
+              <div className='space-y-3'>
+                {items.map((space) => (
+                  <SpaceResultCard
+                    key={space.id}
+                    space={space}
+                    onOpenDetail={(target) => setDetailTarget(target)}
+                    onOpenCoin={(target) => openCoinForSpace(target)}
+                    copyId={copyId}
+                  />
+                ))}
+                {totalCount > 0 && (
+                  <div className='flex items-center justify-between px-1'>
+                    <div className='text-sm text-muted-foreground'>
+                      총 {totalCount.toLocaleString()}건 중 {(currentPage - 1) * 10 + 1}-
+                      {Math.min(currentPage * 10, totalCount)}
+                    </div>
+                    <div className='flex items-center gap-2'>
+                      <Button
+                        type='button'
+                        variant='outline'
+                        size='sm'
+                        onClick={() => handleChangePage(currentPage - 1)}
+                        disabled={currentPage <= 1 || isResultLoading}
+                      >
+                        <ChevronLeft className='w-4 h-4' />
+                        이전
+                      </Button>
+                      <span className='text-sm text-muted-foreground'>
+                        {currentPage} / {Math.max(data.pageInfo.totalPage, 1)}
+                      </span>
+                      <Button
+                        type='button'
+                        variant='outline'
+                        size='sm'
+                        onClick={() => handleChangePage(currentPage + 1)}
+                        disabled={currentPage >= data.pageInfo.totalPage || isResultLoading}
+                      >
+                        다음
+                        <ChevronRight className='w-4 h-4' />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </>
         )}
+
+        {isFetched && !isResultLoading && totalCount === 0 && (
+          <Card className='py-8 text-center bg-card'>
+            <CardContent>
+              <div className='text-muted-foreground'>
+                <p>검색 결과가 없습니다.</p>
+                <p className='mt-1 text-sm'>검색어 또는 필터 조건을 다시 확인해주세요.</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      <Drawer
+      <Sheet
         open={isOpenCoin}
-        onClose={() => {
-          setOpenCoin(false);
-          setFocused(undefined);
-        }}
-        width={600}
-      >
-        <CoinForm
-          reload={refetch}
-          close={() => {
+        onOpenChange={(open) => {
+          if (!open) {
             setOpenCoin(false);
             setFocused(undefined);
-          }}
-          spaceId={focused?.id ?? ''}
-          currentCoins={
-            focused
-              ? {
-                  hearts: focused.coin,
-                  stars: focused.coinPaid,
-                }
-              : undefined
           }
-        />
-      </Drawer>
+        }}
+      >
+        <AdminSideSheetContent title='코인 관리' size='lg'>
+          <CoinForm
+            reload={refetch}
+            close={() => {
+              setOpenCoin(false);
+              setFocused(undefined);
+            }}
+            spaceId={focused?.id ?? ''}
+            currentCoins={
+              focused
+                ? {
+                    hearts: focused.coin,
+                    stars: focused.coinPaid,
+                  }
+                : undefined
+            }
+          />
+        </AdminSideSheetContent>
+      </Sheet>
+
+      <SpaceDetailSheet
+        open={!!detailTarget}
+        space={detailTarget}
+        onClose={() => setDetailTarget(null)}
+        copyId={copyId}
+      />
+
+      {/* 공간 삭제 확인 */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>삭제</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget && `(${deleteTarget.spaceInfo.name})을(를) 삭제하시겠습니까?`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRemoveSpace}>삭제</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 프로필 삭제 확인 */}
+      <AlertDialog open={!!deleteProfileTarget} onOpenChange={(open) => !open && setDeleteProfileTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>삭제</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteProfileTarget && `(${deleteProfileTarget.nickname})을(를) 삭제하시겠습니까?`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRemoveProfile}>삭제</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

@@ -1,0 +1,74 @@
+import { getSpaceActivity } from '@/client/space';
+import { useQuery } from '@tanstack/react-query';
+import dayjs from 'dayjs';
+import { useState } from 'react';
+import SpaceTabList from './SpaceTabList';
+
+function SpaceActivityTab({ spaceId, active }: { spaceId: string; active: boolean }) {
+  const [page, setPage] = useState(1);
+  const { data, isFetching } = useQuery({
+    queryKey: ['space-activity', spaceId, page],
+    queryFn: () => getSpaceActivity(spaceId, page),
+    enabled: active && !!spaceId,
+  });
+  const items = data?.items ?? [];
+  const recentAds = data?.recentAds ?? [];
+  return (
+    <div className='space-y-6'>
+      <section className='space-y-2'>
+        <h3 className='text-base font-semibold text-foreground'>접속 로그</h3>
+        <SpaceTabList
+          isLoading={isFetching && !data}
+          isEmpty={!!data && items.length === 0}
+          emptyText='접속 로그가 없습니다.'
+          page={page}
+          totalPage={data?.pageInfo.totalPage ?? 1}
+          totalCount={data?.totalCount ?? 0}
+          onPageChange={setPage}
+        >
+          {items.map((row) => (
+            <div
+              key={row.id}
+              className='flex items-center justify-between gap-3 rounded-lg border border-border bg-white px-3 py-2.5 text-sm'
+            >
+              <div className='min-w-0'>
+                <div className='truncate font-medium text-foreground'>@{row.user?.username ?? '알 수 없음'}</div>
+                <div className='truncate font-mono text-xs text-muted-foreground'>{row.userId}</div>
+              </div>
+              <div className='flex shrink-0 items-center gap-3'>
+                <span className='tabular-nums text-destructive'>하트 +{row.heart}</span>
+                <span className='text-xs text-muted-foreground'>{dayjs(row.createdAt).format('YY.MM.DD HH:mm')}</span>
+              </div>
+            </div>
+          ))}
+        </SpaceTabList>
+      </section>
+      {recentAds.length ? (
+        <section className='space-y-2'>
+          <h3 className='text-base font-semibold text-foreground'>최근 광고 시청 ({recentAds.length})</h3>
+          <div className='space-y-2'>
+            {recentAds.map((ad) => (
+              <div
+                key={ad.id}
+                className='flex items-center justify-between rounded-lg border border-border bg-white px-3 py-2.5 text-sm'
+              >
+                <div className='min-w-0'>
+                  <div className='truncate font-medium text-foreground'>@{ad.user?.username ?? '알 수 없음'}</div>
+                  <div className='truncate font-mono text-xs text-muted-foreground'>
+                    {ad.userId}
+                    {ad.description ? ` · ${ad.description}` : ''}
+                  </div>
+                </div>
+                <span className='shrink-0 text-xs text-muted-foreground'>
+                  {dayjs(ad.createdAt).format('YY.MM.DD HH:mm')}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+    </div>
+  );
+}
+
+export default SpaceActivityTab;

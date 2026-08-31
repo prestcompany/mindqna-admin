@@ -1,87 +1,115 @@
 import { removeAsset } from '@/client/assets';
+import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
+import { FILTER_CONTROL_CLASS, FilterBar } from '@/components/shared/ui/filter-bar';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Input } from '@/components/ui/input';
 import useAssets from '@/hooks/useAssets';
-import { Image, Input, Modal, message } from 'antd';
-import { ImageIcon, Loader, Search, TrashIcon } from 'lucide-react';
+import { ImageIcon, Loader2, Search, TrashIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
+import { toast } from 'sonner';
 
 function AssetsList() {
-  const [modal, contextHolder] = Modal.useModal();
   const [searchQuery, setSearchQuery] = useState('');
+  const [confirmId, setConfirmId] = useState<number | null>(null);
 
-  const { imgs, fetchMore, isLoading, hasNextPage } = useAssets();
+  const { imgs, fetchMore, isLoading, hasNextPage, refetch } = useAssets();
   const [sentryRef] = useInfiniteScroll({
     loading: isLoading,
     hasNextPage,
     onLoadMore: fetchMore,
   });
 
-  // 검색 필터링
   const filteredImgs = useMemo(() => {
     if (!searchQuery) return imgs;
     return imgs.filter((img) => img.id.toString().includes(searchQuery) || img.uri.includes(searchQuery.toLowerCase()));
   }, [imgs, searchQuery]);
 
-  const handleClickRemove = async (id: number) => {
-    await modal.confirm({
-      title: '정말로 삭제하시겠습니까?',
-      content: (
-        <Image
-          width={200}
-          height={200}
-          src={imgs.find((img) => img.id === id)?.uri ?? ''}
-          alt='removed'
-          style={{ objectFit: 'cover' }}
-        />
-      ),
-      onOk: async () => {
-        try {
-          await removeAsset(id);
-          window.location.reload();
-        } catch (err) {
-          message.error(`${err}`);
-        }
-      },
-    });
+  const confirmTarget = confirmId === null ? undefined : imgs.find((img) => img.id === confirmId);
+
+  const handleConfirmRemove = async () => {
+    if (confirmId === null) return;
+    try {
+      await removeAsset(confirmId);
+      // 전체 새로고침 대신 목록 쿼리만 다시 읽는다.
+      await refetch();
+      toast.success('이미지를 삭제했습니다.');
+    } catch (err) {
+      toast.error(`${err}`);
+    }
+    setConfirmId(null);
   };
 
   return (
-    <>
-      {contextHolder}
+    <section className='w-full overflow-hidden rounded-lg border border-border bg-card'>
+      <AlertDialog open={confirmId !== null} onOpenChange={(open) => !open && setConfirmId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>이미지를 삭제할까요?</AlertDialogTitle>
+            <AlertDialogDescription>
+              이 작업은 되돌릴 수 없습니다. 이미지를 사용 중인 화면이 있는지 확인하세요.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {confirmTarget && (
+            <div className='flex justify-center rounded-lg border border-border bg-muted p-4'>
+              <img
+                src={confirmTarget.uri}
+                alt={`삭제 대상 이미지 ${confirmTarget.id}`}
+                className='h-40 w-40 object-contain'
+              />
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmRemove}>삭제</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      {/* 검색 영역 */}
-      <div className='p-6 bg-gray-50 border-b border-gray-200'>
-        <div className='flex justify-between items-center mb-4'>
-          <div className='flex gap-3 items-center'>
-            <div className='p-2 bg-blue-100 rounded-lg'>
-              <ImageIcon size={20} className='text-blue-600' />
-            </div>
-            <div>
-              <h3 className='text-lg font-semibold text-gray-800'>이미지 관리</h3>
-              <p className='text-sm text-gray-600'>현재 {filteredImgs.length}개의 이미지</p>
-            </div>
-          </div>
+      <div className='flex flex-wrap items-center justify-between gap-2 border-b border-border px-6 py-4'>
+        <div className='min-w-0'>
+          <h2 className='text-base font-semibold tracking-heading text-foreground'>업로드된 이미지</h2>
+          <p className='mt-1 text-sm text-muted-foreground'>
+            <span className='tabular-nums'>{filteredImgs.length}</span>개
+          </p>
         </div>
-        <Input
-          placeholder='이미지 ID나 파일명으로 검색...'
-          prefix={<Search size={16} className='text-gray-400' />}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          size='large'
-          allowClear
-          className='max-w-md'
-        />
       </div>
 
-      {/* 이미지 그리드 */}
+      <div className='px-6'>
+        <FilterBar>
+          <div className='relative min-w-[260px]'>
+            <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+            <Input
+              placeholder='이미지 ID 또는 파일명 검색'
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={`pl-9 ${FILTER_CONTROL_CLASS}`}
+            />
+          </div>
+        </FilterBar>
+      </div>
+
       {filteredImgs.length === 0 && !isLoading ? (
-        <div className='flex flex-col justify-center items-center py-16 text-gray-500'>
-          <ImageIcon size={48} className='mb-4 text-gray-300' />
-          <p className='text-lg font-medium'>{searchQuery ? '검색 결과가 없습니다' : '업로드된 이미지가 없습니다'}</p>
-          <p className='text-sm'>{searchQuery ? '다른 검색어를 시도해보세요' : '새로운 이미지를 업로드해보세요'}</p>
+        <div className='flex flex-col items-center justify-center gap-2 px-6 py-16'>
+          <ImageIcon size={32} className='text-mute' aria-hidden='true' />
+          <p className='text-sm font-medium text-foreground'>
+            {searchQuery ? '검색 결과가 없습니다' : '업로드된 이미지가 없습니다'}
+          </p>
+          <p className='text-xs text-muted-foreground'>
+            {searchQuery ? '다른 검색어를 시도해 보세요' : '위에서 이미지를 업로드해 보세요'}
+          </p>
         </div>
       ) : (
-        <div className='grid grid-cols-2 gap-4 p-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'>
+        <div className='grid grid-cols-2 gap-4 px-6 pb-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'>
           {filteredImgs.map((item) => {
             const fileName = item.uri.split('/').pop() || '';
             const imgPart = fileName.includes('img') ? 'img' + fileName.split('img')[1] : fileName;
@@ -90,29 +118,29 @@ function AssetsList() {
             return (
               <div
                 key={item.id}
-                className='overflow-hidden relative bg-white rounded-lg shadow-md transition-all duration-200 group hover:shadow-lg'
+                className='group relative overflow-hidden rounded-lg border border-border bg-card transition-colors duration-fast hover:border-border'
               >
                 <div className='relative aspect-square'>
-                  <Image
-                    width='100%'
-                    height='100%'
+                  <ClickableImagePreview
                     src={item.uri}
-                    alt='asset'
-                    style={{ objectFit: 'cover' }}
-                    className='rounded-t-lg'
+                    alt={`${displayName} 이미지`}
+                    triggerClassName='h-full w-full rounded-none border-0 bg-transparent p-0 hover:bg-transparent focus-visible:ring-offset-0'
+                    imageClassName='h-full w-full object-contain'
                   />
                   <button
-                    onClick={() => handleClickRemove(item.id)}
-                    className='absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg'
+                    type='button'
+                    aria-label={`${displayName} 삭제`}
+                    onClick={() => setConfirmId(item.id)}
+                    className='absolute right-2 top-2 z-10 inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-card text-muted-foreground opacity-0 transition-colors duration-fast hover:bg-destructive hover:text-destructive-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring group-hover:opacity-100'
                   >
-                    <TrashIcon size={14} />
+                    <TrashIcon size={14} aria-hidden='true' />
                   </button>
                 </div>
-                <div className='p-3'>
-                  <div className='text-xs leading-relaxed text-gray-600 line-clamp-2' title={displayName}>
+                <div className='border-t border-border px-3 py-2'>
+                  <div className='truncate text-xs text-body' title={displayName}>
                     {displayName}
                   </div>
-                  <div className='mt-1 text-xs text-gray-400'>ID: {item.id}</div>
+                  <div className='mt-0.5 font-mono text-xs tabular-nums text-muted-foreground'>ID {item.id}</div>
                 </div>
               </div>
             );
@@ -120,13 +148,12 @@ function AssetsList() {
         </div>
       )}
 
-      {/* 무한 스크롤 로딩 */}
       {(hasNextPage || isLoading) && (
-        <div ref={sentryRef} className='flex justify-center items-center p-8'>
-          <Loader />
+        <div ref={sentryRef} className='flex items-center justify-center px-6 pb-6'>
+          <Loader2 className='h-5 w-5 animate-spin text-muted-foreground' aria-hidden='true' />
         </div>
       )}
-    </>
+    </section>
   );
 }
 

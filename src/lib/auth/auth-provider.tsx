@@ -35,32 +35,37 @@ const AuthProvider = ({ children }: PropsWithChildren<IAuthProviderProps>) => {
   const router = useRouter();
   const { data: session, status } = useSession();
   const loading = status === 'loading';
+  const publicPage = isPublicPage(router.pathname);
+  const authenticated = Boolean(session?.user);
 
   useEffect(() => {
     if (loading) {
       return;
     }
 
-    if (session && isPublicPage(router.pathname)) {
-      router.push('/');
-    } else if (!session && !isPublicPage(router.pathname)) {
-      router.push('/login');
+    if (authenticated && publicPage) {
+      router.replace('/');
+    } else if (!authenticated && !publicPage) {
+      router.replace('/login');
     }
-  }, [loading, router, session]);
+  }, [authenticated, loading, publicPage, router]);
 
-  if (loading || (session && isPublicPage(router.pathname))) {
-    return <Spinner />;
-  }
-
-  if (isPublicPage(router.pathname)) {
+  if (publicPage) {
+    if (!loading && authenticated) {
+      return <Spinner />;
+    }
     return <>{children}</>;
   }
 
-  if (!session?.user) {
+  if (loading) {
     return <Spinner />;
   }
 
-  return <AuthContext.Provider value={{ initialized: true, session }}>{children}</AuthContext.Provider>;
+  if (!authenticated) {
+    return <Spinner />;
+  }
+
+  return <AuthContext.Provider value={{ initialized: true, session: session as Session }}>{children}</AuthContext.Provider>;
 };
 
 export default React.memo(AuthProvider);

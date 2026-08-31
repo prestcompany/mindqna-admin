@@ -1,5 +1,5 @@
 import { ImgItem, PetCustomTemplate, PetCustomTemplateType, PetTypeForCustom } from '@/client/types';
-import { RcFile } from 'antd/es/upload';
+
 
 export interface CustomFormData {
   name: string;
@@ -24,14 +24,14 @@ export interface LocaleTexts {
 }
 
 export interface AnimationFileState {
-  uploadFile?: RcFile;
+  uploadFile?: File;
   animationData?: any;
   existingFileUrl: string;
   isLoading: boolean;
+  isReplacePending: boolean;
 }
 
 export interface CustomFormProps {
-  isOpen: boolean;
   init?: PetCustomTemplate;
   reload: () => Promise<any>;
   close: () => void;

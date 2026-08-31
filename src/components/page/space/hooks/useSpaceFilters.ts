@@ -1,17 +1,18 @@
+import type { SpaceOrderBy } from '@/client/space';
 import { SpaceType } from '@/client/types';
 import { useState } from 'react';
 
 export interface FilterState {
   type?: SpaceType[];
   locale?: string[];
-  orderBy?: string;
+  orderBy?: SpaceOrderBy;
 }
 
 export interface UseSpaceFiltersReturn {
   filter: FilterState;
   currentPage: number;
   setCurrentPage: (page: number) => void;
-  updateFilter: (key: string, value: any) => void;
+  updateFilter: <K extends keyof FilterState>(key: K, value: FilterState[K]) => void;
   resetFilters: () => void;
 }
 
@@ -19,7 +20,7 @@ export function useSpaceFilters(): UseSpaceFiltersReturn {
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<FilterState>({});
 
-  const updateFilter = (key: string, value: any) => {
+  const updateFilter = <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
     setFilter((prev) => ({
       ...prev,
       [key]: value,

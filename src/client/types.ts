@@ -1,5 +1,3 @@
-import { RcFile } from 'antd/es/upload';
-
 export type CreateCardTemplateParams = {
   name: string;
   locale: string;
@@ -12,7 +10,7 @@ export type CreateBulkCardTemplatesParams = {
   locale: string;
   cardType: CardTemplateType;
   spaceType: SpaceType;
-  file: RcFile;
+  file: File;
 };
 
 export type UpdateCardTemplateParams = CreateCardTemplateParams & {
@@ -25,6 +23,12 @@ export type CardTemplateType = 'basic' | 'random' | 'bonus';
 
 export type TotalPageInfo = {
   totalPage: number;
+  /**
+   * Entries on all pages. Optional because most list endpoints do not send it yet; where it
+   * is present, prefer it over `totalPage × pageSize`, which overcounts a short last page
+   * and is simply wrong wherever the client folds rows into fewer entries.
+   */
+  total?: number;
 };
 
 export type CardTemplate = {
@@ -237,15 +241,6 @@ export type CreateBubbleParams = {
 };
 
 export type BubbleType = 'general' | 'day' | 'night' | 'custom';
-export type BannerLocationType =
-  | 'main_bottom'
-  | 'main_right_small'
-  | 'push_top'
-  | 'wallet_charge_top'
-  | 'wallet_charge'
-  | 'main_poup'
-  | 'square_library_top';
-
 export type GetBubblesResult = {
   pageInfo: TotalPageInfo;
   items: PetBubble[];
@@ -281,7 +276,9 @@ export type CreateSnackParams = {
   isActive: boolean;
 };
 
-export type PetType = 'dog' | 'cat' | 'rebbit' | 'squirrel' | 'bear' | 'hamster' | 'chick' | 'penguin';
+// Mirrors the server's PetType enum. `deer` and `pig` existed there but were missing
+// here, so no admin screen could assign them.
+export type PetType = 'dog' | 'cat' | 'rebbit' | 'squirrel' | 'bear' | 'hamster' | 'chick' | 'penguin' | 'deer' | 'pig';
 export type PetTypeForCustom = PetType | 'null';
 
 export type GetSnacksResult = {
@@ -314,6 +311,12 @@ export type GiveTicketParams = {
   dueDayNum?: number;
 };
 
+export type RevokeTicketParams = {
+  username: string;
+  amount: number;
+  message: string;
+};
+
 export type GiveCoinParams = {
   spaceId: string;
   amount: number;
@@ -328,22 +331,50 @@ export type GiveCoinBulkParams = {
   message: string;
 };
 
+export type GiveCoinBulkFailureReason = 'not_found';
+
+export type GiveCoinBulkFailure = {
+  spaceId: string;
+  success: false;
+  reason: GiveCoinBulkFailureReason;
+};
+
+export type GiveCoinBulkResult = GiveCoinBulkFailure[] | { success: boolean };
+
 export type PurchaseMeta = {
   id: number;
   userId: string;
   username: string;
-  platform: 'EVENT' | 'IOS' | 'EVENT';
+  platform: 'EVENT' | 'IOS' | 'AOS';
   transactionId: string;
   productId: string;
   log?: string;
+  receipt?: string | null;
   isSuccess: boolean;
   isExpired: boolean;
   isProduction: boolean;
-
+  completedAt: string | null;
   createdAt: string;
 };
 
-export type User = {
+export type PurchaseRelatedTicket = {
+  type: 'premium' | 'goldclub';
+  id: number;
+  productId: string;
+  platform: string;
+  dueAt: string | null;
+  isActive: boolean;
+  isProduction: boolean;
+  createdAt: string;
+};
+
+export type PurchaseDetail = PurchaseMeta & {
+  price: string | null;
+  isSubscribe: boolean | null;
+  relatedTickets: PurchaseRelatedTicket[];
+};
+
+export type UserSummary = {
   id: string;
   username: string;
   code: number;
@@ -352,8 +383,8 @@ export type User = {
   reserveUnregisterAt: string | null;
   createdAt: string;
   updateAt: string;
-
-  socialAccount: SocialAccount;
+  representativeNickname?: string | null;
+  socialAccount: SocialAccountSummary;
   _count: {
     profiles: number;
   };
@@ -378,6 +409,22 @@ export type User = {
   // }[];
 };
 
+export type UserDetail = Omit<UserSummary, 'socialAccount'> & {
+  latestAccessAt?: string | null;
+  ticketSummary?: UserTicketSummary;
+  socialAccount: SocialAccount;
+};
+
+export type User = UserDetail;
+
+export type UserTicketSummary = {
+  owned: number;
+  applied: number;
+  unapplied: number;
+  used: number;
+  expired: number;
+};
+
 export type QueryResultWithPagination<T> = {
   items: T[];
   pageInfo: TotalPageInfo;
@@ -392,21 +439,268 @@ export type SocialAccount = {
   updatedAt: string;
 };
 
+export type SocialAccountSummary = Pick<SocialAccount, 'email' | 'provider'>;
+
 export type Space = {
   id: string;
   coin: number;
   coinPaid: number;
   pet: Pet;
   cardOrder: number;
-  cardGenDate: string;
+  cardGenDate: string | null;
   dueRemovedAt: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  latestCardIssuedAt?: string | null;
+  hasPremiumMember?: boolean;
+  hasGoldClubMember?: boolean;
   spaceInfo: SpaceInfo;
   profiles: Profile[];
   rooms: Room[];
   InteriorItem: InteriorItem[];
+};
+
+export type SpaceCoinHistoryMeta = {
+  id: number;
+  spaceId: string;
+  profileId?: string | null;
+  isPaid: boolean;
+  amount: number;
+  isUse: boolean;
+  description?: string | null;
+  createdAt: string;
+  profile?: Partial<Pick<Profile, 'id' | 'nickname'>> & {
+    user?: Partial<Pick<User, 'id' | 'username'>>;
+  };
+};
+
+export type UpdateSpaceParams = {
+  name?: string;
+  petName?: string;
+  type?: SpaceType;
+  startedAt?: string;
+  locale?: Locale;
+  noticeTime?: string;
+  isActive?: boolean;
+  dueRemovedAt?: string | null;
+};
+
+export type SpaceDetail = Space & {
+  recentCoinMetas: SpaceCoinHistoryMeta[];
+};
+
+export type SearchPageResult<T> = {
+  items: T[];
+  totalCount: number;
+  pageInfo: TotalPageInfo;
+};
+
+export type SpaceCardRow = {
+  id: number;
+  templateId: number;
+  order: number;
+  createdAt: string;
+  replyCount: number;
+  commentCount: number;
+};
+
+export type SpaceCardReply = {
+  id: number;
+  content: string;
+  createdAt: string;
+  profile?: { id: string; nickname: string } | null;
+};
+
+export type SpaceCardRepliesResult = {
+  id: number;
+  order: number;
+  createdAt: string;
+  templateName: string | null;
+  replies: SpaceCardReply[];
+};
+
+export type SpaceCoinRow = {
+  id: number;
+  isPaid: boolean;
+  amount: number;
+  isUse: boolean;
+  description?: string | null;
+  createdAt: string;
+  profile?: { id: string; nickname: string; user?: { id: string; username: string } } | null;
+};
+
+export type SpaceMemberRow = {
+  id: string;
+  nickname: string;
+  userId: string;
+  isPremium: boolean;
+  isGoldClub: boolean;
+  disabled: boolean;
+  removed: boolean;
+  removedAt: string | null;
+  renew?: boolean;
+  createdAt: string;
+  user?: { id: string; username: string };
+  img?: { uri: string } | null;
+};
+
+export type SpaceMembersResult = {
+  ownerId: string | null;
+  profiles: SpaceMemberRow[];
+};
+
+export type SpacePremiumTicket = {
+  id: number;
+  platform: string;
+  productId: string;
+  dueAt: string | null;
+  isActive: boolean;
+  createdAt: string;
+};
+
+export type SpaceMemberDetail = {
+  profile: {
+    id: string;
+    nickname: string;
+    createdAt: string;
+    disabled: boolean;
+    removed: boolean;
+    removedAt: string | null;
+    renew?: boolean;
+    isPremium: boolean;
+    isGoldClub: boolean;
+    user?: { id: string; username: string };
+  };
+  counts: {
+    replyCount: number;
+    diaryCount: number;
+    scheduleCount: number;
+    cardCommentCount: number;
+    diaryCommentCount: number;
+  };
+  coin: { given: number; used: number };
+  premiumTickets: SpacePremiumTicket[];
+};
+
+export type SpaceDiaryRow = {
+  id: number;
+  date: string;
+  emotion: string;
+  createdAt: string;
+  profile?: { id: string; nickname: string };
+  commentCount: number;
+  likeCount: number;
+};
+
+export type SpaceDiaryDetail = SpaceDiaryRow & {
+  content: string;
+};
+
+export type SpaceDiaryStats = {
+  total: number;
+  byEmotion: { emotion: string; count: number }[];
+};
+
+export type SpaceScheduleRow = {
+  id: number;
+  title: string;
+  startedAt: string;
+  endedAt: string;
+  color: string;
+  intervalType: string;
+  createdAt: string;
+  profile?: { id: string; nickname: string };
+};
+
+export type SpaceScheduleDetail = {
+  id: number;
+  title: string;
+  startedAt: string;
+  endedAt: string;
+  color: string;
+  memo: string | null;
+  intervalType: string;
+  intervalEndedAt: string | null;
+  createdAt: string;
+  profile?: { id: string; nickname: string };
+  items: { id: number; date: string }[];
+  memberMetas: { id: number; profile?: { id: string; nickname: string } }[];
+};
+
+export type SpacePetInteriorResult = {
+  pet: { type: string | null; level: number; exp: number; updatedAt: string } | null;
+  customs: {
+    id: number;
+    petCustomTemplateId: number;
+    customType: string;
+    isEquipped: boolean;
+    template?: { name: string | null; type: string; img?: { uri: string } | null } | null;
+  }[];
+  rooms: { id: number; category: string; type: string; name: string; order: number }[];
+  interiorItems: {
+    id: number;
+    interiorTemplateId: number;
+    createdAt: string;
+    template?: { name: string; category: string; type: string; img?: { uri: string } | null } | null;
+  }[];
+};
+
+export type SpaceAccessRow = {
+  id: number;
+  userId: string;
+  heart: number;
+  createdAt: string;
+  user?: { username: string } | null;
+};
+
+export type SpaceAdsRow = {
+  id: number;
+  userId: string;
+  description: string | null;
+  createdAt: string;
+  user?: { username: string } | null;
+};
+
+export type SpaceActivityResult = SearchPageResult<SpaceAccessRow> & { recentAds: SpaceAdsRow[] };
+
+export type SpaceActivitySummary = {
+  access7d: number;
+  diary30d: number;
+  lastCard: { order: number; replyCount: number; activeMembers: number; rate: number } | null;
+};
+
+export type CoinDirectionSum = { given: number; used: number; net: number };
+
+export type CoinStatWindow = {
+  days: number;
+  current: CoinDirectionSum;
+  previous: CoinDirectionSum;
+  changeRate: number | null;
+};
+
+export type SpaceCoinStatsResult = { week: CoinStatWindow; month: CoinStatWindow };
+
+export type CardEligibilityCheck = { key: string; label: string; passed: boolean; detail?: string | null };
+
+export type CardEligibilityStatus =
+  | 'issuable'
+  | 'waitingSchedule'
+  | 'waitingParticipation'
+  | 'inactive'
+  | 'needsMembers'
+  | 'noTemplate'
+  | 'scheduledRemoval'
+  | 'error';
+
+export type CardEligibilityResult = {
+  canIssue: boolean;
+  status: CardEligibilityStatus;
+  cardOrder: number;
+  nextGenAt: string | null;
+  activeMembers: number;
+  lastCard: { order: number; replyCount: number } | null;
+  checks: CardEligibilityCheck[];
 };
 
 export type InteriorItem = {
@@ -441,10 +735,10 @@ export type Profile = {
   isAccepted: boolean;
   isPremium: boolean;
   isGoldClub: boolean;
-  disabled: boolean;
-  removed: boolean;
+  disabled?: boolean;
+  removed?: boolean;
   removedAt?: string;
-  renew: boolean;
+  renew?: boolean;
   createdAt: string;
   updatedAt: string;
   user: User;
@@ -488,4 +782,160 @@ export type CreateRuleParams = {
 export type UpdateRuleParams = CreateRuleParams & {
   id: number;
   isActive: boolean;
+};
+
+export type AppPlatform = 'ios' | 'android';
+
+export type AppVersionPolicy = {
+  platform: AppPlatform;
+  minVersionCode: number;
+  minVersionName: string;
+  forceEnabled: boolean;
+  updatedAt: string;
+};
+
+export type AppVersionPolicies = { ios: AppVersionPolicy | null; android: AppVersionPolicy | null };
+
+export type UpdateAppVersionParams = Omit<AppVersionPolicy, 'platform' | 'updatedAt'>;
+
+export type UserTabPageResult<T> = {
+  items: T[];
+  totalCount: number;
+  pageInfo: { totalPage: number };
+};
+
+export type UserProfileRow = {
+  id: string;
+  nickname: string;
+  spaceId: string | null;
+  spaceName: string | null;
+  isPremium: boolean;
+  isGoldClub: boolean;
+  disabled: boolean;
+  removed: boolean;
+  createdAt: string;
+};
+
+export type UserPurchaseRow = {
+  id: number;
+  productId: string;
+  platform: string;
+  price: string;
+  isSubscribe: boolean;
+  createdAt: string;
+};
+
+// PremiumTicket.dueAt은 nullable, GoldClub.dueAt은 non-null이지만 공유 타입은 nullable로 둔다.
+export type UserEntitlementTicket = {
+  id: number;
+  productId: string;
+  platform: string;
+  isActive: boolean;
+  dueAt: string | null;
+  profileId: string | null;
+  createdAt: string;
+};
+
+export type UserSubscriptionRow = {
+  id: number;
+  productId: string;
+  platform: string;
+  transactionId: string;
+  createdAt: string;
+};
+
+export type UserEntitlements = {
+  premiumTickets: UserEntitlementTicket[];
+  goldClubs: UserEntitlementTicket[];
+  subscriptions: UserSubscriptionRow[];
+};
+
+export type UserAccessRow = {
+  id: number;
+  spaceId: string;
+  spaceName: string | null;
+  heart: number;
+  createdAt: string;
+};
+
+export type UserPushRow = {
+  id: number;
+  title: string;
+  desc: string | null;
+  isChecked: boolean;
+  spaceId: string | null;
+  createdAt: string;
+};
+
+export type LiveSubscriptionStatus = 'active' | 'grace' | 'billingRetry' | 'expired' | 'revoked' | 'canceled' | 'error';
+
+export type LiveSubscriptionRow = {
+  id: number;
+  platform: 'IOS' | 'AOS';
+  productId: string;
+  status: LiveSubscriptionStatus;
+  expiresAt: string | null;
+  autoRenew: boolean | null;
+};
+
+export type UpdateUserParams = {
+  locale?: Locale;
+  spaceMaxCount?: number;
+  reserveUnregisterAt?: string | null;
+};
+
+export type PdfExportPolicy = {
+  id: number;
+  coinPerQuestion: number;
+  maxDownloadCount: number;
+  expiryDays: number;
+  updatedAt: string | null;
+};
+
+export type UpdatePdfExportPolicyParams = {
+  coinPerQuestion?: number;
+  maxDownloadCount?: number;
+  expiryDays?: number;
+};
+
+export type PdfExportStatus = 'available' | 'expired_period' | 'expired_count';
+
+export type PdfExportRecord = {
+  id: number;
+  spaceId: string;
+  spaceName: string;
+  profileId: string;
+  nickname: string;
+  username: string;
+  fileName: string;
+  startOrder: number;
+  endOrder: number;
+  count: number;
+  cost: number;
+  coinPerQuestion: number;
+  downloadCount: number;
+  maxDownloadCount: number;
+  status: PdfExportStatus;
+  createdAt: string;
+  expiresAt: string;
+};
+
+export type PdfExportHistoryParams = {
+  page: number;
+  space?: string;
+  user?: string;
+};
+
+export type PdfExportHistoryResult = QueryResultWithPagination<PdfExportRecord> & {
+  totalCount: number;
+};
+
+export type PdfExportDownloadResult = {
+  url: string;
+  urlExpiresAt: string;
+};
+
+export type UpdatePdfExportRecordParams = {
+  downloadCount?: number;
+  expiresAt?: string;
 };

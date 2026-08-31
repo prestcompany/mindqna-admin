@@ -1,13 +1,9 @@
-import { getProducts } from "@/client/premium";
+import { getProducts, GetProductsFilters } from "@/client/premium";
 import { useQuery } from "@tanstack/react-query";
 
-type Props = {
-  page: number;
-};
-
-function useProducts(by: Props) {
+function useProducts(by: GetProductsFilters) {
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["purchaees", by],
+    queryKey: ["products", by],
     queryFn: () => getProducts(by),
   });
 

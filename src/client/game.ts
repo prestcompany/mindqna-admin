@@ -256,6 +256,7 @@ export interface GameReward {
   game: Game;
   profile: Profile;
   space: Space;
+  isRead?: boolean;
 }
 
 export interface ImgItem {

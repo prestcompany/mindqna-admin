@@ -1,11 +1,11 @@
 import { getDefaultLayout } from '@/components/layout/default-layout';
 import pageHeader from '@/components/layout/page-header';
-import PurchaseMetaList from '@/components/page/premium/PurchaseMetaList';
+import PurchaseManagement from '@/components/page/premium/PurchaseManagement';
 
 function PurchasePage() {
   return (
     <div>
-      <PurchaseMetaList />
+      <PurchaseManagement />
     </div>
   );
 }

@@ -1,4 +1,5 @@
-import { Form, Input } from 'antd';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import React from 'react';
 import { LocaleTexts } from '../types';
 
@@ -19,17 +20,21 @@ const LocaleInputGroup: React.FC<LocaleInputGroupProps> = ({ locale, onLocaleCha
   ];
 
   return (
-    <>
+    <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
       {locales.map(({ key, placeholder }) => (
-        <Form.Item key={key} name={key} rules={[{ required: true, message: `${placeholder}는 필수입니다.` }]}>
+        <div key={key} className='space-y-1.5'>
+          <Label htmlFor={`locale-${key}`} className='text-xs font-medium text-muted-foreground'>
+            {key}
+          </Label>
           <Input
+            id={`locale-${key}`}
             placeholder={placeholder}
             value={locale[key] ?? ''}
             onChange={(e) => onLocaleChange({ [key]: e.target.value })}
           />
-        </Form.Item>
+        </div>
       ))}
-    </>
+    </div>
   );
 };
 

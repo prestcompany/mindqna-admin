@@ -1,10 +1,37 @@
 import client from './@base';
-import { BannerLocationType, Locale, QueryResultWithPagination } from './types';
+import { Locale, QueryResultWithPagination } from './types';
 
-export async function getBanners(page: number, locale?: string[], location?: BannerLocationType[]) {
-  const res = await client.get<QueryResultWithPagination<Banner>>('/banner', { params: { page, locale, location } });
+export type GetBannersParams = {
+  page: number;
+  locale?: string[];
+  location?: string[];
+  search?: string;
+};
+
+export async function getBanners({ page, locale, location, search }: GetBannersParams) {
+  const res = await client.get<QueryResultWithPagination<Banner>>('/banner', {
+    params: { page, locale, location, search: search?.trim() || undefined },
+  });
 
   return res.data;
+}
+
+// Backend-driven exposure-location registry (registry ∪ in-use DB locations).
+// Source of truth for the admin banner location dropdown/labels — see banner-location.const.ts.
+export type BannerLocation = {
+  key: string;
+  label: string;
+  description?: string;
+  registered: boolean;
+};
+
+export async function getBannerLocations(): Promise<BannerLocation[]> {
+  // Backend currently wraps the array as `{ items }` (admin.controller.ts), but tolerate a bare
+  // array too so the dropdown survives either response shape.
+  const res = await client.get<{ items: BannerLocation[] } | BannerLocation[]>('/banner/locations');
+  const data = res.data as { items?: BannerLocation[] } | BannerLocation[];
+
+  return Array.isArray(data) ? data : (data.items ?? []);
 }
 
 export async function createBanner(params: CreateBannerParams) {
@@ -33,6 +60,7 @@ export type Banner = {
   id: number;
   location: string;
   name: string;
+  orderIndex: number;
   title?: string;
   desc1?: string;
   desc2?: string;
@@ -56,6 +84,7 @@ export type CreateBannerParams = {
   img: string;
   link: string;
   locale: Locale;
+  orderIndex: number;
 };
 
 export type UpdateBannerParams = CreateBannerParams & {

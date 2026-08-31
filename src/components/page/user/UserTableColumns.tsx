@@ -1,193 +1,207 @@
-import { User } from '@/client/types';
-import { Button, Tag } from 'antd';
-import { TableProps } from 'antd/lib';
+import { UserSummary } from '@/client/types';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { Copy } from 'lucide-react';
+import { getJoinStatusConfig, getLocaleLabel, getProviderConfig, getRecencyVariant } from './utils/user-display';
 
 export interface UserTableActionsProps {
-  onOpenTicket: (user: User) => void;
-  onRemove: (user: User) => void;
+  onOpenTicket: (user: UserSummary) => void;
+  onRemove: (user: UserSummary) => void;
   copyId: (id: string) => void;
 }
 
-export const createUserTableColumns = (actions: UserTableActionsProps): TableProps<User>['columns'] => [
-  {
-    title: '유저 ID',
-    dataIndex: 'id',
-    key: 'id',
-    width: 100,
-    render: (id) => (
-      <Button size='small' type='default' onClick={() => actions.copyId(id)} className='flex gap-1'>
-        {id.slice(0, 8)}...
-        <Copy className='w-4 h-4' />
+interface CopyInlineCellProps {
+  text: string;
+  copyValue: string;
+  maxWidthClassName: string;
+  monospace?: boolean;
+  copyId: (id: string) => void;
+}
+
+function CopyInlineCell({ text, copyValue, maxWidthClassName, monospace = false, copyId }: CopyInlineCellProps) {
+  return (
+    <div className='flex min-w-0 items-center gap-1'>
+      <span
+        className={`${maxWidthClassName} truncate ${monospace ? 'font-mono text-xs text-muted-foreground' : 'font-medium text-foreground'}`}
+      >
+        {text}
+      </span>
+      <Button
+        type='button'
+        variant='ghost'
+        size='icon'
+        className='h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground'
+        onClick={(event) => {
+          event.stopPropagation();
+          copyId(copyValue);
+        }}
+      >
+        <Copy className='h-4 w-4' />
       </Button>
+    </div>
+  );
+}
+
+export const createUserTableColumns = (actions: UserTableActionsProps): ColumnDef<UserSummary>[] => [
+  {
+    accessorKey: 'id',
+    header: '유저 ID',
+    size: 140,
+    cell: ({ row }) => (
+      <CopyInlineCell
+        text={`${row.original.id.slice(0, 8)}...`}
+        copyValue={row.original.id}
+        maxWidthClassName='max-w-[92px]'
+        monospace
+        copyId={actions.copyId}
+      />
     ),
   },
   {
-    title: '유저코드',
-    dataIndex: 'username',
-    key: 'username',
-    width: 150,
-    render: (username) => (
-      <Button size='small' type='default' onClick={() => actions.copyId(username)} className='flex gap-1'>
-        {username}
-        <Copy className='w-4 h-4' />
-      </Button>
+    accessorKey: 'username',
+    header: '유저코드',
+    size: 180,
+    cell: ({ row }) => (
+      <CopyInlineCell
+        text={row.original.username}
+        copyValue={row.original.username}
+        maxWidthClassName='max-w-[140px]'
+        copyId={actions.copyId}
+      />
     ),
   },
   {
-    title: '가입상태',
-    key: 'joinStatus',
-    width: 100,
-    render: (_, user) => {
-      const isCompleted = user._count.profiles > 0;
-      const statusMap = {
-        completed: { text: '완료', color: 'green', icon: '' },
-        pending: { text: '진행중', color: 'orange', icon: '' },
-      };
-      const config = statusMap[isCompleted ? 'completed' : 'pending'];
-      return <Tag color={config.color}>{config.text}</Tag>;
-    },
-  },
-  {
-    title: '이메일',
-    dataIndex: ['socialAccount', 'email'],
-    key: 'email',
-    width: 200,
-    ellipsis: true,
-  },
-  {
-    title: '로그인',
-    dataIndex: ['socialAccount', 'provider'],
-    key: 'provider',
-    width: 100,
-    render: (provider) => {
-      const providerMap = {
-        GOOGLE: { text: 'Google', color: 'red', icon: '' },
-        KAKAO: { text: 'Kakao', color: 'gold', icon: '' },
-        APPLE: { text: 'Apple', color: 'default', icon: '' },
-        LINE: { text: 'Line', color: 'green', icon: '' },
-      };
-      const config = providerMap[provider as keyof typeof providerMap] || {
-        text: provider,
-        color: 'default',
-        icon: '',
-      };
-      return <Tag color={config.color}>{config.text}</Tag>;
-    },
-  },
-  {
-    title: '언어',
-    dataIndex: 'locale',
-    key: 'locale',
-    width: 80,
-    render: (locale) => {
-      const localeMap = {
-        ko: { flag: '', code: 'KO' },
-        en: { flag: '', code: 'EN' },
-        ja: { flag: '', code: 'JA' },
-        zh: { flag: '', code: 'ZH' },
-        zhTw: { flag: '', code: 'TW' },
-        es: { flag: '', code: 'ES' },
-        id: { flag: '', code: 'ID' },
-      };
-      const config = localeMap[locale as keyof typeof localeMap] || { flag: '', code: locale?.toUpperCase() };
-      return <Tag>{config.code}</Tag>;
-    },
-  },
-  {
-    title: '공간/최대',
-    key: 'spaceInfo',
-    width: 120,
-    render: (_, user) => (
-      <div className='flex gap-1'>
-        <Tag color='blue'>공간 {user._count.profiles || 0}</Tag>
-        <Tag color={user.spaceMaxCount > 5 ? 'gold' : user.spaceMaxCount > 2 ? 'green' : 'default'}>
-          최대 {user.spaceMaxCount}
-        </Tag>
-      </div>
+    accessorKey: 'representativeNickname',
+    header: '닉네임',
+    size: 140,
+    cell: ({ row }) => (
+      <span className='block truncate text-sm text-foreground'>
+        {row.original.representativeNickname?.trim() || '-'}
+      </span>
     ),
   },
   {
-    title: '가입일',
-    dataIndex: 'createdAt',
-    key: 'createdAt',
-    width: 120,
-    render: (value) => {
-      const day = dayjs(value);
+    id: 'joinStatus',
+    header: '가입상태',
+    size: 96,
+    cell: ({ row }) => {
+      const config = getJoinStatusConfig(row.original._count.profiles > 0);
+      return <Badge variant={config.variant}>{config.text}</Badge>;
+    },
+  },
+  {
+    accessorFn: (row) => row.socialAccount?.email,
+    id: 'email',
+    header: '이메일',
+    size: 260,
+    cell: ({ row }) => (
+      <span className='block truncate text-foreground'>{row.original.socialAccount?.email ?? '-'}</span>
+    ),
+  },
+  {
+    accessorFn: (row) => row.socialAccount?.provider,
+    id: 'provider',
+    header: '로그인',
+    size: 100,
+    cell: ({ row }) => {
+      const config = getProviderConfig(row.original.socialAccount?.provider);
+      return <Badge variant={config.variant}>{config.text}</Badge>;
+    },
+  },
+  {
+    accessorKey: 'locale',
+    header: '언어',
+    size: 72,
+    cell: ({ row }) => <Badge variant='softNeutral'>{getLocaleLabel(row.original.locale)}</Badge>,
+  },
+  {
+    accessorKey: 'createdAt',
+    header: '가입일',
+    size: 182,
+    cell: ({ row }) => {
+      const day = dayjs(row.original.createdAt);
       const diffFromNow = dayjs().diff(day, 'day');
       return (
-        <div className='flex flex-row gap-1 items-center'>
-          <Tag color={diffFromNow < 7 ? 'green' : diffFromNow < 30 ? 'orange' : 'default'}>D+{diffFromNow}</Tag>
-          <div className='text-sm text-gray-500'>{day.format('YY.MM.DD HH:mm:ss')}</div>
+        <div className='flex flex-row gap-1 items-center whitespace-nowrap'>
+          <Badge variant={getRecencyVariant(diffFromNow)}>D+{diffFromNow}</Badge>
+          <div className='text-sm text-muted-foreground'>{day.format('YY.MM.DD HH:mm:ss')}</div>
         </div>
       );
     },
   },
   {
-    title: '탈퇴예정일',
-    dataIndex: 'reserveUnregisterAt',
-    key: 'reserveUnregisterAt',
-    width: 180,
-    render: (value: string, item: User) => {
+    accessorKey: 'reserveUnregisterAt',
+    header: '탈퇴예정일',
+    size: 200,
+    cell: ({ row }) => {
+      const value = row.original.reserveUnregisterAt;
       if (!value) return null;
 
       const day = dayjs(value);
-      const diff = day.add(-48, 'hour').diff(item.createdAt, 'minute');
+      const diff = day.add(-48, 'hour').diff(row.original.createdAt, 'minute');
       const gap = diff > 60 ? `${Math.floor(diff / 60)}시간 ${diff % 60}분` : `${diff}분`;
       const isUrgent = diff < 60;
 
       return (
-        <div className='flex flex-row gap-1 items-center'>
-          <Tag color={isUrgent ? 'error' : 'warning'}>{gap}만에 삭제</Tag>
-          <div className='text-sm text-gray-500'>{day.format('YY.MM.DD HH:mm:ss')}</div>
+        <div className='flex flex-row gap-1 items-center whitespace-nowrap'>
+          <Badge variant={isUrgent ? 'softDanger' : 'softWarning'}>{gap}만에 삭제</Badge>
+          <div className='text-sm text-muted-foreground'>{day.format('YY.MM.DD HH:mm:ss')}</div>
         </div>
       );
     },
   },
   {
-    title: '작업',
-    key: 'actions',
-    width: 180,
-    fixed: 'right',
-    render: (_, user) => (
-      <div className='flex gap-1'>
-        <Button size='small' type='primary' onClick={() => actions.onOpenTicket(user)}>
-          티켓 관리
-        </Button>
-        <Button size='small' danger onClick={() => actions.onRemove(user)}>
-          삭제
-        </Button>
-      </div>
-    ),
+    id: 'actions',
+    header: '관리',
+    size: 90,
+    cell: ({ row }) => {
+      const user = row.original;
+      return (
+        <div onClick={(event) => event.stopPropagation()}>
+          <TableRowActions
+            items={[
+              {
+                label: '티켓 관리',
+                onClick: () => actions.onOpenTicket(user),
+              },
+              {
+                label: '삭제',
+                onClick: () => actions.onRemove(user),
+                destructive: true,
+              },
+            ]}
+          />
+        </div>
+      );
+    },
   },
 ];
 
-// 컬럼 설정 타입
 export interface ColumnConfig {
   key: string;
   visible: boolean;
   width?: number;
 }
 
-// 기본 컬럼 설정
 export const defaultColumnConfig: ColumnConfig[] = [
-  { key: 'username', visible: true, width: 150 },
-  { key: 'joinStatus', visible: true, width: 100 },
-  { key: 'email', visible: true, width: 200 },
+  { key: 'username', visible: true, width: 180 },
+  { key: 'representativeNickname', visible: true, width: 140 },
+  { key: 'joinStatus', visible: true, width: 96 },
+  { key: 'email', visible: true, width: 260 },
   { key: 'provider', visible: true, width: 100 },
-  { key: 'locale', visible: true, width: 80 },
-  { key: 'spaceInfo', visible: true, width: 120 },
-  { key: 'createdAt', visible: true, width: 120 },
-  { key: 'reserveUnregisterAt', visible: false, width: 120 }, // 기본적으로 숨김
-  { key: 'actions', visible: true, width: 180 },
+  { key: 'locale', visible: true, width: 72 },
+  { key: 'createdAt', visible: true, width: 182 },
+  { key: 'reserveUnregisterAt', visible: false, width: 200 },
+  { key: 'actions', visible: true, width: 90 },
 ];
 
-// 컬럼 필터링 유틸리티
-export const filterColumns = (
-  columns: TableProps<User>['columns'],
-  config: ColumnConfig[],
-): TableProps<User>['columns'] => {
+export const filterColumns = (columns: ColumnDef<UserSummary>[], config: ColumnConfig[]): ColumnDef<UserSummary>[] => {
   const visibleKeys = new Set(config.filter((c) => c.visible).map((c) => c.key));
-  return columns?.filter((col) => col && 'key' in col && visibleKeys.has(col.key as string));
+  return columns.filter((col) => {
+    const key = col.id || ('accessorKey' in col ? (col.accessorKey as string) : undefined);
+    return key && visibleKeys.has(key);
+  });
 };

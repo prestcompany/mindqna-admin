@@ -5,9 +5,9 @@
 }
 
 .ql-toolbar.ql-snow {
-  @apply rounded-tl-[6px] rounded-tr-[6px] border-antd-form;
+  @apply rounded-tl-[6px] rounded-tr-[6px] border-border;
 }
 
 .ql-container.ql-snow {
-  @apply rounded-bl-[6px] rounded-br-[6px] border-antd-form;
+  @apply rounded-bl-[6px] rounded-br-[6px] border-border;
 }

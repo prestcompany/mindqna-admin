@@ -1,5 +1,5 @@
 import { deleteSquareLibrary, LibraryData } from '@/client/square-library';
-import { message } from 'antd';
+import { toast } from 'sonner';
 
 export const createDeleteHandler = (modal: any, refetch: () => Promise<any>) => {
   return (value: LibraryData) => {
@@ -11,7 +11,7 @@ export const createDeleteHandler = (modal: any, refetch: () => Promise<any>) => 
           await deleteSquareLibrary(value.id);
           await refetch();
         } catch (err) {
-          message.error(`${err}`);
+          toast.error(`${err}`);
         }
       },
     });

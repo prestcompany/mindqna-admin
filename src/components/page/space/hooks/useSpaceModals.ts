@@ -5,7 +5,6 @@ export interface UseSpaceModalsReturn {
   // 상태
   isOpenSearch: boolean;
   isOpenCoin: boolean;
-  isOpenProfile: boolean;
   focused: Space | undefined;
 
   // 액션
@@ -13,14 +12,11 @@ export interface UseSpaceModalsReturn {
   closeSearch: () => void;
   openCoin: (space: Space) => void;
   closeCoin: () => void;
-  openProfile: (space: Space) => void;
-  closeProfile: () => void;
 }
 
 export function useSpaceModals(): UseSpaceModalsReturn {
   const [isOpenSearch, setOpenSearch] = useState(false);
   const [isOpenCoin, setOpenCoin] = useState(false);
-  const [isOpenProfile, setOpenProfile] = useState(false);
   const [focused, setFocused] = useState<Space | undefined>(undefined);
 
   const openSearch = () => setOpenSearch(true);
@@ -36,26 +32,13 @@ export function useSpaceModals(): UseSpaceModalsReturn {
     setFocused(undefined);
   };
 
-  const openProfile = (space: Space) => {
-    setFocused(space);
-    setOpenProfile(true);
-  };
-
-  const closeProfile = () => {
-    setOpenProfile(false);
-    setFocused(undefined);
-  };
-
   return {
     isOpenSearch,
     isOpenCoin,
-    isOpenProfile,
     focused,
     openSearch,
     closeSearch,
     openCoin,
     closeCoin,
-    openProfile,
-    closeProfile,
   };
 }

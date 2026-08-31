@@ -1,9 +1,9 @@
-import { getAssets } from "@/client/assets";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { getAssets } from '@/client/assets';
+import { useInfiniteQuery } from '@tanstack/react-query';
 
 function useAssets() {
-  const { data, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage } = useInfiniteQuery({
-    queryKey: ["assets"],
+  const { data, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage, refetch } = useInfiniteQuery({
+    queryKey: ['assets'],
     queryFn: ({ pageParam }) => getAssets(pageParam),
     initialPageParam: 0,
     getNextPageParam: (last) => (last.pageInfo.hasNext ? last.pageInfo.endCursor : null),
@@ -18,7 +18,7 @@ function useAssets() {
     fetchNextPage();
   };
 
-  return { imgs, isLoading, hasNextPage, fetchMore };
+  return { imgs, isLoading, hasNextPage, fetchMore, refetch };
 }
 
 export default useAssets;

@@ -1,12 +1,12 @@
 import { getCustomTemplates } from '@/client/custom';
 import { useQuery } from '@tanstack/react-query';
 
-function useCustoms(by: { page: number }) {
-  const { page } = by;
+function useCustoms(by: { page: number; search?: string }) {
+  const { page, search } = by;
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['customs', page],
-    queryFn: () => getCustomTemplates(page),
+    queryKey: ['customs', page, search],
+    queryFn: () => getCustomTemplates({ page, search }),
   });
 
   const templates = data?.templates ?? [];

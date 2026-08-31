@@ -1,194 +1,329 @@
-import { User } from '@/client/types';
-import { getUser, removeUser } from '@/client/user';
+import { UserDetail, UserSummary } from '@/client/types';
+import { SearchUserParams, removeUser, searchUser } from '@/client/user';
+import FormGroup from '@/components/shared/form/ui/form-group';
+import FormSection from '@/components/shared/form/ui/form-section';
+import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Sheet } from '@/components/ui/sheet';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Card, Drawer, Input, Modal, Space, Tag, message } from 'antd';
+import { isAxiosError } from 'axios';
 import dayjs from 'dayjs';
-import { Copy } from 'lucide-react';
+import { Copy, Loader2, Search } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import TicketForm from './TicketForm';
+import UserDetailSheet from './components/UserDetailSheet';
+import { getLocaleLabel } from './utils/user-display';
+
+interface UserResultCardProps {
+  user: UserDetail;
+  onOpenDetail: (user: UserDetail) => void;
+  copyId: (value: string) => void;
+}
+
+function UserResultCard({ user, onOpenDetail, copyId }: UserResultCardProps) {
+  const spaceCount = user._count?.profiles ?? 0;
+  const joinedLabel = dayjs(user.createdAt).format('YYYY.MM.DD');
+
+  return (
+    <div
+      role='button'
+      tabIndex={0}
+      onClick={() => onOpenDetail(user)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onOpenDetail(user);
+        }
+      }}
+      className='flex cursor-pointer items-center gap-4 rounded-lg border border-border bg-white px-4 py-3 transition-colors hover:bg-canvas focus:outline-none focus-visible:ring-2 focus-visible:ring-border'
+    >
+      <div className='min-w-0 flex-1'>
+        <div className='flex flex-wrap items-center gap-2'>
+          <span className='truncate font-semibold text-foreground'>{user.username}</span>
+          {typeof user.code === 'number' ? (
+            <span className='font-mono text-xs text-muted-foreground'>#{user.code}</span>
+          ) : null}
+          <Badge variant='softNeutral'>{getLocaleLabel(user.locale)}</Badge>
+          {user.representativeNickname?.trim() ? (
+            <span className='truncate text-xs text-muted-foreground'>{user.representativeNickname}</span>
+          ) : null}
+        </div>
+        <div className='mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground'>
+          <button
+            type='button'
+            onClick={(event) => {
+              event.stopPropagation();
+              copyId(user.id);
+            }}
+            onKeyDown={(event) => event.stopPropagation()}
+            className='inline-flex items-center gap-1 font-mono transition-colors hover:text-foreground'
+          >
+            <Copy className='h-3 w-3' />
+            {user.id}
+          </button>
+          <span className='truncate'>{user.socialAccount?.email || '이메일 없음'}</span>
+          <span>공간 {spaceCount}개</span>
+          <span>가입일 {joinedLabel}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function UserSearch() {
-  const [modal, holder] = Modal.useModal();
-  const [id, setId] = useState('');
+  const [userId, setUserId] = useState('');
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [isOpenTicket, setOpenTicket] = useState(false);
   const [focused, setFocused] = useState<string>('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState<UserSummary | null>(null);
+  const [detailUser, setDetailUser] = useState<UserSummary | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
-  const { data, refetch, isLoading } = useQuery({
-    queryKey: ['user', id],
-    queryFn: () => getUser(id),
+  const getFilledFields = () =>
+    [
+      { key: 'id' as const, label: 'ID', value: userId.trim() },
+      { key: 'username' as const, label: 'Username', value: username.trim() },
+      { key: 'email' as const, label: 'Email', value: email.trim() },
+    ].filter((field) => field.value.length > 0);
+
+  const getSearchParams = (): SearchUserParams | null => {
+    const filledFields = getFilledFields();
+
+    if (filledFields.length !== 1) {
+      return null;
+    }
+
+    const [field] = filledFields;
+
+    return { [field.key]: field.value } as SearchUserParams;
+  };
+
+  const getSearchSummary = () => {
+    const [field] = getFilledFields();
+
+    return field ? `${field.label}: ${field.value}` : '';
+  };
+
+  const { data, refetch, isLoading, isFetched, error } = useQuery<UserDetail>({
+    queryKey: ['user-search', userId, username, email],
+    queryFn: () => {
+      const params = getSearchParams();
+
+      if (!params) {
+        throw new Error('검색 조건이 올바르지 않습니다.');
+      }
+
+      return searchUser(params);
+    },
     enabled: false,
   });
 
   const copyId = (text: string) => {
     navigator.clipboard.writeText(text);
-    message.success(`${text} 복사됨`);
+    toast.success(`${text} 복사됨`);
   };
 
-  const handleRemove = (user: User) => {
-    modal.confirm({
-      title: `사용자 삭제`,
-      content: (
-        <div className='space-y-2'>
-          <p>
-            <strong>{user.username}</strong> 사용자를 삭제하시겠습니까?
-          </p>
-          <div className='text-sm text-gray-600'>
-            <p>• 이메일: {user.socialAccount.email}</p>
-            <p>• 가입일: {dayjs(user.createdAt).format('YYYY-MM-DD')}</p>
-            <p>• 공간 수: {user._count.profiles}개</p>
-          </div>
-        </div>
-      ),
-      okText: '삭제',
-      okType: 'danger',
-      cancelText: '취소',
-      onOk: async () => {
-        try {
-          await removeUser(user.id);
-          message.success(`${user.username} 사용자가 삭제되었습니다`);
-          await refetch();
-        } catch (err) {
-          message.error(`삭제 실패: ${err}`);
-        }
-      },
-    });
+  const getErrorMessage = () => {
+    if (!error) {
+      return getSearchSummary();
+    }
+
+    if (isAxiosError<{ message?: string }>(error)) {
+      return error.response?.data?.message ?? error.message;
+    }
+
+    return error instanceof Error ? error.message : getSearchSummary();
   };
 
-  const renderUserCard = (user: User) => {
-    const { id, username, locale, socialAccount, createdAt, _count, reserveUnregisterAt, spaceMaxCount } = user;
-    const created = dayjs(createdAt);
-    const diffFromNow = dayjs().diff(created, 'day');
+  const handleRemoveClick = (user: UserSummary) => {
+    setConfirmTarget(user);
+    setConfirmOpen(true);
+  };
 
-    const providerMap = {
-      GOOGLE: { color: 'red', icon: '🔍', text: 'Google' },
-      KAKAO: { color: 'gold', icon: '💬', text: 'Kakao' },
-      APPLE: { color: 'default', icon: '🍎', text: 'Apple' },
-      LINE: { color: 'green', icon: '💚', text: 'Line' },
-    };
+  const handleRemoveConfirm = async () => {
+    if (!confirmTarget) return;
+    try {
+      await removeUser(confirmTarget.id);
+      toast.success(`${confirmTarget.username} 사용자가 삭제되었습니다`);
+      await refetch();
+      setDetailUser(null);
+      setDetailOpen(false);
+    } catch (err) {
+      toast.error(`삭제 실패: ${err}`);
+    } finally {
+      setConfirmOpen(false);
+      setConfirmTarget(null);
+    }
+  };
 
-    const providerConfig = providerMap[socialAccount.provider as keyof typeof providerMap] || {
-      color: 'default',
-      icon: '🔗',
-      text: socialAccount.provider,
-    };
+  const handleSearch = () => {
+    const filledFields = getFilledFields();
 
-    const isCompleted = _count.profiles > 0;
+    if (filledFields.length === 0) {
+      toast.warning('ID, Username, Email 중 하나를 입력해주세요.');
+      return;
+    }
 
-    return (
-      <Card
-        title={
-          <div className='flex gap-2 items-center'>
-            <span>👤 {username}</span>
-            <Tag color={isCompleted ? 'green' : 'orange'}>{isCompleted ? '✅ 완료' : '⏳ 진행중'}</Tag>
-          </div>
-        }
-        extra={
-          <Space>
-            <Button
-              size='small'
-              onClick={() => {
-                setOpenTicket(true);
-                setFocused(username);
-              }}
-              type='primary'
-            >
-              티켓 지급
-            </Button>
-            <Button size='small' danger onClick={() => handleRemove(user)}>
-              삭제
-            </Button>
-          </Space>
-        }
-        className='bg-white shadow-sm'
-      >
-        <div className='space-y-3'>
-          {/* 기본 정보 */}
-          <div className='flex flex-wrap gap-2'>
-            <Button size='small' type='default' onClick={() => copyId(id)} className='flex gap-1 items-center'>
-              ID: {id.slice(0, 8)}...
-              <Copy className='w-3 h-3' />
-            </Button>
-            <Tag color={providerConfig.color}>
-              {providerConfig.icon} {providerConfig.text}
-            </Tag>
-            <Tag>{locale?.toUpperCase()}</Tag>
-          </div>
+    if (filledFields.length > 1) {
+      toast.warning('한 번에 한 필드만 검색해주세요.');
+      return;
+    }
 
-          {/* 이메일 */}
-          <div className='flex gap-2 items-center'>
-            <span className='text-sm text-gray-500'>이메일:</span>
-            <span>{socialAccount.email}</span>
-          </div>
+    refetch();
+  };
 
-          {/* 통계 정보 */}
-          <div className='flex flex-wrap gap-2'>
-            <Tag color='blue'>🏠 공간 {_count.profiles}개</Tag>
-            <Tag color={spaceMaxCount > 5 ? 'gold' : spaceMaxCount > 2 ? 'green' : 'default'}>
-              🏆 최대 {spaceMaxCount}개
-            </Tag>
-            <Tag color={diffFromNow < 7 ? 'green' : diffFromNow < 30 ? 'orange' : 'default'}>D+{diffFromNow}</Tag>
-          </div>
-
-          {/* 가입일 */}
-          <div className='flex gap-2 items-center text-sm text-gray-500'>
-            <span>가입일:</span>
-            <span>{created.format('YYYY-MM-DD HH:mm')}</span>
-          </div>
-
-          {/* 탈퇴 예정일 */}
-          {reserveUnregisterAt && (
-            <div className='flex gap-2 items-center'>
-              <Tag color='error'>⚠️ 탈퇴 예정</Tag>
-              <span className='text-sm text-red-600'>{reserveUnregisterAt}</span>
-            </div>
-          )}
-        </div>
-      </Card>
-    );
+  const handleResetSearch = () => {
+    setUserId('');
+    setUsername('');
+    setEmail('');
   };
 
   return (
     <div className='space-y-4'>
-      {holder}
-
-      {/* 검색 영역 */}
-      <Card size='small' title='🔍 사용자 검색'>
-        <div className='flex gap-2'>
+      <FormSection title='사용자 검색' description='userId / username / email로 계정을 정확하게 조회합니다.'>
+        <FormGroup title='ID'>
           <Input
-            placeholder='유저코드를 입력하세요...'
-            value={id}
-            onChange={(e) => setId(e.target.value)}
-            onPressEnter={() => refetch()}
-            size='large'
+            placeholder='정확한 ID를 입력하세요...'
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            className='h-10'
           />
-          <Button onClick={() => refetch()} type='primary' size='large' loading={isLoading} disabled={!id.trim()}>
-            🔍 검색
+        </FormGroup>
+
+        <FormGroup title='Username'>
+          <Input
+            placeholder='정확한 Username을 입력하세요...'
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            className='h-10'
+          />
+        </FormGroup>
+
+        <FormGroup title='Email'>
+          <Input
+            placeholder='정확한 Email을 입력하세요...'
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            className='h-10'
+          />
+        </FormGroup>
+
+        <div className='flex justify-end gap-2 pt-2'>
+          <Button type='button' variant='outline' onClick={handleResetSearch} disabled={isLoading}>
+            초기화
+          </Button>
+          <Button type='button' onClick={handleSearch} disabled={isLoading}>
+            {isLoading ? <Loader2 className='w-4 h-4 animate-spin' /> : <Search className='w-4 h-4' />}
+            검색
           </Button>
         </div>
-      </Card>
+      </FormSection>
 
-      {/* 검색 결과 */}
-      {data && renderUserCard(data)}
+      {data ? (
+        <UserResultCard
+          user={data}
+          copyId={copyId}
+          onOpenDetail={(user) => {
+            setDetailUser(user as UserSummary);
+            setDetailOpen(true);
+          }}
+        />
+      ) : null}
 
-      {/* 티켓 지급 드로어 */}
-      <Drawer
+      {!data && !isLoading && isFetched && (
+        <Card className='border-border bg-white py-8 text-center'>
+          <CardContent>
+            <div className='text-muted-foreground'>
+              <p>{error ? '검색을 완료하지 못했습니다' : '검색 결과가 없습니다'}</p>
+              <p className='mt-1 text-sm'>{getErrorMessage()}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <Sheet
         open={isOpenTicket}
-        onClose={() => {
-          setOpenTicket(false);
-          setFocused('');
-        }}
-        width={600}
-        title='🎫 티켓 지급'
-      >
-        <TicketForm
-          reload={refetch}
-          close={() => {
+        onOpenChange={(open) => {
+          if (!open) {
             setOpenTicket(false);
             setFocused('');
-          }}
-          username={focused}
-        />
-      </Drawer>
+          }
+        }}
+      >
+        <AdminSideSheetContent title='티켓 관리' size='md'>
+          <TicketForm
+            reload={refetch}
+            close={() => {
+              setOpenTicket(false);
+              setFocused('');
+            }}
+            username={focused}
+          />
+        </AdminSideSheetContent>
+      </Sheet>
+
+      <UserDetailSheet
+        open={detailOpen}
+        user={detailUser}
+        onClose={() => setDetailOpen(false)}
+        copyId={copyId}
+        onOpenTicket={(user) => {
+          setOpenTicket(true);
+          setFocused(user.username);
+        }}
+        onRemove={(user) => {
+          setDetailOpen(false);
+          handleRemoveClick(user);
+        }}
+      />
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>사용자 삭제</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className='space-y-2'>
+                <p>
+                  <strong>{confirmTarget?.username}</strong> 사용자를 삭제하시겠습니까?
+                </p>
+                <div className='text-sm text-muted-foreground'>
+                  <p>• 이메일: {confirmTarget?.socialAccount.email}</p>
+                  <p>• 가입일: {confirmTarget ? dayjs(confirmTarget.createdAt).format('YYYY-MM-DD') : ''}</p>
+                  <p>• 공간 수: {confirmTarget?._count.profiles}개</p>
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRemoveConfirm}
+              className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+            >
+              삭제
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

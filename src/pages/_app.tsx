@@ -1,20 +1,27 @@
 import { IDefaultLayoutPage } from '@/components/layout/default-layout';
 import SeoHead from '@/components/layout/seo-head';
 import AuthProvider from '@/lib/auth/auth-provider';
+import { AdminThemeProvider } from '@/lib/design-system/theme-provider';
 import '@/styles/globals.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ConfigProvider } from 'antd';
-import koKR from 'antd/locale/ko_KR';
 import { NextComponentType } from 'next';
 import { SessionProvider } from 'next-auth/react';
 import type { AppProps } from 'next/app';
+import { JetBrains_Mono } from 'next/font/google';
 import localFont from 'next/font/local';
 import Head from 'next/head';
+import { Toaster } from 'sonner';
 
 const pretendard = localFont({
   src: '../fonts/PretendardVariable.woff2',
   weight: '45 920',
   variable: '--font-pretendard',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-jbmono',
 });
 
 const queryClient = new QueryClient({
@@ -31,7 +38,7 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
     ((Page: NextComponentType, props: Record<string, unknown>) => <Page {...props} />);
 
   return (
-    <>
+    <AdminThemeProvider>
       <SeoHead />
       <Head>
         <link rel='apple-touch-icon' sizes='180x180' href='/apple-touch-icon.png' />
@@ -42,15 +49,16 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
           <script src='https://buttr.dev/butter.js' data-site-id={process.env.NEXT_PUBLIC_CODENBUTTER_SITE_ID} async />
         ) : null}
       </Head>
-      <ConfigProvider locale={koKR}>
-        <QueryClientProvider client={queryClient}>
-          <SessionProvider session={session}>
-            <AuthProvider>
-              <main className={`${pretendard.variable} font-sans`}>{getLayout(Component, pageProps)}</main>
-            </AuthProvider>
-          </SessionProvider>
-        </QueryClientProvider>
-      </ConfigProvider>
-    </>
+      <QueryClientProvider client={queryClient}>
+        <SessionProvider session={session}>
+          <AuthProvider>
+            <main className={`${pretendard.variable} ${jetbrainsMono.variable} font-sans`}>
+              {getLayout(Component, pageProps)}
+            </main>
+          </AuthProvider>
+        </SessionProvider>
+      </QueryClientProvider>
+      <Toaster position='top-right' richColors closeButton />
+    </AdminThemeProvider>
   );
 }

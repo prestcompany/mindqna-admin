@@ -1,16 +1,17 @@
 import { getDefaultLayout } from '@/components/layout/default-layout';
-import pageHeader from '@/components/layout/page-header';
-import ProductList from '@/components/page/premium/ProductList';
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 
-function ProductPage() {
-  return (
-    <div>
-      <ProductList />
-    </div>
-  );
+function IapProductRedirectPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace('/product/purchase?tab=products');
+  }, [router]);
+
+  return null;
 }
 
-ProductPage.getLayout = getDefaultLayout;
-ProductPage.pageHeader = pageHeader;
+IapProductRedirectPage.getLayout = getDefaultLayout;
 
-export default ProductPage;
+export default IapProductRedirectPage;

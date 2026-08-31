@@ -1,0 +1,108 @@
+import { getSpaceMemberDetail } from '@/client/space';
+import { Badge } from '@/components/ui/badge';
+import { useQuery } from '@tanstack/react-query';
+import dayjs from 'dayjs';
+import { Copy, Loader2 } from 'lucide-react';
+import { getMemberStatus } from '../../utils/space-display';
+
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className='rounded-lg bg-canvas px-3 py-2 text-center'>
+      <div className='text-sm font-semibold tabular-nums text-foreground'>{value.toLocaleString()}</div>
+      <div className='text-xs text-muted-foreground'>{label}</div>
+    </div>
+  );
+}
+
+interface SpaceMemberDetailProps {
+  spaceId: string;
+  profileId: string;
+  copyId?: (id: string) => void;
+}
+
+function SpaceMemberDetail({ spaceId, profileId, copyId }: SpaceMemberDetailProps) {
+  const { data, isFetching } = useQuery({
+    queryKey: ['space-member-detail', spaceId, profileId],
+    queryFn: () => getSpaceMemberDetail(spaceId, profileId),
+    enabled: !!spaceId && !!profileId,
+  });
+  if (isFetching && !data) {
+    return (
+      <div className='flex min-h-[64px] items-center justify-center'>
+        <Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />
+      </div>
+    );
+  }
+  if (!data) return null;
+  const status = getMemberStatus(data.profile);
+  return (
+    <div className='space-y-3'>
+      <div className='flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground'>
+        <span className='font-mono'>ID: {data.profile.id}</span>
+        {data.profile.user?.username && copyId ? (
+          <button
+            type='button'
+            onClick={() => copyId(data.profile.user!.username)}
+            className='inline-flex items-center gap-1 rounded px-1 py-0.5 transition-colors hover:bg-muted hover:text-foreground'
+          >
+            @{data.profile.user.username}
+            <Copy className='h-3 w-3' />
+          </button>
+        ) : null}
+      </div>
+      {status.badgeVariant ? (
+        <div className='flex flex-wrap items-center gap-2'>
+          <span className='truncate text-sm font-medium text-foreground'>{data.profile.nickname}</span>
+          <Badge variant={status.badgeVariant}>{status.label}</Badge>
+          {status.date ? (
+            <span className='text-xs text-muted-foreground'>
+              {status.label} {dayjs(status.date).format('YY.MM.DD')}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+      <div className='grid grid-cols-3 gap-2 sm:grid-cols-5'>
+        <Stat label='답변' value={data.counts.replyCount} />
+        <Stat label='일기' value={data.counts.diaryCount} />
+        <Stat label='일정' value={data.counts.scheduleCount} />
+        <Stat label='카드 댓글' value={data.counts.cardCommentCount} />
+        <Stat label='일기 댓글' value={data.counts.diaryCommentCount} />
+      </div>
+      <div className='flex items-center gap-2 text-sm'>
+        <span className='text-xs text-muted-foreground'>재화</span>
+        <span className='tabular-nums text-success'>지급 {data.coin.given.toLocaleString()}</span>
+        <span className='text-faint'>·</span>
+        <span className='tabular-nums text-destructive'>사용 {data.coin.used.toLocaleString()}</span>
+      </div>
+      <div>
+        <div className='mb-1 text-xs font-medium text-muted-foreground'>
+          프리미엄 티켓 ({data.premiumTickets.length})
+        </div>
+        {data.premiumTickets.length ? (
+          <div className='space-y-1'>
+            {data.premiumTickets.map((t) => (
+              <div
+                key={t.id}
+                className='flex items-center justify-between rounded-lg border border-border bg-white px-3 py-2 text-xs'
+              >
+                <span className='truncate text-foreground'>
+                  {t.platform} · {t.productId}
+                </span>
+                <div className='flex shrink-0 items-center gap-2'>
+                  <Badge variant={t.isActive ? 'softSuccess' : 'softNeutral'}>{t.isActive ? '활성' : '만료'}</Badge>
+                  <span className='text-muted-foreground'>
+                    {t.dueAt ? `~${dayjs(t.dueAt).format('YY.MM.DD')}` : '-'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className='text-xs text-muted-foreground'>프리미엄 티켓 없음</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default SpaceMemberDetail;
