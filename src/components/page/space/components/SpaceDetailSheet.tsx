@@ -5,7 +5,8 @@ import { Sheet } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useResetOnChange } from '@/hooks/useResetOnChange';
 import SpaceDetailContent from './SpaceDetailContent';
 import SpaceEditPanel from './SpaceEditPanel';
 import SpaceIdentityStrip from './SpaceIdentityStrip';
@@ -44,10 +45,10 @@ function SpaceDetailSheet({ open, space, onClose, copyId, initialTab, onRemovePr
     enabled: open && !!spaceId,
   });
   // 다른 공간을 열면 항상 initialTab(기본값 개요)부터 보이고, 편집 모드도 초기화한다.
-  useEffect(() => {
+  useResetOnChange([spaceId, initialTab], () => {
     setTab(initialTab ?? 'overview');
     setEditOpen(false);
-  }, [spaceId, initialTab]);
+  });
 
   const detail: SpaceDetail | null = data ?? (space ? ({ ...space, recentCoinMetas: [] } as SpaceDetail) : null);
   if (!detail) return null;

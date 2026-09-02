@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
 import { NextComponentType, NextPage } from 'next';
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useResetOnChange } from '@/hooks/useResetOnChange';
 import CommandPalette from '@/components/shared/command-palette/CommandPalette';
 import Header from './header';
 import MainMenu from './main-menu';
@@ -51,9 +52,7 @@ const DefaultLayout = ({ Page, ...props }: IDefaultLayoutProps) => {
     setIsShowPopupMenu(val);
   }, []);
 
-  useEffect(() => {
-    setActive(false);
-  }, [router.asPath, setActive]);
+  useResetOnChange([router.asPath], () => setActive(false));
 
   const resolvedPageHeader = isPageHeaderValue(Page.pageHeader)
     ? Page.pageHeader
