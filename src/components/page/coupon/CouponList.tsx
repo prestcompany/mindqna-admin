@@ -28,6 +28,7 @@ import useDebouncedValue from '@/hooks/useDebouncedValue';
 import { useQueryClient } from '@tanstack/react-query';
 import { Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { useResetOnChange } from '@/hooks/useResetOnChange';
 import { toast } from 'sonner';
 import CouponCodeList from './CouponCodeList';
 import { createCouponColumns } from './CouponColumns';
@@ -73,9 +74,7 @@ function CouponList() {
   const [confirmDelete, setConfirmDelete] = useState<CouponBatch | undefined>(undefined);
   const [confirmStop, setConfirmStop] = useState<CouponBatch | undefined>(undefined);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [effectiveSearch, status, sort]);
+  useResetOnChange([effectiveSearch, status, sort], () => setCurrentPage(1));
 
   // Deleting every batch on the last page shrinks the list under the page the admin is
   // standing on. The refetch then returns an empty array for a page that no longer exists,

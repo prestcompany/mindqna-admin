@@ -21,7 +21,8 @@ import useLocales from '@/hooks/useLocales';
 import { ColumnDef } from '@tanstack/react-table';
 import { Search, RotateCcw } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useResetOnChange } from '@/hooks/useResetOnChange';
 import { toast } from 'sonner';
 import LocaleForm from './LocaleForm';
 
@@ -61,9 +62,7 @@ function LocaleList() {
     setCurrentPage(1);
   };
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filter.locale]);
+  useResetOnChange([filter.locale], () => setCurrentPage(1));
 
   const handleRemove = (value: LocaleWord) => {
     setConfirmTarget(value);

@@ -8,6 +8,7 @@ import { copyText } from '@/lib/clipboard';
 import dayjs from 'dayjs';
 import { Copy, Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { useResetOnChange } from '@/hooks/useResetOnChange';
 import { toast } from 'sonner';
 import { errorMessage } from './errorMessage';
 
@@ -61,9 +62,7 @@ function CouponCodeList({ batch }: { batch: CouponBatch }) {
     if (!canLoadAll && !isLoading && !isError && page > totalPage) setPage(totalPage);
   }, [canLoadAll, isLoading, isError, page, totalPage]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [debouncedQuery]);
+  useResetOnChange([debouncedQuery], () => setPage(1));
 
   const visible = useMemo(() => {
     if (!canLoadAll) return items;
