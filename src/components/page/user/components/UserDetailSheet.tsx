@@ -5,7 +5,8 @@ import { Sheet } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useResetOnChange } from '@/hooks/useResetOnChange';
 import UserDetailContent from './UserDetailContent';
 import UserEditPanel from './UserEditPanel';
 import UserProfilesTab from './tabs/UserProfilesTab';
@@ -29,10 +30,10 @@ function UserDetailSheet({ open, user, onClose, copyId, onOpenTicket, onRemove }
   // A mode of this sheet, not a second overlay stacked on top of it — the body swaps
   // between the tab strip and the edit rows, and only one of them is ever mounted.
   const [editOpen, setEditOpen] = useState(false);
-  useEffect(() => {
+  useResetOnChange([username], () => {
     setTab('overview');
     setEditOpen(false);
-  }, [username]);
+  });
   const { data, isLoading, isError } = useQuery<UserDetail>({
     queryKey: ['user-detail', username],
     queryFn: () => getUser(username as string),

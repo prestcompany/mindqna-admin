@@ -39,6 +39,9 @@ function flattenMenus(): MenuEntry[] {
   return entries;
 }
 
+// Derived purely from the module-level menu table, so it never changes at runtime.
+const MENU_ENTRIES = flattenMenus();
+
 function CommandPalette() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -62,15 +65,13 @@ function CommandPalette() {
     };
   }, []);
 
-  const menuEntries = useMemo(flattenMenus, []);
-
   // shouldFilter={false}(비동기 결과 혼합 시 cmdk 기본 필터가 스페이스/유저 항목을 잘못 걸러냄)
   // → 메뉴는 keyword로 수동 필터링한다.
   const filteredMenus = useMemo(() => {
-    if (!keyword) return menuEntries;
+    if (!keyword) return MENU_ENTRIES;
     const lowered = keyword.toLowerCase();
-    return menuEntries.filter((entry) => `${entry.group} ${entry.name}`.toLowerCase().includes(lowered));
-  }, [menuEntries, keyword]);
+    return MENU_ENTRIES.filter((entry) => `${entry.group} ${entry.name}`.toLowerCase().includes(lowered));
+  }, [keyword]);
 
   // URL 경로에 그대로 들어가는 값이므로 username 형태로 게이트(경로 파괴 문자·불필요한 404 방지)
   const isUsernameLike = /^[A-Za-z0-9._-]{2,}$/.test(keyword);

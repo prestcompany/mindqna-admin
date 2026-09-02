@@ -24,7 +24,8 @@ import useInteriors from '@/hooks/useInteriors';
 import useTotalRooms from '@/hooks/useTotalRooms';
 import { ColumnDef } from '@tanstack/react-table';
 import { Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useResetOnChange } from '@/hooks/useResetOnChange';
 import { toast } from 'sonner';
 import InteriorForm from './InteriorForm';
 
@@ -54,9 +55,7 @@ function InteriorList() {
     search: effectiveSearch,
   });
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filter.room, filter.type, effectiveSearch]);
+  useResetOnChange([filter.room, filter.type, effectiveSearch], () => setCurrentPage(1));
 
   const handleEdit = (value: InteriorTemplate) => {
     setFocused(value);

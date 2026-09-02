@@ -15,7 +15,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import usePushes from '@/hooks/usePushes';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useResetOnChange } from '@/hooks/useResetOnChange';
 import { toast } from 'sonner';
 import { createPushColumns } from './PushColumns';
 import PushForm from './PushForm';
@@ -65,9 +66,7 @@ function PushList() {
 
   // A narrowed filter re-pages the whole result set, so holding page 4 renders an empty
   // table with nothing to explain it.
-  useEffect(() => {
-    setPage(1);
-  }, [locale, status]);
+  useResetOnChange([locale, status], () => setPage(1));
 
   // A filtered campaign is stored as many rows; the list shows it as one so a single send
   // does not fill a page. Row actions still act on a real row, and cancel reaches the whole
