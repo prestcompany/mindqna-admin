@@ -1,3 +1,5 @@
+@import './_spinner.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -202,9 +204,6 @@
     @apply font-mono text-xs font-medium uppercase tracking-wide text-body;
   }
 }
-
-@import './_spinner.css';
-@import './_custom_quill.css';
 
 @layer base {
   * {

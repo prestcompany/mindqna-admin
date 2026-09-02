@@ -23,7 +23,8 @@ import useDebouncedValue from '@/hooks/useDebouncedValue';
 import useBanners from '@/hooks/useBanners';
 import { ColumnDef } from '@tanstack/react-table';
 import { Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useResetOnChange } from '@/hooks/useResetOnChange';
 import { toast } from 'sonner';
 import BannerForm from './BannerForm';
 import { useBannerLocations } from './useBannerLocations';
@@ -67,9 +68,7 @@ function BannerList() {
     setConfirmTarget(undefined);
   };
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filter.locale, filter.location, effectiveSearch]);
+  useResetOnChange([filter.locale, filter.location, effectiveSearch], () => setCurrentPage(1));
 
   const columns: ColumnDef<Banner>[] = [
     {

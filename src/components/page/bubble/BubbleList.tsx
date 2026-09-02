@@ -22,7 +22,8 @@ import useBubbles from '@/hooks/useBubbles';
 import { ColumnDef } from '@tanstack/react-table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useResetOnChange } from '@/hooks/useResetOnChange';
 import { toast } from 'sonner';
 import BubbleForm from './BubbleForm';
 
@@ -74,9 +75,7 @@ function BubbleList() {
     setConfirmTarget(undefined);
   };
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filter.type, filter.locale, filter.level, effectiveSearch]);
+  useResetOnChange([filter.type, filter.locale, filter.level, effectiveSearch], () => setCurrentPage(1));
 
   const columns: ColumnDef<PetBubble>[] = [
     {
