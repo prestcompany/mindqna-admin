@@ -4,7 +4,7 @@ import { DefinitionRow } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
 import { Select as ShadSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { CardUploader } from './CardUploader';
 
@@ -14,15 +14,12 @@ type Props = {
 
 export const CardUploadModal = ({ close }: Props) => {
   const queryClient = useQueryClient();
-  const [isUploadDisable, setIsUploadDisable] = useState(true);
   const [cardType, setCardType] = useState<CardTemplateType>();
   const [spaceType, setSpaceType] = useState<SpaceType>();
   const [locale, setLocale] = useState<string>();
   const [uploadFile, setUploadFile] = useState<File>();
 
-  useEffect(() => {
-    setIsUploadDisable(!locale || !spaceType || !cardType || !uploadFile);
-  }, [uploadFile, locale, spaceType, cardType]);
+  const isUploadDisable = !locale || !spaceType || !cardType || !uploadFile;
 
   const handleFile = (file: File[]) => {
     if (file.length === 0) return;

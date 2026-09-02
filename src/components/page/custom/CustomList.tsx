@@ -22,7 +22,8 @@ import useDebouncedValue from '@/hooks/useDebouncedValue';
 import useCustoms from '@/hooks/useCustoms';
 import { ColumnDef } from '@tanstack/react-table';
 import { Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useResetOnChange } from '@/hooks/useResetOnChange';
 import { toast } from 'sonner';
 import CustomFormModal from './CustomFormModal';
 import LottieCDNPlayer from './LottieCDNPlayer';
@@ -44,9 +45,7 @@ function CustomList() {
 
   const { templates, totalPage, isLoading, refetch } = useCustoms({ page: currentPage, search: effectiveSearch });
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [effectiveSearch]);
+  useResetOnChange([effectiveSearch], () => setCurrentPage(1));
 
   const handleEdit = (value: PetCustomTemplate) => {
     setFocused(value);

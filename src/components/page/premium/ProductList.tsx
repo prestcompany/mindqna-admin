@@ -11,7 +11,8 @@ import type { PurchaseDetailContext } from './PurchaseDetailSheet';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useResetOnChange } from '@/hooks/useResetOnChange';
 
 type ActiveValue = 'all' | 'active' | 'expired';
 type KindValue = 'all' | 'sub' | 'consumable';
@@ -44,9 +45,7 @@ function ProductList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetailConte
     isProduction: envFilter === 'all' ? undefined : envFilter === 'prod',
   });
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [effectiveSearch, activeFilter, kindFilter, platformFilter, envFilter]);
+  useResetOnChange([effectiveSearch, activeFilter, kindFilter, platformFilter, envFilter], () => setCurrentPage(1));
 
   const columns: ColumnDef<IAPProduct>[] = [
     { accessorKey: 'id', header: '번호', size: 72 },
