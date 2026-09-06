@@ -1,14 +1,20 @@
 import { getStatsMetrics, queryStats, type StatsBucketRow, type StatsCondition } from '@/client/stats';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
-import { Plus } from 'lucide-react';
+import { ChevronRight, Plus } from 'lucide-react';
 import { useState } from 'react';
 import ConditionRow from './ConditionRow';
+import StatsDrilldownSheet from './StatsDrilldownSheet';
 import { addDraft, initialQueryState, removeDraft, toConditions, updateDraft, type Lane } from './services/query-state';
 
 function StatsQueryPanel() {
   const [state, setState] = useState(() => initialQueryState('space'));
   const [rows, setRows] = useState<StatsBucketRow[] | null>(null);
+  // The conditions the counts were produced from. Editing the panel afterwards
+  // must not re-aim the drill-down at a different question than the number
+  // beside it.
+  const [asked, setAsked] = useState<{ filters: StatsCondition[]; buckets: StatsCondition[] } | null>(null);
+  const [opened, setOpened] = useState<{ index: number; row: StatsBucketRow } | null>(null);
 
   const { data: entities } = useQuery({ queryKey: ['stats-metrics'], queryFn: getStatsMetrics });
   const entity = entities?.find((item) => item.key === state.entity);
@@ -24,6 +30,8 @@ function StatsQueryPanel() {
     queryFn: async () => {
       const result = await queryStats({ entity: state.entity, filters, buckets });
       setRows(result.rows);
+      setAsked({ filters, buckets });
+      setOpened(null);
       return result;
     },
     enabled: false,
@@ -79,10 +87,11 @@ function StatsQueryPanel() {
             <tr className='text-left text-xs text-muted-foreground'>
               <th className='py-2 font-medium'>조건</th>
               <th className='py-2 text-right font-medium'>개수</th>
+              <th className='w-10' />
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
+            {rows.map((row, index) => (
               <tr key={row.label} className='border-t border-border'>
                 <td className='py-2'>{row.label}</td>
                 <td className='py-2 text-right tabular-nums'>
@@ -92,11 +101,34 @@ function StatsQueryPanel() {
                     row.count.toLocaleString()
                   )}
                 </td>
+                <td className='w-10 py-2 text-right'>
+                  {row.count ? (
+                    <Button
+                      variant='ghost'
+                      size='icon'
+                      className='h-7 w-7'
+                      aria-label={`${row.label} 목록 열기`}
+                      onClick={() => setOpened({ index, row })}
+                    >
+                      <ChevronRight className='h-4 w-4' />
+                    </Button>
+                  ) : null}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       ) : null}
+
+      <StatsDrilldownSheet
+        open={!!opened}
+        onClose={() => setOpened(null)}
+        entity={state.entity}
+        filters={asked?.filters ?? []}
+        bucket={opened ? (asked?.buckets[opened.index] ?? null) : null}
+        label={opened?.row.label ?? ''}
+        total={opened?.row.count ?? 0}
+      />
     </div>
   );
 }
