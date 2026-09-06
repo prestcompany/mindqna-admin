@@ -3,17 +3,13 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { useResetOnChange } from '@/hooks/useResetOnChange';
 import ConditionRow from './ConditionRow';
 import StatsDrilldownSheet from './StatsDrilldownSheet';
 import { addDraft, initialQueryState, removeDraft, toConditions, updateDraft, type Lane } from './services/query-state';
 
 function StatsQueryPanel() {
   const [state, setState] = useState(() => initialQueryState('space'));
-  const [rows, setRows] = useState<StatsBucketRow[] | null>(null);
-  // The conditions the counts were produced from. Editing the panel afterwards
-  // must not re-aim the drill-down at a different question than the number
-  // beside it.
-  const [asked, setAsked] = useState<{ filters: StatsCondition[]; buckets: StatsCondition[] } | null>(null);
   const [opened, setOpened] = useState<{ index: number; row: StatsBucketRow } | null>(null);
 
   const { data: entities } = useQuery({ queryKey: ['stats-metrics'], queryFn: getStatsMetrics });
@@ -25,17 +21,22 @@ function StatsQueryPanel() {
 
   // Conditions are edited freely; the query only runs on the button, so a
   // half-typed threshold never reaches the server.
-  const { refetch, isFetching } = useQuery({
+  const { data, refetch, isFetching } = useQuery({
     queryKey: ['stats-query', state.entity, filters, buckets],
     queryFn: async () => {
       const result = await queryStats({ entity: state.entity, filters, buckets });
-      setRows(result.rows);
-      setAsked({ filters, buckets });
-      setOpened(null);
-      return result;
+      // The conditions travel with the counts they produced, so editing the
+      // panel afterwards cannot re-aim the drill-down at a different question
+      // than the number beside it.
+      return { rows: result.rows, asked: { filters, buckets } };
     },
     enabled: false,
   });
+
+  // A new result set invalidates whichever row was open against the old one.
+  useResetOnChange([data], () => setOpened(null));
+
+  const rows = data?.rows ?? null;
 
   const renderLane = (lane: Lane, title: string, hint: string) => (
     <section className='space-y-2'>
@@ -124,8 +125,8 @@ function StatsQueryPanel() {
         open={!!opened}
         onClose={() => setOpened(null)}
         entity={state.entity}
-        filters={asked?.filters ?? []}
-        bucket={opened ? (asked?.buckets[opened.index] ?? null) : null}
+        filters={data?.asked.filters ?? []}
+        bucket={opened ? (data?.asked.buckets[opened.index] ?? null) : null}
         label={opened?.row.label ?? ''}
         total={opened?.row.count ?? 0}
       />
