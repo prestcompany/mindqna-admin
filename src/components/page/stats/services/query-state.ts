@@ -58,14 +58,18 @@ function splitValues(value: string): string[] {
  * any text became `false` for a boolean, and a malformed date reached the server
  * and came back as a count of zero rather than an error.
  */
-const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
-const DATE_TIME = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?$/;
+const DATE_ONLY = /^[1-9]\d{3}-\d{2}-\d{2}$/;
+const DATE_TIME = /^[1-9]\d{3}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?$/;
+const MAX_YEAR = 9998;
 
 /**
  * Mirrors the server's parser rather than calling Date.parse. Date.parse reads
  * "2026-01" as January 1st and rolls "2026-02-30" into March, none of which
  * MySQL accepts, so gating on it would pass values the server then answers with
  * a count of zero.
+ *
+ * The grammar has to stay identical to stats.values.ts on the server, or the
+ * panel starts blocking what the route allows, or worse the reverse.
  */
 export function parseDateValue(raw: string): Date | null {
   const value = raw.trim();
@@ -73,6 +77,7 @@ export function parseDateValue(raw: string): Date | null {
   const [datePart, timePart = '00:00:00'] = value.split(/[ T]/);
   const [year, month, day] = datePart.split('-').map(Number);
   const [hour, minute, second = 0] = timePart.split(':').map(Number);
+  if (hour > 23 || minute > 59 || second > 59 || year > MAX_YEAR) return null;
   const instant = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
   const rolled =
     instant.getUTCFullYear() !== year || instant.getUTCMonth() !== month - 1 || instant.getUTCDate() !== day;

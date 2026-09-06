@@ -183,3 +183,14 @@ test('a date range still serialises both bounds as text the server parses', () =
   const [condition] = toConditions([draft], [createdAt]);
   assert.deepEqual(condition.value, ['2026-01-01', '2026-01-31']);
 });
+
+for (const input of ['2026-01-31 00:99', '2026-01-31 24:00', '0100-01-01', '9999-12-31']) {
+  test(`a date draft rejects ${input}, outside the grammar the server accepts`, () => {
+    assert.notEqual(draftError({ id: 'a', metric: 'createdAt', op: 'gte' as const, value: input }, createdAt), null);
+  });
+}
+
+test('a leap day is judged by the calendar, not by a special case', () => {
+  assert.equal(draftError({ id: 'a', metric: 'createdAt', op: 'gte' as const, value: '2024-02-29' }, createdAt), null);
+  assert.notEqual(draftError({ id: 'a', metric: 'createdAt', op: 'gte' as const, value: '2026-02-29' }, createdAt), null);
+});
