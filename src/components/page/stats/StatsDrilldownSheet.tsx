@@ -33,7 +33,7 @@ function StatsDrilldownSheet({ open, onClose, entity, filters, bucket, label, to
   // A different bucket is a different result set, so it starts at page 1.
   useResetOnChange([label], () => setPage(1));
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['stats-list', entity, filters, bucket, page],
     queryFn: () => listStats({ entity, filters, bucket: bucket as StatsCondition, page, size: PAGE_SIZE }),
     enabled: open && !!bucket,
@@ -42,13 +42,19 @@ function StatsDrilldownSheet({ open, onClose, entity, filters, bucket, label, to
   return (
     <Sheet open={open} onOpenChange={(next) => !next && onClose()}>
       <AdminSideSheetContent title={label} description={`${total.toLocaleString()}개`} size='lg'>
-        <DataTable
-          columns={columns}
-          data={data?.items ?? []}
-          loading={isLoading}
-          rowKey='spaceId'
-          pagination={{ total, page, pageSize: PAGE_SIZE, onChange: (next) => setPage(next) }}
-        />
+        {isError ? (
+          // Without this the sheet shows an empty table under a non-zero count,
+          // which reads as "this bucket is empty" rather than "the list failed".
+          <p className='p-4 text-sm text-destructive'>목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>
+        ) : (
+          <DataTable
+            columns={columns}
+            data={data?.items ?? []}
+            loading={isLoading}
+            rowKey='spaceId'
+            pagination={{ total, page, pageSize: PAGE_SIZE, onChange: (next) => setPage(next) }}
+          />
+        )}
       </AdminSideSheetContent>
     </Sheet>
   );

@@ -1,4 +1,4 @@
-import type { StatsCondition, StatsMetric, StatsOperator } from '@/client/stats';
+import type { StatsCondition, StatsMetric, StatsMetricKind, StatsOperator } from '@/client/stats';
 
 export type Lane = 'filters' | 'buckets';
 
@@ -52,34 +52,61 @@ function splitValues(value: string): string[] {
     .filter(Boolean);
 }
 
+/**
+ * One checker per metric kind, as a total record so a new kind cannot slip
+ * through unvalidated. boolean and date were the two the first version missed:
+ * any text became `false` for a boolean, and a malformed date reached the server
+ * and came back as a count of zero rather than an error.
+ */
+const CHECK_TEXT: Record<StatsMetricKind, (raw: string) => string | null> = {
+  number: (raw) => (Number.isFinite(Number(raw)) ? null : '숫자를 입력하세요.'),
+  boolean: (raw) => (raw === 'true' || raw === 'false' ? null : 'true 또는 false를 입력하세요.'),
+  date: (raw) => (Number.isNaN(Date.parse(raw)) ? '날짜 형식이 올바르지 않습니다. 예: 2026-01-31' : null),
+  enum: () => null,
+};
+
+function isAscending(kind: StatsMetricKind, low: string, high: string): boolean {
+  if (kind === 'number') return Number(low) <= Number(high);
+  if (kind === 'date') return Date.parse(low) <= Date.parse(high);
+  return true;
+}
+
 export function draftError(draft: Draft, metric: StatsMetric | undefined): string | null {
   if (!metric) return '알 수 없는 지표입니다.';
   // An untouched row is dropped before sending, so it is not an error yet.
   if (!draft.value.trim()) return null;
 
+  const checkMembership = (value: string): string | null =>
+    metric.enumValues && !metric.enumValues.includes(value) ? `허용되지 않는 값입니다: ${value}` : null;
+
   if (draft.op === 'between') {
     const values = splitValues(draft.value);
     if (values.length !== 2) return '시작과 끝을 쉼표로 구분해 입력하세요.';
-    if (metric.kind !== 'number') return null;
-    const [low, high] = values.map(Number);
-    if (!Number.isFinite(low) || !Number.isFinite(high)) return '숫자를 입력하세요.';
-    if (low > high) return '구간의 시작이 끝보다 큽니다.';
-    return null;
+    for (const bound of values) {
+      const problem = CHECK_TEXT[metric.kind](bound);
+      if (problem) return problem;
+    }
+    return isAscending(metric.kind, values[0], values[1]) ? null : '구간의 시작이 끝보다 큽니다.';
   }
 
   if (draft.op === 'in') {
     const values = splitValues(draft.value);
     if (!values.length) return '값을 하나 이상 입력하세요.';
-    if (!metric.enumValues) return null;
-    const rejected = values.find((value) => !metric.enumValues?.includes(value));
-    return rejected ? `허용되지 않는 값입니다: ${rejected}` : null;
+    for (const value of values) {
+      const problem = CHECK_TEXT[metric.kind](value) ?? checkMembership(value);
+      if (problem) return problem;
+    }
+    return null;
   }
 
-  if (metric.kind === 'number' && !Number.isFinite(Number(draft.value))) return '숫자를 입력하세요.';
-  if (metric.kind === 'enum' && metric.enumValues && !metric.enumValues.includes(draft.value.trim())) {
-    return `허용되지 않는 값입니다: ${draft.value.trim()}`;
-  }
-  return null;
+  const value = draft.value.trim();
+  return CHECK_TEXT[metric.kind](value) ?? checkMembership(value);
+}
+
+/** True when any draft in the lane carries an error the operator must fix first. */
+export function hasDraftErrors(drafts: Draft[], metrics: StatsMetric[]): boolean {
+  const byKey = new Map(metrics.map((metric) => [metric.key, metric]));
+  return drafts.some((draft) => draftError(draft, byKey.get(draft.metric)) !== null);
 }
 
 export function toConditions(drafts: Draft[], metrics: StatsMetric[]): StatsCondition[] {

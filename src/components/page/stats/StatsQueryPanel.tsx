@@ -6,7 +6,15 @@ import { useState } from 'react';
 import { useResetOnChange } from '@/hooks/useResetOnChange';
 import ConditionRow from './ConditionRow';
 import StatsDrilldownSheet from './StatsDrilldownSheet';
-import { addDraft, initialQueryState, removeDraft, toConditions, updateDraft, type Lane } from './services/query-state';
+import {
+  addDraft,
+  hasDraftErrors,
+  initialQueryState,
+  removeDraft,
+  toConditions,
+  updateDraft,
+  type Lane,
+} from './services/query-state';
 
 function StatsQueryPanel() {
   const [state, setState] = useState(() => initialQueryState('space'));
@@ -21,7 +29,11 @@ function StatsQueryPanel() {
 
   // Conditions are edited freely; the query only runs on the button, so a
   // half-typed threshold never reaches the server.
-  const { data, refetch, isFetching } = useQuery({
+  // An errored draft is dropped from the payload, so querying with one would
+  // answer a narrower question than the panel shows and say nothing about it.
+  const blocked = hasDraftErrors(state.filters, metrics) || hasDraftErrors(state.buckets, metrics);
+
+  const { data, refetch, isFetching, isError, error } = useQuery({
     queryKey: ['stats-query', state.entity, filters, buckets],
     queryFn: async () => {
       const result = await queryStats({ entity: state.entity, filters, buckets });
@@ -78,12 +90,27 @@ function StatsQueryPanel() {
       {renderLane('filters', '좁히기', '모든 조건에 함께 적용됩니다')}
       {renderLane('buckets', '묻기', '조건마다 개수를 따로 셉니다')}
 
-      <Button onClick={() => refetch()} disabled={!buckets.length || isFetching}>
-        {isFetching ? '조회 중' : '조회'}
-      </Button>
+      <div className='flex items-center gap-3'>
+        <Button onClick={() => refetch()} disabled={!buckets.length || isFetching || blocked}>
+          {isFetching ? '조회 중' : '조회'}
+        </Button>
+        {blocked ? <span className='text-xs text-destructive'>조건에 잘못된 값이 있습니다.</span> : null}
+      </div>
+
+      {isError ? (
+        <p className='text-sm text-destructive'>
+          조회에 실패했습니다. {error instanceof Error ? error.message : ''}
+        </p>
+      ) : null}
 
       {rows ? (
-        <table className='w-full border-t border-border text-sm'>
+        <div className='space-y-2'>
+          <p className='text-xs text-muted-foreground'>
+            {data && data.asked.filters.length
+              ? `좁히기 ${data.asked.filters.length}개 적용됨`
+              : '좁히기 없이 전체 대상'}
+          </p>
+          <table className='w-full border-t border-border text-sm'>
           <thead>
             <tr className='text-left text-xs text-muted-foreground'>
               <th className='py-2 font-medium'>조건</th>
@@ -93,7 +120,7 @@ function StatsQueryPanel() {
           </thead>
           <tbody>
             {rows.map((row, index) => (
-              <tr key={row.label} className='border-t border-border'>
+              <tr key={`${row.label}-${index}`} className='border-t border-border'>
                 <td className='py-2'>{row.label}</td>
                 <td className='py-2 text-right tabular-nums'>
                   {row.count === null ? (
@@ -117,8 +144,9 @@ function StatsQueryPanel() {
                 </td>
               </tr>
             ))}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       ) : null}
 
       <StatsDrilldownSheet

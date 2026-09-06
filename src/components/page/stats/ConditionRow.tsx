@@ -33,7 +33,13 @@ interface ConditionRowProps {
 function ConditionRow({ draft, metrics, onChange, onRemove }: ConditionRowProps) {
   const metric = metrics.find((item) => item.key === draft.metric);
   const error = draftError(draft, metric);
-  const hint = metric?.enumValues?.length ? metric.enumValues.join(', ') : PLACEHOLDER[draft.op];
+  const hint = metric?.enumValues?.length
+    ? metric.enumValues.join(', ')
+    : metric?.kind === 'date'
+      ? draft.op === 'between'
+        ? '2025-01-01, 2026-01-01'
+        : '2026-01-31'
+      : PLACEHOLDER[draft.op];
 
   return (
     <div className='space-y-1'>
@@ -70,12 +76,27 @@ function ConditionRow({ draft, metrics, onChange, onRemove }: ConditionRowProps)
           </SelectContent>
         </Select>
 
-        <Input
-          className={`${FILTER_CONTROL_CLASS} w-48`}
-          value={draft.value}
-          placeholder={hint}
-          onChange={(event) => onChange({ value: event.target.value })}
-        />
+        {metric?.kind === 'boolean' && draft.op === 'eq' ? (
+          // A free text box here could only fail toward false, which is a valid
+          // boolean, so the wrong question got a plausible answer.
+          <Select value={draft.value} onValueChange={(value) => onChange({ value })}>
+            <SelectTrigger className={`${FILTER_CONTROL_CLASS} w-48`}>
+              <SelectValue placeholder='선택' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='true'>예</SelectItem>
+              <SelectItem value='false'>아니오</SelectItem>
+            </SelectContent>
+          </Select>
+        ) : (
+          <Input
+            className={`${FILTER_CONTROL_CLASS} w-48`}
+            type={metric?.kind === 'date' && draft.op !== 'between' ? 'date' : 'text'}
+            value={draft.value}
+            placeholder={hint}
+            onChange={(event) => onChange({ value: event.target.value })}
+          />
+        )}
 
         <Button variant='ghost' size='icon' className='h-8 w-8' aria-label='조건 삭제' onClick={onRemove}>
           <X className='h-4 w-4' />

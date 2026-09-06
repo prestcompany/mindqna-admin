@@ -2,7 +2,15 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import type { StatsMetric } from '@/client/stats';
-import { addDraft, draftError, initialQueryState, removeDraft, toConditions, updateDraft } from './query-state';
+import {
+  addDraft,
+  draftError,
+  hasDraftErrors,
+  initialQueryState,
+  removeDraft,
+  toConditions,
+  updateDraft,
+} from './query-state';
 
 const cardCount: StatsMetric = {
   key: 'cardCount',
@@ -107,4 +115,49 @@ test('an enum value outside the declared set is reported', () => {
 test('a valid draft reports no error', () => {
   const draft = { id: 'a', metric: 'cardCount', op: 'gte' as const, value: '20' };
   assert.equal(draftError(draft, cardCount), null);
+});
+
+const isActive: StatsMetric = { key: 'isActive', label: '활성 여부', kind: 'boolean', operators: ['eq'] };
+const createdAt: StatsMetric = { key: 'createdAt', label: '생성일', kind: 'date', operators: ['gte', 'lt', 'between'] };
+
+test('a boolean draft rejects anything that is not true or false', () => {
+  // "True" used to cast to false, so the query silently asked the opposite.
+  const draft = { id: 'a', metric: 'isActive', op: 'eq' as const, value: 'True' };
+  assert.equal(draftError(draft, isActive), 'true 또는 false를 입력하세요.');
+});
+
+test('a boolean draft accepts the two literals', () => {
+  for (const value of ['true', 'false']) {
+    assert.equal(draftError({ id: 'a', metric: 'isActive', op: 'eq' as const, value }, isActive), null);
+  }
+});
+
+test('a malformed date is reported rather than sent', () => {
+  const draft = { id: 'a', metric: 'createdAt', op: 'gte' as const, value: '2026-99' };
+  assert.match(draftError(draft, createdAt) ?? '', /날짜 형식/);
+  assert.equal(toConditions([draft], [createdAt]).length, 0);
+});
+
+test('a reversed date range is reported', () => {
+  const draft = { id: 'a', metric: 'createdAt', op: 'between' as const, value: '2026-01-01, 2025-01-01' };
+  assert.equal(draftError(draft, createdAt), '구간의 시작이 끝보다 큽니다.');
+});
+
+test('a well-formed date range passes', () => {
+  const draft = { id: 'a', metric: 'createdAt', op: 'between' as const, value: '2025-01-01, 2026-01-01' };
+  assert.equal(draftError(draft, createdAt), null);
+});
+
+test('hasDraftErrors sees a typo that toConditions would silently drop', () => {
+  // The filter is dropped from the payload, so without this the count comes back
+  // unfiltered and nothing on screen says the filter was ignored.
+  let state = addDraft(initialQueryState('space'), 'filters', locale);
+  state = updateDraft(state, 'filters', state.filters[0].id, { value: 'kr' });
+  assert.equal(toConditions(state.filters, metrics).length, 0);
+  assert.equal(hasDraftErrors(state.filters, metrics), true);
+});
+
+test('hasDraftErrors ignores an untouched row', () => {
+  const state = addDraft(initialQueryState('space'), 'filters', locale);
+  assert.equal(hasDraftErrors(state.filters, metrics), false);
 });
