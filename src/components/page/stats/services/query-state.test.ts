@@ -161,3 +161,25 @@ test('hasDraftErrors ignores an untouched row', () => {
   const state = addDraft(initialQueryState('space'), 'filters', locale);
   assert.equal(hasDraftErrors(state.filters, metrics), false);
 });
+
+for (const input of ['2026', '2026-01', 'Jan 31 2026', 'March 5, 2026', '1/31/2026', '2026-02-30', '0']) {
+  test(`a date draft rejects ${input}, which Date.parse would have accepted`, () => {
+    const draft = { id: 'a', metric: 'createdAt', op: 'gte' as const, value: input };
+    assert.notEqual(draftError(draft, createdAt), null);
+    assert.equal(toConditions([draft], [createdAt]).length, 0);
+  });
+}
+
+test('the client and the server agree on what a date is', () => {
+  // The panel must not block something the route accepts, or pass something it
+  // rejects; both sides share the same YYYY-MM-DD[ HH:MM[:SS]] rule.
+  for (const value of ['2026-01-31', '2026-01-31 09:00', '2026-01-31T09:00:00']) {
+    assert.equal(draftError({ id: 'a', metric: 'createdAt', op: 'gte' as const, value }, createdAt), null);
+  }
+});
+
+test('a date range still serialises both bounds as text the server parses', () => {
+  const draft = { id: 'a', metric: 'createdAt', op: 'between' as const, value: '2026-01-01, 2026-01-31' };
+  const [condition] = toConditions([draft], [createdAt]);
+  assert.deepEqual(condition.value, ['2026-01-01', '2026-01-31']);
+});

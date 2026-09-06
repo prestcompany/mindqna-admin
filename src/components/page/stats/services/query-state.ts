@@ -58,16 +58,41 @@ function splitValues(value: string): string[] {
  * any text became `false` for a boolean, and a malformed date reached the server
  * and came back as a count of zero rather than an error.
  */
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+const DATE_TIME = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?$/;
+
+/**
+ * Mirrors the server's parser rather than calling Date.parse. Date.parse reads
+ * "2026-01" as January 1st and rolls "2026-02-30" into March, none of which
+ * MySQL accepts, so gating on it would pass values the server then answers with
+ * a count of zero.
+ */
+export function parseDateValue(raw: string): Date | null {
+  const value = raw.trim();
+  if (!DATE_ONLY.test(value) && !DATE_TIME.test(value)) return null;
+  const [datePart, timePart = '00:00:00'] = value.split(/[ T]/);
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hour, minute, second = 0] = timePart.split(':').map(Number);
+  const instant = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+  const rolled =
+    instant.getUTCFullYear() !== year || instant.getUTCMonth() !== month - 1 || instant.getUTCDate() !== day;
+  return rolled || Number.isNaN(instant.getTime()) ? null : instant;
+}
+
 const CHECK_TEXT: Record<StatsMetricKind, (raw: string) => string | null> = {
   number: (raw) => (Number.isFinite(Number(raw)) ? null : '숫자를 입력하세요.'),
   boolean: (raw) => (raw === 'true' || raw === 'false' ? null : 'true 또는 false를 입력하세요.'),
-  date: (raw) => (Number.isNaN(Date.parse(raw)) ? '날짜 형식이 올바르지 않습니다. 예: 2026-01-31' : null),
+  date: (raw) => (parseDateValue(raw) ? null : '날짜 형식이 올바르지 않습니다. 예: 2026-01-31'),
   enum: () => null,
 };
 
 function isAscending(kind: StatsMetricKind, low: string, high: string): boolean {
   if (kind === 'number') return Number(low) <= Number(high);
-  if (kind === 'date') return Date.parse(low) <= Date.parse(high);
+  if (kind === 'date') {
+    const from = parseDateValue(low);
+    const to = parseDateValue(high);
+    return !!from && !!to && from.getTime() <= to.getTime();
+  }
   return true;
 }
 

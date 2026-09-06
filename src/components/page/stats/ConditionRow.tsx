@@ -33,6 +33,7 @@ interface ConditionRowProps {
 function ConditionRow({ draft, metrics, onChange, onRemove }: ConditionRowProps) {
   const metric = metrics.find((item) => item.key === draft.metric);
   const error = draftError(draft, metric);
+  const [rangeStart = '', rangeEnd = ''] = draft.value.split(',').map((part) => part.trim());
   const hint = metric?.enumValues?.length
     ? metric.enumValues.join(', ')
     : metric?.kind === 'date'
@@ -88,10 +89,30 @@ function ConditionRow({ draft, metrics, onChange, onRemove }: ConditionRowProps)
               <SelectItem value='false'>아니오</SelectItem>
             </SelectContent>
           </Select>
+        ) : metric?.kind === 'date' && draft.op === 'between' ? (
+          // Two pickers rather than one comma-separated box: free text here was
+          // the one date path a picker did not cover.
+          <div className='flex items-center gap-1'>
+            <Input
+              className={`${FILTER_CONTROL_CLASS} w-36`}
+              type='date'
+              value={rangeStart}
+              aria-label='시작일'
+              onChange={(event) => onChange({ value: `${event.target.value}, ${rangeEnd}` })}
+            />
+            <span className='text-xs text-muted-foreground'>~</span>
+            <Input
+              className={`${FILTER_CONTROL_CLASS} w-36`}
+              type='date'
+              value={rangeEnd}
+              aria-label='종료일'
+              onChange={(event) => onChange({ value: `${rangeStart}, ${event.target.value}` })}
+            />
+          </div>
         ) : (
           <Input
             className={`${FILTER_CONTROL_CLASS} w-48`}
-            type={metric?.kind === 'date' && draft.op !== 'between' ? 'date' : 'text'}
+            type={metric?.kind === 'date' ? 'date' : 'text'}
             value={draft.value}
             placeholder={hint}
             onChange={(event) => onChange({ value: event.target.value })}
