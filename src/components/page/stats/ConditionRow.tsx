@@ -34,13 +34,7 @@ function ConditionRow({ draft, metrics, onChange, onRemove }: ConditionRowProps)
   const metric = metrics.find((item) => item.key === draft.metric);
   const error = draftError(draft, metric);
   const [rangeStart = '', rangeEnd = ''] = draft.value.split(',').map((part) => part.trim());
-  const hint = metric?.enumValues?.length
-    ? metric.enumValues.join(', ')
-    : metric?.kind === 'date'
-      ? draft.op === 'between'
-        ? '2025-01-01, 2026-01-01'
-        : '2026-01-31'
-      : PLACEHOLDER[draft.op];
+  const hint = metric?.enumValues?.length ? metric.enumValues.join(', ') : PLACEHOLDER[draft.op];
 
   return (
     <div className='space-y-1'>

@@ -71,7 +71,7 @@ const MAX_YEAR = 9998;
  * The grammar has to stay identical to stats.values.ts on the server, or the
  * panel starts blocking what the route allows, or worse the reverse.
  */
-export function parseDateValue(raw: string): Date | null {
+function parseDateValue(raw: string): Date | null {
   const value = raw.trim();
   if (!DATE_ONLY.test(value) && !DATE_TIME.test(value)) return null;
   const [datePart, timePart = '00:00:00'] = value.split(/[ T]/);
