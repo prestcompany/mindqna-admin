@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  BarChart3,
   Component,
   FileDown,
   Folders,
@@ -25,6 +26,12 @@ const overviewMenu: IMenu[] = [
     name: '질문 대시보드',
     icon: <BookOpen className='w-4 h-4' />,
     link: { path: '/dashboard/questions' },
+  },
+  {
+    id: 'stats-query',
+    name: '조건별 통계',
+    icon: <BarChart3 className='w-4 h-4' />,
+    link: { path: '/stats' },
   },
 ];
 
