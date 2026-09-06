@@ -30,6 +30,10 @@
 
 **좁히는 조건은 AND로만 묶는다.** OR과 중첩 그룹은 넣지 않는다 (§10).
 
+**삭제 예정 공간도 센다.** `Space.dueRemovedAt`이 찍힌 공간을 제외하지 않는다. 묻는 것이 "질문 20개에 도달한 공간이 몇 개인가"이고, 누군가 삭제를 예약했다고 해서 그 공간이 20개에 도달했던 사실이 사라지지는 않는다. dev 기준 삭제 예정 공간은 33,156개 중 1개이고 질문 20개 이상에는 하나도 걸리지 않아 현재 수치에는 차이가 없다 — 다만 prod 비율은 다를 수 있다.
+
+빼기로 바뀌면 `SPACE_ENTITY.base`에 `JOIN Space s ON s.id = si.spaceId AND s.dueRemovedAt IS NULL` 한 줄이다.
+
 **결과는 개수와 목록 둘 다다.** 개수를 먼저 보여주고, 그 줄을 누르면 해당 공간 목록을 페이징해서 본다. 숫자만 답하고 끝나는 질문은 드물다 — "그럼 그 공간들 좀 보여주세요"가 거의 항상 따라온다.
 
 ## 3. 구조 — 지표를 코드가 아니라 데이터로 선언한다
@@ -370,7 +374,7 @@ DB에 실제로 붙는 통합 테스트는 넣지 않는다. 저장소에 그런
 
 - **prod 규모에서의 실측.** §5의 계획은 dev 기준이고 prod 통계는 다르다. 선행 문서에서 옵티마이저 추정이 실제의 2배로 어긋난 전례가 있다.
 - **읽기 복제본 지연.** 방금 만든 공간이 결과에 빠질 수 있다. 통계 용도라 문제없을 것으로 보지만 지연 폭을 모른다.
-- **prod의 인덱스 상태.** dev에는 `schema.prisma`가 선언한 `idx_card_space_order`와 `idx_card_space_created`가 **없다.** 선언만 되고 DDL이 적용되지 않은 상태다. 이 설계는 그 둘이 아니라 `Card_order_spaceId_key`(`@@unique([order, spaceId])`가 만든 것)에 기대므로 dev에서는 문제가 없지만, **prod에 이 유니크 제약이 있는지 배포 전에 확인해야 한다.** 없으면 설계가 성립하지 않는다.
+- **prod의 인덱스 상태.** dev에는 `schema.prisma`가 선언한 `idx_card_space_order`와 `idx_card_space_created`가 **없다.** 선언만 되고 DDL이 적용되지 않았다. 이 설계는 그 둘이 아니라 `Card_order_spaceId_key`에 기대는데, 그건 prod에도 있다고 볼 수 있다 — 아래 표 참조. 다만 `@@index` 두 개가 스키마에만 존재한다는 사실 자체는 별개로 정리할 만하다.
 - **`SpaceInfo`의 중복 인덱스.** dev에 `idx_spaceinfo_type_locale`과 `SpaceInfo_type_locale_idx`가 같은 `(type, locale)`로 둘 다 있고, `SpaceInfo_spaceId_idx`는 PK와 겹친다. 이 기능과 무관한 기존 부채지만 쓰기 비용을 갉아먹으므로 별도로 볼 만하다.
 
 ### 날짜는 UTC 자정을 뜻한다
@@ -399,7 +403,7 @@ SELECT DATE_FORMAT(createdAt,'%Y-%m') m, COUNT(*) FROM Space GROUP BY m;   -- 20
 | 모든 `Space`에 `Pet`이 있는가 | **있다** — 같은 자리에서 `pet: { create: {} }`, 레벨 기본값 1 | `petLevel` 지표에 "펫 없는 공간" 예외 처리가 불필요 |
 | `SpaceInfo.members` 갱신 방식 | **재계산** — `syncSpaceMembers`가 `Profile`을 새로 센다 | 지표로 채택 |
 | `SpaceInfo.replies` 갱신 방식 | **증분만**, 감소 없음 | 지표에서 제외 (§3) |
-- **삭제된 공간 처리.** `Space.dueRemovedAt`이 있는데 통계에서 제외해야 하는지 정하지 않았다. 요청자가 "지금 살아있는 공간"을 뜻했는지 확인이 필요하다.
+| prod에 `Card_order_spaceId_key`가 있는가 | **있다** — `card.service.ts:99`의 `findUnique({ where: { order_spaceId } })`는 Prisma가 `@@unique([order, spaceId])`가 있을 때만 만드는 접근자다. 없으면 카드 상세 조회가 프로덕션에서 깨진다 | §4의 인덱스 전제 |
 
 ## 10. 하지 않기로 한 것
 
@@ -413,11 +417,9 @@ SELECT DATE_FORMAT(createdAt,'%Y-%m') m, COUNT(*) FROM Space GROUP BY m;   -- 20
 
 ## 11. 순서
 
-1. prod에 `Card_order_spaceId_key`가 있는지 확인 — 없으면 설계부터 다시 (§9)
-2. 삭제된 공간(`dueRemovedAt`) 포함 여부를 요청자에게 확인 → 기본 조건 확정
-3. 레지스트리 + SQL 조립 + 테스트 (서버, DB 없이)
-4. API 3개 + 서비스
-5. 어드민 조건 패널 + 결과 표
-6. 드릴다운
-7. 요청받은 질문("질문 20/50개 이상")으로 끝단 확인
-8. prod에서 §5의 표를 다시 떠서 dev 수치가 유지되는지 확인
+1. 레지스트리 + SQL 조립 + 테스트 (서버, DB 없이)
+2. API 3개 + 서비스
+3. 어드민 조건 패널 + 결과 표
+4. 드릴다운
+5. 요청받은 질문("질문 20/50개 이상")으로 끝단 확인
+6. prod에서 §5의 표를 다시 떠서 dev 수치가 유지되는지 확인
