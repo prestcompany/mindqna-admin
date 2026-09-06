@@ -53,25 +53,36 @@
 지표는 컬럼이 아니라 **연산자별 술어 생성기**다. 이유는 §4에 있다.
 
 ```ts
-type Operator = 'gte' | 'lte' | 'eq' | 'in' | 'between';
+type Operator = 'gte' | 'lt' | 'eq' | 'in' | 'between';
+
+// 지표는 하나의 술어가 아니라 조각을 낸다. cardCount는 FROM 맨 앞에 와야 하는
+// 파생 테이블이라 WHERE 모양의 술어로는 표현되지 않는다 (§5).
+type Fragment = {
+  driving?: Prisma.Sql;        // FROM을 이끌 수 있는 파생 테이블
+  joins: Prisma.Sql[];
+  wheres: Prisma.Sql[];
+};
 
 type Metric = {
   key: string;                 // 'cardCount'
   label: string;               // '질문 수'
   kind: 'number' | 'date' | 'enum' | 'boolean';
-  operators: Operator[];       // 이 지표가 답할 수 있는 질문
+  operators: readonly Operator[];
   enumValues?: readonly string[];
-  predicate(op: Operator, value: unknown): Prisma.Sql;
+  compile(op: Operator, value: unknown, alias: string): Fragment;
 };
 
 type EntityDef = {
-  key: 'space' | 'user';
-  from: Prisma.Sql;            // 구동 테이블 + 고정된 조인
-  idColumn: Prisma.Sql;
+  key: 'space';
+  label: string;
+  base: Prisma.Sql;            // 구동 지표가 없을 때의 FROM
   listSelect: Prisma.Sql;      // 드릴다운에 보여줄 컬럼
+  listOrder: Prisma.Sql;
   metrics: Record<string, Metric>;
 };
 ```
+
+`alias`는 같은 지표가 한 질의에 여러 번 쓰일 때 파생 테이블이 충돌하지 않게 한다. 구동을 자처한 조각이 둘 이상이면 **첫 번째만 FROM을 이끌고 나머지는 평범한 세미조인**이 된다 — 버리면 조건이 조용히 사라져 틀린 숫자가 나온다.
 
 ### 초기 지표 — 공간
 
