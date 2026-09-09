@@ -15,12 +15,17 @@ const OPERATOR_LABEL: Record<StatsOperator, string> = {
   between: '구간',
 };
 
+/**
+ * Prefixed with 예: so an empty field cannot be mistaken for a filled one. A bare
+ * "20" here read as a value the operator had already entered, which made the
+ * disabled 조회 button look broken rather than waiting for input.
+ */
 const PLACEHOLDER: Record<StatsOperator, string> = {
-  gte: '20',
-  lt: '20',
-  eq: '20',
-  in: 'ko, en',
-  between: '10, 19',
+  gte: '예: 20',
+  lt: '예: 20',
+  eq: '예: 20',
+  in: '예: ko, en',
+  between: '예: 10, 19',
 };
 
 interface ConditionRowProps {
@@ -34,7 +39,7 @@ function ConditionRow({ draft, metrics, onChange, onRemove }: ConditionRowProps)
   const metric = metrics.find((item) => item.key === draft.metric);
   const error = draftError(draft, metric);
   const [rangeStart = '', rangeEnd = ''] = draft.value.split(',').map((part) => part.trim());
-  const hint = metric?.enumValues?.length ? metric.enumValues.join(', ') : PLACEHOLDER[draft.op];
+  const hint = metric?.enumValues?.length ? `예: ${metric.enumValues.slice(0, 2).join(', ')}` : PLACEHOLDER[draft.op];
 
   return (
     <div className='space-y-1'>

@@ -1,9 +1,9 @@
-import { getStatsMetrics, queryStats, type StatsBucketRow, type StatsCondition } from '@/client/stats';
+import { getStatsMetrics, queryStats, type StatsBucketRow, type StatsCondition, type StatsMetric } from '@/client/stats';
 import { Button } from '@/components/ui/button';
+import { useResetOnChange } from '@/hooks/useResetOnChange';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, Plus } from 'lucide-react';
 import { useState } from 'react';
-import { useResetOnChange } from '@/hooks/useResetOnChange';
 import ConditionRow from './ConditionRow';
 import StatsDrilldownSheet from './StatsDrilldownSheet';
 import {
@@ -16,6 +16,14 @@ import {
   type Lane,
 } from './services/query-state';
 
+const LANES: { name: Lane; step: string; title: string; hint: string }[] = [
+  // The numbers are the order the two lanes actually run in - narrow, then count -
+  // not decoration. Two-word labels left it to the operator to guess which was
+  // shared and which was per-row.
+  { name: 'filters', step: '1', title: '대상 좁히기', hint: '아래 모든 항목에 함께 적용됩니다. 비워두면 전체가 대상입니다.' },
+  { name: 'buckets', step: '2', title: '세어보기', hint: '항목마다 개수를 따로 냅니다.' },
+];
+
 function StatsQueryPanel() {
   const [state, setState] = useState(() => initialQueryState('space'));
   const [opened, setOpened] = useState<{ index: number; row: StatsBucketRow } | null>(null);
@@ -27,19 +35,17 @@ function StatsQueryPanel() {
   const filters: StatsCondition[] = toConditions(state.filters, metrics);
   const buckets: StatsCondition[] = toConditions(state.buckets, metrics);
 
-  // Conditions are edited freely; the query only runs on the button, so a
-  // half-typed threshold never reaches the server.
   // An errored draft is dropped from the payload, so querying with one would
   // answer a narrower question than the panel shows and say nothing about it.
-  const blocked = hasDraftErrors(state.filters, metrics) || hasDraftErrors(state.buckets, metrics);
+  const invalid = hasDraftErrors(state.filters, metrics) || hasDraftErrors(state.buckets, metrics);
 
   const { data, refetch, isFetching, isError, error } = useQuery({
     queryKey: ['stats-query', state.entity, filters, buckets],
     queryFn: async () => {
       const result = await queryStats({ entity: state.entity, filters, buckets });
-      // The conditions travel with the counts they produced, so editing the
-      // panel afterwards cannot re-aim the drill-down at a different question
-      // than the number beside it.
+      // The conditions travel with the counts they produced, so editing the panel
+      // afterwards cannot re-aim the drill-down at a different question than the
+      // number beside it.
       return { rows: result.rows, asked: { filters, buckets } };
     },
     enabled: false,
@@ -49,105 +55,92 @@ function StatsQueryPanel() {
   useResetOnChange([data], () => setOpened(null));
 
   const rows = data?.rows ?? null;
-
-  const renderLane = (lane: Lane, title: string, hint: string) => (
-    <section className='space-y-2'>
-      <div className='flex items-center gap-2'>
-        <h2 className='text-sm font-medium text-foreground'>{title}</h2>
-        <span className='text-xs text-muted-foreground'>{hint}</span>
-        <Button
-          variant='outline'
-          size='sm'
-          className='ml-auto h-8'
-          disabled={!metrics.length}
-          onClick={() => setState((prev) => addDraft(prev, lane, metrics[0]))}
-        >
-          <Plus className='mr-1 h-3.5 w-3.5' />
-          조건 추가
-        </Button>
-      </div>
-
-      {state[lane].length ? (
-        <div className='space-y-2'>
-          {state[lane].map((draft) => (
-            <ConditionRow
-              key={draft.id}
-              draft={draft}
-              metrics={metrics}
-              onChange={(patch) => setState((prev) => updateDraft(prev, lane, draft.id, patch))}
-              onRemove={() => setState((prev) => removeDraft(prev, lane, draft.id))}
-            />
-          ))}
-        </div>
-      ) : (
-        <p className='text-xs text-muted-foreground'>조건이 없습니다.</p>
-      )}
-    </section>
-  );
+  const blockedReason = invalid
+    ? '조건에 잘못된 값이 있습니다.'
+    : !buckets.length
+      ? '세어볼 조건을 하나 이상 추가하세요.'
+      : null;
 
   return (
-    <div className='max-w-3xl space-y-6'>
-      {renderLane('filters', '좁히기', '모든 조건에 함께 적용됩니다')}
-      {renderLane('buckets', '묻기', '조건마다 개수를 따로 셉니다')}
+    <div className='flex flex-col gap-4'>
+      <section className='rounded-xl border border-border bg-card'>
+        {LANES.map(({ name, step, title, hint }) => (
+          <div key={name} className='flex flex-col gap-3 border-border p-4 [&+&]:border-t'>
+            <div className='flex flex-wrap items-center gap-x-2 gap-y-1'>
+              <span className='inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-border font-mono text-xs font-medium text-muted-foreground'>
+                {step}
+              </span>
+              <h2 className='text-base font-semibold tracking-tight text-foreground'>{title}</h2>
+              <p className='text-xs text-muted-foreground'>{hint}</p>
+            </div>
 
-      <div className='flex items-center gap-3'>
-        <Button onClick={() => refetch()} disabled={!buckets.length || isFetching || blocked}>
-          {isFetching ? '조회 중' : '조회'}
-        </Button>
-        {blocked ? <span className='text-xs text-destructive'>조건에 잘못된 값이 있습니다.</span> : null}
-      </div>
+            {state[name].map((draft) => (
+              <ConditionRow
+                key={draft.id}
+                draft={draft}
+                metrics={metrics}
+                onChange={(patch) => setState((prev) => updateDraft(prev, name, draft.id, patch))}
+                onRemove={() => setState((prev) => removeDraft(prev, name, draft.id))}
+              />
+            ))}
+
+            <AddConditionButton
+              metrics={metrics}
+              onAdd={(metric) => setState((prev) => addDraft(prev, name, metric))}
+            />
+          </div>
+        ))}
+
+        <div className='flex flex-wrap items-center gap-3 border-t border-border p-4'>
+          <Button onClick={() => refetch()} disabled={!!blockedReason || isFetching}>
+            {isFetching ? '조회 중' : '조회'}
+          </Button>
+          {blockedReason ? (
+            <span className={`text-xs ${invalid ? 'text-destructive' : 'text-muted-foreground'}`}>{blockedReason}</span>
+          ) : null}
+        </div>
+      </section>
 
       {isError ? (
-        <p className='text-sm text-destructive'>
-          조회에 실패했습니다. {error instanceof Error ? error.message : ''}
+        <p className='rounded-xl border border-destructive/30 bg-card p-4 text-sm text-destructive'>
+          조회에 실패했습니다. {error instanceof Error ? error.message : '잠시 후 다시 시도해 주세요.'}
         </p>
       ) : null}
 
-      {rows ? (
-        <div className='space-y-2'>
-          <p className='text-xs text-muted-foreground'>
-            {data && data.asked.filters.length
-              ? `좁히기 ${data.asked.filters.length}개 적용됨`
-              : '좁히기 없이 전체 대상'}
+      <section className='rounded-xl border border-border bg-card'>
+        {rows ? (
+          <>
+            <div className='flex flex-wrap items-baseline justify-between gap-3 border-b border-border p-4'>
+              <h2 className='text-base font-semibold tracking-tight text-foreground'>결과</h2>
+              <p className='text-xs text-muted-foreground'>
+                {data && data.asked.filters.length ? `좁히기 ${data.asked.filters.length}개 적용` : '좁히기 없이 전체 대상'}
+              </p>
+            </div>
+            <table className='w-full'>
+              <thead>
+                <tr className='border-b border-border text-left'>
+                  <th className='h-9 px-4 text-xs font-normal text-muted-foreground'>조건</th>
+                  <th className='h-9 px-4 text-right text-xs font-normal text-muted-foreground'>개수</th>
+                  <th className='w-12' />
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, index) => (
+                  <StatsResultRow
+                    key={`${row.label}-${index}`}
+                    row={row}
+                    onOpen={row.count ? () => setOpened({ index, row }) : undefined}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </>
+        ) : (
+          <p className='p-10 text-center text-sm text-muted-foreground'>
+            조건을 추가하고 조회하면 여기에 개수가 나옵니다.
           </p>
-          <table className='w-full border-t border-border text-sm'>
-          <thead>
-            <tr className='text-left text-xs text-muted-foreground'>
-              <th className='py-2 font-medium'>조건</th>
-              <th className='py-2 text-right font-medium'>개수</th>
-              <th className='w-10' />
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, index) => (
-              <tr key={`${row.label}-${index}`} className='border-t border-border'>
-                <td className='py-2'>{row.label}</td>
-                <td className='py-2 text-right tabular-nums'>
-                  {row.count === null ? (
-                    <span className='text-destructive'>{row.error === 'timeout' ? '시간 초과' : '실패'}</span>
-                  ) : (
-                    row.count.toLocaleString()
-                  )}
-                </td>
-                <td className='w-10 py-2 text-right'>
-                  {row.count ? (
-                    <Button
-                      variant='ghost'
-                      size='icon'
-                      className='h-7 w-7'
-                      aria-label={`${row.label} 목록 열기`}
-                      onClick={() => setOpened({ index, row })}
-                    >
-                      <ChevronRight className='h-4 w-4' />
-                    </Button>
-                  ) : null}
-                </td>
-              </tr>
-            ))}
-            </tbody>
-          </table>
-        </div>
-      ) : null}
+        )}
+      </section>
 
       <StatsDrilldownSheet
         open={!!opened}
@@ -159,6 +152,45 @@ function StatsQueryPanel() {
         total={opened?.row.count ?? 0}
       />
     </div>
+  );
+}
+
+/** Sits directly under the rows it adds to, rather than across the panel from them. */
+function AddConditionButton({ metrics, onAdd }: { metrics: StatsMetric[]; onAdd: (metric: StatsMetric) => void }) {
+  return (
+    <Button
+      variant='ghost'
+      size='sm'
+      className='h-8 self-start border border-dashed border-border text-sm text-muted-foreground hover:border-solid hover:text-foreground'
+      disabled={!metrics.length}
+      onClick={() => onAdd(metrics[0])}
+    >
+      <Plus className='mr-1.5 h-3.5 w-3.5' />
+      조건 추가
+    </Button>
+  );
+}
+
+function StatsResultRow({ row, onOpen }: { row: StatsBucketRow; onOpen?: () => void }) {
+  return (
+    <tr
+      className={`border-b border-border last:border-b-0 ${onOpen ? 'cursor-pointer hover:bg-muted/40' : ''}`}
+      onClick={onOpen}
+    >
+      <td className='px-4 py-2 text-sm text-foreground'>{row.label}</td>
+      <td className='px-4 py-2 text-right text-sm tabular-nums text-foreground'>
+        {row.count === null ? (
+          <span className='text-destructive'>{row.error === 'timeout' ? '시간 초과' : '실패'}</span>
+        ) : (
+          row.count.toLocaleString()
+        )}
+      </td>
+      <td className='w-12 px-4 py-2 text-right'>
+        {onOpen ? (
+          <ChevronRight className='ml-auto h-4 w-4 text-muted-foreground' aria-label={`${row.label} 목록 열기`} />
+        ) : null}
+      </td>
+    </tr>
   );
 }
 
