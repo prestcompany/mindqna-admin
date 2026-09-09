@@ -28,7 +28,13 @@ function StatsQueryPanel() {
   const [state, setState] = useState(() => initialQueryState('space'));
   const [opened, setOpened] = useState<{ index: number; row: StatsBucketRow } | null>(null);
 
-  const { data: entities } = useQuery({ queryKey: ['stats-metrics'], queryFn: getStatsMetrics });
+  const {
+    data: entities,
+    isLoading: catalogLoading,
+    isError: catalogFailed,
+    error: catalogError,
+    refetch: refetchCatalog,
+  } = useQuery({ queryKey: ['stats-metrics'], queryFn: getStatsMetrics });
   const entity = entities?.find((item) => item.key === state.entity);
   const metrics = entity?.metrics ?? [];
 
@@ -64,6 +70,9 @@ function StatsQueryPanel() {
   return (
     <div className='flex flex-col gap-4'>
       <section className='rounded-xl border border-border bg-card'>
+        {/* Without this the 조건 추가 buttons are simply dead: they disable
+            themselves when the catalog is missing and used to say nothing. */}
+        {!metrics.length ? <CatalogNotice loading={catalogLoading} failed={catalogFailed} error={catalogError} onRetry={() => refetchCatalog()} /> : null}
         {LANES.map(({ name, step, title, hint }) => (
           <div key={name} className='flex flex-col gap-3 border-border p-4 [&+&]:border-t'>
             <div className='flex flex-wrap items-center gap-x-2 gap-y-1'>
@@ -151,6 +160,40 @@ function StatsQueryPanel() {
         label={opened?.row.label ?? ''}
         total={opened?.row.count ?? 0}
       />
+    </div>
+  );
+}
+
+/**
+ * The metric catalog decides what a condition can even be, so until it arrives
+ * there is nothing to add. Saying so beats a button that ignores clicks.
+ */
+function CatalogNotice({
+  loading,
+  failed,
+  error,
+  onRetry,
+}: {
+  loading: boolean;
+  failed: boolean;
+  error: unknown;
+  onRetry: () => void;
+}) {
+  if (loading) {
+    return (
+      <p className='border-b border-border p-4 text-sm text-muted-foreground'>지표 목록을 불러오는 중입니다.</p>
+    );
+  }
+  if (!failed) return null;
+  return (
+    <div className='flex flex-wrap items-center gap-3 border-b border-border p-4'>
+      <p className='text-sm text-destructive'>
+        지표 목록을 불러오지 못해 조건을 추가할 수 없습니다.
+        {error instanceof Error ? ` ${error.message}` : ''}
+      </p>
+      <Button variant='outline' size='sm' onClick={onRetry}>
+        다시 시도
+      </Button>
     </div>
   );
 }

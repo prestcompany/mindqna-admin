@@ -29,6 +29,7 @@ import { createSpaceTableColumns } from './SpaceTableColumns';
 import BulkMessageKeywords from './components/BulkMessageKeywords';
 import SpaceDetailSheet from './components/SpaceDetailSheet';
 import SpaceFilterBar from './components/SpaceFilterBar';
+import { describeRepeats, parseBulkSpaceIds } from './services/bulk-space-ids';
 import { useSpaceFilters } from './hooks/useSpaceFilters';
 import { useSpaceModals } from './hooks/useSpaceModals';
 import { Input } from '@/components/ui/input';
@@ -134,6 +135,8 @@ function SpaceList() {
     isStar: boolean;
     amount: number;
     spaceIds: string[];
+    uniqueCount: number;
+    repeated: { id: string; count: number }[];
   } | null>(null);
 
   const copyId = (id: string) => {
@@ -194,17 +197,11 @@ function SpaceList() {
   // confirm AlertDialog instead of calling the API directly.
   const handleBulkCoinSubmit = () => {
     const parsedBulkAmount = bulkAmountInput ? Number(bulkAmountInput) : 0;
-    // Deduped before it ever reaches the confirm: an operator retrying a partial failure
-    // pastes the failed IDs back onto the end of the original list, and without this the
-    // confirm's 공간 N곳 count (and the payload) would double-count every retried ID.
-    const spaceIds = Array.from(
-      new Set(
-        bulkSpaceIds
-          .split(',')
-          .map((id) => id.trim())
-          .filter(Boolean),
-      ),
-    );
+    // Every occurrence is kept: the server grants the unit amount once per one and logs
+    // each separately, on purpose. A repeat used to be deduped away here, which silently
+    // turned three requested grants into one. The retry-paste accident that motivated the
+    // dedupe is handled by naming the repeats in the confirm instead.
+    const { ids: spaceIds, uniqueCount, repeated } = parseBulkSpaceIds(bulkSpaceIds);
 
     if (!spaceIds.length) {
       toast.error('공간 ID를 입력해주세요');
@@ -215,7 +212,14 @@ function SpaceList() {
       return;
     }
 
-    setPendingBulkCoin({ operation: bulkOperation, isStar: bulkIsStar, amount: parsedBulkAmount, spaceIds });
+    setPendingBulkCoin({
+      operation: bulkOperation,
+      isStar: bulkIsStar,
+      amount: parsedBulkAmount,
+      spaceIds,
+      uniqueCount,
+      repeated,
+    });
   };
 
   const executeBulkCoin = async (payload: NonNullable<typeof pendingBulkCoin>) => {
@@ -538,11 +542,21 @@ function SpaceList() {
             <AlertDialogDescription>
               {pendingBulkCoin && (
                 <>
-                  공간 <strong>{pendingBulkCoin.spaceIds.length}곳</strong>에{' '}
+                  공간 <strong>{pendingBulkCoin.uniqueCount}곳</strong>에{' '}
                   <strong>{pendingBulkCoin.isStar ? '스타' : '하트'}</strong>{' '}
                   <strong>{pendingBulkCoin.amount}개</strong>를{' '}
                   <strong>{pendingBulkCoin.operation === 'give' ? '지급' : '회수'}</strong>합니다. 이 작업은 되돌릴 수
                   없습니다.
+                  {/* A repeat is deliberate as often as it is a retry paste, so the confirm
+                      names it either way and lets the operator decide before running. */}
+                  {pendingBulkCoin.repeated.length > 0 && (
+                    <span className='mt-2 block text-foreground'>
+                      같은 ID가 반복되어 총 <strong>{pendingBulkCoin.spaceIds.length}회</strong>{' '}
+                      {pendingBulkCoin.operation === 'give' ? '지급' : '회수'}됩니다 —{' '}
+                      {describeRepeats(pendingBulkCoin.repeated)}. 재시도 목록을 덧붙이신 것이라면 취소하고 중복을
+                      지워주세요.
+                    </span>
+                  )}
                 </>
               )}
             </AlertDialogDescription>
