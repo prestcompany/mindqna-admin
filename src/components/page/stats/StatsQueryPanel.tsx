@@ -61,11 +61,19 @@ function StatsQueryPanel() {
   useResetOnChange([data], () => setOpened(null));
 
   const rows = data?.rows ?? null;
+  // A row with an empty value is dropped by toConditions, so buckets is empty in
+  // two different situations. Telling someone who just added a row to "add a row"
+  // is the panel blaming them for its own missing input.
+  // Rows the operator added to 좁히기 but never filled: dropped from the payload,
+  // so the result is wider than the panel suggests.
+  const ignoredFilters = state.filters.length - filters.length;
   const blockedReason = invalid
     ? '조건에 잘못된 값이 있습니다.'
-    : !buckets.length
-      ? '세어볼 조건을 하나 이상 추가하세요.'
-      : null;
+    : buckets.length
+      ? null
+      : state.buckets.length
+        ? '세어볼 조건의 값을 입력하세요.'
+        : '세어볼 조건을 하나 이상 추가하세요.';
 
   return (
     <div className='flex flex-col gap-4'>
@@ -106,6 +114,12 @@ function StatsQueryPanel() {
           </Button>
           {blockedReason ? (
             <span className={`text-xs ${invalid ? 'text-destructive' : 'text-muted-foreground'}`}>{blockedReason}</span>
+          ) : ignoredFilters > 0 ? (
+            // Not blocking - an empty 좁히기 row is harmless - but the count would
+            // otherwise come back wider than the panel looks, with nothing said.
+            <span className='text-xs text-muted-foreground'>
+              값이 비어 있는 좁히기 조건 {ignoredFilters}개는 무시됩니다.
+            </span>
           ) : null}
         </div>
       </section>
