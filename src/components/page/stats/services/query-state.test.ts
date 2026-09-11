@@ -194,3 +194,23 @@ test('a leap day is judged by the calendar, not by a special case', () => {
   assert.equal(draftError({ id: 'a', metric: 'createdAt', op: 'gte' as const, value: '2024-02-29' }, createdAt), null);
   assert.notEqual(draftError({ id: 'a', metric: 'createdAt', op: 'gte' as const, value: '2026-02-29' }, createdAt), null);
 });
+
+test('an added-but-empty row is distinguishable from no row at all', () => {
+  // toConditions drops both, so the panel has to read state.buckets to tell them
+  // apart - otherwise it tells someone who just added a row to add a row.
+  const empty = initialQueryState('space');
+  const added = addDraft(empty, 'buckets', cardCount);
+
+  assert.equal(toConditions(empty.buckets, metrics).length, 0);
+  assert.equal(toConditions(added.buckets, metrics).length, 0);
+
+  assert.equal(empty.buckets.length, 0);
+  assert.equal(added.buckets.length, 1);
+});
+
+test('a row stops being dropped once it has a value', () => {
+  let state = addDraft(initialQueryState('space'), 'buckets', cardCount);
+  assert.equal(toConditions(state.buckets, metrics).length, 0);
+  state = updateDraft(state, 'buckets', state.buckets[0].id, { value: '20' });
+  assert.equal(toConditions(state.buckets, metrics).length, 1);
+});
