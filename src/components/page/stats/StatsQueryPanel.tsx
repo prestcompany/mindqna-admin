@@ -1,4 +1,4 @@
-import { getStatsMetrics, queryStats, type StatsBucketRow, type StatsCondition, type StatsMetric } from '@/client/stats';
+import { getStatsMetrics, queryStats, type StatsBucketRow, type StatsMetric } from '@/client/stats';
 import { Button } from '@/components/ui/button';
 import { useResetOnChange } from '@/hooks/useResetOnChange';
 import { useQuery } from '@tanstack/react-query';
@@ -7,22 +7,18 @@ import { useState } from 'react';
 import ConditionRow from './ConditionRow';
 import StatsDrilldownSheet from './StatsDrilldownSheet';
 import {
-  addDraft,
-  hasDraftErrors,
+  addSub,
+  addValue,
+  blockedReason,
   initialQueryState,
-  removeDraft,
-  toConditions,
-  updateDraft,
-  type Lane,
+  removeSub,
+  removeValue,
+  retarget,
+  seedMain,
+  setOperator,
+  toBuckets,
+  toFilters,
 } from './services/query-state';
-
-const LANES: { name: Lane; step: string; title: string; hint: string }[] = [
-  // The numbers are the order the two lanes actually run in - narrow, then count -
-  // not decoration. Two-word labels left it to the operator to guess which was
-  // shared and which was per-row.
-  { name: 'filters', step: '1', title: '대상 좁히기', hint: '아래 모든 항목에 함께 적용됩니다. 비워두면 전체가 대상입니다.' },
-  { name: 'buckets', step: '2', title: '세어보기', hint: '항목마다 개수를 따로 냅니다.' },
-];
 
 function StatsQueryPanel() {
   const [state, setState] = useState(() => initialQueryState('space'));
@@ -38,12 +34,13 @@ function StatsQueryPanel() {
   const entity = entities?.find((item) => item.key === state.entity);
   const metrics = entity?.metrics ?? [];
 
-  const filters: StatsCondition[] = toConditions(state.filters, metrics);
-  const buckets: StatsCondition[] = toConditions(state.buckets, metrics);
+  // The catalog decides what a condition can even be, so the main condition
+  // cannot exist before it arrives.
+  useResetOnChange([metrics[0]?.key], () => setState((prev) => seedMain(prev, metrics[0])));
 
-  // An errored draft is dropped from the payload, so querying with one would
-  // answer a narrower question than the panel shows and say nothing about it.
-  const invalid = hasDraftErrors(state.filters, metrics) || hasDraftErrors(state.buckets, metrics);
+  const filters = toFilters(state, metrics);
+  const buckets = toBuckets(state, metrics);
+  const blocked = blockedReason(state, metrics);
 
   const { data, refetch, isFetching, isError, error } = useQuery({
     queryKey: ['stats-query', state.entity, filters, buckets],
@@ -61,66 +58,76 @@ function StatsQueryPanel() {
   useResetOnChange([data], () => setOpened(null));
 
   const rows = data?.rows ?? null;
-  // A row with an empty value is dropped by toConditions, so buckets is empty in
-  // two different situations. Telling someone who just added a row to "add a row"
-  // is the panel blaming them for its own missing input.
-  // Rows the operator added to 좁히기 but never filled: dropped from the payload,
-  // so the result is wider than the panel suggests.
-  const ignoredFilters = state.filters.length - filters.length;
-  const blockedReason = invalid
-    ? '조건에 잘못된 값이 있습니다.'
-    : buckets.length
-      ? null
-      : state.buckets.length
-        ? '세어볼 조건의 값을 입력하세요.'
-        : '세어볼 조건을 하나 이상 추가하세요.';
+  // Editing after a run leaves numbers that answer the previous question. They
+  // used to sit there looking current.
+  const stale = !!data && JSON.stringify(data.asked) !== JSON.stringify({ filters, buckets });
 
   return (
     <div className='flex flex-col gap-4'>
       <section className='rounded-xl border border-border bg-card'>
-        {/* Without this the 조건 추가 buttons are simply dead: they disable
+        {/* Without this the condition controls are simply dead: they disable
             themselves when the catalog is missing and used to say nothing. */}
-        {!metrics.length ? <CatalogNotice loading={catalogLoading} failed={catalogFailed} error={catalogError} onRetry={() => refetchCatalog()} /> : null}
-        {LANES.map(({ name, step, title, hint }) => (
-          <div key={name} className='flex flex-col gap-3 border-border p-4 [&+&]:border-t'>
-            <div className='flex flex-wrap items-center gap-x-2 gap-y-1'>
-              <span className='inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-border font-mono text-xs font-medium text-muted-foreground'>
-                {step}
-              </span>
-              <h2 className='text-base font-semibold tracking-tight text-foreground'>{title}</h2>
-              <p className='text-xs text-muted-foreground'>{hint}</p>
-            </div>
+        {!metrics.length ? (
+          <CatalogNotice
+            loading={catalogLoading}
+            failed={catalogFailed}
+            error={catalogError}
+            onRetry={() => refetchCatalog()}
+          />
+        ) : null}
 
-            {state[name].map((draft) => (
-              <ConditionRow
-                key={draft.id}
-                draft={draft}
-                metrics={metrics}
-                onChange={(patch) => setState((prev) => updateDraft(prev, name, draft.id, patch))}
-                onRemove={() => setState((prev) => removeDraft(prev, name, draft.id))}
-              />
-            ))}
-
-            <AddConditionButton
+        <div className='flex flex-col gap-3 p-4'>
+          <LaneHead title='메인조건' hint='값마다 결과가 따로 조회됩니다.' />
+          {state.main ? (
+            <ConditionRow
+              draft={state.main}
               metrics={metrics}
-              onAdd={(metric) => setState((prev) => addDraft(prev, name, metric))}
+              isMain
+              onRetarget={(metric) => setState((prev) => retarget(prev, state.main!.id, metric))}
+              onOperator={(op) => setState((prev) => setOperator(prev, state.main!.id, op))}
+              onAddValue={(value) => setState((prev) => addValue(prev, state.main!.id, value))}
+              onRemoveValue={(index) => setState((prev) => removeValue(prev, state.main!.id, index))}
             />
-          </div>
-        ))}
+          ) : null}
+        </div>
+
+        <div className='flex flex-col gap-3 border-t border-border p-4'>
+          <LaneHead title='서브조건' hint='모든 결과에 함께 적용됩니다. 비워두면 전체가 대상입니다.' />
+          {state.subs.map((draft) => (
+            <ConditionRow
+              key={draft.id}
+              draft={draft}
+              metrics={metrics}
+              isMain={false}
+              onRetarget={(metric) => setState((prev) => retarget(prev, draft.id, metric))}
+              onOperator={(op) => setState((prev) => setOperator(prev, draft.id, op))}
+              onAddValue={(value) => setState((prev) => addValue(prev, draft.id, value))}
+              onRemoveValue={(index) => setState((prev) => removeValue(prev, draft.id, index))}
+              onRemove={() => setState((prev) => removeSub(prev, draft.id))}
+            />
+          ))}
+          {!state.subs.length ? (
+            <p className='text-xs text-muted-foreground'>서브조건이 없어 전체 공간이 대상입니다.</p>
+          ) : null}
+          <Button
+            variant='ghost'
+            size='sm'
+            className='h-8 self-start border border-dashed border-border text-sm text-muted-foreground hover:border-solid hover:text-foreground'
+            disabled={!metrics.length}
+            onClick={() => setState((prev) => addSub(prev, metrics[0]))}
+          >
+            <Plus className='mr-1.5 h-3.5 w-3.5' />
+            서브조건 추가
+          </Button>
+        </div>
 
         <div className='flex flex-wrap items-center gap-3 border-t border-border p-4'>
-          <Button onClick={() => refetch()} disabled={!!blockedReason || isFetching}>
+          <Button onClick={() => refetch()} disabled={!!blocked || isFetching}>
             {isFetching ? '조회 중' : '조회'}
           </Button>
-          {blockedReason ? (
-            <span className={`text-xs ${invalid ? 'text-destructive' : 'text-muted-foreground'}`}>{blockedReason}</span>
-          ) : ignoredFilters > 0 ? (
-            // Not blocking - an empty 좁히기 row is harmless - but the count would
-            // otherwise come back wider than the panel looks, with nothing said.
-            <span className='text-xs text-muted-foreground'>
-              값이 비어 있는 좁히기 조건 {ignoredFilters}개는 무시됩니다.
-            </span>
-          ) : null}
+          {/* Says one thing only: why the button is unavailable. Narrating a
+              working query is noise the result table repeats a moment later. */}
+          {blocked ? <span className='text-xs text-muted-foreground'>{blocked}</span> : null}
         </div>
       </section>
 
@@ -136,7 +143,11 @@ function StatsQueryPanel() {
             <div className='flex flex-wrap items-baseline justify-between gap-3 border-b border-border p-4'>
               <h2 className='text-base font-semibold tracking-tight text-foreground'>결과</h2>
               <p className='text-xs text-muted-foreground'>
-                {data && data.asked.filters.length ? `좁히기 ${data.asked.filters.length}개 적용` : '좁히기 없이 전체 대상'}
+                {stale
+                  ? '조건이 바뀌었습니다. 다시 조회하세요.'
+                  : data && data.asked.filters.length
+                    ? `서브조건 ${data.asked.filters.length}개 적용`
+                    : '서브조건 없이 전체 대상'}
               </p>
             </div>
             <table className='w-full'>
@@ -152,6 +163,7 @@ function StatsQueryPanel() {
                   <StatsResultRow
                     key={`${row.label}-${index}`}
                     row={row}
+                    stale={stale}
                     onOpen={row.count ? () => setOpened({ index, row }) : undefined}
                   />
                 ))}
@@ -159,9 +171,7 @@ function StatsQueryPanel() {
             </table>
           </>
         ) : (
-          <p className='p-10 text-center text-sm text-muted-foreground'>
-            조건을 추가하고 조회하면 여기에 개수가 나옵니다.
-          </p>
+          <p className='p-10 text-center text-sm text-muted-foreground'>조건을 적고 조회하면 여기에 결과가 나옵니다.</p>
         )}
       </section>
 
@@ -178,9 +188,18 @@ function StatsQueryPanel() {
   );
 }
 
+function LaneHead({ title, hint }: { title: string; hint: string }) {
+  return (
+    <div className='flex flex-wrap items-baseline gap-x-2 gap-y-1'>
+      <h2 className='text-base font-semibold tracking-tight text-foreground'>{title}</h2>
+      <p className='text-xs text-muted-foreground'>{hint}</p>
+    </div>
+  );
+}
+
 /**
  * The metric catalog decides what a condition can even be, so until it arrives
- * there is nothing to add. Saying so beats a button that ignores clicks.
+ * there is nothing to build one from. Saying so beats controls that sit dead.
  */
 function CatalogNotice({
   loading,
@@ -194,15 +213,13 @@ function CatalogNotice({
   onRetry: () => void;
 }) {
   if (loading) {
-    return (
-      <p className='border-b border-border p-4 text-sm text-muted-foreground'>지표 목록을 불러오는 중입니다.</p>
-    );
+    return <p className='border-b border-border p-4 text-sm text-muted-foreground'>지표 목록을 불러오는 중입니다.</p>;
   }
   if (!failed) return null;
   return (
     <div className='flex flex-wrap items-center gap-3 border-b border-border p-4'>
       <p className='text-sm text-destructive'>
-        지표 목록을 불러오지 못해 조건을 추가할 수 없습니다.
+        지표 목록을 불러오지 못해 조건을 만들 수 없습니다.
         {error instanceof Error ? ` ${error.message}` : ''}
       </p>
       <Button variant='outline' size='sm' onClick={onRetry}>
@@ -212,30 +229,14 @@ function CatalogNotice({
   );
 }
 
-/** Sits directly under the rows it adds to, rather than across the panel from them. */
-function AddConditionButton({ metrics, onAdd }: { metrics: StatsMetric[]; onAdd: (metric: StatsMetric) => void }) {
-  return (
-    <Button
-      variant='ghost'
-      size='sm'
-      className='h-8 self-start border border-dashed border-border text-sm text-muted-foreground hover:border-solid hover:text-foreground'
-      disabled={!metrics.length}
-      onClick={() => onAdd(metrics[0])}
-    >
-      <Plus className='mr-1.5 h-3.5 w-3.5' />
-      조건 추가
-    </Button>
-  );
-}
-
-function StatsResultRow({ row, onOpen }: { row: StatsBucketRow; onOpen?: () => void }) {
+function StatsResultRow({ row, stale, onOpen }: { row: StatsBucketRow; stale: boolean; onOpen?: () => void }) {
   return (
     <tr
       className={`border-b border-border last:border-b-0 ${onOpen ? 'cursor-pointer hover:bg-muted/40' : ''}`}
       onClick={onOpen}
     >
-      <td className='px-4 py-2 text-sm text-foreground'>{row.label}</td>
-      <td className='px-4 py-2 text-right text-sm tabular-nums text-foreground'>
+      <td className={`px-4 py-2 text-sm ${stale ? 'text-muted-foreground' : 'text-foreground'}`}>{row.label}</td>
+      <td className={`px-4 py-2 text-right text-sm tabular-nums ${stale ? 'text-muted-foreground' : 'text-foreground'}`}>
         {row.count === null ? (
           <span className='text-destructive'>{row.error === 'timeout' ? '시간 초과' : '실패'}</span>
         ) : (
