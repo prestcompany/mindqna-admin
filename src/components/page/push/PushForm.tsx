@@ -451,6 +451,10 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                     <PanelBand title='내부 테스트' />
                     <PushTestSendPanel
                       disabled={saving}
+                      /* A broadcast is the case where 대상 조건 and 언어 are on screen and
+                         this send honours neither. A per-user send has no audience for the
+                         test to contradict. */
+                      audienceIgnored={values.target === 'ALL'}
                       onSend={(userNames, resolved) => setTestSend({ userNames, resolved })}
                     />
                   </>
@@ -517,6 +521,14 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                   지금 작성한 내용이 {testSend ? reachableCount(testSend.resolved).toLocaleString() : 0}명에게 즉시
                   발송됩니다. 1분 안에 실제 기기로 도착합니다.
                 </p>
+
+                {/* Said again at the moment of commitment, where the operator is looking at a
+                    list of addresses rather than at the conditions they set earlier. */}
+                {values.target === 'ALL' && (
+                  <p className='leading-relaxed text-muted-foreground'>
+                    대상 조건과 언어는 적용되지 않습니다. 아래 계정으로 그대로 나갑니다.
+                  </p>
+                )}
 
                 <ul className='divide-y divide-hairline-soft rounded-lg border border-border'>
                   {testSend?.resolved.resolved
