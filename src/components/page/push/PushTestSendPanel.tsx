@@ -57,9 +57,16 @@ function SummaryLine({ label, value, danger }: { label: string; value: string; d
  */
 export default function PushTestSendPanel({
   disabled,
+  audienceIgnored,
   onSend,
 }: {
   disabled?: boolean;
+  /**
+   * Whether the form above carries an audience this send will not honour. Set for
+   * a broadcast, where 대상 조건 and 언어 sit directly above this panel yet the test
+   * resolves its recipients from the addresses below alone.
+   */
+  audienceIgnored?: boolean;
   /** Sends the composed message to these usernames, immediately. */
   onSend: (userNames: string[], resolved: ResolveTestEmailsResult) => Promise<void> | void;
 }) {
@@ -89,6 +96,18 @@ export default function PushTestSendPanel({
 
   return (
     <div>
+      {audienceIgnored && (
+        // 대상 조건 sits immediately above this panel, so the screen reads as though it
+        // narrows the test too. It does not: the send posts usernames resolved from these
+        // addresses alone, with no filter and no locale. An operator testing
+        // "혼자 / 한국어 / 질문 16개 이상" reached accounts matching none of it and read the
+        // resulting row as the admin mis-reporting a send that never happened.
+        <p className='mb-4 rounded-lg border border-border bg-muted/40 px-3 py-2.5 text-sm leading-relaxed text-muted-foreground'>
+          <span className='font-medium text-foreground'>위에서 설정한 대상 조건과 언어는 적용되지 않습니다.</span>{' '}
+          조건에 맞는 공간이 없는 계정에도, 아래 이메일로 찾은 계정 그대로 발송됩니다.
+        </p>
+      )}
+
       <DefinitionRow label='이메일' hint='팀 기본 목록이 채워져 있습니다. 쉼표나 줄바꿈으로 구분합니다'>
         <div className='space-y-2'>
           <Textarea
@@ -171,7 +190,14 @@ export default function PushTestSendPanel({
       </DefinitionRow>
 
       {result && result.userNames.length > 0 && (
-        <DefinitionRow label='테스트 발송' hint='즉시 발송됩니다. 1분 안에 실제 기기로 도착합니다'>
+        <DefinitionRow
+          label='테스트 발송'
+          hint={
+            audienceIgnored
+              ? '대상 조건과 무관하게 즉시 발송됩니다. 1분 안에 실제 기기로 도착합니다'
+              : '즉시 발송됩니다. 1분 안에 실제 기기로 도착합니다'
+          }
+        >
           <Button type='button' size='sm' disabled={disabled} onClick={() => onSend(result.userNames, result)}>
             {reachableCount(result).toLocaleString()}명에게 테스트 발송
           </Button>
