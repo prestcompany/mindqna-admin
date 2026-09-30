@@ -1,9 +1,10 @@
 import { updatePdfExportRecord } from '@/client/pdf-export';
 import { DatePicker } from '@/components/shared/ui/date-picker';
-import type { PdfExportRecord } from '@/client/types';
+import type { PdfExportRecord, UpdatePdfExportRecordParams } from '@/client/types';
 import { DefinitionRow } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -13,8 +14,9 @@ type Props = {
   onChanged: () => void;
 };
 
+// Local date, so the picker shows the same day as the history table's 만료일 column.
 function toDateInput(iso: string): string {
-  return new Date(iso).toISOString().slice(0, 10);
+  return dayjs(iso).format('YYYY-MM-DD');
 }
 
 function PdfExportAdjustDialog({ record, onClose, onChanged }: Props) {
@@ -36,14 +38,19 @@ function PdfExportAdjustDialog({ record, onClose, onChanged }: Props) {
       toast.warning('다운로드 횟수는 0 이상의 정수여야 합니다.');
       return;
     }
-    const parsedExpiry = new Date(`${expiresAt}T23:59:59`);
-    if (Number.isNaN(parsedExpiry.getTime())) {
-      toast.warning('만료일이 올바르지 않습니다.');
-      return;
+    const body: UpdatePdfExportRecordParams = { downloadCount: count };
+    // Only send the expiry when the day was changed, so saving a count alone keeps the original time.
+    if (expiresAt !== toDateInput(record.expiresAt)) {
+      const parsedExpiry = new Date(`${expiresAt}T23:59:59`);
+      if (Number.isNaN(parsedExpiry.getTime())) {
+        toast.warning('만료일이 올바르지 않습니다.');
+        return;
+      }
+      body.expiresAt = parsedExpiry.toISOString();
     }
     setSaving(true);
     try {
-      await updatePdfExportRecord(record.id, { downloadCount: count, expiresAt: parsedExpiry.toISOString() });
+      await updatePdfExportRecord(record.id, body);
       toast.success('발급 정보를 수정했습니다.');
       onChanged();
       onClose();
