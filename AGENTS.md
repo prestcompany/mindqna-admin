@@ -10,35 +10,41 @@
 
 ## 1. 개발 명령어
 
+패키지 매니저는 **pnpm**입니다(`pnpm-lock.yaml`).
+
 ```bash
-npm run dev      # 개발 서버 (포트 4000)
-npm run build    # 프로덕션 빌드
-npm run start    # 프로덕션 서버
-npm run lint     # 린트
-npm run export   # 정적 익스포트
+pnpm dev      # 개발 서버 (포트 4000)
+pnpm build    # 프로덕션 빌드
+pnpm start    # 프로덕션 서버
+pnpm lint     # 린트 (eslint .)
+pnpm test     # 단위 테스트 (tsx --test "src/**/*.test.ts", node:test)
 ```
 
-검증: 기능 변경 시 최소 `npx tsc --noEmit` + `npm run lint` 통과를 확인합니다(프로덕션 빌드는 `ignoreBuildErrors: true`라 타입 에러를 숨기므로 tsc를 직접 돌립니다).
+`package.json`의 `export` 스크립트(`next export`)는 Next 14에서 제거된 명령이라 현재 버전에서는 동작하지 않습니다.
+
+검증: 기능 변경 시 최소 `npx tsc --noEmit` + `pnpm lint` 통과를 확인하고, 순수 로직을 추가했다면 `pnpm test`도 돌립니다.
 
 ---
 
 ## 2. 기술 스택 (실태 기준)
 
-- **프레임워크**: Next.js 13 (pages router) + TypeScript
+- **프레임워크**: Next.js 16 (**pages router**) + React 18 + TypeScript 5.1 — 버전별 API 차이는 문서 끝 `nextjs-agent-rules` 블록 참고
 - **UI**: **shadcn/ui** (Radix 기반, `src/components/ui/**`) + **Tailwind CSS** + `lucide-react` 아이콘
   - Ant Design은 사용하지 않습니다(마이그레이션 완료, `antd` import 0).
 - **상태관리**: 전역 `Zustand`, 서버 상태 `TanStack Query`
 - **폼**: `react-hook-form` + `zod` (검증 통일)
 - **인증**: NextAuth.js (JWT + refresh 회전)
 - **HTTP**: Axios + 요청/응답 인터셉터(토큰 자동 첨부/갱신)
+- **토스트**: `sonner`
+- **날짜**: `dayjs`(표시·포맷), `date-fns`(`DatePicker` 내부)
 - **차트**: Chart.js + react-chartjs-2
-- **에디터**: Quill.js, CodeMirror
+- **에디터**: CodeMirror(`@uiw/react-codemirror`)
 - **폰트**: Pretendard
 
 ### 주요 설정
 - 개발 포트 **4000**
-- `next.config.js`: `ignoreBuildErrors: true`
-- Tailwind: `preflight: false` (레거시 스타일 충돌 회피)
+- `next.config.js`: `reactStrictMode` + S3 프록시 rewrite만 있습니다(`ignoreBuildErrors` 없음)
+- Tailwind: `preflight: true`
 - API 프록시: `/s3-proxy/*` → `https://mindqna.s3.amazonaws.com/*`
 - 테마: 라이트 고정(`data-admin-theme="vercel"`), near-black primary
 
@@ -65,7 +71,7 @@ src/
 ├── lib/           # 유틸/프로바이더 (design-system/theme-provider 등)
 ├── pages/         # Next.js 파일 기반 라우팅
 ├── styles/        # globals.css(디자인 토큰) 등
-└── types/         # 타입 정의 (client/types.ts 중심)
+└── types/         # 공용·NextAuth 타입 (API 타입은 src/client/types.ts)
 ```
 
 ### 컴포넌트 조직
@@ -78,10 +84,13 @@ src/
 
 ### 패턴
 ```ts
-// src/client/example.ts
-export const getExamples = () => client.get('/examples');
-// src/hooks/useExamples.ts
-export const useExamples = () => useQuery(['examples'], getExamples);
+// src/client/example.ts — axios baseURL에 이미 /admin이 포함되므로 경로는 /examples
+export async function getExamples() {
+  const res = await client.get<ExampleList>('/examples');
+  return res.data;
+}
+// src/hooks/useExamples.ts — TanStack Query v5 객체 문법
+export const useExamples = (page: number) => useQuery({ queryKey: ['examples', page], queryFn: getExamples });
 
 // src/pages/example/list.tsx
 const ExampleListPage = () => <ExampleList />;
@@ -154,9 +163,17 @@ Geist 전환은 완료 상태입니다.
 - 사용되지 않는 상태/분기/빈 디렉터리는 즉시 정리
 - 기능 변경 시 대상 파일 타입 진단(`tsc`) 수행, UI 일관성(버튼 위치/상태 라벨/행 액션) 점검
 - 옵셔널 응답 필드는 **값이 있을 때만 렌더**(서버 누락에 방어적; 예: 멤버 상태 뱃지)
+- 서버 에러는 `AxiosError` 문자열 대신 응답 메시지를 보여줍니다: `page/coupon/errorMessage.ts`의 `errorMessage(err)`
+- 테스트: 페이지 컴포넌트 테스트 관례는 없습니다. 순수 로직은 `components/page/<route>/services/*.ts`로 빼고 옆에 `*.test.ts`(node:test)를 둡니다
 - 제품/디자인 방향 변경 시 **코드보다 DESIGN.md / AGENTS.md 를 먼저 갱신**
 
-## 6. 알려진 잔존 이슈 (별도 트랙)
+## 6. 연관 레포 · 문서
+
+- **백엔드**: `mindqna-server`(NestJS + Prisma, 로컬 `~/Documents/backend/mindqna-server`). 어드민 API는 `src/admin/**`, `AdminGuard` 보호.
+- **스키마 변경**: `prisma migrate`를 돌리지 않습니다. `.sql`을 작성해 넘기면 담당자가 dev/prod에 직접 적용합니다.
+- **설계·계획 문서**: 기능 설계는 `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`, 구현 계획은 `docs/superpowers/plans/YYYY-MM-DD-<topic>.md`(이전 문서는 `docs/plans/`).
+
+## 7. 알려진 잔존 이슈 (별도 트랙)
 
 프로젝트 레벨 TS 에러: `npx tsc --noEmit` 기준 현재 0건.
 
