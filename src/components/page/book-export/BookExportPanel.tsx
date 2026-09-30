@@ -17,11 +17,13 @@ import { BOOK_ORDER_LEVEL_LABEL } from './BookExportStatusBadge';
 import { createBookExportResultColumns } from './BookExportResultColumns';
 import {
   BOOKS_PER_REQUEST,
+  areAllVisibleSelected,
   buildBookZipName,
   chunkItems,
   countOrdersByLevel,
   isSelectableOrder,
   toBookExportRequest,
+  toggleVisibleSelection,
 } from './services/book-export-download';
 import { createBookZipWriter } from './services/book-zip-writer';
 
@@ -75,6 +77,10 @@ function BookExportPanel({ onBusyChange }: Props) {
     () => (orders ?? []).filter((order) => filter === 'all' || order.level === filter),
     [orders, filter],
   );
+  const visibleSelectableOrderNos = useMemo(
+    () => visible.filter(isSelectableOrder).map((order) => order.orderNo),
+    [visible],
+  );
 
   const validate = async (files: File[]) => {
     const file = files[0];
@@ -121,7 +127,11 @@ function BookExportPanel({ onBusyChange }: Props) {
         toast.warning('추출할 수 있는 주문이 없습니다.');
       } else {
         saveZip(zip, buildBookZipName(new Date()));
-        toast.success(`${bookCount}건을 zip으로 내려받았습니다.`);
+        toast.success(
+          rejectedOrders.length > 0
+            ? `${bookCount}건을 zip으로 내려받았습니다. ${rejectedOrders.length}건은 제외되었습니다.`
+            : `${bookCount}건을 zip으로 내려받았습니다.`,
+        );
       }
     } catch (err) {
       toast.error(`다운로드를 중단했습니다. ${errorMessage(err)}`);
@@ -132,7 +142,8 @@ function BookExportPanel({ onBusyChange }: Props) {
 
   const columns = createBookExportResultColumns({
     selected,
-    selectableCount: selectable.length,
+    allVisibleSelected: areAllVisibleSelected({ selected, visibleSelectable: visibleSelectableOrderNos }),
+    hasVisibleSelectable: visibleSelectableOrderNos.length > 0,
     onToggle: (orderNo, checked) =>
       setSelected((prev) => {
         const next = new Set(prev);
@@ -140,7 +151,8 @@ function BookExportPanel({ onBusyChange }: Props) {
         else next.delete(orderNo);
         return next;
       }),
-    onToggleAll: (checked) => setSelected(checked ? new Set(selectable.map((order) => order.orderNo)) : new Set()),
+    onToggleAll: (checked) =>
+      setSelected((prev) => toggleVisibleSelection({ selected: prev, visibleSelectable: visibleSelectableOrderNos, checked })),
   });
 
   const isDownloading = progress !== null;
@@ -158,6 +170,19 @@ function BookExportPanel({ onBusyChange }: Props) {
             <Loader2 className='h-4 w-4 animate-spin' />
             주문을 확인하고 있습니다.
           </p>
+        ) : null}
+
+        {rejected.length > 0 ? (
+          <div className='rounded-md border border-border p-3'>
+            <p className='text-sm font-medium text-foreground'>다운로드 시점에 제외된 주문 {rejected.length}건</p>
+            <ul className='mt-2 space-y-1'>
+              {rejected.map((item) => (
+                <li key={item.orderNo} className='text-xs text-muted-foreground'>
+                  <span className='font-mono'>{item.orderNo}</span> {item.issues.map((issue) => issue.message).join(' ')}
+                </li>
+              ))}
+            </ul>
+          </div>
         ) : null}
 
         {orders ? (
@@ -178,19 +203,6 @@ function BookExportPanel({ onBusyChange }: Props) {
             <DataTable columns={columns} data={visible} rowKey='orderNo' />
           </>
         ) : null}
-
-        {rejected.length > 0 ? (
-          <div className='rounded-md border border-border p-3'>
-            <p className='text-sm font-medium text-foreground'>다운로드 시점에 제외된 주문 {rejected.length}건</p>
-            <ul className='mt-2 space-y-1'>
-              {rejected.map((item) => (
-                <li key={item.orderNo} className='text-xs text-muted-foreground'>
-                  <span className='font-mono'>{item.orderNo}</span> {item.issues.map((issue) => issue.message).join(' ')}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
       </div>
 
       {orders ? (
@@ -201,7 +213,7 @@ function BookExportPanel({ onBusyChange }: Props) {
                 {progress.done} / {progress.total}건 처리 중
               </span>
             ) : null}
-            <Button type='button' onClick={download} disabled={isDownloading || selected.size === 0}>
+            <Button type='button' onClick={download} disabled={isBusy || selected.size === 0}>
               {isDownloading ? <Loader2 className='h-4 w-4 animate-spin' /> : <Download className='h-4 w-4' />}
               선택 {selected.size}건 zip 다운로드
             </Button>

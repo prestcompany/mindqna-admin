@@ -4,11 +4,13 @@ import test from 'node:test';
 import type { BookOrderValidation } from '../../../../client/types';
 import {
   BOOKS_PER_REQUEST,
+  areAllVisibleSelected,
   buildBookZipName,
   chunkItems,
   countOrdersByLevel,
   isSelectableOrder,
   toBookExportRequest,
+  toggleVisibleSelection,
 } from './book-export-download';
 
 function buildOrder(overrides: Partial<BookOrderValidation> = {}): BookOrderValidation {
@@ -71,4 +73,26 @@ test('counts orders per level', () => {
 
 test('names the zip with local date and time', () => {
   assert.equal(buildBookZipName(new Date(2026, 8, 30, 9, 5)), 'mindbridge-books-20260930-0905.zip');
+});
+
+test('select-all adds only the visible selectable orders to the existing selection', () => {
+  const selected = new Set(['A-1']);
+  const next = toggleVisibleSelection({ selected, visibleSelectable: ['A-2', 'A-3'], checked: true });
+  assert.deepEqual(Array.from(next).sort(), ['A-1', 'A-2', 'A-3']);
+});
+
+test('unselect-all removes only the visible selectable orders, keeping hidden selected rows', () => {
+  const selected = new Set(['A-1', 'A-2', 'A-3']);
+  const next = toggleVisibleSelection({ selected, visibleSelectable: ['A-2', 'A-3'], checked: false });
+  assert.deepEqual(Array.from(next), ['A-1']);
+});
+
+test('all-visible-selected is computed over the visible selectable orders only', () => {
+  const selected = new Set(['A-2', 'A-3']);
+  assert.equal(areAllVisibleSelected({ selected, visibleSelectable: ['A-2', 'A-3'] }), true);
+  assert.equal(areAllVisibleSelected({ selected, visibleSelectable: ['A-2', 'A-3', 'A-4'] }), false);
+});
+
+test('an empty visible-selectable set is never "all selected"', () => {
+  assert.equal(areAllVisibleSelected({ selected: new Set(), visibleSelectable: [] }), false);
 });

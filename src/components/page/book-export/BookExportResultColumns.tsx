@@ -6,7 +6,10 @@ import { isSelectableOrder } from './services/book-export-download';
 
 export interface BookExportSelectionProps {
   selected: Set<string>;
-  selectableCount: number;
+  /** Whether every currently visible, selectable row is selected. */
+  allVisibleSelected: boolean;
+  /** Whether at least one currently visible row is selectable. */
+  hasVisibleSelectable: boolean;
   onToggle: (orderNo: string, checked: boolean) => void;
   onToggleAll: (checked: boolean) => void;
 }
@@ -18,8 +21,8 @@ export const createBookExportResultColumns = (selection: BookExportSelectionProp
     header: () => (
       <Checkbox
         aria-label='추출 가능한 주문 전체 선택'
-        checked={selection.selectableCount > 0 && selection.selected.size === selection.selectableCount}
-        disabled={selection.selectableCount === 0}
+        checked={selection.allVisibleSelected}
+        disabled={!selection.hasVisibleSelectable}
         onCheckedChange={(checked) => selection.onToggleAll(checked === true)}
       />
     ),

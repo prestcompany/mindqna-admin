@@ -40,3 +40,30 @@ export function countOrdersByLevel(orders: BookOrderValidation[]): Record<'all' 
 export function buildBookZipName(now: Date): string {
   return `mindbridge-books-${dayjs(now).format('YYYYMMDD-HHmm')}.zip`;
 }
+
+// Header "select all" acts on the currently visible (filtered) selectable rows only, so it never
+// touches rows the operator can't currently see.
+export function toggleVisibleSelection({
+  selected,
+  visibleSelectable,
+  checked,
+}: {
+  selected: Set<string>;
+  visibleSelectable: string[];
+  checked: boolean;
+}): Set<string> {
+  const next = new Set(selected);
+  if (checked) visibleSelectable.forEach((orderNo) => next.add(orderNo));
+  else visibleSelectable.forEach((orderNo) => next.delete(orderNo));
+  return next;
+}
+
+export function areAllVisibleSelected({
+  selected,
+  visibleSelectable,
+}: {
+  selected: Set<string>;
+  visibleSelectable: string[];
+}): boolean {
+  return visibleSelectable.length > 0 && visibleSelectable.every((orderNo) => selected.has(orderNo));
+}
