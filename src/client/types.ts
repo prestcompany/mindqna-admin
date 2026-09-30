@@ -939,3 +939,80 @@ export type UpdatePdfExportRecordParams = {
   downloadCount?: number;
   expiresAt?: string;
 };
+
+export type BookOrderIssueCode =
+  | 'SPACE_ID_MISSING'
+  | 'SPACE_NOT_FOUND'
+  | 'RANGE_INVALID'
+  | 'RANGE_SIZE'
+  | 'COVER_COLOR_MISSING'
+  | 'INCONSISTENT_ROWS'
+  | 'NO_ANSWERED_CARDS'
+  | 'PAID_COUNT_MISMATCH'
+  | 'UNANSWERED_DROPPED'
+  | 'RANGE_CLAMPED'
+  | 'DUPLICATE_SPACE'
+  | 'SPACE_PENDING_DELETION';
+
+export type BookOrderLevel = 'ok' | 'warning' | 'error';
+
+export type BookOrderIssue = {
+  code: BookOrderIssueCode;
+  message: string;
+};
+
+export type BookOrderValidation = {
+  orderNo: string;
+  orderedAt: string;
+  spaceId: string;
+  rangeRaw: string;
+  startOrder: number | null;
+  endOrder: number | null;
+  exportEnd: number | null;
+  paidQuestionCount: number | null;
+  answeredCount: number;
+  coverColor: string;
+  paidInner: string;
+  spaceName: string;
+  locale: string;
+  level: BookOrderLevel;
+  issues: BookOrderIssue[];
+};
+
+export type BookOrderValidationResult = {
+  orders: BookOrderValidation[];
+};
+
+export type BookExportRequestOrder = {
+  orderNo: string;
+  spaceId: string;
+  startOrder: number;
+  endOrder: number;
+  coverColor: string;
+  paidInner: string;
+};
+
+export type BookExportBook = {
+  orderNo: string;
+  coverColor: string;
+  paidInner: string;
+  cover: {
+    spaceName: string;
+    startOrder: number;
+    endOrder: number;
+    count: number;
+    generatedAt: string;
+    locale: string;
+  };
+  cards: { order: number; question: string; date: string; answers: { nickname: string; content: string }[] }[];
+};
+
+export type BookExportRejectedOrder = {
+  orderNo: string;
+  issues: BookOrderIssue[];
+};
+
+export type BookExportBooksResult = {
+  books: BookExportBook[];
+  rejected: BookExportRejectedOrder[];
+};

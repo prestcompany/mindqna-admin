@@ -38,6 +38,7 @@
     "cmdk": "^1.1.1",
     "date-fns": "^2.30.0",
     "dayjs": "^1.11.11",
+    "fflate": "^0.8.3",
     "framer-motion": "^10.15.0",
     "immer": "^10.0.4",
     "jwt-decode": "^4.0.0",
