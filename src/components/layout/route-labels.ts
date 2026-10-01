@@ -35,6 +35,7 @@ export const ROUTE_LABELS: Record<string, string> = {
   article: '아티클',
   'app-version': '앱 버전 관리',
   'pdf-export': 'PDF 내보내기 관리',
+  'book-order': '책 제작 발주',
 };
 
 const COMPOSITE_LAST_SEGMENTS = new Set(['list', 'new']);
