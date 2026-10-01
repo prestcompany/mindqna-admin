@@ -25,7 +25,7 @@ Two things changed outside the code:
 
 ### Decided
 - **JSON replaces the old top-level fields.** `coverColor` and `paidInner` move into `options` and no longer appear at the top level (answer A).
-- **`cover.members`** lists the space's *current active members*: profiles with `spaceId = space`, `disabled = false`, `removed = false` and `renew = false` (the same rule as `space-member.service.ts`). They are ordered by `createdAt` ascending, with each nickname trimmed. The list is looked up whenever a book is built, so a re-download reflects current members (answer B).
+- **`cover.members`** lists the space's *current active members*: the app's canonical active-member rule, `getActiveMemberWhere(spaceId)` in `src/space/member-count.util.ts` (`disabled = false`, `removed = false`). They are ordered by `createdAt` ascending, with each nickname trimmed. The list is looked up whenever a book is built, so a re-download reflects current members (answer B).
 - **`cover.firstQuestionDate` / `cover.lastQuestionDate`** are the `date` of the first and the last card in `cards`, using the same `YYYY-MM-DD` value the cards carry.
 - **`options.purchaseQuestionCount`** is the purchased question count (the existing internal `paidQuestionCount`). It is `null` when the export does not carry it. The existing `PAID_COUNT_MISMATCH` warning keeps comparing it with the requested range size.
 - **`options.recordPackage`** is a new parsed option. It is stored on `BookOrderBatchItem.recordPackage` so a re-download carries it. The user has already applied the column to dev and prod with:
@@ -65,12 +65,14 @@ The new field threads through every shape. Unchanged fields are not listed.
 |---|---|
 | `ParsedBookOrder` | + `recordPackage: string` |
 | `BookOrderValidation` | + `recordPackage: string` (passed through by `evaluateBookOrder`) |
-| `BookExportRequestOrder` (`/books` body) | + `paidQuestionCount: number \| null`, + `recordPackage: string` |
-| `BookBatchRequestOrder` (confirm body) | + `recordPackage: string` |
+| `BookExportRequestOrder` (`/books` body) | + `paidQuestionCount?: number \| null`, + `recordPackage?: string` (optional for older clients; default `null` / `''`; bounds checked) |
+| `BookBatchRequestOrder` (confirm body) | + `recordPackage?: string` (optional; default `''`) |
 | `BookOrderBatchItemDto` / stored item | + `recordPackage: string` |
 | `BOOK_EXPORT_LIMITS` | + `maxRecordPackageLength: 100` (the confirm checks it with the other column limits) |
 
 - `/books` keeps re-validating. Its request-to-parsed mapping now carries `paidQuestionCount` and `recordPackage` instead of `null` and nothing.
+
+- Deploy order: the backend first, then the frontend. The request fields are optional so the deployed admin keeps working in between.
 
 ## 4. Book JSON v2 (backend `book-export-books.service.ts`)
 
@@ -98,7 +100,7 @@ interface BookExportBook {
 }
 ```
 
-- Members come from one `profile.findMany` per book: `where: { spaceId, disabled: false, removed: false, renew: false }`, `select: { nickname: true }`, `orderBy: { createdAt: 'asc' }`.
+- Members come from one `profile.findMany` per book: `where: getActiveMemberWhere(spaceId)`, `select: { nickname: true }`, `orderBy: { createdAt: 'asc' }`.
 - A book with no answered cards is still rejected (existing behavior), so `cards` is never empty and both dates always exist.
 
 ## 5. Frontend (`mindqna-admin`)
