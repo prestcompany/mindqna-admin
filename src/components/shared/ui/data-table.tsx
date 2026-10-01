@@ -127,19 +127,19 @@ function DataTable<TData, TValue>({
     // 색은 중립(rgba(0,0,0,...))으로 유지합니다.
     if (stickyPosition === 'right') {
       return cn(
-        'sticky right-0 border-l border-border bg-card',
+        'sticky right-0 border-l border-border',
         variant === 'head'
-          ? 'z-30 shadow-[-10px_0_18px_-18px_rgba(0,0,0,0.35)]'
-          : 'z-20 group-hover:bg-canvas group-data-[state=selected]:bg-muted shadow-[-10px_0_18px_-18px_rgba(0,0,0,0.18)]',
+          ? 'z-30 bg-canvas shadow-[-10px_0_18px_-18px_rgba(0,0,0,0.35)]'
+          : 'z-20 bg-card group-hover:bg-canvas group-data-[state=selected]:bg-muted shadow-[-10px_0_18px_-18px_rgba(0,0,0,0.18)]',
       );
     }
 
     if (stickyPosition === 'left') {
       return cn(
-        'sticky left-0 border-r border-border bg-card',
+        'sticky left-0 border-r border-border',
         variant === 'head'
-          ? 'z-30 shadow-[10px_0_18px_-18px_rgba(0,0,0,0.35)]'
-          : 'z-20 group-hover:bg-canvas group-data-[state=selected]:bg-muted shadow-[10px_0_18px_-18px_rgba(0,0,0,0.18)]',
+          ? 'z-30 bg-canvas shadow-[10px_0_18px_-18px_rgba(0,0,0,0.35)]'
+          : 'z-20 bg-card group-hover:bg-canvas group-data-[state=selected]:bg-muted shadow-[10px_0_18px_-18px_rgba(0,0,0,0.18)]',
       );
     }
 
@@ -221,7 +221,7 @@ function DataTable<TData, TValue>({
                     <TableHead
                       key={header.id}
                       className={cn(
-                        'h-9 overflow-hidden whitespace-nowrap text-ellipsis text-xs font-medium text-muted-foreground',
+                        'h-9 overflow-hidden whitespace-nowrap text-ellipsis text-sm font-semibold tracking-label text-ink bg-canvas',
                         getStickyColumnClassName(header.column.columnDef, 'head'),
                       )}
                       style={getColumnStyle(header.column.columnDef.size)}

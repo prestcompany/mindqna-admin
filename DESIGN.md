@@ -73,10 +73,10 @@ Three two-stop gradients, for charts and illustration washes only:
 |---|---|---|---|---|
 | `{typography.display}` | 24px | 600 | -1.28px | Page titles, large KPI values |
 | `{typography.heading}` | 16px | 600 | -0.4px | Section and card headings |
-| `{typography.label}` | 14px | 500 | -0.28px | Field labels, nav emphasis, button text |
+| `{typography.label}` | 14px | 500 | -0.28px | Field labels, nav emphasis, button text, table headers (600) |
 | `{typography.body}` | 15px | 400 | 0 | Default body (root size) |
 | `{typography.body-sm}` | 14px | 400 | 0 | Table cells, dense body |
-| `{typography.caption}` | 12px | 400 | 0 | Captions, metadata, table headers |
+| `{typography.caption}` | 12px | 400 | 0 | Captions, metadata |
 | `{typography.mono-eyebrow}` | 12px | 500 | wide, uppercase | Section eyebrow labels (mono) |
 | `{typography.code}` | 14px | 400 | 0 | Code, IDs, transaction values (mono) |
 
@@ -210,7 +210,7 @@ Validation is schema-driven; errors render below the field in `{colors.error}` w
 ### Data Display
 
 **`data-table`** — the canonical list surface
-- White card, 1px hairline, `{rounded.card}`, **no shadow**. Header row 36px with `{typography.caption}` labels in `{colors.body}`, lowercase preserved. Body rows ~36px with 8px vertical padding, cells at `{typography.body-sm}` with `tabular-nums`. Long text truncates with a tooltip. Row hover takes `{colors.canvas}`. Action column sticks right.
+- White card, 1px hairline, `{rounded.card}`, **no shadow**. Header row 36px on `{colors.canvas}` with `{typography.label}` labels at weight 600 in `{colors.ink}`, separated from the body by the hairline. Body rows ~36px with 8px vertical padding, cells at `{typography.body-sm}` with `tabular-nums`. Long text truncates with a tooltip. Row hover takes `{colors.canvas}`. Action column sticks right.
 
 **`filter-bar`** — the list toolbar
 - **Flat, not a card** — no border, no fill, vertical padding `{spacing.sm}`. All controls 32px tall. Primary action right-aligned via a flex spacer. Active filters render below as removable chips.
