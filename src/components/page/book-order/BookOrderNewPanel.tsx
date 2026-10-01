@@ -176,7 +176,8 @@ function BookOrderNewPanel({ onBusyChange, onConfirmed }: Props) {
         toggleVisibleSelection({ selected: prev, visibleSelectable: visibleSelectableOrderNos, checked }),
       ),
     onPreview: (order) => setPreviewRequest(toBookExportRequest(order)),
-    isDownloading,
+    // Locks the preview and pick buttons while either a download or a confirm is in flight.
+    isDownloading: isDownloading || isConfirming,
     paidChoice: (orderNo) => paidChoices.get(orderNo),
     onChoosePaidCount: (orderNo, value) => {
       setPaidChoices((prev) => {

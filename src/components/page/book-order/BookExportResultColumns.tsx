@@ -106,52 +106,56 @@ export const createBookExportResultColumns = (selection: BookExportColumnActions
     id: 'status',
     header: '상태',
     size: 300,
-    cell: ({ row }) => (
-      <div className='space-y-1'>
-        <BookExportStatusBadge level={row.original.level} />
-        {row.original.issues.map((issue) => (
-          <p key={issue.code} className='text-xs text-muted-foreground'>
-            {issue.message}
-          </p>
-        ))}
-        {row.original.paidQuestionCandidates.length > 1 ? (
-          <div className='flex flex-wrap items-center gap-1 pt-1'>
-            <span className='text-xs text-muted-foreground'>결제 질문 수 선택</span>
-            {row.original.paidQuestionCandidates.map((value) => (
-              <Button
-                key={value}
-                type='button'
-                size='sm'
-                variant={selection.paidChoice(row.original.orderNo) === value ? 'secondary' : 'outline'}
-                className='h-6 px-2 text-xs tabular-nums'
-                disabled={selection.isDownloading}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  selection.onChoosePaidCount(row.original.orderNo, value);
-                }}
-              >
-                {value}
-              </Button>
-            ))}
-            {selection.paidChoice(row.original.orderNo) !== undefined ? (
-              <Button
-                type='button'
-                size='sm'
-                variant='ghost'
-                className='h-6 px-2 text-xs'
-                disabled={selection.isDownloading}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  selection.onChoosePaidCount(row.original.orderNo, null);
-                }}
-              >
-                다시 고르기
-              </Button>
-            ) : null}
-          </div>
-        ) : null}
-      </div>
-    ),
+    cell: ({ row }) => {
+      // Rollback guard: an older backend may omit paidQuestionCandidates entirely.
+      const candidates = row.original.paidQuestionCandidates ?? [];
+      return (
+        <div className='space-y-1'>
+          <BookExportStatusBadge level={row.original.level} />
+          {row.original.issues.map((issue) => (
+            <p key={issue.code} className='text-xs text-muted-foreground'>
+              {issue.message}
+            </p>
+          ))}
+          {candidates.length > 1 ? (
+            <div className='flex flex-wrap items-center gap-1 pt-1'>
+              <span className='text-xs text-muted-foreground'>결제 질문 수 선택</span>
+              {candidates.map((value) => (
+                <Button
+                  key={value}
+                  type='button'
+                  size='sm'
+                  variant={selection.paidChoice(row.original.orderNo) === value ? 'secondary' : 'outline'}
+                  className='h-6 px-2 text-xs tabular-nums'
+                  disabled={selection.isDownloading}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    selection.onChoosePaidCount(row.original.orderNo, value);
+                  }}
+                >
+                  {value}
+                </Button>
+              ))}
+              {selection.paidChoice(row.original.orderNo) !== undefined ? (
+                <Button
+                  type='button'
+                  size='sm'
+                  variant='ghost'
+                  className='h-6 px-2 text-xs'
+                  disabled={selection.isDownloading}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    selection.onChoosePaidCount(row.original.orderNo, null);
+                  }}
+                >
+                  다시 고르기
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      );
+    },
   },
   {
     id: 'preview',
