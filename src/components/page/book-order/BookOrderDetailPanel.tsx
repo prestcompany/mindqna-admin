@@ -142,7 +142,9 @@ function BookOrderDetailPanel({ batchId, confirmRejected = [], downloadRejected 
 
       <div className='sticky bottom-0 z-10 -mx-6 border-t bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
         <div className='flex items-center justify-end gap-3'>
-          <span className='mr-auto text-xs text-muted-foreground'>다시 받는 zip은 현재 데이터로 새로 만들어집니다.</span>
+          <span className='mr-auto text-xs text-muted-foreground'>
+            다시 받는 zip은 현재 데이터로 새로 만들어집니다.
+          </span>
           {zip.progress ? (
             <span className='text-sm tabular-nums text-muted-foreground'>
               {zip.progress.done} / {zip.progress.total}건 처리 중

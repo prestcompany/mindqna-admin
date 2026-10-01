@@ -20,7 +20,13 @@ import { toast } from 'sonner';
 import BookExportLevelFilter from './BookExportLevelFilter';
 import BookExportPreviewDialog from './BookExportPreviewDialog';
 import { createBookExportResultColumns } from './BookExportResultColumns';
-import { areAllVisibleSelected, countOrdersByLevel, isSelectableOrder, toBookExportRequest, toggleVisibleSelection } from './services/book-export-download';
+import {
+  areAllVisibleSelected,
+  countOrdersByLevel,
+  isSelectableOrder,
+  toBookExportRequest,
+  toggleVisibleSelection,
+} from './services/book-export-download';
 import {
   MAX_MANAGER_NAME_LENGTH,
   MAX_MEMO_LENGTH,
@@ -153,7 +159,9 @@ function BookOrderNewPanel({ onBusyChange, onConfirmed }: Props) {
         return next;
       }),
     onToggleAll: (checked) =>
-      setSelected((prev) => toggleVisibleSelection({ selected: prev, visibleSelectable: visibleSelectableOrderNos, checked })),
+      setSelected((prev) =>
+        toggleVisibleSelection({ selected: prev, visibleSelectable: visibleSelectableOrderNos, checked }),
+      ),
     onPreview: (order) => setPreviewRequest(toBookExportRequest(order)),
     isDownloading,
   });
@@ -219,7 +227,11 @@ function BookOrderNewPanel({ onBusyChange, onConfirmed }: Props) {
                 onClick={confirm}
                 disabled={!canConfirmBatch({ managerName, selectedCount: selected.size, isBusy })}
               >
-                {isBusy && !isValidating ? <Loader2 className='h-4 w-4 animate-spin' /> : <CheckCircle2 className='h-4 w-4' />}
+                {isBusy && !isValidating ? (
+                  <Loader2 className='h-4 w-4 animate-spin' />
+                ) : (
+                  <CheckCircle2 className='h-4 w-4' />
+                )}
                 선택 {selected.size}건 발주 확정
               </Button>
             </div>

@@ -2,12 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import type { BookOrderBatchItem, BookOrderValidation } from '../../../../client/types';
-import {
-  batchItemToExportRequest,
-  buildBatchZipName,
-  canConfirmBatch,
-  toBatchRequestOrder,
-} from './book-order-batch';
+import { batchItemToExportRequest, buildBatchZipName, canConfirmBatch, toBatchRequestOrder } from './book-order-batch';
 
 const VALIDATION: BookOrderValidation = {
   orderNo: 'A-1',

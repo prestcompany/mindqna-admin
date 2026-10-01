@@ -10,7 +10,9 @@ export interface BookOrderBatchItemActions {
 }
 
 // Every value here is the confirm-time snapshot stored with the 발주.
-export const createBookOrderBatchItemColumns = (actions: BookOrderBatchItemActions): ColumnDef<BookOrderBatchItem>[] => [
+export const createBookOrderBatchItemColumns = (
+  actions: BookOrderBatchItemActions,
+): ColumnDef<BookOrderBatchItem>[] => [
   {
     id: 'order',
     header: '주문',

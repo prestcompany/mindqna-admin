@@ -20,7 +20,13 @@ function saveBlob(blob: Blob, fileName: string) {
 export function useBookZipDownload() {
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
 
-  const download = async ({ orders, fileName }: { orders: BookExportRequestOrder[]; fileName: string }): Promise<BookZipRun> => {
+  const download = async ({
+    orders,
+    fileName,
+  }: {
+    orders: BookExportRequestOrder[];
+    fileName: string;
+  }): Promise<BookZipRun> => {
     setProgress({ done: 0, total: orders.length });
     try {
       const run = await runBookZipDownload({

@@ -107,9 +107,11 @@ function BookOrderList() {
           <Search className='h-3.5 w-3.5' />
           검색
         </Button>
-        <Button onClick={() => setSheet({ mode: 'new' })} className={`ml-auto ${FILTER_CONTROL_CLASS} [&_svg]:size-3.5`}>
-          <Plus className='h-3.5 w-3.5' />
-          새 발주
+        <Button
+          onClick={() => setSheet({ mode: 'new' })}
+          className={`ml-auto ${FILTER_CONTROL_CLASS} [&_svg]:size-3.5`}
+        >
+          <Plus className='h-3.5 w-3.5' />새 발주
         </Button>
       </FilterBar>
 
@@ -119,7 +121,9 @@ function BookOrderList() {
         loading={isLoading}
         rowKey={(record) => String(record.id)}
         onRow={(record) => ({ onClick: () => setSheet({ mode: 'detail', batchId: record.id }) })}
-        emptyState={<p className='text-sm text-muted-foreground'>{q ? '검색 결과가 없습니다.' : '아직 발주가 없습니다.'}</p>}
+        emptyState={
+          <p className='text-sm text-muted-foreground'>{q ? '검색 결과가 없습니다.' : '아직 발주가 없습니다.'}</p>
+        }
         pagination={{ total: data?.totalCount ?? 0, page, pageSize: PAGE_SIZE, onChange: setPage }}
       />
 
@@ -152,7 +156,11 @@ function BookOrderList() {
           </AdminSideSheetContent>
         ) : null}
         {sheet?.mode === 'detail' ? (
-          <AdminSideSheetContent title={`발주 #${sheet.batchId}`} description='확정 시점에 저장된 주문 기록입니다.' size='xl'>
+          <AdminSideSheetContent
+            title={`발주 #${sheet.batchId}`}
+            description='확정 시점에 저장된 주문 기록입니다.'
+            size='xl'
+          >
             <BookOrderDetailPanel
               batchId={sheet.batchId}
               confirmRejected={sheet.confirmRejected}

@@ -11,7 +11,9 @@ const BOOK: BookExportBook = {
   coverColor: '브라운',
   paidInner: '선택 안함',
   cover: { spaceName: '우리 가족', startOrder: 1, endOrder: 1, count: 1, generatedAt: '2026-09-30', locale: 'ko' },
-  cards: [{ order: 1, question: '질문', date: '2026-09-01', answers: [{ nickname: '엄마', content: '답변 "따옴표"' }] }],
+  cards: [
+    { order: 1, question: '질문', date: '2026-09-01', answers: [{ nickname: '엄마', content: '답변 "따옴표"' }] },
+  ],
 };
 
 test('writes one {orderNo}.json per book across several adds, with UTF-8 content that round-trips', async () => {

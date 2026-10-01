@@ -5,7 +5,6 @@ import type { BookOrderValidation } from '../../../../client/types';
 import {
   BOOKS_PER_REQUEST,
   areAllVisibleSelected,
-  buildBookZipName,
   chunkItems,
   countOrdersByLevel,
   isSelectableOrder,
@@ -37,7 +36,10 @@ function buildOrder(overrides: Partial<BookOrderValidation> = {}): BookOrderVali
 test('chunks 21 orders into 20 + 1 and keeps every item exactly once', () => {
   const items = Array.from({ length: 21 }, (_, i) => i);
   const chunks = chunkItems(items, BOOKS_PER_REQUEST);
-  assert.deepEqual(chunks.map((chunk) => chunk.length), [20, 1]);
+  assert.deepEqual(
+    chunks.map((chunk) => chunk.length),
+    [20, 1],
+  );
   assert.deepEqual(chunks.flat(), items);
 });
 
@@ -67,12 +69,13 @@ test('refuses to build a request for an order without a parsed range', () => {
 });
 
 test('counts orders per level', () => {
-  const orders = [buildOrder(), buildOrder({ level: 'warning' }), buildOrder({ level: 'error' }), buildOrder({ level: 'error' })];
+  const orders = [
+    buildOrder(),
+    buildOrder({ level: 'warning' }),
+    buildOrder({ level: 'error' }),
+    buildOrder({ level: 'error' }),
+  ];
   assert.deepEqual(countOrdersByLevel(orders), { all: 4, ok: 1, warning: 1, error: 2 });
-});
-
-test('names the zip with local date and time', () => {
-  assert.equal(buildBookZipName(new Date(2026, 8, 30, 9, 5)), 'mindbridge-books-20260930-0905.zip');
 });
 
 test('select-all adds only the visible selectable orders to the existing selection', () => {

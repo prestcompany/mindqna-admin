@@ -1,5 +1,3 @@
-import dayjs from 'dayjs';
-
 import type { BookExportRequestOrder, BookOrderLevel, BookOrderValidation } from '../../../../client/types';
 
 export const BOOKS_PER_REQUEST = 20;
@@ -35,10 +33,6 @@ export function countOrdersByLevel(orders: BookOrderValidation[]): Record<'all' 
     counts[order.level] += 1;
   });
   return counts;
-}
-
-export function buildBookZipName(now: Date): string {
-  return `mindbridge-books-${dayjs(now).format('YYYYMMDD-HHmm')}.zip`;
 }
 
 // Header "select all" acts on the currently visible (filtered) selectable rows only, so it never
