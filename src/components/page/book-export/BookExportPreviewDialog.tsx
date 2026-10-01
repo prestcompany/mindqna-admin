@@ -2,7 +2,7 @@ import { getBookExportBooks } from '@/client/book-export';
 import type { BookExportBook, BookExportRejectedOrder, BookOrderValidation } from '@/client/types';
 import { errorMessage } from '@/components/page/coupon/errorMessage';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { copyText } from '@/lib/clipboard';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -24,9 +24,10 @@ type Props = {
 function BookExportPreviewDialog({ order, onClose }: Props) {
   return (
     <Dialog open={order !== null} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className='z-[60] flex max-h-[85vh] flex-col sm:max-w-3xl'>
+      <DialogContent className='z-[60] flex max-h-[85vh] flex-col sm:max-w-3xl' overlayClassName='z-[55]'>
         <DialogHeader>
           <DialogTitle>{order ? `주문 미리보기 · ${order.orderNo}` : '주문 미리보기'}</DialogTitle>
+          <DialogDescription>제본소에 넘길 JSON과 같은 내용입니다.</DialogDescription>
         </DialogHeader>
         {/* Remounts (and refetches) whenever a different order opens. */}
         {order ? <BookExportPreviewBody key={order.orderNo} order={order} /> : null}
@@ -73,8 +74,12 @@ function BookExportPreviewBody({ order }: { order: BookOrderValidation }) {
   };
 
   const handleCopy = async (book: BookExportBook) => {
-    await copyText(toBookJson(book));
-    toast.success('JSON을 복사했습니다.');
+    try {
+      await copyText(toBookJson(book));
+      toast.success('JSON을 복사했습니다.');
+    } catch {
+      toast.error('복사하지 못했습니다. 브라우저 권한을 확인해 주세요.');
+    }
   };
 
   if (state.status === 'loading') {

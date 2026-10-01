@@ -151,9 +151,8 @@ function BookExportPanel({ onBusyChange }: Props) {
       }),
     onToggleAll: (checked) =>
       setSelected((prev) => toggleVisibleSelection({ selected: prev, visibleSelectable: visibleSelectableOrderNos, checked })),
-    onPreview: (order) => {
-      if (!isDownloading) setPreviewOrder(order);
-    },
+    onPreview: setPreviewOrder,
+    isDownloading,
   });
 
   return (

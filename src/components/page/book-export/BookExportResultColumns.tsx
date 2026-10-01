@@ -15,6 +15,7 @@ export interface BookExportColumnActions {
   onToggle: (orderNo: string, checked: boolean) => void;
   onToggleAll: (checked: boolean) => void;
   onPreview: (order: BookOrderValidation) => void;
+  isDownloading: boolean;
 }
 
 export const createBookExportResultColumns = (selection: BookExportColumnActions): ColumnDef<BookOrderValidation>[] => [
@@ -121,7 +122,7 @@ export const createBookExportResultColumns = (selection: BookExportColumnActions
         type='button'
         variant='outline'
         size='sm'
-        disabled={!isSelectableOrder(row.original)}
+        disabled={!isSelectableOrder(row.original) || selection.isDownloading}
         onClick={(event) => {
           event.stopPropagation();
           selection.onPreview(row.original);
