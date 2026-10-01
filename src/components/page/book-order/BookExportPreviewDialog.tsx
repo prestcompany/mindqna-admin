@@ -1,5 +1,5 @@
 import { getBookExportBooks } from '@/client/book-export';
-import type { BookExportBook, BookExportRejectedOrder, BookOrderValidation } from '@/client/types';
+import type { BookExportBook, BookExportRejectedOrder, BookExportRequestOrder } from '@/client/types';
 import { errorMessage } from '@/components/page/coupon/errorMessage';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -7,7 +7,6 @@ import { copyText } from '@/lib/clipboard';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { toBookExportRequest } from './services/book-export-download';
 import { toBookJson } from './services/book-zip-writer';
 
 type PreviewState =
@@ -17,26 +16,26 @@ type PreviewState =
   | { status: 'error'; error: unknown };
 
 type Props = {
-  order: BookOrderValidation | null;
+  request: BookExportRequestOrder | null;
   onClose: () => void;
 };
 
-function BookExportPreviewDialog({ order, onClose }: Props) {
+function BookExportPreviewDialog({ request, onClose }: Props) {
   return (
-    <Dialog open={order !== null} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={request !== null} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className='z-[60] flex max-h-[85vh] flex-col sm:max-w-3xl' overlayClassName='z-[55]'>
         <DialogHeader>
-          <DialogTitle>{order ? `주문 미리보기 · ${order.orderNo}` : '주문 미리보기'}</DialogTitle>
+          <DialogTitle>{request ? `주문 미리보기 · ${request.orderNo}` : '주문 미리보기'}</DialogTitle>
           <DialogDescription>제본소에 넘길 JSON과 같은 내용입니다.</DialogDescription>
         </DialogHeader>
         {/* Remounts (and refetches) whenever a different order opens. */}
-        {order ? <BookExportPreviewBody key={order.orderNo} order={order} /> : null}
+        {request ? <BookExportPreviewBody key={request.orderNo} request={request} /> : null}
       </DialogContent>
     </Dialog>
   );
 }
 
-function BookExportPreviewBody({ order }: { order: BookOrderValidation }) {
+function BookExportPreviewBody({ request }: { request: BookExportRequestOrder }) {
   const [state, setState] = useState<PreviewState>({ status: 'loading' });
   const [attempt, setAttempt] = useState(0);
   // Ignores a response that arrives after a newer request for this dialog started.
@@ -45,12 +44,10 @@ function BookExportPreviewBody({ order }: { order: BookOrderValidation }) {
   useEffect(() => {
     const requestId = latestRequest.current + 1;
     latestRequest.current = requestId;
-    // toBookExportRequest can throw synchronously for a malformed order; routing it through
-    // a microtask turns that into a rejection so every outcome lands in .then/.catch and
-    // none of them set state directly from the effect body.
+    // Routed through a microtask so every outcome lands in .then/.catch and none of them set
+    // state directly from the effect body.
     Promise.resolve()
-      .then(() => toBookExportRequest(order))
-      .then((request) => getBookExportBooks([request]))
+      .then(() => getBookExportBooks([request]))
       .then((result) => {
         if (requestId !== latestRequest.current) return;
         if (result.books[0]) {
@@ -58,7 +55,7 @@ function BookExportPreviewBody({ order }: { order: BookOrderValidation }) {
         } else {
           setState({
             status: 'rejected',
-            rejected: result.rejected[0] ?? { orderNo: order.orderNo, issues: [] },
+            rejected: result.rejected[0] ?? { orderNo: request.orderNo, issues: [] },
           });
         }
       })
@@ -66,7 +63,7 @@ function BookExportPreviewBody({ order }: { order: BookOrderValidation }) {
         if (requestId !== latestRequest.current) return;
         setState({ status: 'error', error: err });
       });
-  }, [order, attempt]);
+  }, [request, attempt]);
 
   const retry = () => {
     setState({ status: 'loading' });

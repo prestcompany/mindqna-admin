@@ -1,11 +1,5 @@
-import { getBookExportBooks, validateBookOrders } from '@/client/book-export';
-import type {
-  BookExportBooksResult,
-  BookExportRejectedOrder,
-  BookExportRequestOrder,
-  BookOrderLevel,
-  BookOrderValidation,
-} from '@/client/types';
+import { validateBookOrders } from '@/client/book-export';
+import type { BookExportRejectedOrder, BookOrderLevel, BookOrderValidation, BookExportRequestOrder } from '@/client/types';
 import { CardUploader } from '@/components/page/card/CardUploader';
 import { errorMessage } from '@/components/page/coupon/errorMessage';
 import DataTable from '@/components/shared/ui/data-table';
@@ -17,16 +11,14 @@ import BookExportLevelFilter from './BookExportLevelFilter';
 import BookExportPreviewDialog from './BookExportPreviewDialog';
 import { createBookExportResultColumns } from './BookExportResultColumns';
 import {
-  BOOKS_PER_REQUEST,
   areAllVisibleSelected,
   buildBookZipName,
-  chunkItems,
   countOrdersByLevel,
   isSelectableOrder,
   toBookExportRequest,
   toggleVisibleSelection,
 } from './services/book-export-download';
-import { createBookZipWriter } from './services/book-zip-writer';
+import { useBookZipDownload } from './useBookZipDownload';
 
 type LevelFilter = 'all' | BookOrderLevel;
 
@@ -34,34 +26,14 @@ type Props = {
   onBusyChange: (isBusy: boolean) => void;
 };
 
-const REVOKE_DELAY_MS = 60_000;
-
-function saveZip(blob: Blob, fileName: string) {
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = fileName;
-  anchor.click();
-  // Revoking right away can cancel the download in some browsers.
-  window.setTimeout(() => URL.revokeObjectURL(url), REVOKE_DELAY_MS);
-}
-
-// One retry per chunk: a transient failure late in a long run should not throw away finished chunks.
-async function fetchBooksWithRetry(chunk: BookExportRequestOrder[]): Promise<BookExportBooksResult> {
-  try {
-    return await getBookExportBooks(chunk);
-  } catch {
-    return getBookExportBooks(chunk);
-  }
-}
-
 function BookExportPanel({ onBusyChange }: Props) {
   const [orders, setOrders] = useState<BookOrderValidation[] | null>(null);
   const [filter, setFilter] = useState<LevelFilter>('all');
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [previewOrder, setPreviewOrder] = useState<BookOrderValidation | null>(null);
+  const [previewRequest, setPreviewRequest] = useState<BookExportRequestOrder | null>(null);
   const [isValidating, setIsValidating] = useState(false);
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const zip = useBookZipDownload();
+  const progress = zip.progress;
   const [rejected, setRejected] = useState<BookExportRejectedOrder[]>([]);
   // Ignores a validation response that arrives after a newer upload started.
   const latestValidation = useRef(0);
@@ -103,35 +75,22 @@ function BookExportPanel({ onBusyChange }: Props) {
     const targets = selectable.filter((order) => selected.has(order.orderNo)).map(toBookExportRequest);
     if (targets.length === 0) return;
     onBusyChange(true);
-    setProgress({ done: 0, total: targets.length });
     setRejected([]);
     try {
-      const writer = await createBookZipWriter();
-      const rejectedOrders: BookExportRejectedOrder[] = [];
-      let bookCount = 0;
-      for (const chunk of chunkItems(targets, BOOKS_PER_REQUEST)) {
-        const result = await fetchBooksWithRetry(chunk);
-        writer.add(result.books);
-        bookCount += result.books.length;
-        rejectedOrders.push(...result.rejected);
-        setProgress((prev) => (prev ? { ...prev, done: prev.done + chunk.length } : prev));
-      }
-      const zip = await writer.finish();
-      setRejected(rejectedOrders);
-      if (bookCount === 0) {
+      const run = await zip.download({ orders: targets, fileName: buildBookZipName(new Date()) });
+      setRejected(run.rejected);
+      if (run.bookCount === 0) {
         toast.warning('추출할 수 있는 주문이 없습니다.');
       } else {
-        saveZip(zip, buildBookZipName(new Date()));
         toast.success(
-          rejectedOrders.length > 0
-            ? `${bookCount}건을 zip으로 내려받았습니다. ${rejectedOrders.length}건은 제외되었습니다.`
-            : `${bookCount}건을 zip으로 내려받았습니다.`,
+          run.rejected.length > 0
+            ? `${run.bookCount}건을 zip으로 내려받았습니다. ${run.rejected.length}건은 제외되었습니다.`
+            : `${run.bookCount}건을 zip으로 내려받았습니다.`,
         );
       }
     } catch (err) {
       toast.error(`다운로드를 중단했습니다. ${errorMessage(err)}`);
     }
-    setProgress(null);
     onBusyChange(false);
   };
 
@@ -151,7 +110,7 @@ function BookExportPanel({ onBusyChange }: Props) {
       }),
     onToggleAll: (checked) =>
       setSelected((prev) => toggleVisibleSelection({ selected: prev, visibleSelectable: visibleSelectableOrderNos, checked })),
-    onPreview: setPreviewOrder,
+    onPreview: (order) => setPreviewRequest(toBookExportRequest(order)),
     isDownloading,
   });
 
@@ -190,7 +149,7 @@ function BookExportPanel({ onBusyChange }: Props) {
         ) : null}
       </div>
 
-      <BookExportPreviewDialog order={previewOrder} onClose={() => setPreviewOrder(null)} />
+      <BookExportPreviewDialog request={previewRequest} onClose={() => setPreviewRequest(null)} />
 
       {orders ? (
         <div className='sticky bottom-0 z-10 -mx-6 border-t bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
