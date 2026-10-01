@@ -4,6 +4,11 @@ export function toZipEntryName(orderNo: string): string {
   return `${orderNo.replace(/[^0-9A-Za-z_-]/g, '_')}.json`;
 }
 
+// Shared by the zip writer and the preview dialog so the two never drift apart.
+export function toBookJson(book: BookExportBook): string {
+  return JSON.stringify(book, null, 2);
+}
+
 // Streams books into the zip as each server chunk arrives, so the page never holds every book
 // object at once and compression is spread across chunks. fflate is loaded only on download.
 export async function createBookZipWriter() {
@@ -31,7 +36,7 @@ export async function createBookZipWriter() {
       books.forEach((book) => {
         const entry = new ZipDeflate(toZipEntryName(book.orderNo), { level: 6 });
         zip.add(entry);
-        entry.push(strToU8(JSON.stringify(book, null, 2)), true);
+        entry.push(strToU8(toBookJson(book)), true);
       });
     },
     finish() {

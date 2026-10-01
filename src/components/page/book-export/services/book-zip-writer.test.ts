@@ -4,7 +4,7 @@ import test from 'node:test';
 import { strFromU8, unzipSync } from 'fflate';
 
 import type { BookExportBook } from '../../../../client/types';
-import { createBookZipWriter, toZipEntryName } from './book-zip-writer';
+import { createBookZipWriter, toBookJson, toZipEntryName } from './book-zip-writer';
 
 const BOOK: BookExportBook = {
   orderNo: '20260930-0000024',
@@ -33,4 +33,12 @@ test('produces a valid empty zip when nothing was added', async () => {
 test('keeps order numbers as file names but neutralizes path characters', () => {
   assert.equal(toZipEntryName('20260930-0000024'), '20260930-0000024.json');
   assert.equal(toZipEntryName('../a/b c'), '___a_b_c.json');
+});
+
+test('the zipped entry content is exactly toBookJson(book), so the zip and the preview never diverge', async () => {
+  const writer = await createBookZipWriter();
+  writer.add([BOOK]);
+  const blob = await writer.finish();
+  const files = unzipSync(new Uint8Array(await blob.arrayBuffer()));
+  assert.equal(strFromU8(files['20260930-0000024.json']), toBookJson(BOOK));
 });

@@ -1,10 +1,12 @@
 import type { BookOrderValidation } from '@/client/types';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ColumnDef } from '@tanstack/react-table';
+import { Eye } from 'lucide-react';
 import BookExportStatusBadge from './BookExportStatusBadge';
 import { isSelectableOrder } from './services/book-export-download';
 
-export interface BookExportSelectionProps {
+export interface BookExportColumnActions {
   selected: Set<string>;
   /** Whether every currently visible, selectable row is selected. */
   allVisibleSelected: boolean;
@@ -12,9 +14,10 @@ export interface BookExportSelectionProps {
   hasVisibleSelectable: boolean;
   onToggle: (orderNo: string, checked: boolean) => void;
   onToggleAll: (checked: boolean) => void;
+  onPreview: (order: BookOrderValidation) => void;
 }
 
-export const createBookExportResultColumns = (selection: BookExportSelectionProps): ColumnDef<BookOrderValidation>[] => [
+export const createBookExportResultColumns = (selection: BookExportColumnActions): ColumnDef<BookOrderValidation>[] => [
   {
     id: 'select',
     size: 40,
@@ -107,6 +110,26 @@ export const createBookExportResultColumns = (selection: BookExportSelectionProp
           </p>
         ))}
       </div>
+    ),
+  },
+  {
+    id: 'preview',
+    header: '미리보기',
+    size: 96,
+    cell: ({ row }) => (
+      <Button
+        type='button'
+        variant='outline'
+        size='sm'
+        disabled={!isSelectableOrder(row.original)}
+        onClick={(event) => {
+          event.stopPropagation();
+          selection.onPreview(row.original);
+        }}
+      >
+        <Eye className='h-4 w-4' />
+        미리보기
+      </Button>
     ),
   },
 ];

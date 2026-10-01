@@ -13,7 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { BOOK_ORDER_LEVEL_LABEL } from './BookExportStatusBadge';
+import BookExportLevelFilter from './BookExportLevelFilter';
+import BookExportPreviewDialog from './BookExportPreviewDialog';
 import { createBookExportResultColumns } from './BookExportResultColumns';
 import {
   BOOKS_PER_REQUEST,
@@ -28,13 +29,6 @@ import {
 import { createBookZipWriter } from './services/book-zip-writer';
 
 type LevelFilter = 'all' | BookOrderLevel;
-
-const FILTERS: { key: LevelFilter; label: string }[] = [
-  { key: 'all', label: '전체' },
-  { key: 'ok', label: BOOK_ORDER_LEVEL_LABEL.ok },
-  { key: 'warning', label: BOOK_ORDER_LEVEL_LABEL.warning },
-  { key: 'error', label: BOOK_ORDER_LEVEL_LABEL.error },
-];
 
 type Props = {
   onBusyChange: (isBusy: boolean) => void;
@@ -65,6 +59,7 @@ function BookExportPanel({ onBusyChange }: Props) {
   const [orders, setOrders] = useState<BookOrderValidation[] | null>(null);
   const [filter, setFilter] = useState<LevelFilter>('all');
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [previewOrder, setPreviewOrder] = useState<BookOrderValidation | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [rejected, setRejected] = useState<BookExportRejectedOrder[]>([]);
@@ -140,6 +135,9 @@ function BookExportPanel({ onBusyChange }: Props) {
     onBusyChange(false);
   };
 
+  const isDownloading = progress !== null;
+  const isBusy = isValidating || isDownloading;
+
   const columns = createBookExportResultColumns({
     selected,
     allVisibleSelected: areAllVisibleSelected({ selected, visibleSelectable: visibleSelectableOrderNos }),
@@ -153,10 +151,10 @@ function BookExportPanel({ onBusyChange }: Props) {
       }),
     onToggleAll: (checked) =>
       setSelected((prev) => toggleVisibleSelection({ selected: prev, visibleSelectable: visibleSelectableOrderNos, checked })),
+    onPreview: (order) => {
+      if (!isDownloading) setPreviewOrder(order);
+    },
   });
-
-  const isDownloading = progress !== null;
-  const isBusy = isValidating || isDownloading;
 
   return (
     <>
@@ -187,23 +185,13 @@ function BookExportPanel({ onBusyChange }: Props) {
 
         {orders ? (
           <>
-            <div className='flex flex-wrap gap-2'>
-              {FILTERS.map((item) => (
-                <Button
-                  key={item.key}
-                  type='button'
-                  size='sm'
-                  variant={filter === item.key ? 'secondary' : 'ghost'}
-                  onClick={() => setFilter(item.key)}
-                >
-                  {item.label} <span className='tabular-nums'>{counts[item.key]}</span>
-                </Button>
-              ))}
-            </div>
+            <BookExportLevelFilter counts={counts} value={filter} onChange={setFilter} />
             <DataTable columns={columns} data={visible} rowKey='orderNo' />
           </>
         ) : null}
       </div>
+
+      <BookExportPreviewDialog order={previewOrder} onClose={() => setPreviewOrder(null)} />
 
       {orders ? (
         <div className='sticky bottom-0 z-10 -mx-6 border-t bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
