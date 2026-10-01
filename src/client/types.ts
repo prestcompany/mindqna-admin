@@ -1016,3 +1016,59 @@ export type BookExportBooksResult = {
   books: BookExportBook[];
   rejected: BookExportRejectedOrder[];
 };
+
+export type BookBatchRequestOrder = {
+  orderNo: string;
+  orderedAt: string;
+  spaceId: string;
+  startOrder: number;
+  endOrder: number;
+  coverColor: string;
+  paidInner: string;
+  paidQuestionCount: number | null;
+};
+
+export type BookOrderBatchConfirmBody = {
+  managerName: string;
+  memo: string | null;
+  sourceFileName: string;
+  orders: BookBatchRequestOrder[];
+};
+
+export type BookOrderBatchSummary = {
+  id: number;
+  managerName: string;
+  memo: string | null;
+  sourceFileName: string;
+  itemCount: number;
+  createdAt: string;
+};
+
+export type BookOrderBatchItem = {
+  orderNo: string;
+  orderedAt: string;
+  spaceId: string;
+  spaceName: string;
+  startOrder: number;
+  endOrder: number;
+  exportEnd: number;
+  answeredCount: number;
+  paidQuestionCount: number | null;
+  coverColor: string;
+  paidInner: string;
+  level: 'ok' | 'warning';
+  issues: { code: string; message: string }[];
+};
+
+export type BookOrderBatchDetail = BookOrderBatchSummary & {
+  items: BookOrderBatchItem[];
+};
+
+export type BookOrderBatchConfirmResult = {
+  batch: BookOrderBatchDetail;
+  rejected: BookExportRejectedOrder[];
+};
+
+export type BookOrderBatchListResult = QueryResultWithPagination<BookOrderBatchSummary> & {
+  totalCount: number;
+};
