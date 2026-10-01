@@ -24,6 +24,8 @@ export function toBookExportRequest(order: BookOrderValidation): BookExportReque
     endOrder: order.endOrder,
     coverColor: order.coverColor,
     paidInner: order.paidInner,
+    paidQuestionCount: order.paidQuestionCount,
+    recordPackage: order.recordPackage,
   };
 }
 

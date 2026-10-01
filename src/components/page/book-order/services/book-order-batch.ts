@@ -24,6 +24,7 @@ export function toBatchRequestOrder(order: BookOrderValidation): BookBatchReques
     endOrder: order.endOrder,
     coverColor: order.coverColor,
     paidInner: order.paidInner,
+    recordPackage: order.recordPackage,
     paidQuestionCount: order.paidQuestionCount,
   };
 }
@@ -37,6 +38,8 @@ export function batchItemToExportRequest(item: BookOrderBatchItem): BookExportRe
     endOrder: item.endOrder,
     coverColor: item.coverColor,
     paidInner: item.paidInner,
+    paidQuestionCount: item.paidQuestionCount,
+    recordPackage: item.recordPackage,
   };
 }
 

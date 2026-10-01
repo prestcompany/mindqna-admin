@@ -973,6 +973,7 @@ export type BookOrderValidation = {
   answeredCount: number;
   coverColor: string;
   paidInner: string;
+  recordPackage: string;
   spaceName: string;
   locale: string;
   level: BookOrderLevel;
@@ -990,12 +991,19 @@ export type BookExportRequestOrder = {
   endOrder: number;
   coverColor: string;
   paidInner: string;
+  paidQuestionCount: number | null;
+  recordPackage: string;
 };
 
+// Bindery book JSON v2 (spec 2026-10-01-book-json-v2-design §4).
 export type BookExportBook = {
   orderNo: string;
-  coverColor: string;
-  paidInner: string;
+  options: {
+    coverColor: string;
+    purchaseQuestionCount: number | null;
+    recordPackage: string;
+    paidInner: string;
+  };
   cover: {
     spaceName: string;
     startOrder: number;
@@ -1003,6 +1011,9 @@ export type BookExportBook = {
     count: number;
     generatedAt: string;
     locale: string;
+    firstQuestionDate: string;
+    lastQuestionDate: string;
+    members: string[];
   };
   cards: { order: number; question: string; date: string; answers: { nickname: string; content: string }[] }[];
 };
@@ -1025,6 +1036,7 @@ export type BookBatchRequestOrder = {
   endOrder: number;
   coverColor: string;
   paidInner: string;
+  recordPackage: string;
   paidQuestionCount: number | null;
 };
 
@@ -1056,6 +1068,7 @@ export type BookOrderBatchItem = {
   paidQuestionCount: number | null;
   coverColor: string;
   paidInner: string;
+  recordPackage: string;
   level: 'ok' | 'warning';
   issues: { code: string; message: string }[];
 };

@@ -21,10 +21,11 @@ function buildOrder(overrides: Partial<BookOrderValidation> = {}): BookOrderVali
     startOrder: 1,
     endOrder: 30,
     exportEnd: 30,
-    paidQuestionCount: null,
+    paidQuestionCount: 30,
     answeredCount: 30,
     coverColor: '브라운',
     paidInner: '선택 안함',
+    recordPackage: 'A세트',
     spaceName: '우리',
     locale: 'ko',
     level: 'ok',
@@ -61,6 +62,8 @@ test('builds the books request from the requested (not trimmed) range', () => {
     endOrder: 30,
     coverColor: '브라운',
     paidInner: '선택 안함',
+    paidQuestionCount: 30,
+    recordPackage: 'A세트',
   });
 });
 

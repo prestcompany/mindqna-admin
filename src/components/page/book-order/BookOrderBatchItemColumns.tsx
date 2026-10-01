@@ -63,12 +63,13 @@ export const createBookOrderBatchItemColumns = (
   },
   {
     id: 'options',
-    header: '표지 · 내지',
-    size: 130,
+    header: '표지 · 내지 · 패키지',
+    size: 150,
     cell: ({ row }) => (
       <div className='min-w-0 text-sm'>
         <div className='truncate text-foreground'>{row.original.coverColor || '-'}</div>
         <div className='truncate text-xs text-muted-foreground'>{row.original.paidInner || '-'}</div>
+        <div className='truncate text-xs text-muted-foreground'>{row.original.recordPackage || '-'}</div>
       </div>
     ),
   },

@@ -16,6 +16,7 @@ const VALIDATION: BookOrderValidation = {
   answeredCount: 29,
   coverColor: '브라운',
   paidInner: '선택 안함',
+  recordPackage: 'A세트',
   spaceName: '우리',
   locale: 'ko',
   level: 'warning',
@@ -31,6 +32,7 @@ test('maps a validated order to a confirm request with the requested range and c
     endOrder: 30,
     coverColor: '브라운',
     paidInner: '선택 안함',
+    recordPackage: 'A세트',
     paidQuestionCount: 30,
   });
 });
@@ -52,6 +54,7 @@ test('maps a stored batch item back to a books request using the requested range
     paidQuestionCount: 30,
     coverColor: '브라운',
     paidInner: '선택 안함',
+    recordPackage: 'A세트',
     level: 'warning',
     issues: [],
   };
@@ -62,6 +65,8 @@ test('maps a stored batch item back to a books request using the requested range
     endOrder: 30,
     coverColor: '브라운',
     paidInner: '선택 안함',
+    paidQuestionCount: 30,
+    recordPackage: 'A세트',
   });
 });
 

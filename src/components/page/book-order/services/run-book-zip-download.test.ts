@@ -14,15 +14,26 @@ function buildOrders(count: number): BookExportRequestOrder[] {
     endOrder: 30,
     coverColor: '브라운',
     paidInner: '선택 안함',
+    paidQuestionCount: 30,
+    recordPackage: 'A세트',
   }));
 }
 
 function buildBook(orderNo: string): BookExportBook {
   return {
     orderNo,
-    coverColor: '브라운',
-    paidInner: '선택 안함',
-    cover: { spaceName: '우리', startOrder: 1, endOrder: 30, count: 30, generatedAt: '2026-10-01', locale: 'ko' },
+    options: { coverColor: '브라운', purchaseQuestionCount: 30, recordPackage: 'A세트', paidInner: '선택 안함' },
+    cover: {
+      spaceName: '우리',
+      startOrder: 1,
+      endOrder: 30,
+      count: 30,
+      generatedAt: '2026-10-01',
+      locale: 'ko',
+      firstQuestionDate: '2026-09-01',
+      lastQuestionDate: '2026-09-30',
+      members: [],
+    },
     cards: [],
   };
 }

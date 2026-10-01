@@ -8,9 +8,18 @@ import { createBookZipWriter, toBookJson, toZipEntryName } from './book-zip-writ
 
 const BOOK: BookExportBook = {
   orderNo: '20260930-0000024',
-  coverColor: '브라운',
-  paidInner: '선택 안함',
-  cover: { spaceName: '우리 가족', startOrder: 1, endOrder: 1, count: 1, generatedAt: '2026-09-30', locale: 'ko' },
+  options: { coverColor: '브라운', purchaseQuestionCount: 30, recordPackage: 'A세트', paidInner: '선택 안함' },
+  cover: {
+    spaceName: '우리 가족',
+    startOrder: 1,
+    endOrder: 1,
+    count: 1,
+    generatedAt: '2026-09-30',
+    locale: 'ko',
+    firstQuestionDate: '2026-09-01',
+    lastQuestionDate: '2026-09-01',
+    members: ['엄마'],
+  },
   cards: [
     { order: 1, question: '질문', date: '2026-09-01', answers: [{ nickname: '엄마', content: '답변 "따옴표"' }] },
   ],

@@ -100,8 +100,11 @@ function BookExportPreviewBody({ request }: { request: BookExportRequestOrder })
           <span>공간명 {book.cover.spaceName}</span>
           <span className='text-muted-foreground'>·</span>
           <span>
-            표지 {book.coverColor} / 내지 {book.paidInner}
+            표지 {book.options.coverColor} / 내지 {book.options.paidInner || '-'} / 패키지{' '}
+            {book.options.recordPackage || '-'}
           </span>
+          <span className='text-muted-foreground'>·</span>
+          <span className='tabular-nums'>결제 질문 {book.options.purchaseQuestionCount ?? '-'}</span>
           <span className='text-muted-foreground'>·</span>
           <span className='tabular-nums'>
             수록 {book.cover.startOrder}~{book.cover.endOrder}
