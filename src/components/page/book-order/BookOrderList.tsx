@@ -6,22 +6,26 @@ import { FILTER_CONTROL_CLASS, FilterBar, type FilterChipItem } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet } from '@/components/ui/sheet';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
-import { Search } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import BookOrderDetailPanel from './BookOrderDetailPanel';
+import BookOrderNewPanel from './BookOrderNewPanel';
 
 const PAGE_SIZE = 20;
 
-type SheetState = {
-  mode: 'detail';
-  batchId: number;
-  confirmRejected?: BookExportRejectedOrder[];
-  downloadRejected?: BookExportRejectedOrder[];
-} | null;
+type SheetState =
+  | { mode: 'new' }
+  | {
+      mode: 'detail';
+      batchId: number;
+      confirmRejected?: BookExportRejectedOrder[];
+      downloadRejected?: BookExportRejectedOrder[];
+    }
+  | null;
 
 const columns: ColumnDef<BookOrderBatchSummary>[] = [
   {
@@ -67,6 +71,7 @@ function BookOrderList() {
   const [page, setPage] = useState(1);
   const [sheet, setSheet] = useState<SheetState>(null);
   const [isSheetBusy, setIsSheetBusy] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ['book-order-batches', page, q],
@@ -102,6 +107,10 @@ function BookOrderList() {
           <Search className='h-3.5 w-3.5' />
           검색
         </Button>
+        <Button onClick={() => setSheet({ mode: 'new' })} className={`ml-auto ${FILTER_CONTROL_CLASS} [&_svg]:size-3.5`}>
+          <Plus className='h-3.5 w-3.5' />
+          새 발주
+        </Button>
       </FilterBar>
 
       <DataTable
@@ -125,6 +134,23 @@ function BookOrderList() {
           if (!open) setSheet(null);
         }}
       >
+        {sheet?.mode === 'new' ? (
+          <AdminSideSheetContent
+            title='새 발주'
+            description='카페24 발주서(csv, xlsx)를 올려 주문을 확인하고, 발주를 확정하면 제본소에 넘길 zip을 내려받습니다.'
+            size='xl'
+          >
+            <BookOrderNewPanel
+              onBusyChange={setIsSheetBusy}
+              onConfirmed={({ batch, confirmRejected, downloadRejected }) => {
+                // Seed the detail so a read-replica lag right after the write cannot show it as missing.
+                queryClient.setQueryData(['book-order-batch', batch.id], batch);
+                queryClient.invalidateQueries({ queryKey: ['book-order-batches'] });
+                setSheet({ mode: 'detail', batchId: batch.id, confirmRejected, downloadRejected });
+              }}
+            />
+          </AdminSideSheetContent>
+        ) : null}
         {sheet?.mode === 'detail' ? (
           <AdminSideSheetContent title={`발주 #${sheet.batchId}`} description='확정 시점에 저장된 주문 기록입니다.' size='xl'>
             <BookOrderDetailPanel
