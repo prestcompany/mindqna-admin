@@ -134,3 +134,12 @@ interface BookExportBook {
    3. Parser for the new format.
    4. Book JSON v2.
 2. Frontend: types, mappers, tables, preview and tests.
+
+## 8. Addendum: several question-count options (2026-10-01)
+
+The live product page has five question-count selectors, `질문 수(30~100)` through `질문 수(401~500)`, and a customer can pick more than one.
+
+- Options whose key starts with `질문 개수` or `질문 수` are all question counts. Each value is read by its leading integer.
+- Two or more distinct values make the order **추출 불가**. The new issue is `PAID_COUNT_MULTIPLE`, with the message "질문 수 옵션이 여러 개 선택되었습니다. 고객 확인 후 하나를 골라 주세요." The JSON never carries an error string. `purchaseQuestionCount` is a number or `null`.
+- The validation result lists `paidQuestionCandidates`. The admin picks one in the result table. The picked value becomes the request's `paidQuestionCount`, so it flows into the preview, the zip `options.purchaseQuestionCount`, and the stored batch item. The server re-validates on `/books` and on confirm.
+- Free-form entry of a value outside the candidates is out of scope.
