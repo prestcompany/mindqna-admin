@@ -167,18 +167,17 @@ CREATE TABLE `BookOrderBatchItem` (
 ALTER TABLE `BookOrderBatchItem` ADD CONSTRAINT `BookOrderBatchItem_batchId_fkey` FOREIGN KEY (`batchId`) REFERENCES `BookOrderBatch`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 ```
 
-- [ ] **Step 4: Check the SQL matches what Prisma would generate (no DB access)**
+- [ ] **Step 4: Check the SQL against Prisma's own output, offline (no database)**
 
 Run:
 
 ```bash
 npx prisma format
-npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --script --shadow-database-url "$SHADOW_URL"
+git show HEAD:prisma/schema.prisma > /tmp/book-order-old.prisma
+npx prisma migrate diff --from-schema-datamodel /tmp/book-order-old.prisma --to-schema-datamodel prisma/schema.prisma --script
 ```
 
-- Only run the diff if a disposable shadow database URL is already configured in your environment.
-- If it is not, skip the diff and compare the SQL by eye against Step 2: column types, `VARCHAR(191)` for plain `String`, index names `<Model>_<fields>_idx` / `_key`, the FK name, and `ON DELETE CASCADE`.
-- Never point any command at the dev or prod database.
+Expected: the printed SQL matches `migration.sql` statement for statement. Only the position of the `UNIQUE INDEX` line inside the table may differ. **Do not** use `--from-migrations` or `--shadow-database-url`: those replay migrations into a database and reset it first. No command in this plan may connect to any database.
 
 Then run `npx prisma generate && npx tsc --noEmit -p tsconfig.json`.
 Expected: generate succeeds; tsc exits 0.
@@ -203,7 +202,7 @@ git commit -m "feat(db): book order batch tables for confirmed bindery hand-offs
 **Interfaces:**
 - Consumes: `ParsedBookOrder`, `BookOrderIssue`, `BookExportRejectedOrder`, `BOOK_EXPORT_LIMITS.maxOrders` (existing).
 - Produces:
-  - the types below
+  - the types below (`BookOrderBatchItemDto.issues` uses the looser `BookOrderBatchStoredIssue`)
   - `BOOK_EXPORT_LIMITS` gains `maxManagerNameLength: 50`, `maxMemoLength: 1000`, `maxSourceFileNameLength: 255`, `maxOrderNoLength: 50`, `maxOrderedAtLength: 30`, `maxCoverColorLength: 50`, `maxPaidInnerLength: 100`, `batchesPerPage: 20`
   - `normalizeBatchInput(body: BookOrderBatchConfirmBody): NormalizedBatchInput`
   - `toBatchParsedOrder(order: BookBatchRequestOrder): ParsedBookOrder`
@@ -246,6 +245,15 @@ export interface BookOrderBatchSummary {
   createdAt: string;
 }
 
+/**
+ * An issue as stored with a 발주. Deliberately looser than BookOrderIssue: the response is
+ * typia-asserted, and an issue code renamed later must not make old evidence unreadable.
+ */
+export interface BookOrderBatchStoredIssue {
+  code: string;
+  message: string;
+}
+
 export interface BookOrderBatchItemDto {
   orderNo: string;
   orderedAt: string;
@@ -259,7 +267,7 @@ export interface BookOrderBatchItemDto {
   coverColor: string;
   paidInner: string;
   level: 'ok' | 'warning';
-  issues: BookOrderIssue[];
+  issues: BookOrderBatchStoredIssue[];
 }
 
 export interface BookOrderBatchDetail extends BookOrderBatchSummary {
@@ -489,13 +497,13 @@ export function toBatchParsedOrder(order: BookBatchRequestOrder): ParsedBookOrde
 
 - [ ] **Step 6: Run the tests, then typecheck and format**
 
-Run: `yarn jest src/admin/book-export && npx tsc --noEmit -p tsconfig.json && npx prettier --write src/admin/book-export/*.ts`
-Expected: all specs PASS, including the existing book-export specs; tsc exits 0.
+Run: `yarn jest src/admin/book-export && npx tsc --noEmit -p tsconfig.json && npx prettier --write src/admin/book-export/book-export.interface.ts src/admin/book-export/book-export.limits.ts src/admin/book-export/normalize-batch-input.ts src/admin/book-export/normalize-batch-input.spec.ts src/admin/book-export/to-batch-parsed-order.ts src/admin/book-export/to-batch-parsed-order.spec.ts`
+Expected: all specs PASS (existing book-export specs included); tsc exits 0. Format only the files this task touches; several older book-export files are not prettier-clean and must not ride along.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/admin/book-export
+git add src/admin/book-export/book-export.interface.ts src/admin/book-export/book-export.limits.ts src/admin/book-export/normalize-batch-input.ts src/admin/book-export/normalize-batch-input.spec.ts src/admin/book-export/to-batch-parsed-order.ts src/admin/book-export/to-batch-parsed-order.spec.ts
 git commit -m "feat(book-export): batch types, input limits, and confirm-order mapping"
 ```
 
@@ -751,7 +759,7 @@ export function toBatchSummary(batch: BookOrderBatch): BookOrderBatchSummary {
 
 ```ts
 import { BookOrderBatch, BookOrderBatchItem } from '@prisma/client';
-import { BookOrderBatchDetail, BookOrderIssue } from './book-export.interface';
+import { BookOrderBatchDetail, BookOrderBatchStoredIssue } from './book-export.interface';
 import { toBatchSummary } from './to-batch-summary';
 
 /** Maps a stored batch with its items to the detail shape; `issues` is parsed back from JSON. */
@@ -771,7 +779,7 @@ export function toBatchDetail(batch: BookOrderBatch & { items: BookOrderBatchIte
       coverColor: item.coverColor,
       paidInner: item.paidInner,
       level: item.level === 'warning' ? 'warning' : 'ok',
-      issues: JSON.parse(item.issues) as BookOrderIssue[],
+      issues: JSON.parse(item.issues) as BookOrderBatchStoredIssue[],
     })),
   };
 }
@@ -796,6 +804,7 @@ import { toBatchDetail } from './to-batch-detail';
 import { toBatchParsedOrder } from './to-batch-parsed-order';
 
 const ITEMS_IN_INSERT_ORDER = { items: { orderBy: { id: 'asc' } } } as const;
+const MAX_INT_ID = 2147483647;
 
 /** Confirms, lists and reads admin "책 제작 발주" batches (spec 2026-10-01 §3). */
 @Injectable()
@@ -863,13 +872,13 @@ function toItemData(params: {
 
 - [ ] **Step 4: Run the tests, then typecheck and format**
 
-Run: `yarn jest src/admin/book-export && npx tsc --noEmit -p tsconfig.json && npx prettier --write src/admin/book-export/*.ts`
+Run: `yarn jest src/admin/book-export && npx tsc --noEmit -p tsconfig.json && npx prettier --write src/admin/book-export/to-batch-summary.ts src/admin/book-export/to-batch-detail.ts src/admin/book-export/book-order-batch.service.ts src/admin/book-export/book-order-batch.service.spec.ts`
 Expected: PASS; tsc exits 0.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/admin/book-export
+git add src/admin/book-export/to-batch-summary.ts src/admin/book-export/to-batch-detail.ts src/admin/book-export/book-order-batch.service.ts src/admin/book-export/book-order-batch.service.spec.ts
 git commit -m "feat(book-export): confirm a bindery batch with a confirm-time snapshot"
 ```
 
@@ -991,6 +1000,11 @@ describe('BookOrderBatchService.getBatch', () => {
     prisma.bookOrderBatch.findUnique.mockResolvedValue(null);
     await expect(service.getBatch(999)).rejects.toThrow('Not Found');
   });
+
+  it.each([0, -1, 1.5, 2147483648])('answers 404 without querying for an invalid id %p', async (id) => {
+    await expect(service.getBatch(id)).rejects.toThrow('Not Found');
+    expect(prisma.bookOrderBatch.findUnique).not.toHaveBeenCalled();
+  });
 });
 ```
 
@@ -1050,8 +1064,9 @@ Then add the methods below `confirmBatch`:
     return { items: batches.map(toBatchSummary), totalCount, pageInfo: { totalPage: Math.ceil(totalCount / perPage) } };
   }
 
-  /** Reads one batch with its items; 404 when it does not exist. */
+  /** Reads one batch with its items; 404 when it does not exist or the id is not a valid INT key. */
   async getBatch(id: number): Promise<BookOrderBatchDetail> {
+    if (!Number.isInteger(id) || id < 1 || id > MAX_INT_ID) throw NotFoundException();
     const batch = await this.prisma.bookOrderBatch.findUnique({ where: { id }, include: ITEMS_IN_INSERT_ORDER });
     if (!batch) throw NotFoundException();
     return toBatchDetail(batch);
@@ -1060,13 +1075,13 @@ Then add the methods below `confirmBatch`:
 
 - [ ] **Step 4: Run the tests, then typecheck and format**
 
-Run: `yarn jest src/admin/book-export && npx tsc --noEmit -p tsconfig.json && npx prettier --write src/admin/book-export/*.ts`
+Run: `yarn jest src/admin/book-export && npx tsc --noEmit -p tsconfig.json && npx prettier --write src/admin/book-export/build-batch-where.ts src/admin/book-export/build-batch-where.spec.ts src/admin/book-export/book-order-batch.service.ts src/admin/book-export/book-order-batch.service.spec.ts`
 Expected: PASS; tsc exits 0.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/admin/book-export
+git add src/admin/book-export/build-batch-where.ts src/admin/book-export/build-batch-where.spec.ts src/admin/book-export/book-order-batch.service.ts src/admin/book-export/book-order-batch.service.spec.ts
 git commit -m "feat(book-export): list and read bindery batches with order and space search"
 ```
 
@@ -1423,7 +1438,8 @@ Expected: tsc 0, lint 0 errors, all node tests PASS (4 new), build succeeds. The
 - [ ] **Step 7: Commit**
 
 ```bash
-git add -A src/components/page/book-order src/components/page/book-export src/components/page/pdf-export/PdfExportManager.tsx
+git add -A src/components/page/book-order src/components/page/pdf-export/PdfExportManager.tsx
+git status --short   # the book-export paths must show as renames (R), nothing left unstaged under it
 git commit -m "refactor(book-order): move the book export under book-order and share the zip download"
 ```
 
@@ -1445,7 +1461,7 @@ git commit -m "refactor(book-order): move the book export under book-order and s
     - `MAX_MANAGER_NAME_LENGTH = 50`, `MAX_MEMO_LENGTH = 1000`
     - `toBatchRequestOrder(order: BookOrderValidation): BookBatchRequestOrder`
     - `batchItemToExportRequest(item: BookOrderBatchItem): BookExportRequestOrder`
-    - `buildBatchZipName(batchId: number, now: Date): string`
+    - `buildBatchZipName(batchId: number, now: Date): string` → `mindbridge-books-batch-<id>-YYYYMMDD-HHmm.zip` (no `#`: the bindery's tools may not accept it)
     - `canConfirmBatch(params: { managerName: string; selectedCount: number; isBusy: boolean }): boolean`
 
 - [ ] **Step 1: Add the types and the client**
@@ -1493,7 +1509,8 @@ export type BookOrderBatchItem = {
   coverColor: string;
   paidInner: string;
   level: 'ok' | 'warning';
-  issues: BookOrderIssue[];
+  // Stored evidence: codes are plain strings so a later rename never breaks old 발주.
+  issues: { code: string; message: string }[];
 };
 
 export type BookOrderBatchDetail = BookOrderBatchSummary & {
@@ -1618,7 +1635,7 @@ test('maps a stored batch item back to a books request using the requested range
 });
 
 test('names the zip with the batch number and local time', () => {
-  assert.equal(buildBatchZipName(12, new Date(2026, 9, 1, 9, 5)), 'mindbridge-books-#12-20261001-0905.zip');
+  assert.equal(buildBatchZipName(12, new Date(2026, 9, 1, 9, 5)), 'mindbridge-books-batch-12-20261001-0905.zip');
 });
 
 test('allows confirming only with a 1-50 character manager name, a selection, and nothing running', () => {
@@ -1683,7 +1700,7 @@ export function batchItemToExportRequest(item: BookOrderBatchItem): BookExportRe
 }
 
 export function buildBatchZipName(batchId: number, now: Date): string {
-  return `mindbridge-books-#${batchId}-${dayjs(now).format('YYYYMMDD-HHmm')}.zip`;
+  return `mindbridge-books-batch-${batchId}-${dayjs(now).format('YYYYMMDD-HHmm')}.zip`;
 }
 
 export function canConfirmBatch({
@@ -1733,8 +1750,9 @@ git commit -m "feat(book-order): batch client, types, and confirm/re-download he
   - `BookExportStatusBadge`
   - `DataTable`, `FilterBar` (`FILTER_CONTROL_CLASS`), `AdminSideSheetContent`, `Sheet`
 - Produces:
-  - `BookOrderDetailPanel` props: `{ batchId: number; excluded?: BookExportRejectedOrder[]; onBusyChange: (isBusy: boolean) => void }`
-  - `BookOrderList`: the sheet state type is `type SheetState = { mode: 'detail'; batchId: number; excluded?: BookExportRejectedOrder[] } | null`. Task 9 adds `{ mode: 'new' }`.
+  - `BookOrderDetailPanel` props: `{ batchId: number; confirmRejected?: BookExportRejectedOrder[]; downloadRejected?: BookExportRejectedOrder[]; onBusyChange: (isBusy: boolean) => void }`
+  - `BookOrderList`: the sheet state type is `type SheetState = { mode: 'detail'; batchId: number; confirmRejected?: BookExportRejectedOrder[]; downloadRejected?: BookExportRejectedOrder[] } | null`. Task 9 adds `{ mode: 'new' }`.
+  - Detail query key `['book-order-batch', id]` with `staleTime: Infinity` (a 발주 never changes). Task 9 seeds it with `setQueryData` right after confirm, so a replica lag cannot show a fresh 발주 as missing.
 
 - [ ] **Step 1: Menu, route label and page**
 
@@ -1910,8 +1928,10 @@ import { useBookZipDownload } from './useBookZipDownload';
 
 type Props = {
   batchId: number;
-  /** Orders the confirm or the first download left out; shown once right after confirming. */
-  excluded?: BookExportRejectedOrder[];
+  /** Orders the confirm refused: they are NOT part of this 발주. Shown once right after confirming. */
+  confirmRejected?: BookExportRejectedOrder[];
+  /** Orders stored in this 발주 but missing from the first zip. Shown once right after confirming. */
+  downloadRejected?: BookExportRejectedOrder[];
   onBusyChange: (isBusy: boolean) => void;
 };
 
@@ -1932,10 +1952,12 @@ function RejectedList({ title, items }: { title: string; items: BookExportReject
   );
 }
 
-function BookOrderDetailPanel({ batchId, excluded = [], onBusyChange }: Props) {
+function BookOrderDetailPanel({ batchId, confirmRejected = [], downloadRejected = [], onBusyChange }: Props) {
   const { data: batch, isLoading, error } = useQuery({
     queryKey: ['book-order-batch', batchId],
     queryFn: () => getBookOrderBatch(batchId),
+    // A 발주 is evidence and never changes once stored.
+    staleTime: Infinity,
   });
   const zip = useBookZipDownload();
   const [previewRequest, setPreviewRequest] = useState<BookExportRequestOrder | null>(null);
@@ -2011,7 +2033,12 @@ function BookOrderDetailPanel({ batchId, excluded = [], onBusyChange }: Props) {
           </div>
         </dl>
 
-        {excluded.length > 0 ? <RejectedList title='이번 확정에서 제외된 주문' items={excluded} /> : null}
+        {confirmRejected.length > 0 ? (
+          <RejectedList title='확정에서 제외되어 발주에 포함되지 않은 주문' items={confirmRejected} />
+        ) : null}
+        {downloadRejected.length > 0 ? (
+          <RejectedList title='발주에는 포함됐지만 zip에서 빠진 주문' items={downloadRejected} />
+        ) : null}
         {redownloadRejected.length > 0 ? (
           <RejectedList title='다시 받기에서 제외된 주문' items={redownloadRejected} />
         ) : null}
@@ -2065,7 +2092,12 @@ import BookOrderDetailPanel from './BookOrderDetailPanel';
 
 const PAGE_SIZE = 20;
 
-type SheetState = { mode: 'detail'; batchId: number; excluded?: BookExportRejectedOrder[] } | null;
+type SheetState = {
+  mode: 'detail';
+  batchId: number;
+  confirmRejected?: BookExportRejectedOrder[];
+  downloadRejected?: BookExportRejectedOrder[];
+} | null;
 
 const columns: ColumnDef<BookOrderBatchSummary>[] = [
   {
@@ -2095,13 +2127,13 @@ const columns: ColumnDef<BookOrderBatchSummary>[] = [
     id: 'sourceFileName',
     header: '원본 파일',
     size: 220,
-    cell: ({ row }) => <span className='truncate'>{row.original.sourceFileName}</span>,
+    cell: ({ row }) => <span className='block truncate'>{row.original.sourceFileName}</span>,
   },
   {
     id: 'memo',
     header: '메모',
     size: 240,
-    cell: ({ row }) => <span className='truncate text-muted-foreground'>{row.original.memo || '-'}</span>,
+    cell: ({ row }) => <span className='block truncate text-muted-foreground'>{row.original.memo || '-'}</span>,
   },
 ];
 
@@ -2112,7 +2144,7 @@ function BookOrderList() {
   const [sheet, setSheet] = useState<SheetState>(null);
   const [isSheetBusy, setIsSheetBusy] = useState(false);
 
-  const { data, isFetching } = useQuery({
+  const { data, isLoading, isFetching } = useQuery({
     queryKey: ['book-order-batches', page, q],
     queryFn: () => getBookOrderBatches({ page, q: q || undefined }),
     placeholderData: keepPreviousData,
@@ -2151,7 +2183,7 @@ function BookOrderList() {
       <DataTable
         columns={columns}
         data={data?.items ?? []}
-        loading={isFetching}
+        loading={isLoading}
         rowKey={(record) => String(record.id)}
         onRow={(record) => ({ onClick: () => setSheet({ mode: 'detail', batchId: record.id }) })}
         emptyState={<p className='text-sm text-muted-foreground'>{q ? '검색 결과가 없습니다.' : '아직 발주가 없습니다.'}</p>}
@@ -2171,7 +2203,12 @@ function BookOrderList() {
       >
         {sheet?.mode === 'detail' ? (
           <AdminSideSheetContent title={`발주 #${sheet.batchId}`} description='확정 시점에 저장된 주문 기록입니다.' size='xl'>
-            <BookOrderDetailPanel batchId={sheet.batchId} excluded={sheet.excluded} onBusyChange={setIsSheetBusy} />
+            <BookOrderDetailPanel
+              batchId={sheet.batchId}
+              confirmRejected={sheet.confirmRejected}
+              downloadRejected={sheet.downloadRejected}
+              onBusyChange={setIsSheetBusy}
+            />
           </AdminSideSheetContent>
         ) : null}
       </Sheet>
@@ -2211,7 +2248,7 @@ git commit -m "feat(book-order): 책 제작 발주 menu with the batch list and 
   - `toBatchRequestOrder`, `batchItemToExportRequest`, `buildBatchZipName`, `canConfirmBatch`, `MAX_MANAGER_NAME_LENGTH`, `MAX_MEMO_LENGTH` (Task 7)
   - `useBookZipDownload` (Task 6)
   - `SheetState` in `BookOrderList` (Task 8)
-- Produces: `BookOrderNewPanel` props `{ onBusyChange: (isBusy: boolean) => void; onConfirmed: (params: { batch: BookOrderBatchDetail; excluded: BookExportRejectedOrder[] }) => void }`.
+- Produces: `BookOrderNewPanel` props `{ onBusyChange: (isBusy: boolean) => void; onConfirmed: (params: { batch: BookOrderBatchDetail; confirmRejected: BookExportRejectedOrder[]; downloadRejected: BookExportRejectedOrder[] }) => void }`.
 
 - [ ] **Step 1: Rename and turn the download into a confirm**
 
@@ -2249,9 +2286,9 @@ In `BookOrderNewPanel.tsx`:
     if (targets.length === 0) return;
     onBusyChange(true);
     setIsConfirming(true);
-    setRejected([]);
     let batch: BookOrderBatchDetail;
-    let excluded: BookExportRejectedOrder[];
+    let confirmRejected: BookExportRejectedOrder[];
+    let downloadRejected: BookExportRejectedOrder[] = [];
     try {
       const result = await confirmBookOrderBatch({
         managerName: managerName.trim(),
@@ -2260,7 +2297,7 @@ In `BookOrderNewPanel.tsx`:
         orders: targets,
       });
       batch = result.batch;
-      excluded = result.rejected;
+      confirmRejected = result.rejected;
     } catch (err) {
       toast.error(errorMessage(err));
       setIsConfirming(false);
@@ -2273,13 +2310,14 @@ In `BookOrderNewPanel.tsx`:
         orders: batch.items.map(batchItemToExportRequest),
         fileName: buildBatchZipName(batch.id, new Date()),
       });
-      excluded = [...excluded, ...run.rejected];
+      downloadRejected = run.rejected;
+      const excludedCount = confirmRejected.length + downloadRejected.length;
       if (run.bookCount === 0) {
         toast.warning(`발주 #${batch.id}을 저장했지만 지금 추출할 수 있는 주문이 없습니다.`);
       } else {
         toast.success(
-          excluded.length > 0
-            ? `발주 #${batch.id}을 확정하고 ${run.bookCount}건을 내려받았습니다. ${excluded.length}건은 제외되었습니다.`
+          excludedCount > 0
+            ? `발주 #${batch.id}을 확정하고 ${run.bookCount}건을 내려받았습니다. ${excludedCount}건은 제외되었습니다.`
             : `발주 #${batch.id}을 확정하고 ${run.bookCount}건을 내려받았습니다.`,
         );
       }
@@ -2289,7 +2327,7 @@ In `BookOrderNewPanel.tsx`:
       );
     }
     onBusyChange(false);
-    onConfirmed({ batch, excluded });
+    onConfirmed({ batch, confirmRejected, downloadRejected });
   };
 ```
 
@@ -2341,7 +2379,7 @@ In `BookOrderNewPanel.tsx`:
         </div>
 ```
 
-- Change the rejected-box title from `다운로드 시점에 제외된 주문` to `확정 시점에 제외된 주문`. The box still renders when a confirm fails partway, which is rare.
+- Remove the `rejected` state and its rejected-orders box (and every `setRejected` call): after a confirm the sheet switches to the detail, which shows both rejected lists, so the box here would never show anything.
 - Keep the preview (`previewRequest`), level tiles, table and uploader as they are.
 
 If `@/components/ui/textarea` or `@/components/ui/label` exports differ, read them and adapt. Both exist in `src/components/ui/`.
@@ -2350,7 +2388,7 @@ If `@/components/ui/textarea` or `@/components/ui/label` exports differ, read th
 
 In `BookOrderList.tsx`:
 - Import `BookOrderNewPanel`, `useQueryClient`, and `Plus` from `lucide-react`.
-- Change `SheetState` to `{ mode: 'new' } | { mode: 'detail'; batchId: number; excluded?: BookExportRejectedOrder[] } | null`.
+- Change `SheetState` to `{ mode: 'new' } | { mode: 'detail'; batchId: number; confirmRejected?: BookExportRejectedOrder[]; downloadRejected?: BookExportRejectedOrder[] } | null`.
 - Add `const queryClient = useQueryClient();`.
 - After the 검색 button inside `FilterBar`, add:
 
@@ -2374,9 +2412,11 @@ If `FilterBar` lays out its children so that `ml-auto` cannot push the button ri
           >
             <BookOrderNewPanel
               onBusyChange={setIsSheetBusy}
-              onConfirmed={({ batch, excluded }) => {
+              onConfirmed={({ batch, confirmRejected, downloadRejected }) => {
+                // Seed the detail so a read-replica lag right after the write cannot show it as missing.
+                queryClient.setQueryData(['book-order-batch', batch.id], batch);
                 queryClient.invalidateQueries({ queryKey: ['book-order-batches'] });
-                setSheet({ mode: 'detail', batchId: batch.id, excluded });
+                setSheet({ mode: 'detail', batchId: batch.id, confirmRejected, downloadRejected });
               }}
             />
           </AdminSideSheetContent>
@@ -2426,7 +2466,7 @@ Run this after the migration from Task 1 is applied to dev, with the backend run
 1. In the sidebar, open `관리` > `책 제작 발주`. An empty list shows `아직 발주가 없습니다.`.
 2. Click `새 발주` and upload the sample CSV edited to a real dev space ID.
    - Type spaces only as the manager name: the confirm button stays disabled.
-   - Type a name and a memo, then confirm: a zip `mindbridge-books-#N-...zip` downloads, and the sheet switches to `발주 #N`.
+   - Type a name and a memo, then confirm: a zip `mindbridge-books-batch-N-...zip` downloads, and the sheet switches to `발주 #N`.
 3. The detail shows the manager, the file name, the memo, and items with confirm-time values. `zip 다시 받기` downloads again, and `미리보기` opens the JSON.
 4. Close the sheet: the list shows the new 발주. Search by order number, by the space ID in lowercase, and by part of the manager name; each one finds it.
 5. The `PDF 내보내기 관리` page no longer shows `책 제작 데이터 추출`.

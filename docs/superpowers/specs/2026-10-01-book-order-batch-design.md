@@ -118,7 +118,7 @@ interface BookOrderBatchItemDto {
   coverColor: string;
   paidInner: string;
   level: 'ok' | 'warning';
-  issues: BookOrderIssue[];
+  issues: { code: string; message: string }[]; // plain-string codes so a later rename never breaks old evidence
 }
 interface BookOrderBatchDetail extends BookOrderBatchSummary {
   items: BookOrderBatchItemDto[];
@@ -196,8 +196,8 @@ interface BookOrderBatchDetail extends BookOrderBatchSummary {
   - `선택 N건 발주 확정` button. It is disabled while busy, with nothing selected, or with an empty name.
 - On confirm:
   1. `POST /batches`, with every selected order mapped to `BookBatchRequestOrder` and `sourceFileName` set to the uploaded file's name.
-  2. On success, `useBookZipDownload` runs over `batch.items` and saves `mindbridge-books-#<id>-YYYYMMDD-HHmm.zip`.
-  3. Rejected orders are shown from both the confirm and the download.
+  2. On success, `useBookZipDownload` runs over `batch.items` and saves `mindbridge-books-batch-<id>-YYYYMMDD-HHmm.zip` (no `#`, which the bindery's tools may reject).
+  3. The detail lists, separately, orders the confirm refused (not part of the 발주) and orders stored in the 발주 but missing from the zip. The detail query is seeded from the confirm response so a read-replica lag cannot show the new 발주 as missing.
   4. The list query is invalidated, and the sheet switches to that 발주's detail.
   5. If the zip fails after the 발주 was stored, a toast says the 발주 was saved and can be re-downloaded from its detail.
 - The sheet cannot close while confirming or downloading (existing toast).
