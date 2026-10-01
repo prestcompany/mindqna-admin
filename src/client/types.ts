@@ -949,6 +949,7 @@ export type BookOrderIssueCode =
   | 'INCONSISTENT_ROWS'
   | 'NO_ANSWERED_CARDS'
   | 'PAID_COUNT_MISMATCH'
+  | 'PAID_COUNT_MULTIPLE'
   | 'UNANSWERED_DROPPED'
   | 'RANGE_CLAMPED'
   | 'DUPLICATE_SPACE'
@@ -970,6 +971,7 @@ export type BookOrderValidation = {
   endOrder: number | null;
   exportEnd: number | null;
   paidQuestionCount: number | null;
+  paidQuestionCandidates: number[];
   answeredCount: number;
   coverColor: string;
   paidInner: string;

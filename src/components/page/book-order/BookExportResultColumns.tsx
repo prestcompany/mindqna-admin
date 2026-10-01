@@ -16,6 +16,9 @@ export interface BookExportColumnActions {
   onToggleAll: (checked: boolean) => void;
   onPreview: (order: BookOrderValidation) => void;
   isDownloading: boolean;
+  /** The admin's pick for a multi-selected question count, if any. */
+  paidChoice: (orderNo: string) => number | undefined;
+  onChoosePaidCount: (orderNo: string, value: number | null) => void;
 }
 
 export const createBookExportResultColumns = (selection: BookExportColumnActions): ColumnDef<BookOrderValidation>[] => [
@@ -102,7 +105,7 @@ export const createBookExportResultColumns = (selection: BookExportColumnActions
   {
     id: 'status',
     header: '상태',
-    size: 260,
+    size: 300,
     cell: ({ row }) => (
       <div className='space-y-1'>
         <BookExportStatusBadge level={row.original.level} />
@@ -111,6 +114,42 @@ export const createBookExportResultColumns = (selection: BookExportColumnActions
             {issue.message}
           </p>
         ))}
+        {row.original.paidQuestionCandidates.length > 1 ? (
+          <div className='flex flex-wrap items-center gap-1 pt-1'>
+            <span className='text-xs text-muted-foreground'>결제 질문 수 선택</span>
+            {row.original.paidQuestionCandidates.map((value) => (
+              <Button
+                key={value}
+                type='button'
+                size='sm'
+                variant={selection.paidChoice(row.original.orderNo) === value ? 'secondary' : 'outline'}
+                className='h-6 px-2 text-xs tabular-nums'
+                disabled={selection.isDownloading}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  selection.onChoosePaidCount(row.original.orderNo, value);
+                }}
+              >
+                {value}
+              </Button>
+            ))}
+            {selection.paidChoice(row.original.orderNo) !== undefined ? (
+              <Button
+                type='button'
+                size='sm'
+                variant='ghost'
+                className='h-6 px-2 text-xs'
+                disabled={selection.isDownloading}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  selection.onChoosePaidCount(row.original.orderNo, null);
+                }}
+              >
+                다시 고르기
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     ),
   },

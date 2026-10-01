@@ -35,6 +35,7 @@ import {
   canConfirmBatch,
   toBatchRequestOrder,
 } from './services/book-order-batch';
+import { resolvePaidQuestionCount } from './services/resolve-paid-question-count';
 import { useBookZipDownload } from './useBookZipDownload';
 
 type LevelFilter = 'all' | BookOrderLevel;
@@ -49,7 +50,8 @@ type Props = {
 };
 
 function BookOrderNewPanel({ onBusyChange, onConfirmed }: Props) {
-  const [orders, setOrders] = useState<BookOrderValidation[] | null>(null);
+  const [serverOrders, setServerOrders] = useState<BookOrderValidation[] | null>(null);
+  const [paidChoices, setPaidChoices] = useState<Map<string, number>>(new Map());
   const [filter, setFilter] = useState<LevelFilter>('all');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [previewRequest, setPreviewRequest] = useState<BookExportRequestOrder | null>(null);
@@ -61,6 +63,15 @@ function BookOrderNewPanel({ onBusyChange, onConfirmed }: Props) {
   const [isConfirming, setIsConfirming] = useState(false);
   // Ignores a validation response that arrives after a newer upload started.
   const latestValidation = useRef(0);
+
+  const orders = useMemo(
+    () =>
+      serverOrders?.map((order) => {
+        const chosen = paidChoices.get(order.orderNo);
+        return chosen === undefined ? order : resolvePaidQuestionCount(order, chosen);
+      }) ?? null,
+    [serverOrders, paidChoices],
+  );
 
   const selectable = useMemo(() => (orders ?? []).filter(isSelectableOrder), [orders]);
   const counts = useMemo(() => countOrdersByLevel(orders ?? []), [orders]);
@@ -83,12 +94,14 @@ function BookOrderNewPanel({ onBusyChange, onConfirmed }: Props) {
     try {
       const result = await validateBookOrders(file);
       if (requestId !== latestValidation.current) return;
-      setOrders(result.orders);
+      setServerOrders(result.orders);
+      setPaidChoices(new Map());
       setFilter('all');
       setSelected(new Set(result.orders.filter(isSelectableOrder).map((order) => order.orderNo)));
     } catch (err) {
       if (requestId !== latestValidation.current) return;
-      setOrders(null);
+      setServerOrders(null);
+      setPaidChoices(new Map());
       setSelected(new Set());
       toast.error(errorMessage(err));
     }
@@ -164,6 +177,25 @@ function BookOrderNewPanel({ onBusyChange, onConfirmed }: Props) {
       ),
     onPreview: (order) => setPreviewRequest(toBookExportRequest(order)),
     isDownloading,
+    paidChoice: (orderNo) => paidChoices.get(orderNo),
+    onChoosePaidCount: (orderNo, value) => {
+      setPaidChoices((prev) => {
+        const next = new Map(prev);
+        if (value === null) next.delete(orderNo);
+        else next.set(orderNo, value);
+        return next;
+      });
+      // Select it only if the pick actually unblocks the order; another error keeps it unselectable.
+      const serverOrder = serverOrders?.find((order) => order.orderNo === orderNo);
+      const isUnblocked =
+        value !== null && serverOrder !== undefined && resolvePaidQuestionCount(serverOrder, value).level !== 'error';
+      setSelected((prev) => {
+        const next = new Set(prev);
+        if (isUnblocked) next.add(orderNo);
+        else next.delete(orderNo);
+        return next;
+      });
+    },
   });
 
   return (

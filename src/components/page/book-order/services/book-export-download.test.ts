@@ -22,6 +22,7 @@ function buildOrder(overrides: Partial<BookOrderValidation> = {}): BookOrderVali
     endOrder: 30,
     exportEnd: 30,
     paidQuestionCount: 30,
+    paidQuestionCandidates: [30],
     answeredCount: 30,
     coverColor: '브라운',
     paidInner: '선택 안함',
