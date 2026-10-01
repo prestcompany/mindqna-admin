@@ -143,3 +143,4 @@ The live product page has five question-count selectors, `질문 수(30~100)` th
 - Two or more distinct values make the order **추출 불가**. The new issue is `PAID_COUNT_MULTIPLE`, with the message "질문 수 옵션이 여러 개 선택되었습니다. 고객 확인 후 하나를 골라 주세요." The JSON never carries an error string. `purchaseQuestionCount` is a number or `null`.
 - The validation result lists `paidQuestionCandidates`. The admin picks one in the result table. The picked value becomes the request's `paidQuestionCount`, so it flows into the preview, the zip `options.purchaseQuestionCount`, and the stored batch item. The server re-validates on `/books` and on confirm.
 - Free-form entry of a value outside the candidates is out of scope.
+- A value outside its selector's bracket (for example `질문 수(30~100)=350`) is not checked against the bracket. `PAID_COUNT_MISMATCH` still compares the picked count with the requested range size.
