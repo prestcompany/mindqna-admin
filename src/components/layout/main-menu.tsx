@@ -77,12 +77,6 @@ const managementMenu: IMenu[] = [
     ],
   },
   {
-    id: 'book-order',
-    name: '책 제작 발주',
-    icon: <BookOpen className='w-4 h-4' />,
-    link: { path: '/book-order' },
-  },
-  {
     id: 'game',
     name: '게임 관리',
     icon: <Gamepad2Icon className='w-4 h-4' />,
@@ -137,6 +131,12 @@ const systemMenu: IMenu[] = [
     name: 'PDF 내보내기 관리',
     icon: <FileDown className='w-4 h-4' />,
     link: { path: '/pdf-export' },
+  },
+  {
+    id: 'book-order',
+    name: '책 제작 발주',
+    icon: <BookOpen className='w-4 h-4' />,
+    link: { path: '/book-order' },
   },
 ];
 

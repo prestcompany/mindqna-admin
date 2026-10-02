@@ -64,7 +64,7 @@ export const createBookOrderBatchItemColumns = (
   {
     id: 'options',
     header: '표지 · 내지 · 패키지',
-    size: 150,
+    size: 220,
     cell: ({ row }) => (
       <div className='min-w-0 text-sm'>
         <div className='truncate text-foreground'>{row.original.coverColor || '-'}</div>
@@ -76,7 +76,7 @@ export const createBookOrderBatchItemColumns = (
   {
     id: 'status',
     header: '상태',
-    size: 240,
+    size: 180,
     cell: ({ row }) => (
       <div className='space-y-1'>
         <BookExportStatusBadge level={row.original.level} />
