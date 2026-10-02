@@ -953,7 +953,8 @@ export type BookOrderIssueCode =
   | 'UNANSWERED_DROPPED'
   | 'RANGE_CLAMPED'
   | 'DUPLICATE_SPACE'
-  | 'SPACE_PENDING_DELETION';
+  | 'SPACE_PENDING_DELETION'
+  | 'UNKNOWN_OPTION';
 
 export type BookOrderLevel = 'ok' | 'warning' | 'error';
 

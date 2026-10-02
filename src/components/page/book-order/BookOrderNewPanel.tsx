@@ -13,7 +13,6 @@ import DataTable from '@/components/shared/ui/data-table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -225,7 +224,7 @@ function BookOrderNewPanel({ onBusyChange, onConfirmed }: Props) {
 
       {orders ? (
         <div className='sticky bottom-0 z-10 -mx-6 border-t bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
-          <div className='grid gap-3 sm:grid-cols-[minmax(0,200px)_minmax(0,1fr)_auto] sm:items-end'>
+          <div className='grid gap-3 sm:grid-cols-[200px_minmax(0,1fr)_auto] sm:items-end'>
             <div className='space-y-1.5'>
               <Label htmlFor='book-order-manager'>담당자명</Label>
               <Input
@@ -239,19 +238,18 @@ function BookOrderNewPanel({ onBusyChange, onConfirmed }: Props) {
             </div>
             <div className='space-y-1.5'>
               <Label htmlFor='book-order-memo'>메모</Label>
-              <Textarea
+              <Input
                 id='book-order-memo'
                 value={memo}
                 maxLength={MAX_MEMO_LENGTH}
                 onChange={(e) => setMemo(e.target.value)}
                 placeholder='선택'
-                rows={1}
                 disabled={isBusy}
               />
             </div>
             <div className='flex items-center justify-end gap-3'>
               {zip.progress ? (
-                <span className='text-sm tabular-nums text-muted-foreground'>
+                <span className='whitespace-nowrap text-sm tabular-nums text-muted-foreground'>
                   {zip.progress.done} / {zip.progress.total}건 처리 중
                 </span>
               ) : null}
