@@ -15,6 +15,8 @@ export type PushTargetDisplay = {
   badge: string;
   /** The one line beside the badge: locale and headcount, whichever are known. */
   summary: string;
+  /** The headcount alone, for places too narrow for the locale; null when not counted yet. */
+  count: string | null;
   /** What the badge reveals on hover; null when there is nothing beyond the summary. */
   card: PushTargetCard | null;
 };
@@ -31,7 +33,12 @@ const count = (n: number) => `${n.toLocaleString('ko-KR')}명`;
  * a glance: kind, locale, headcount. Everything that explains WHO — a filter's conditions, the
  * names typed in — lives in the card, where it can be read whole instead of wrapping the row.
  */
-export function describePushTarget(item: AdminPushItem, parts = 1): PushTargetDisplay {
+export function describePushTarget(
+  item: AdminPushItem,
+  parts = 1,
+  formatLocale: (code: string) => string = (code) => code,
+): PushTargetDisplay {
+  const locale = item.locale ? formatLocale(item.locale) : null;
   const line = (...bits: (string | null)[]) => bits.filter(Boolean).join(' · ');
 
   if (item.target === 'FILTER') {
@@ -39,19 +46,16 @@ export function describePushTarget(item: AdminPushItem, parts = 1): PushTargetDi
     return {
       kind: 'FILTER',
       badge: '조건',
-      summary: line(item.locale, count(n)),
+      summary: line(locale, count(n)),
+      count: count(n),
       card: { title: '조건 발송', rows: filterRows(item.filter ?? {}), footnote: `대상 ${count(n)} · 저장할 때 확정` },
     };
   }
 
   if (item.target === 'ALL') {
     // A broadcast is counted only once the sender claims it, and then approximately.
-    return {
-      kind: 'ALL',
-      badge: '전체',
-      summary: line(item.locale, item.targetCount == null ? null : `약 ${count(item.targetCount)}`),
-      card: null,
-    };
+    const approx = item.targetCount == null ? null : `약 ${count(item.targetCount)}`;
+    return { kind: 'ALL', badge: '전체', summary: line(locale, approx), count: approx, card: null };
   }
 
   // A folded campaign's own userNames are its first chunk's; the audience is the summed count.
@@ -60,6 +64,7 @@ export function describePushTarget(item: AdminPushItem, parts = 1): PushTargetDi
       kind: 'LEGACY',
       badge: '조건',
       summary: count(item.targetCount ?? 0),
+      count: count(item.targetCount ?? 0),
       card: { title: '조건 발송', rows: [{ label: '저장 방식', value: `이전 방식 · ${parts}개로 나뉨` }], footnote: null },
     };
   }
@@ -71,6 +76,7 @@ export function describePushTarget(item: AdminPushItem, parts = 1): PushTargetDi
     kind: 'USER',
     badge: '개인',
     summary: count(names.length),
+    count: count(names.length),
     card:
       names.length > 0
         ? { title: '개인 발송', rows: [{ label: '받는 사람', value: rest > 0 ? `${shown} 외 ${rest}명` : shown }], footnote: null }

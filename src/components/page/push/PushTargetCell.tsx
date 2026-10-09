@@ -18,14 +18,19 @@ const BADGE_VARIANT: Record<PushTargetKind, BadgeProps['variant']> = {
  * send open from the badge on hover or keyboard focus, as a card rather than inline text.
  * Rendered inside DataTable, whose TooltipProvider this relies on.
  */
-export default function PushTargetCell({ item, parts = 1 }: { item: AdminPushItem; parts?: number }) {
-  const { kind, badge, summary, card } = describePushTarget(item, parts);
-  const tag = (
+/** The kind tag alone, shared by the list cell and the detail view so both read the same. */
+export function PushTargetBadge({ kind, label, hint = false }: { kind: PushTargetKind; label: string; hint?: boolean }) {
+  return (
     <span className={cn(badgeVariants({ variant: BADGE_VARIANT[kind] }), 'gap-1')}>
-      {badge}
-      {card && <Info className='h-3 w-3 opacity-70' aria-hidden />}
+      {label}
+      {hint && <Info className='h-3 w-3 opacity-70' aria-hidden />}
     </span>
   );
+}
+
+export default function PushTargetCell({ item, parts = 1 }: { item: AdminPushItem; parts?: number }) {
+  const { kind, badge, summary, card } = describePushTarget(item, parts);
+  const tag = <PushTargetBadge kind={kind} label={badge} hint={!!card} />;
 
   return (
     <div className='flex min-w-0 items-center gap-2 whitespace-nowrap'>

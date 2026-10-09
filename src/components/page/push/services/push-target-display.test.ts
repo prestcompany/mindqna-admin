@@ -75,6 +75,18 @@ test('a per-user send counts its names and lists at most ten in the card', () =>
   assert.deepEqual(d.card?.rows, [{ label: '받는 사람', value: `${names.slice(0, 10).join(', ')} 외 2명` }]);
 });
 
+test('the headcount is available on its own for the narrow rail', () => {
+  assert.equal(describePushTarget({ ...base, target: 'FILTER', targetCount: 73_412, filter: {} }).count, '73,412명');
+  assert.equal(describePushTarget(base).count, null);
+  assert.equal(describePushTarget({ ...base, targetCount: 10 }).count, '약 10명');
+});
+
+test('the locale can be shown by name where there is room for it', () => {
+  const names: Record<string, string> = { ko: '한국어' };
+  const d = describePushTarget({ ...base, target: 'FILTER', targetCount: 3, filter: {} }, 1, (code) => names[code] ?? code);
+  assert.equal(d.summary, '한국어 · 3명');
+});
+
 test('a campaign saved before FILTER existed is a 조건 badge that says how it was split', () => {
   const d = describePushTarget({ ...base, target: 'USER', locale: null, userNames: ['a'], targetCount: 8_014 }, 5);
   assert.equal(d.kind, 'LEGACY');

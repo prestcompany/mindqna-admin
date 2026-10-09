@@ -1,9 +1,10 @@
 import type { AdminPushItem } from '@/client/push';
 import { LOCALE_DISPLAY_NAME } from '@/components/shared/form/constants/locale-options';
 import dayjs from 'dayjs';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { estimateDurationMs, estimateRemainingMs, formatMinuteRange, minutes } from './services/push-progress';
-import { summarizePushFilter } from './services/push-filter-summary';
+import { PushTargetBadge } from './PushTargetCell';
+import { describePushTarget } from './services/push-target-display';
 
 type ComposeProps = {
   mode: 'compose';
@@ -22,6 +23,7 @@ type ResultProps = { mode: 'result'; row: AdminPushItem };
 function PushSummaryRail(props: ComposeProps | ResultProps) {
   if (props.mode === 'result') {
     const { row } = props;
+    const target = describePushTarget(row);
     // Only meaningful mid-send: before anything is processed the function returns null,
     // and after the row leaves SENDING the remaining count no longer means anything.
     const remainingMs =
@@ -36,14 +38,14 @@ function PushSummaryRail(props: ComposeProps | ResultProps) {
 
     return (
       <dl className='space-y-3 text-sm'>
+        {/* 220px wide: the kind and the headcount only. The conditions are in the main column. */}
         <Row
           label='대상'
           value={
-            row.target === 'ALL'
-              ? `전체 · ${row.locale ? (LOCALE_DISPLAY_NAME[row.locale] ?? row.locale) : '—'}`
-              : row.target === 'FILTER'
-                ? `조건 · ${summarizePushFilter(row.filter ?? {}) || '—'}`
-                : `개인 ${(row.userNames ?? []).length}명`
+            <span className='inline-flex items-center gap-1.5'>
+              <PushTargetBadge kind={target.kind} label={target.badge} />
+              <span>{target.count ?? (row.locale ? (LOCALE_DISPLAY_NAME[row.locale] ?? row.locale) : '—')}</span>
+            </span>
           }
         />
         <Row label='도달' value={row.sentCount.toLocaleString()} />
@@ -97,7 +99,7 @@ function PushSummaryRail(props: ComposeProps | ResultProps) {
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className='flex items-baseline justify-between gap-2'>
       <dt className='text-muted-foreground'>{label}</dt>

@@ -35,6 +35,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import PushRecipientList from './PushRecipientList';
 import PushSummaryRail from './PushSummaryRail';
+import { PushTargetBadge } from './PushTargetCell';
 import PushTargetFilterPanel, { isEmptyPushFilter } from './PushTargetFilterPanel';
 import PushTestSendPanel, { reachableCount } from './PushTestSendPanel';
 import type { ResolveTestEmailsResult } from '@/client/push';
@@ -47,7 +48,7 @@ import {
   type PushFormValues,
 } from './services/push-form-payload';
 import { estimateDurationMs, formatMinuteRange } from './services/push-progress';
-import { summarizePushFilter } from './services/push-filter-summary';
+import { describePushTarget } from './services/push-target-display';
 
 type Props = {
   mode: 'create' | 'edit' | 'view';
@@ -231,24 +232,30 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
     .join(' ');
 
   if (isReadOnly && initial) {
+    const detailTarget = describePushTarget(initial, 1, (code) => LOCALE_DISPLAY_NAME[code] ?? code);
     return (
       <Sheet open onOpenChange={handleOpenChange}>
         <AdminSideSheetContent title='발송 상세' size='lg' bodyClassName='overflow-hidden p-0'>
           <div className='grid h-full grid-cols-[minmax(0,1fr)_220px] overflow-hidden'>
             <div className='min-h-0 overflow-y-auto'>
               <PanelBand title='수신' />
-              <DefinitionRow label='대상'>
-                {initial.target === 'ALL'
-                  ? `전체 · ${initial.locale ? (LOCALE_DISPLAY_NAME[initial.locale] ?? initial.locale) : '-'}`
-                  : initial.target === 'FILTER'
-                    ? `조건 · ${initial.locale ? (LOCALE_DISPLAY_NAME[initial.locale] ?? initial.locale) : '-'} · ${(initial.targetCount ?? 0).toLocaleString()}명`
-                    : `개인 · ${(initial.userNames ?? []).length.toLocaleString()}명`}
+              <DefinitionRow
+                label='대상'
+                hint={detailTarget.kind === 'FILTER' ? '저장할 때 아래 조건으로 대상을 확정했습니다' : undefined}
+              >
+                <div className='flex items-center gap-2'>
+                  <PushTargetBadge kind={detailTarget.kind} label={detailTarget.badge} />
+                  <span className='tabular-nums'>{detailTarget.summary || '-'}</span>
+                </div>
               </DefinitionRow>
-              {initial.target === 'FILTER' && initial.filter && (
-                <DefinitionRow label='조건' hint='저장할 때 이 조건으로 대상을 확정했습니다'>
-                  {summarizePushFilter(initial.filter) || '-'}
-                </DefinitionRow>
-              )}
+              {/* The list hides a filter behind a hover card; here there is room to show each
+                  condition as its own row. */}
+              {detailTarget.kind === 'FILTER' &&
+                detailTarget.card?.rows.map((row) => (
+                  <DefinitionRow key={row.label} label={row.label}>
+                    {row.value}
+                  </DefinitionRow>
+                ))}
               {initial.target === 'USER' && (
                 <DefinitionRow label='받는 사람'>
                   <PushRecipientList userNames={initial.userNames ?? []} />
