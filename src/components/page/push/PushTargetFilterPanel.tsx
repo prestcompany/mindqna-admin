@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
-const SPACE_TYPE_OPTIONS: { value: SpaceType; label: string }[] = [
-  { value: 'alone', label: '혼자' },
-  { value: 'couple', label: '커플' },
-  { value: 'family', label: '가족' },
-  { value: 'friends', label: '친구' },
-];
+import { SPACE_TYPE_LABEL } from './services/push-filter-summary';
+
+const SPACE_TYPE_OPTIONS = (Object.keys(SPACE_TYPE_LABEL) as SpaceType[]).map((value) => ({
+  value,
+  label: SPACE_TYPE_LABEL[value],
+}));
 
 /** Multi-select chip. Same ink inversion as every other selected state in the admin. */
 function ToggleChip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
@@ -43,6 +43,7 @@ export function isEmptyPushFilter(filter: PushTargetFilter): boolean {
     !filter.spaceTypes?.length &&
     !filter.spaceLocales?.length &&
     filter.minCardCount == null &&
+    filter.maxCardCount == null &&
     filter.minPetLevel == null
   );
 }
@@ -50,9 +51,9 @@ export function isEmptyPushFilter(filter: PushTargetFilter): boolean {
 /**
  * Conditions on the space a recipient belongs to.
  *
- * The server resolves these when the campaign is saved and writes the resulting people into
- * as many push rows as they need. What the operator picks here decides an audience once, at
- * save time — it is not a rule that keeps re-evaluating afterwards.
+ * The server resolves these when the push is saved and keeps the resulting people as its
+ * audience. What the operator picks here decides that audience once, at save time — it is not
+ * a rule that keeps re-evaluating afterwards.
  */
 export default function PushTargetFilterPanel({
   value,
@@ -102,19 +103,32 @@ export default function PushTargetFilterPanel({
         </div>
       </DefinitionRow>
 
-      <DefinitionRow label='질문 개수' hint='이 개수 이상 발급된 공간'>
-        <div className='flex items-center gap-2'>
+      <DefinitionRow label='질문 개수' hint='공간에 발급된 질문 수입니다. 한쪽만 채워도 됩니다'>
+        <div className='flex flex-wrap items-center gap-2'>
           <Input
             type='number'
             min={0}
             inputMode='numeric'
             className='w-[120px]'
             placeholder='예: 10'
+            aria-label='질문 개수 최소'
             disabled={disabled}
             value={value.minCardCount ?? ''}
             onChange={(e) => onChange({ ...value, minCardCount: parseThreshold(e.target.value) })}
           />
           <span className='text-sm text-muted-foreground'>개 이상</span>
+          <Input
+            type='number'
+            min={0}
+            inputMode='numeric'
+            className='w-[120px]'
+            placeholder='예: 41'
+            aria-label='질문 개수 최대'
+            disabled={disabled}
+            value={value.maxCardCount ?? ''}
+            onChange={(e) => onChange({ ...value, maxCardCount: parseThreshold(e.target.value) })}
+          />
+          <span className='text-sm text-muted-foreground'>개 이하</span>
         </div>
       </DefinitionRow>
 

@@ -3,7 +3,6 @@ import {
   getPushTargetCount,
   previewPushTargets,
   PushFilterNoMatchError,
-  PushFilterTooManyError,
   PushUnknownUserNamesError,
   updatePush,
   type AdminPushItem,
@@ -41,11 +40,14 @@ import PushTestSendPanel, { reachableCount } from './PushTestSendPanel';
 import type { ResolveTestEmailsResult } from '@/client/push';
 import {
   parseUserNamesInput,
+  pushFilterError,
   pushUrlError,
   toCreatePushParams,
+  toPushFormValues,
   type PushFormValues,
 } from './services/push-form-payload';
-import { estimateCampaignDurationMs, estimateDurationMs, formatMinuteRange } from './services/push-progress';
+import { estimateDurationMs, formatMinuteRange } from './services/push-progress';
+import { summarizePushFilter } from './services/push-filter-summary';
 
 type Props = {
   mode: 'create' | 'edit' | 'view';
@@ -55,28 +57,8 @@ type Props = {
   onSaved: () => void | Promise<void>;
 };
 
-function toValues(mode: Props['mode'], initial?: AdminPushItem): PushFormValues {
-  // Editing only ever reaches a SCHEDULED row (see allowedActions), so its send time is
-  // real and worth showing back. A duplicate starts fresh instead: the row it copies is
-  // FAILED or CANCELED, so its old pushAt has already passed and reusing it would be a lie.
-  const isEditingSchedule = mode === 'edit' && !!initial;
-  return {
-    // Conditions are resolved server-side at save, so a saved row has no filter to restore.
-    filter: {},
-    sendMode: isEditingSchedule ? 'schedule' : 'now',
-    pushAt: isEditingSchedule ? dayjs(initial!.pushAt).format('YYYY-MM-DDTHH:mm') : '',
-    target: initial?.target ?? 'ALL',
-    locale: initial?.locale ?? 'ko',
-    userNames: (initial?.userNames ?? []).join(','),
-    title: initial?.title ?? '',
-    message: initial?.message ?? '',
-    link: initial?.link ?? '',
-    imgUrl: initial?.imgUrl ?? '',
-  };
-}
-
 function PushForm({ mode, initial, onClose, onSaved }: Props) {
-  const [values, setValues] = useState<PushFormValues>(() => toValues(mode, initial));
+  const [values, setValues] = useState<PushFormValues>(() => toPushFormValues(mode, initial));
   const [unknown, setUnknown] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   // A broadcast has no recovery path once it starts sending, so it gets one more step than
@@ -109,7 +91,7 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
       hasFilter
         ? previewPushTargets({ ...values.filter, locale: values.locale as Locale })
         : getPushTargetCount(values.locale as Locale),
-    enabled: !isReadOnly && values.target === 'ALL' && !!values.locale,
+    enabled: !isReadOnly && values.target === 'ALL' && !!values.locale && !pushFilterError(values.filter),
     staleTime: 5 * 60_000,
   });
 
@@ -117,6 +99,10 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
   const validate = (): string | null => {
     if (!values.title.trim() || !values.message.trim()) return '제목과 내용을 입력해주세요';
     if (values.target === 'USER' && recipients.length === 0) return '사용자를 1명 이상 입력해주세요';
+    if (values.target === 'ALL') {
+      const filterError = pushFilterError(values.filter);
+      if (filterError) return filterError;
+    }
     // Mirrors the server's 400. A bad imgUrl is the expensive one: it reaches FCM as
     // notification.imageUrl and fails the whole batch, so the operator hears it here.
     const urlError = pushUrlError(values);
@@ -139,11 +125,8 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
         await updatePush({ id: initial.id, ...payload });
         toast.success('수정되었습니다');
       } else {
-        const created = await createPush(payload);
-        // A filtered campaign becomes several rows. Saying so is the difference between the
-        // operator understanding the list and thinking a duplicate got saved.
-        const parts = created?.length ?? 1;
-        toast.success(parts > 1 ? `${parts}개로 나뉘어 등록되었습니다` : '등록되었습니다');
+        await createPush(payload);
+        toast.success('등록되었습니다');
       }
       await onSaved();
     } catch (error) {
@@ -152,8 +135,10 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
         toast.error('존재하지 않는 사용자가 있습니다');
       } else if (error instanceof PushFilterNoMatchError) {
         toast.error('조건에 맞는 사용자가 없습니다');
-      } else if (error instanceof PushFilterTooManyError) {
-        toast.error(`조건에 맞는 사용자가 너무 많습니다. 최대 ${error.max.toLocaleString()}명까지 보낼 수 있습니다`);
+      } else if (!(error as { response?: unknown })?.response) {
+        // No response is not a refusal: a large filtered save can outlast a proxy timeout
+        // and still commit. Saying "failed" here invites a retry that sends twice.
+        toast.error('저장 결과를 확인하지 못했습니다. 목록에서 등록 여부를 확인한 뒤 다시 시도해주세요');
       } else {
         toast.error('저장하지 못했습니다');
       }
@@ -195,17 +180,9 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
       : values.pushAt
         ? dayjs(values.pushAt).format('YYYY.MM.DD HH:mm')
         : '시간 미설정';
-  // The rail and this dialog must not disagree about the wait. A filtered campaign is split
-  // across rows the sender claims one a minute, so estimateDurationMs alone reports a
-  // fraction of the real time — the dialog once said 1분 beside a rail saying 4분.
-  const campaignChunkSize = hasFilter ? ((targetCount as { chunkSize?: number } | undefined)?.chunkSize ?? null) : null;
-  const broadcastEstimate = !targetCount
-    ? null
-    : campaignChunkSize
-      ? estimateCampaignDurationMs(targetCount.count, campaignChunkSize)
-      : estimateDurationMs(targetCount.count);
-  const campaignRows =
-    campaignChunkSize && targetCount ? Math.max(1, Math.ceil(targetCount.count / campaignChunkSize)) : null;
+  // The rail and this dialog must not disagree about the wait. A filtered push drains like a
+  // broadcast — one row, 500 tokens per batch — so both use the broadcast estimate.
+  const broadcastEstimate = targetCount ? estimateDurationMs(targetCount.count) : null;
   /**
    * Sends the message as composed to the resolved staff accounts, immediately. It goes
    * through the ordinary create path as a per-user push, so nothing downstream needs to know
@@ -245,7 +222,6 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
 
   const confirmDescription = [
     `${values.locale} 사용자 ${targetCount ? `약 ${targetCount.count.toLocaleString()}명` : '집계 중인 인원'}에게 ${when} 발송을 시작합니다.`,
-    campaignRows && campaignRows > 1 ? `${campaignRows}개로 나뉘어 순서대로 나갑니다.` : null,
     broadcastEstimate ? `예상 소요 ${formatMinuteRange(broadcastEstimate.minMs, broadcastEstimate.maxMs)}.` : null,
     '시작하면 되돌릴 수 없습니다. 중단해도 이미 도달한 사람에게는 취소되지 않습니다.',
   ]
@@ -262,8 +238,15 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
               <DefinitionRow label='대상'>
                 {initial.target === 'ALL'
                   ? `전체 · ${initial.locale ? (LOCALE_DISPLAY_NAME[initial.locale] ?? initial.locale) : '-'}`
-                  : `개인 · ${(initial.userNames ?? []).length.toLocaleString()}명`}
+                  : initial.target === 'FILTER'
+                    ? `조건 · ${initial.locale ? (LOCALE_DISPLAY_NAME[initial.locale] ?? initial.locale) : '-'} · ${(initial.targetCount ?? 0).toLocaleString()}명`
+                    : `개인 · ${(initial.userNames ?? []).length.toLocaleString()}명`}
               </DefinitionRow>
+              {initial.target === 'FILTER' && initial.filter && (
+                <DefinitionRow label='조건' hint='저장할 때 이 조건으로 대상을 확정했습니다'>
+                  {summarizePushFilter(initial.filter) || '-'}
+                </DefinitionRow>
+              )}
               {initial.target === 'USER' && (
                 <DefinitionRow label='받는 사람'>
                   <PushRecipientList userNames={initial.userNames ?? []} />
@@ -468,11 +451,6 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
                   locale={values.locale}
                   recipientCount={
                     values.target === 'ALL' ? (targetCount ? targetCount.count : null) : recipients.length
-                  }
-                  /* Only a filtered campaign splits across rows, and only then does the
-                     queue wait dominate the estimate. */
-                  campaignChunkSize={
-                    hasFilter ? ((targetCount as { chunkSize?: number } | undefined)?.chunkSize ?? null) : null
                   }
                   when={when}
                   title={values.title}

@@ -4,6 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import PushProgressMeter from './PushProgressMeter';
 import PushStatusBadge from './PushStatusBadge';
+import { summarizePushFilter } from './services/push-filter-summary';
 import { allowedActions } from './services/push-status';
 
 export interface PushRowActions {
@@ -52,6 +53,10 @@ export const createPushColumns = (actions: PushRowActions, firstNumber = 1): Col
     header: '대상',
     cell: ({ row }) => {
       const item = row.original;
+      if (item.target === 'FILTER') {
+        const summary = summarizePushFilter(item.filter ?? {});
+        return `조건 · ${item.locale ?? '—'}${summary ? ` · ${summary}` : ''} · ${(item.targetCount ?? 0).toLocaleString()}명`;
+      }
       if (item.target === 'ALL') return `전체 · ${item.locale ?? '—'}`;
 
       // A folded campaign's own userNames are its FIRST chunk's, so reading them here reports
