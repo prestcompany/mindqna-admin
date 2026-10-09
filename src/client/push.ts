@@ -2,7 +2,7 @@ import client from './@base';
 import { Locale, QueryResultWithPagination, SpaceType } from './types';
 
 export type AdminPushStatus = 'SCHEDULED' | 'SENDING' | 'SENT' | 'FAILED' | 'CANCELED' | 'ABORTED';
-export type AdminPushTarget = 'ALL' | 'USER';
+export type AdminPushTarget = 'ALL' | 'USER' | 'FILTER';
 
 export type AdminPushItem = {
   id: number;
@@ -13,8 +13,10 @@ export type AdminPushItem = {
   target: AdminPushTarget;
   locale: Locale | null;
   userNames: string[] | null;
-  /** Set when this row is one chunk of a filtered campaign; null for a standalone send. */
+  /** Set only on campaigns saved before target FILTER existed, which were split into rows. */
   groupId: string | null;
+  /** The conditions a FILTER push was resolved from; null for every other target. */
+  filter: PushTargetFilter | null;
   pushAt: string;
   status: AdminPushStatus;
   targetCount: number | null;
@@ -32,12 +34,12 @@ export type AdminPushItem = {
 export type CreatePushParams = {
   title: string;
   message: string;
-  target: AdminPushTarget;
+  target: 'ALL' | 'USER';
   sendNow: boolean;
   pushAt?: string;
   locale?: Locale;
   userNames?: string[];
-  /** Present for a filtered campaign; the server resolves it into grouped rows. */
+  /** Present for a filtered campaign; the server resolves it into one FILTER push and its audience. */
   filter?: PushTargetFilter;
   link?: string;
   imgUrl?: string;
@@ -61,22 +63,12 @@ export class PushFilterNoMatchError extends Error {
   }
 }
 
-/** The filter matched more people than one campaign may carry. */
-export class PushFilterTooManyError extends Error {
-  constructor(readonly max: number) {
-    super(`Filter matches more than ${max} users`);
-    this.name = 'PushFilterTooManyError';
-  }
-}
-
 function rethrow(error: unknown): never {
-  const data = (error as { response?: { data?: { code?: string; unknownUserNames?: string[]; max?: number } } })
-    ?.response?.data;
+  const data = (error as { response?: { data?: { code?: string; unknownUserNames?: string[] } } })?.response?.data;
   if (data?.code === 'PUSH_UNKNOWN_USERNAMES' && data.unknownUserNames) {
     throw new PushUnknownUserNamesError(data.unknownUserNames);
   }
   if (data?.code === 'PUSH_FILTER_NO_MATCH') throw new PushFilterNoMatchError();
-  if (data?.code === 'PUSH_FILTER_TOO_MANY') throw new PushFilterTooManyError(data.max ?? 0);
   throw error;
 }
 
@@ -133,22 +125,18 @@ export type PushTargetFilter = {
   /** The SPACE's language, which is not the same as the user's app language. */
   spaceLocales?: Locale[];
   minCardCount?: number;
+  /** At most this many questions; with minCardCount it is a range. */
+  maxCardCount?: number;
   minPetLevel?: number;
 };
 
 /** Count only. The names are resolved again when the campaign is saved. */
 export async function previewPushTargets(filter: PushTargetFilter & { locale?: Locale }) {
-  const res = await client.post<{ count: number; isApproximate: boolean; max: number; chunkSize: number }>(
-    '/push/preview-targets',
-    filter,
-  );
+  const res = await client.post<{ count: number; isApproximate: boolean }>('/push/preview-targets', filter);
   return res.data;
 }
 
-/**
- * Returns a LIST: a filtered campaign becomes as many rows as its audience needs, and an
- * ordinary send is a list of one. The caller reports "N개로 나뉘어 등록" from its length.
- */
+/** Returns a list of one. Kept as a list so the response shape did not change when filtered campaigns stopped being split into rows. */
 export async function createPush(params: CreatePushParams) {
   try {
     const res = await client.post<AdminPushItem[]>('/push', params);

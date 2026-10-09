@@ -1,11 +1,18 @@
-import type { PushTargetFilter } from '@/client/push';
-import type { CreatePushParams } from '@/client/push';
+import dayjs from 'dayjs';
+
+import type { AdminPushItem, CreatePushParams, PushTargetFilter } from '@/client/push';
+import type { Locale } from '@/client/types';
 
 /** Local copy so the payload builder does not import a component. */
 function isEmptyFilter(f: PushTargetFilter): boolean {
-  return !f.spaceTypes?.length && !f.spaceLocales?.length && f.minCardCount == null && f.minPetLevel == null;
+  return (
+    !f.spaceTypes?.length &&
+    !f.spaceLocales?.length &&
+    f.minCardCount == null &&
+    f.maxCardCount == null &&
+    f.minPetLevel == null
+  );
 }
-import type { Locale } from '@/client/types';
 
 export type PushFormValues = {
   sendMode: 'now' | 'schedule';
@@ -21,6 +28,41 @@ export type PushFormValues = {
   link: string;
   imgUrl: string;
 };
+
+export type PushFormMode = 'create' | 'edit' | 'view';
+
+/**
+ * Form values for a new push, an edit, a read-only view, or a duplicate (create + initial).
+ *
+ * A FILTER push comes back as what the form composes — a broadcast narrowed by conditions —
+ * so an edit or a duplicate starts from exactly what was sent. The filter is copied so the
+ * form never mutates the cached row.
+ */
+export function toPushFormValues(mode: PushFormMode, initial?: AdminPushItem): PushFormValues {
+  // Editing only ever reaches a SCHEDULED row (see allowedActions), so its send time is
+  // real and worth showing back. A duplicate starts fresh instead: the row it copies is
+  // FAILED or CANCELED, so its old pushAt has already passed and reusing it would be a lie.
+  const isEditingSchedule = mode === 'edit' && !!initial;
+  return {
+    filter: initial?.target === 'FILTER' && initial.filter ? { ...initial.filter } : {},
+    sendMode: isEditingSchedule ? 'schedule' : 'now',
+    pushAt: isEditingSchedule ? dayjs(initial!.pushAt).format('YYYY-MM-DDTHH:mm') : '',
+    target: initial?.target === 'USER' ? 'USER' : 'ALL',
+    locale: initial?.locale ?? 'ko',
+    userNames: (initial?.userNames ?? []).join(','),
+    title: initial?.title ?? '',
+    message: initial?.message ?? '',
+    link: initial?.link ?? '',
+    imgUrl: initial?.imgUrl ?? '',
+  };
+}
+
+/** Mirrors the server's 400 for an inverted range, so the operator hears it before saving. */
+export function pushFilterError(filter: PushTargetFilter): string | null {
+  const { minCardCount: min, maxCardCount: max } = filter;
+  if (min != null && max != null && min > max) return '질문 수 최소값이 최대값보다 큽니다';
+  return null;
+}
 
 /** Mirrors the server's parseUserNames so the "N명 인식됨" counter matches what is stored. */
 export function parseUserNamesInput(raw: string): string[] {

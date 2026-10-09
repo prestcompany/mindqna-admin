@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { parseUserNamesInput, pushUrlError, toCreatePushParams } from './push-form-payload';
+import { parseUserNamesInput, pushFilterError, pushUrlError, toCreatePushParams, toPushFormValues } from './push-form-payload';
+import type { AdminPushItem } from '@/client/push';
 
 const base = {
   sendMode: 'now' as const,
@@ -115,4 +116,67 @@ test('a per-user send drops conditions it cannot use', () => {
   });
   assert.equal(dto.filter, undefined);
   assert.deepEqual(dto.userNames, ['alice', 'bob']);
+});
+
+test('an upper bound alone is still a filter and reaches the server', () => {
+  const dto = toCreatePushParams({ ...base, filter: { maxCardCount: 41 } });
+  assert.deepEqual(dto.filter, { maxCardCount: 41 });
+});
+
+test('pushFilterError refuses a minimum above the maximum', () => {
+  assert.equal(pushFilterError({ minCardCount: 42, maxCardCount: 41 }), '질문 수 최소값이 최대값보다 큽니다');
+  assert.equal(pushFilterError({ minCardCount: 41, maxCardCount: 41 }), null);
+  assert.equal(pushFilterError({ minCardCount: 42 }), null);
+});
+
+const filterItem: AdminPushItem = {
+  id: 9,
+  title: '공지',
+  message: '내용',
+  link: null,
+  imgUrl: null,
+  target: 'FILTER',
+  locale: 'ko',
+  userNames: null,
+  groupId: null,
+  filter: { spaceTypes: ['friends'], minCardCount: 10, maxCardCount: 41 },
+  pushAt: '2026-10-20T01:00:00.000Z',
+  status: 'SCHEDULED',
+  targetCount: 73_412,
+  targetCountIsApproximate: false,
+  sentCount: 0,
+  failedCount: 0,
+  startedAt: null,
+  finishedAt: null,
+  lastError: null,
+  createdAt: '2026-10-09T01:00:00.000Z',
+  updatedAt: '2026-10-09T01:00:00.000Z',
+};
+
+test('editing a FILTER push restores it as a broadcast with its conditions', () => {
+  const values = toPushFormValues('edit', filterItem);
+  assert.equal(values.target, 'ALL');
+  assert.deepEqual(values.filter, { spaceTypes: ['friends'], minCardCount: 10, maxCardCount: 41 });
+  assert.equal(values.locale, 'ko');
+  assert.equal(values.sendMode, 'schedule');
+});
+
+test('duplicating a FILTER push keeps its conditions but starts a fresh send time', () => {
+  const values = toPushFormValues('create', filterItem);
+  assert.equal(values.target, 'ALL');
+  assert.deepEqual(values.filter, filterItem.filter);
+  assert.equal(values.sendMode, 'now');
+  assert.equal(values.pushAt, '');
+});
+
+test('the restored filter is a copy, so editing it cannot mutate the cached row', () => {
+  const values = toPushFormValues('edit', filterItem);
+  assert.notEqual(values.filter, filterItem.filter);
+});
+
+test('a per-user push restores its names and no filter', () => {
+  const values = toPushFormValues('edit', { ...filterItem, target: 'USER', locale: null, filter: null, userNames: ['a', 'b'] });
+  assert.equal(values.target, 'USER');
+  assert.equal(values.userNames, 'a,b');
+  assert.deepEqual(values.filter, {});
 });
