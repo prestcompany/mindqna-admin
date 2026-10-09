@@ -130,14 +130,16 @@ function PushForm({ mode, initial, onClose, onSaved }: Props) {
       }
       await onSaved();
     } catch (error) {
+      const gatewayStatus = (error as { response?: { status?: number } })?.response?.status;
       if (error instanceof PushUnknownUserNamesError) {
         setUnknown(error.unknownUserNames);
         toast.error('존재하지 않는 사용자가 있습니다');
       } else if (error instanceof PushFilterNoMatchError) {
         toast.error('조건에 맞는 사용자가 없습니다');
-      } else if (!(error as { response?: unknown })?.response) {
-        // No response is not a refusal: a large filtered save can outlast a proxy timeout
-        // and still commit. Saying "failed" here invites a retry that sends twice.
+      } else if (!gatewayStatus || gatewayStatus === 502 || gatewayStatus === 503 || gatewayStatus === 504) {
+        // No response, or a gateway error (502/503/504), is not a refusal: a large filtered
+        // save can outlast a proxy timeout and still commit. Saying "failed" here invites a
+        // retry that sends twice.
         toast.error('저장 결과를 확인하지 못했습니다. 목록에서 등록 여부를 확인한 뒤 다시 시도해주세요');
       } else {
         toast.error('저장하지 못했습니다');

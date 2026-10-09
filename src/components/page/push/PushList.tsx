@@ -68,9 +68,10 @@ function PushList() {
   // table with nothing to explain it.
   useResetOnChange([locale, status], () => setPage(1));
 
-  // A filtered campaign is stored as many rows; the list shows it as one so a single send
-  // does not fill a page. Row actions still act on a real row, and cancel reaches the whole
-  // group server-side.
+  // A filtered campaign is one row now. Folding only matters for campaigns saved before
+  // target FILTER existed, which were chunked into many rows sharing a groupId; the list
+  // shows those as one so a single send does not fill a page. Row actions still act on a
+  // real row, and cancel reaches the whole group server-side.
   const items = useMemo(() => groupPushes(rawItems), [rawItems]);
 
   // view/edit track the live, polled row so a SENDING sheet's counts and countdown move
