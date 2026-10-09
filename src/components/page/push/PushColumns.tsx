@@ -4,7 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import PushProgressMeter from './PushProgressMeter';
 import PushStatusBadge from './PushStatusBadge';
-import { summarizePushFilter } from './services/push-filter-summary';
+import PushTargetCell from './PushTargetCell';
 import { allowedActions } from './services/push-status';
 
 export interface PushRowActions {
@@ -51,23 +51,12 @@ export const createPushColumns = (actions: PushRowActions, firstNumber = 1): Col
   {
     id: 'target',
     header: '대상',
-    cell: ({ row }) => {
-      const item = row.original;
-      if (item.target === 'FILTER') {
-        const summary = summarizePushFilter(item.filter ?? {});
-        return `조건 · ${item.locale ?? '—'}${summary ? ` · ${summary}` : ''} · ${(item.targetCount ?? 0).toLocaleString()}명`;
-      }
-      if (item.target === 'ALL') return `전체 · ${item.locale ?? '—'}`;
-
-      // A folded campaign's own userNames are its FIRST chunk's, so reading them here reports
-      // one row's worth beside a progress column that already sums the whole campaign — the
-      // list said "개인 · 2000명" and "0 / 8,014" on the same line. The audience is the sum,
-      // and it was selected by conditions rather than typed in, so it is not "개인" either.
-      const parts = (item as { parts?: unknown[] }).parts?.length ?? 1;
-      if (parts > 1) return `조건 · ${(item.targetCount ?? 0).toLocaleString()}명`;
-
-      return `개인 · ${(item.userNames ?? []).length}명`;
-    },
+    size: 200,
+    // The cell brings its own hover card; the table's truncation tooltip would stack a second.
+    meta: { useTruncateTooltip: false },
+    cell: ({ row }) => (
+      <PushTargetCell item={row.original} parts={(row.original as { parts?: unknown[] }).parts?.length ?? 1} />
+    ),
   },
   {
     accessorKey: 'title',
