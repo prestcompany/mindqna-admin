@@ -4,7 +4,6 @@ import type {
   BookExportRejectedOrder,
   BookOrderBatchDetail,
   BookOrderLevel,
-  BookOrderValidation,
   BookExportRequestOrder,
 } from '@/client/types';
 import { CardUploader } from '@/components/page/card/CardUploader';
@@ -35,6 +34,7 @@ import {
   toBatchRequestOrder,
 } from './services/book-order-batch';
 import { resolvePaidQuestionCount } from './services/resolve-paid-question-count';
+import { toBookOrderRows, type BookOrderRow } from './services/book-order-rows';
 import { useBookZipDownload } from './useBookZipDownload';
 
 type LevelFilter = 'all' | BookOrderLevel;
@@ -49,7 +49,7 @@ type Props = {
 };
 
 function BookOrderNewPanel({ onBusyChange, onConfirmed }: Props) {
-  const [serverOrders, setServerOrders] = useState<BookOrderValidation[] | null>(null);
+  const [serverOrders, setServerOrders] = useState<BookOrderRow[] | null>(null);
   const [paidChoices, setPaidChoices] = useState<Map<string, number>>(new Map());
   const [filter, setFilter] = useState<LevelFilter>('all');
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -66,8 +66,8 @@ function BookOrderNewPanel({ onBusyChange, onConfirmed }: Props) {
   const orders = useMemo(
     () =>
       serverOrders?.map((order) => {
-        const chosen = paidChoices.get(order.orderNo);
-        return chosen === undefined ? order : resolvePaidQuestionCount(order, chosen);
+        const chosen = paidChoices.get(order.rowKey);
+        return chosen === undefined ? order : { ...order, ...resolvePaidQuestionCount(order, chosen) };
       }) ?? null,
     [serverOrders, paidChoices],
   );
@@ -78,8 +78,8 @@ function BookOrderNewPanel({ onBusyChange, onConfirmed }: Props) {
     () => (orders ?? []).filter((order) => filter === 'all' || order.level === filter),
     [orders, filter],
   );
-  const visibleSelectableOrderNos = useMemo(
-    () => visible.filter(isSelectableOrder).map((order) => order.orderNo),
+  const visibleSelectableRowKeys = useMemo(
+    () => visible.filter(isSelectableOrder).map((order) => order.rowKey),
     [visible],
   );
 
@@ -93,10 +93,11 @@ function BookOrderNewPanel({ onBusyChange, onConfirmed }: Props) {
     try {
       const result = await validateBookOrders(file);
       if (requestId !== latestValidation.current) return;
-      setServerOrders(result.orders);
+      const rows = toBookOrderRows(result.orders);
+      setServerOrders(rows);
       setPaidChoices(new Map());
       setFilter('all');
-      setSelected(new Set(result.orders.filter(isSelectableOrder).map((order) => order.orderNo)));
+      setSelected(new Set(rows.filter(isSelectableOrder).map((order) => order.rowKey)));
     } catch (err) {
       if (requestId !== latestValidation.current) return;
       setServerOrders(null);
@@ -108,7 +109,7 @@ function BookOrderNewPanel({ onBusyChange, onConfirmed }: Props) {
   };
 
   const confirm = async () => {
-    const targets = selectable.filter((order) => selected.has(order.orderNo)).map(toBatchRequestOrder);
+    const targets = selectable.filter((order) => selected.has(order.rowKey)).map(toBatchRequestOrder);
     if (targets.length === 0) return;
     onBusyChange(true);
     setIsConfirming(true);
@@ -161,38 +162,38 @@ function BookOrderNewPanel({ onBusyChange, onConfirmed }: Props) {
 
   const columns = createBookExportResultColumns({
     selected,
-    allVisibleSelected: areAllVisibleSelected({ selected, visibleSelectable: visibleSelectableOrderNos }),
-    hasVisibleSelectable: visibleSelectableOrderNos.length > 0,
-    onToggle: (orderNo, checked) =>
+    allVisibleSelected: areAllVisibleSelected({ selected, visibleSelectable: visibleSelectableRowKeys }),
+    hasVisibleSelectable: visibleSelectableRowKeys.length > 0,
+    onToggle: (rowKey, checked) =>
       setSelected((prev) => {
         const next = new Set(prev);
-        if (checked) next.add(orderNo);
-        else next.delete(orderNo);
+        if (checked) next.add(rowKey);
+        else next.delete(rowKey);
         return next;
       }),
     onToggleAll: (checked) =>
       setSelected((prev) =>
-        toggleVisibleSelection({ selected: prev, visibleSelectable: visibleSelectableOrderNos, checked }),
+        toggleVisibleSelection({ selected: prev, visibleSelectable: visibleSelectableRowKeys, checked }),
       ),
     onPreview: (order) => setPreviewRequest(toBookExportRequest(order)),
     // Locks the preview and pick buttons while either a download or a confirm is in flight.
     isDownloading: isDownloading || isConfirming,
-    paidChoice: (orderNo) => paidChoices.get(orderNo),
-    onChoosePaidCount: (orderNo, value) => {
+    paidChoice: (rowKey) => paidChoices.get(rowKey),
+    onChoosePaidCount: (rowKey, value) => {
       setPaidChoices((prev) => {
         const next = new Map(prev);
-        if (value === null) next.delete(orderNo);
-        else next.set(orderNo, value);
+        if (value === null) next.delete(rowKey);
+        else next.set(rowKey, value);
         return next;
       });
       // Select it only if the pick actually unblocks the order; another error keeps it unselectable.
-      const serverOrder = serverOrders?.find((order) => order.orderNo === orderNo);
+      const serverOrder = serverOrders?.find((order) => order.rowKey === rowKey);
       const isUnblocked =
         value !== null && serverOrder !== undefined && resolvePaidQuestionCount(serverOrder, value).level !== 'error';
       setSelected((prev) => {
         const next = new Set(prev);
-        if (isUnblocked) next.add(orderNo);
-        else next.delete(orderNo);
+        if (isUnblocked) next.add(rowKey);
+        else next.delete(rowKey);
         return next;
       });
     },
@@ -215,7 +216,7 @@ function BookOrderNewPanel({ onBusyChange, onConfirmed }: Props) {
         {orders ? (
           <>
             <BookExportLevelFilter counts={counts} value={filter} onChange={setFilter} />
-            <DataTable columns={columns} data={visible} rowKey='orderNo' />
+            <DataTable columns={columns} data={visible} rowKey='rowKey' />
           </>
         ) : null}
       </div>

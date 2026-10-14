@@ -163,6 +163,7 @@ Geist 전환은 완료 상태입니다.
 - 사용되지 않는 상태/분기/빈 디렉터리는 즉시 정리
 - 기능 변경 시 대상 파일 타입 진단(`tsc`) 수행, UI 일관성(버튼 위치/상태 라벨/행 액션) 점검
 - 옵셔널 응답 필드는 **값이 있을 때만 렌더**(서버 누락에 방어적; 예: 멤버 상태 뱃지)
+- 책 발주는 **주문서 한 행당 개별 항목**입니다. 같은 주문번호에 옵션이 다른 상품을 합치지 않으며, 선택 키·DB 항목·ZIP 파일명은 주문번호 중복을 허용해야 합니다. 상세 기준은 `docs/superpowers/specs/2026-10-14-book-order-individual-rows-design.md`를 따릅니다.
 - 서버 에러는 `AxiosError` 문자열 대신 응답 메시지를 보여줍니다: `page/coupon/errorMessage.ts`의 `errorMessage(err)`
 - 테스트: 페이지 컴포넌트 테스트 관례는 없습니다. 순수 로직은 `components/page/<route>/services/*.ts`로 빼고 옆에 `*.test.ts`(node:test)를 둡니다
 - 제품/디자인 방향 변경 시 **코드보다 DESIGN.md / AGENTS.md 를 먼저 갱신**

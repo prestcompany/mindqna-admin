@@ -29,7 +29,7 @@ function BookExportPreviewDialog({ request, onClose }: Props) {
           <DialogDescription>제본소에 넘길 JSON과 같은 내용입니다.</DialogDescription>
         </DialogHeader>
         {/* Remounts (and refetches) whenever a different order opens. */}
-        {request ? <BookExportPreviewBody key={request.orderNo} request={request} /> : null}
+        {request ? <BookExportPreviewBody key={JSON.stringify(request)} request={request} /> : null}
       </DialogContent>
     </Dialog>
   );
@@ -98,6 +98,8 @@ function BookExportPreviewBody({ request }: { request: BookExportRequestOrder })
           </span>
           <span className='text-muted-foreground'>·</span>
           <span>공간명 {book.cover.spaceName}</span>
+          <span className='text-muted-foreground'>·</span>
+          <span className='tabular-nums'>수량 {book.quantity ?? 1}개</span>
           <span className='text-muted-foreground'>·</span>
           {/* Rollback guard: an older backend can return a v1-shaped book without `options`. */}
           <span>

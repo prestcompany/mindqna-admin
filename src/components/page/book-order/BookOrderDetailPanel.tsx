@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import BookExportPreviewDialog from './BookExportPreviewDialog';
 import { createBookOrderBatchItemColumns } from './BookOrderBatchItemColumns';
 import { batchItemToExportRequest, buildBatchZipName } from './services/book-order-batch';
+import { toBookOrderRows } from './services/book-order-rows';
 import { useBookZipDownload } from './useBookZipDownload';
 
 type Props = {
@@ -30,8 +31,8 @@ function RejectedList({ title, items }: { title: string; items: BookExportReject
         {title} {items.length}건
       </p>
       <ul className='mt-2 space-y-1'>
-        {items.map((item) => (
-          <li key={item.orderNo} className='text-xs text-muted-foreground'>
+        {items.map((item, index) => (
+          <li key={index} className='text-xs text-muted-foreground'>
             <span className='font-mono'>{item.orderNo}</span> {item.issues.map((issue) => issue.message).join(' ')}
           </li>
         ))}
@@ -135,7 +136,7 @@ function BookOrderDetailPanel({ batchId, confirmRejected = [], downloadRejected 
           <RejectedList title='다시 받기에서 제외된 주문' items={redownloadRejected} />
         ) : null}
 
-        <DataTable columns={columns} data={batch.items} rowKey='orderNo' />
+        <DataTable columns={columns} data={toBookOrderRows(batch.items)} rowKey='rowKey' />
       </div>
 
       <BookExportPreviewDialog request={previewRequest} onClose={() => setPreviewRequest(null)} />

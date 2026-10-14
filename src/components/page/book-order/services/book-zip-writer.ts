@@ -14,6 +14,7 @@ export function toBookJson(book: BookExportBook): string {
 export async function createBookZipWriter() {
   const { Zip, ZipDeflate, strToU8 } = await import('fflate');
   const parts: Uint8Array[] = [];
+  const entryNames = new Set<string>();
   let failure: Error | null = null;
   let resolveDone: (blob: Blob) => void = () => undefined;
   let rejectDone: (err: Error) => void = () => undefined;
@@ -34,7 +35,15 @@ export async function createBookZipWriter() {
     add(books: BookExportBook[]) {
       if (failure) throw failure;
       books.forEach((book) => {
-        const entry = new ZipDeflate(toZipEntryName(book.orderNo), { level: 6 });
+        const baseName = toZipEntryName(book.orderNo).slice(0, -5);
+        let entryName = `${baseName}.json`;
+        let suffix = 2;
+        while (entryNames.has(entryName.toLowerCase())) {
+          entryName = `${baseName}_${suffix}.json`;
+          suffix += 1;
+        }
+        entryNames.add(entryName.toLowerCase());
+        const entry = new ZipDeflate(entryName, { level: 6 });
         zip.add(entry);
         entry.push(strToU8(toBookJson(book)), true);
       });

@@ -61,3 +61,13 @@ test('re-picking never duplicates the mismatch warning', () => {
   const twice = resolvePaidQuestionCount(once, 30);
   assert.equal(twice.issues.filter((issue) => issue.code === 'PAID_COUNT_MISMATCH').length, 1);
 });
+
+test('picking a question count does not unblock an invalid book quantity', () => {
+  const order = buildOrder({
+    quantity: 0,
+    issues: [{ code: 'QUANTITY_INVALID', message: '수량이 올바르지 않습니다.' }, MULTIPLE],
+  });
+  const actual = resolvePaidQuestionCount(order, 52);
+  assert.equal(actual.level, 'error');
+  assert.deepEqual(actual.issues.map((issue) => issue.code), ['QUANTITY_INVALID']);
+});

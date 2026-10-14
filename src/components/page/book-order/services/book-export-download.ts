@@ -19,6 +19,7 @@ export function toBookExportRequest(order: BookOrderValidation): BookExportReque
   }
   return {
     orderNo: order.orderNo,
+    quantity: order.quantity ?? 1,
     spaceId: order.spaceId,
     startOrder: order.startOrder,
     endOrder: order.endOrder,

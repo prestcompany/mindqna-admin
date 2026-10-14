@@ -25,6 +25,12 @@ export const createBookOrderBatchItemColumns = (
     ),
   },
   {
+    id: 'quantity',
+    header: '수량',
+    size: 80,
+    cell: ({ row }) => <span className='tabular-nums'>{row.original.quantity ?? 1}개</span>,
+  },
+  {
     id: 'space',
     header: '공간',
     size: 170,

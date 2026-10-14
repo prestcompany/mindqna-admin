@@ -1,5 +1,7 @@
 # Book Order Batch (책 제작 발주) — Design
 
+> 2026-10-14: `(batchId, orderNo)` 고유 제약을 제거하고 항목별 `quantity`를 저장합니다. [행별 처리 설계](2026-10-14-book-order-individual-rows-design.md)가 관련 기존 규칙보다 우선합니다.
+
 - **Date**: 2026-10-01
 - **Status**: Approved (brainstorm)
 - **Repos**: `mindqna-admin` (frontend), `mindqna-server` (backend)

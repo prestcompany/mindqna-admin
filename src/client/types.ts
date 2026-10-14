@@ -944,6 +944,7 @@ export type BookOrderIssueCode =
   | 'SPACE_ID_MISSING'
   | 'SPACE_NOT_FOUND'
   | 'RANGE_INVALID'
+  | 'QUANTITY_INVALID'
   | 'RANGE_SIZE'
   | 'COVER_COLOR_MISSING'
   | 'INCONSISTENT_ROWS'
@@ -965,6 +966,7 @@ export type BookOrderIssue = {
 
 export type BookOrderValidation = {
   orderNo: string;
+  quantity?: number;
   orderedAt: string;
   spaceId: string;
   rangeRaw: string;
@@ -989,6 +991,7 @@ export type BookOrderValidationResult = {
 
 export type BookExportRequestOrder = {
   orderNo: string;
+  quantity?: number;
   spaceId: string;
   startOrder: number;
   endOrder: number;
@@ -1001,6 +1004,7 @@ export type BookExportRequestOrder = {
 // Bindery book JSON v2 (spec 2026-10-01-book-json-v2-design §4).
 export type BookExportBook = {
   orderNo: string;
+  quantity?: number;
   options: {
     coverColor: string;
     purchaseQuestionCount: number | null;
@@ -1033,6 +1037,7 @@ export type BookExportBooksResult = {
 
 export type BookBatchRequestOrder = {
   orderNo: string;
+  quantity?: number;
   orderedAt: string;
   spaceId: string;
   startOrder: number;
@@ -1061,6 +1066,7 @@ export type BookOrderBatchSummary = {
 
 export type BookOrderBatchItem = {
   orderNo: string;
+  quantity?: number;
   orderedAt: string;
   spaceId: string;
   spaceName: string;

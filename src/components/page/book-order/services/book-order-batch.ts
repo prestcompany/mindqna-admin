@@ -18,6 +18,7 @@ export function toBatchRequestOrder(order: BookOrderValidation): BookBatchReques
   }
   return {
     orderNo: order.orderNo,
+    quantity: order.quantity ?? 1,
     orderedAt: order.orderedAt,
     spaceId: order.spaceId,
     startOrder: order.startOrder,
@@ -33,6 +34,7 @@ export function toBatchRequestOrder(order: BookOrderValidation): BookBatchReques
 export function batchItemToExportRequest(item: BookOrderBatchItem): BookExportRequestOrder {
   return {
     orderNo: item.orderNo,
+    quantity: item.quantity ?? 1,
     spaceId: item.spaceId,
     startOrder: item.startOrder,
     endOrder: item.endOrder,

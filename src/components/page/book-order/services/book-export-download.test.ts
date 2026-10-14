@@ -56,8 +56,9 @@ test('only ok and warning orders are selectable', () => {
 });
 
 test('builds the books request from the requested (not trimmed) range', () => {
-  assert.deepEqual(toBookExportRequest(buildOrder({ exportEnd: 28 })), {
+  assert.deepEqual(toBookExportRequest(buildOrder({ exportEnd: 28, quantity: 2 })), {
     orderNo: 'A-1',
+    quantity: 2,
     spaceId: 'ABCD1234',
     startOrder: 1,
     endOrder: 30,

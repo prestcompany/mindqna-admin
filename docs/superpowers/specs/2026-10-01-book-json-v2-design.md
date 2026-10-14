@@ -1,5 +1,7 @@
 # Book JSON v2 + new Cafe24 export format — Design
 
+> 2026-10-14: 같은 주문번호의 행을 합치지 않으며 JSON 최상위 `quantity`에 해당 행의 제작 수량을 포함합니다. [행별 처리 설계](2026-10-14-book-order-individual-rows-design.md)가 관련 기존 규칙보다 우선합니다.
+
 - **Date**: 2026-10-01
 - **Status**: Approved (brainstorm)
 - **Repos**: `mindqna-server` (backend), `mindqna-admin` (frontend)

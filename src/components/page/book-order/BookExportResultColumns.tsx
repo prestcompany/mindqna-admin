@@ -1,4 +1,4 @@
-import type { BookOrderValidation } from '@/client/types';
+import type { BookOrderRow } from './services/book-order-rows';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ColumnDef } from '@tanstack/react-table';
@@ -12,16 +12,16 @@ export interface BookExportColumnActions {
   allVisibleSelected: boolean;
   /** Whether at least one currently visible row is selectable. */
   hasVisibleSelectable: boolean;
-  onToggle: (orderNo: string, checked: boolean) => void;
+  onToggle: (rowKey: string, checked: boolean) => void;
   onToggleAll: (checked: boolean) => void;
-  onPreview: (order: BookOrderValidation) => void;
+  onPreview: (order: BookOrderRow) => void;
   isDownloading: boolean;
   /** The admin's pick for a multi-selected question count, if any. */
-  paidChoice: (orderNo: string) => number | undefined;
-  onChoosePaidCount: (orderNo: string, value: number | null) => void;
+  paidChoice: (rowKey: string) => number | undefined;
+  onChoosePaidCount: (rowKey: string, value: number | null) => void;
 }
 
-export const createBookExportResultColumns = (selection: BookExportColumnActions): ColumnDef<BookOrderValidation>[] => [
+export const createBookExportResultColumns = (selection: BookExportColumnActions): ColumnDef<BookOrderRow>[] => [
   {
     id: 'select',
     size: 40,
@@ -35,10 +35,10 @@ export const createBookExportResultColumns = (selection: BookExportColumnActions
     ),
     cell: ({ row }) => (
       <Checkbox
-        aria-label={`${row.original.orderNo} 선택`}
-        checked={selection.selected.has(row.original.orderNo)}
+        aria-label={`${row.original.orderNo} 항목 ${Number(row.original.rowKey) + 1} 선택`}
+        checked={selection.selected.has(row.original.rowKey)}
         disabled={!isSelectableOrder(row.original)}
-        onCheckedChange={(checked) => selection.onToggle(row.original.orderNo, checked === true)}
+        onCheckedChange={(checked) => selection.onToggle(row.original.rowKey, checked === true)}
       />
     ),
   },
@@ -52,6 +52,12 @@ export const createBookExportResultColumns = (selection: BookExportColumnActions
         <div className='truncate text-xs text-muted-foreground'>{row.original.orderedAt}</div>
       </div>
     ),
+  },
+  {
+    id: 'quantity',
+    header: '수량',
+    size: 80,
+    cell: ({ row }) => <span className='tabular-nums'>{row.original.quantity ?? 1}개</span>,
   },
   {
     id: 'space',
@@ -125,18 +131,18 @@ export const createBookExportResultColumns = (selection: BookExportColumnActions
                   key={value}
                   type='button'
                   size='sm'
-                  variant={selection.paidChoice(row.original.orderNo) === value ? 'secondary' : 'outline'}
+                  variant={selection.paidChoice(row.original.rowKey) === value ? 'secondary' : 'outline'}
                   className='h-6 px-2 text-xs tabular-nums'
                   disabled={selection.isDownloading}
                   onClick={(event) => {
                     event.stopPropagation();
-                    selection.onChoosePaidCount(row.original.orderNo, value);
+                    selection.onChoosePaidCount(row.original.rowKey, value);
                   }}
                 >
                   {value}
                 </Button>
               ))}
-              {selection.paidChoice(row.original.orderNo) !== undefined ? (
+              {selection.paidChoice(row.original.rowKey) !== undefined ? (
                 <Button
                   type='button'
                   size='sm'
@@ -145,7 +151,7 @@ export const createBookExportResultColumns = (selection: BookExportColumnActions
                   disabled={selection.isDownloading}
                   onClick={(event) => {
                     event.stopPropagation();
-                    selection.onChoosePaidCount(row.original.orderNo, null);
+                    selection.onChoosePaidCount(row.original.rowKey, null);
                   }}
                 >
                   다시 고르기

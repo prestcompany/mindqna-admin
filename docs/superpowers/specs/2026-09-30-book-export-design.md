@@ -1,5 +1,7 @@
 # Book Export (MindBridge 책 제작 데이터 추출) — Design
 
+> 2026-10-14: 주문번호별 취합·수량 제외·ZIP 파일명 규칙은 [행별 처리 설계](2026-10-14-book-order-individual-rows-design.md)로 대체됩니다. 각 행은 수량을 가진 독립 항목입니다.
+
 - **Date**: 2026-09-30
 - **Status**: Approved (brainstorm)
 - **Repos**: `mindqna-admin` (frontend), `mindqna-server` (backend)
@@ -40,7 +42,7 @@ Observed sample (`prest201_20260930_8_27e1.csv`): UTF-8 without BOM, CRLF, 13 co
 2026-09-30 14:36,20260930-0000024,20260930-0000024-04,1,dsdfsdf,1-100,[10월] Mindbridge 책 주문,기록 패키지 책 구매자 25% 할인 (스티커 2종/메모지 1종)=선택 안함,...
 ```
 
-- One order spans several rows (one per 품목별 주문번호); group by `주문번호`.
+- Updated 2026-10-14: each row is a separate book item, even when `주문번호` repeats. The legacy multi-row option sample above is no longer aggregated. See [individual-row design](2026-10-14-book-order-individual-rows-design.md) for selection, storage and ZIP identity rules.
 - `공간 ID` and `질문 범위` are order-level and repeat on every row.
 - `상품옵션` is `key=value`; the key identifies the option.
 - The space ID is `Space.id` (8 chars, `[0-9A-Z]`, generated in `space.service.ts`).
@@ -54,7 +56,7 @@ New module `src/admin/book-export/`, registered in `AdminModule.imports` like `P
 - Input: the uploaded file (`File` from `@TypedFormData.Body()`, nestia 2.x — read via `arrayBuffer()`, as `card-template.service.ts` does).
 - Format by extension: `.xlsx` → `workbook.xlsx.load`; any other extension → file error `UNSUPPORTED_FORMAT`; `.csv` → decode as UTF-8 (strip BOM), parse with a small in-module RFC 4180 parser (`parse-csv-text.ts`; no value coercion, so IDs keep leading zeros). If the decoded text contains U+FFFD → file error `ENCODING` ("UTF-8 CSV 또는 XLSX로 올려주세요").
 - Header lookup by **substring** so suffixes like `(공통입력사항)` may change: required `주문번호` (exact, not `품목별 주문번호`), `수량` (exact), `공간 ID`, `질문 범위`, `상품옵션` (exact); optional `발주일`. Missing required header → file error `MISSING_HEADER` naming it.
-- Group rows by `주문번호`, preserving first-seen order. Per order:
+- Preserve each row independently in file order, without grouping by `주문번호`. Per row:
   - `spaceIds` / `ranges`: the distinct trimmed values across rows (for the inconsistency check). The space ID is also uppercased (`Space.id` alphabet is `[0-9A-Z]`).
   - Options: split `상품옵션` at the first `=`; match key by prefix:
     - `표지 색상` → `coverColor` (value)
