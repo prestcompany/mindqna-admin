@@ -104,7 +104,7 @@ type BookOrderValidation = {
 | `SPACE_ID_MISSING` | error | empty space ID |
 | `SPACE_NOT_FOUND` | error | no `Space` with that id |
 | `RANGE_INVALID` | error | `parseRange` → null, or `startOrder < 1`, or `endOrder < startOrder` |
-| `RANGE_SIZE` | error | `endOrder - startOrder + 1` outside 30–200 |
+| Question range size | unrestricted | No minimum or maximum count; start must be at least 1 and end must be at least start. |
 | `COVER_COLOR_MISSING` | error | no `표지 색상` option |
 | `INCONSISTENT_ROWS` | error | rows of one order disagree on space ID or range |
 | `NO_ANSWERED_CARDS` | error | `answeredCount === 0` |
