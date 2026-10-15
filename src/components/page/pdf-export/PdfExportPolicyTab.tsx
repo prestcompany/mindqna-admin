@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -36,7 +36,8 @@ const LIMIT_FIELDS: { key: NumberField; label: string; hint: string }[] = [
 ];
 
 function PdfExportPolicyTab() {
-  const { data, refetch } = useQuery({ queryKey: ['pdf-export-policy'], queryFn: getPdfExportPolicy });
+  const queryClient = useQueryClient();
+  const { data } = useQuery({ queryKey: ['pdf-export-policy'], queryFn: getPdfExportPolicy });
   const [form, setForm] = useState<PdfExportPolicyForm>(EMPTY_PDF_EXPORT_POLICY_FORM);
   const [saving, setSaving] = useState(false);
 
@@ -52,8 +53,9 @@ function PdfExportPolicyTab() {
     }
     setSaving(true);
     try {
-      await updatePdfExportPolicy(toUpdatePdfExportPolicyParams(form));
-      await refetch();
+      const updated = await updatePdfExportPolicy(toUpdatePdfExportPolicyParams(form));
+      // The PATCH returns the row written to primary; a refetch may hit a lagging replica and snap the form back.
+      queryClient.setQueryData(['pdf-export-policy'], updated);
       toast.success('PDF 내보내기 정책을 저장했습니다.');
     } catch (err) {
       toast.error(`${err}`);
@@ -87,8 +89,11 @@ function PdfExportPolicyTab() {
       </div>
 
       <div className='space-y-2'>
-        <Label className='text-sm font-medium text-muted-foreground'>결제 화폐</Label>
+        <Label id='pdf-policy-currency-label' className='text-sm font-medium text-muted-foreground'>
+          결제 화폐
+        </Label>
         <RadioGroup
+          aria-labelledby='pdf-policy-currency-label'
           value={form.currency}
           onValueChange={(value) => setForm((p) => ({ ...p, currency: value as PdfExportCurrency }))}
           className='grid grid-cols-2 gap-2'
