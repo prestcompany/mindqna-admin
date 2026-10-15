@@ -1,8 +1,10 @@
 import type { PdfExportRecord } from '@/client/types';
+import { Badge } from '@/components/ui/badge';
 import TableRowActions from '@/components/shared/ui/table-row-actions';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import PdfExportStatusBadge from './PdfExportStatusBadge';
+import { PDF_EXPORT_CURRENCY_LABEL } from './services/pdf-export-policy-form';
 
 export interface PdfExportHistoryActionsProps {
   onDownload: (record: PdfExportRecord) => void;
@@ -51,9 +53,16 @@ export const createPdfExportHistoryColumns = (actions: PdfExportHistoryActionsPr
   },
   {
     accessorKey: 'cost',
-    header: '차감 코인',
-    size: 92,
-    cell: ({ row }) => <span className='tabular-nums text-foreground'>{row.original.cost}</span>,
+    header: '차감',
+    size: 112,
+    cell: ({ row }) => (
+      <span className='flex items-center gap-1.5'>
+        <Badge variant={row.original.currency === 'HEART' ? 'softDanger' : 'softWarning'}>
+          {PDF_EXPORT_CURRENCY_LABEL[row.original.currency]}
+        </Badge>
+        <span className='tabular-nums text-foreground'>{row.original.cost}</span>
+      </span>
+    ),
   },
   {
     id: 'download',

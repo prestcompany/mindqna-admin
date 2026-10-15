@@ -1,56 +1,83 @@
 import { getPdfExportPolicy, updatePdfExportPolicy } from '@/client/pdf-export';
-import type { UpdatePdfExportPolicyParams } from '@/client/types';
+import type { PdfExportCurrency } from '@/client/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useQuery } from '@tanstack/react-query';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import {
+  EMPTY_PDF_EXPORT_POLICY_FORM,
+  PDF_EXPORT_CURRENCY_LABEL,
+  type PdfExportPolicyForm,
+  pdfExportPolicyError,
+  toPdfExportPolicyForm,
+  toUpdatePdfExportPolicyParams,
+} from './services/pdf-export-policy-form';
 
-const EMPTY: UpdatePdfExportPolicyParams = {
-  coinPerQuestion: 0,
-  maxDownloadCount: 0,
-  expiryDays: 0,
-};
+type NumberField = Exclude<keyof PdfExportPolicyForm, 'currency'>;
 
-const FIELDS: { key: keyof UpdatePdfExportPolicyParams; label: string; hint: string }[] = [
-  { key: 'coinPerQuestion', label: '카드당 코인(스타)', hint: '답변이 있는 카드 1장당 차감되는 스타 코인' },
+const CURRENCIES: PdfExportCurrency[] = ['STAR', 'HEART'];
+
+const PRICE_FIELDS: { key: NumberField; label: string; hint: string }[] = [
+  {
+    key: 'coinPerQuestion',
+    label: '카드당 스타',
+    hint: '구버전 앱은 결제 화폐와 관계없이 이 단가로 스타를 차감합니다.',
+  },
+  { key: 'heartPerQuestion', label: '카드당 하트', hint: '결제 화폐가 하트일 때 답변이 있는 카드 1장당 차감됩니다.' },
+];
+
+const LIMIT_FIELDS: { key: NumberField; label: string; hint: string }[] = [
   { key: 'maxDownloadCount', label: '최대 다운로드 횟수', hint: '발급 후 다시 받을 수 있는 최대 횟수' },
   { key: 'expiryDays', label: '유효 기간(일)', hint: '발급일로부터 다운로드 가능한 기간' },
 ];
 
 function PdfExportPolicyTab() {
-  const { data, refetch } = useQuery({ queryKey: ['pdf-export-policy'], queryFn: getPdfExportPolicy });
-  const [form, setForm] = useState<UpdatePdfExportPolicyParams>(EMPTY);
+  const queryClient = useQueryClient();
+  const { data } = useQuery({ queryKey: ['pdf-export-policy'], queryFn: getPdfExportPolicy });
+  const [form, setForm] = useState<PdfExportPolicyForm>(EMPTY_PDF_EXPORT_POLICY_FORM);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (data) {
-      setForm({
-        coinPerQuestion: data.coinPerQuestion,
-        maxDownloadCount: data.maxDownloadCount,
-        expiryDays: data.expiryDays,
-      });
-    }
+    if (data) setForm(toPdfExportPolicyForm(data));
   }, [data]);
 
   const save = async () => {
-    const values = [form.coinPerQuestion, form.maxDownloadCount, form.expiryDays];
-    if (values.some((v) => v === undefined || v <= 0 || !Number.isInteger(v))) {
-      toast.warning('모든 값은 1 이상의 정수여야 합니다.');
+    const error = pdfExportPolicyError(form);
+    if (error) {
+      toast.warning(error);
       return;
     }
     setSaving(true);
     try {
-      await updatePdfExportPolicy(form);
-      await refetch();
+      const updated = await updatePdfExportPolicy(toUpdatePdfExportPolicyParams(form));
+      // The PATCH returns the row written to primary; a refetch may hit a lagging replica and snap the form back.
+      queryClient.setQueryData(['pdf-export-policy'], updated);
       toast.success('PDF 내보내기 정책을 저장했습니다.');
     } catch (err) {
       toast.error(`${err}`);
     }
     setSaving(false);
   };
+
+  const renderNumberField = (field: { key: NumberField; label: string; hint: string }) => (
+    <div key={field.key} className='space-y-2'>
+      <Label htmlFor={`pdf-policy-${field.key}`} className='text-sm font-medium text-muted-foreground'>
+        {field.label}
+      </Label>
+      <Input
+        id={`pdf-policy-${field.key}`}
+        type='text'
+        inputMode='numeric'
+        value={form[field.key] || ''}
+        onChange={(e) => setForm((p) => ({ ...p, [field.key]: Number(e.target.value.replace(/[^\d]/g, '')) }))}
+      />
+      <p className='text-xs text-muted-foreground'>{field.hint}</p>
+    </div>
+  );
 
   return (
     <div className='max-w-xl space-y-6 rounded-lg border border-border bg-white p-6'>
@@ -60,20 +87,35 @@ function PdfExportPolicyTab() {
           {data?.updatedAt ? `수정: ${new Date(data.updatedAt).toLocaleString('ko-KR')}` : '기본값 적용 중'}
         </span>
       </div>
-      <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
-        {FIELDS.map((field) => (
-          <div key={field.key} className='space-y-2'>
-            <Label className='text-sm font-medium text-muted-foreground'>{field.label}</Label>
-            <Input
-              type='text'
-              inputMode='numeric'
-              value={form[field.key] || ''}
-              onChange={(e) => setForm((p) => ({ ...p, [field.key]: Number(e.target.value.replace(/[^\d]/g, '')) }))}
-            />
-            <p className='text-xs text-muted-foreground'>{field.hint}</p>
-          </div>
-        ))}
+
+      <div className='space-y-2'>
+        <Label id='pdf-policy-currency-label' className='text-sm font-medium text-muted-foreground'>
+          결제 화폐
+        </Label>
+        <RadioGroup
+          aria-labelledby='pdf-policy-currency-label'
+          value={form.currency}
+          onValueChange={(value) => setForm((p) => ({ ...p, currency: value as PdfExportCurrency }))}
+          className='grid grid-cols-2 gap-2'
+        >
+          {CURRENCIES.map((currency) => (
+            <div key={currency}>
+              <RadioGroupItem value={currency} id={`pdf-policy-currency-${currency}`} className='peer sr-only' />
+              <Label
+                htmlFor={`pdf-policy-currency-${currency}`}
+                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+              >
+                {PDF_EXPORT_CURRENCY_LABEL[currency]}
+              </Label>
+            </div>
+          ))}
+        </RadioGroup>
+        <p className='text-xs text-muted-foreground'>최신 앱에서 PDF를 살 때 차감되는 화폐입니다.</p>
       </div>
+
+      <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>{PRICE_FIELDS.map(renderNumberField)}</div>
+      <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>{LIMIT_FIELDS.map(renderNumberField)}</div>
+
       <div className='flex justify-end'>
         <Button type='button' onClick={save} disabled={saving}>
           {saving ? <Loader2 className='h-4 w-4 animate-spin' /> : null}

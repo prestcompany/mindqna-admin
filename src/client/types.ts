@@ -884,16 +884,23 @@ export type UpdateUserParams = {
   reserveUnregisterAt?: string | null;
 };
 
+export type PdfExportCurrency = 'STAR' | 'HEART';
+
 export type PdfExportPolicy = {
   id: number;
+  currency: PdfExportCurrency;
+  /** 스타 단가. 구버전 앱은 currency 와 관계없이 이 단가로 스타를 낸다. */
   coinPerQuestion: number;
+  heartPerQuestion: number;
   maxDownloadCount: number;
   expiryDays: number;
   updatedAt: string | null;
 };
 
 export type UpdatePdfExportPolicyParams = {
+  currency?: PdfExportCurrency;
   coinPerQuestion?: number;
+  heartPerQuestion?: number;
   maxDownloadCount?: number;
   expiryDays?: number;
 };
@@ -913,6 +920,7 @@ export type PdfExportRecord = {
   count: number;
   cost: number;
   coinPerQuestion: number;
+  currency: PdfExportCurrency;
   downloadCount: number;
   maxDownloadCount: number;
   status: PdfExportStatus;
