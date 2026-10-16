@@ -47,6 +47,9 @@ pnpm test     # 단위 테스트 (tsx --test "src/**/*.test.ts", node:test)
 - Tailwind: `preflight: true`
 - API 프록시: `/s3-proxy/*` → `https://mindqna.s3.amazonaws.com/*`
 - 테마: 라이트 고정(`data-admin-theme="vercel"`), near-black primary
+- 배포 주소(Vercel 프로젝트 `mindbridge-admin`): `https://admin.prestlab.com`(운영), `https://admin-dev.prestlab.com`, `https://admin-china.prestlab.com`
+  - 서버 CORS는 이 세 도메인과 `http://localhost:4000`만 허용합니다. `*.vercel.app` 주소는 화면이 열려도 API 호출이 막힙니다.
+  - `mindqna-admin.vercel.app`에는 배포가 없습니다(`404 DEPLOYMENT_NOT_FOUND`).
 
 ### 인증 흐름
 1. NextAuth 자격증명 로그인(`/api/auth/[...nextauth].ts`)
