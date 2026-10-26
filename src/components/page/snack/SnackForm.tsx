@@ -33,7 +33,7 @@ const KIND_OPTIONS: { label: string; value: SnackKind }[] = [
 ];
 
 const TYPE_OPTIONS = [
-  { label: '공통 (진화 타입 지정 안 함)', value: COMMON_SNACK_TYPE },
+  { label: '공통', value: COMMON_SNACK_TYPE },
   ...EVOLUTION_SNACK_TYPE_OPTIONS,
 ];
 
@@ -269,7 +269,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                       </p>
                     )}
                     <p className='text-sm text-slate-500'>
-                      공통 간식도 경험치를 지급하지만, 진화 타입별 섭취 횟수에는 포함되지 않습니다.
+                      공통 간식은 경험치를 주며, 진화 타입 결정에는 영향을 주지 않습니다.
                     </p>
                     <FormMessage />
                   </FormItem>
