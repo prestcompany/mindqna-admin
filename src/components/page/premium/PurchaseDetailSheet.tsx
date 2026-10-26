@@ -1,8 +1,8 @@
 import { IAPProduct } from '@/client/premium';
-import { getUserEntitlements, getUserPurchases } from '@/client/user';
+import { getUserPurchases } from '@/client/user';
 import TicketForm from '@/components/page/user/TicketForm';
+import UserEntitlementsTab from '@/components/page/user/components/tabs/UserEntitlementsTab';
 import EntitlementRow from '@/components/shared/purchase/EntitlementRow';
-import LiveStatusBlock from '@/components/shared/purchase/LiveStatusBlock';
 import PurchaseHistoryRow from '@/components/shared/purchase/PurchaseHistoryRow';
 import ReceiptViewer from '@/components/shared/purchase/ReceiptViewer';
 import { resolveStatus } from '@/components/shared/purchase/purchase-status';
@@ -72,42 +72,18 @@ function UserContextSections({ username }: { username: string }) {
   const queryClient = useQueryClient();
   const [ticketOpen, setTicketOpen] = useState(false);
 
-  const entitlements = useQuery({
-    queryKey: ['user-entitlements', username],
-    queryFn: () => getUserEntitlements(username),
-    enabled: !!username,
-  });
   const purchases = useQuery({
     queryKey: ['user-purchases', username, 1],
     queryFn: () => getUserPurchases(username, 1),
     enabled: !!username,
   });
 
-  const tickets = entitlements.data?.premiumTickets ?? [];
-  const golds = entitlements.data?.goldClubs ?? [];
   const historyItems = purchases.data?.items ?? [];
 
   return (
     <>
       <Section title='이용권/구독 상태'>
-        <LiveStatusBlock username={username} />
-        {entitlements.isLoading ? (
-          <div className='flex justify-center py-4'>
-            <Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />
-          </div>
-        ) : (
-          <div className='space-y-2'>
-            {tickets.slice(0, 5).map((t) => (
-              <EntitlementRow key={`p-${t.id}`} label='프리미엄' t={t} />
-            ))}
-            {golds.slice(0, 5).map((t) => (
-              <EntitlementRow key={`g-${t.id}`} label='골드클럽' t={t} />
-            ))}
-            {tickets.length === 0 && golds.length === 0 ? (
-              <div className='text-xs text-muted-foreground'>DB에 저장된 이용권이 없습니다.</div>
-            ) : null}
-          </div>
-        )}
+        <UserEntitlementsTab username={username} active />
       </Section>
 
       <Section title='최근 결제 이력'>

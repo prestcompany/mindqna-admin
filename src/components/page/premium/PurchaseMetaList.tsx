@@ -150,21 +150,23 @@ function PurchaseMetaList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetail
       size: 130,
       cell: ({ row }) => {
         const { username, userId } = row.original;
+        const displayedUser = username || userId;
         return (
           <div className='flex items-center gap-1'>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className='max-w-[120px] truncate text-sm font-medium text-foreground'>{username || userId}</span>
+                <span className='max-w-[120px] truncate text-sm font-medium text-foreground'>{displayedUser}</span>
               </TooltipTrigger>
-              <TooltipContent>{userId}</TooltipContent>
+              <TooltipContent>내부 ID: {userId}</TooltipContent>
             </Tooltip>
             <Button
               variant='ghost'
               size='sm'
               className='h-8 w-8 p-0'
+              aria-label={`${username ? '유저 코드' : '유저 ID'} 복사`}
               onClick={(e) => {
                 e.stopPropagation();
-                copyToClipboard(userId, '유저 ID');
+                copyToClipboard(displayedUser, username ? '유저 코드' : '유저 ID');
               }}
             >
               <Copy className='h-3.5 w-3.5' />
@@ -300,7 +302,7 @@ function PurchaseMetaList({ onOpenDetail }: { onOpenDetail: (ctx: PurchaseDetail
           <Input
             value={usernameKeyword}
             onChange={(e) => setUsernameKeyword(e.target.value)}
-            placeholder='유저 ID 입력'
+            placeholder='유저 코드 또는 내부 ID'
             className={cn('w-[200px]', FILTER_CONTROL_CLASS)}
           />
 
