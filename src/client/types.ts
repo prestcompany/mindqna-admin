@@ -270,7 +270,7 @@ export type CreateSnackParams = {
   exp: number;
   name: string;
   price: number;
-  type?: PetType;
+  type: PetType | null;
   isPaid: boolean;
   order: number;
   isActive: boolean;
@@ -290,7 +290,7 @@ export type Snack = {
   id: number;
   name: string;
   desc?: string;
-  type: PetType;
+  type: PetType | null;
   exp: number;
   price: number;
   isPaid: boolean;

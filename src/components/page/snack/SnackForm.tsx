@@ -1,6 +1,5 @@
 import { createSnack, updateSnack } from '@/client/snack';
-import { ImgItem, PetType, Snack, SnackKind } from '@/client/types';
-import { PET_TYPE_OPTIONS } from '@/components/shared/form/constants/pet-options';
+import { ImgItem, Snack, SnackKind } from '@/client/types';
 import { DefinitionRow, PanelBand } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -13,6 +12,14 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { AssetsPickerButton, AssetsPickerPanel } from '../assets/AssetsPicker';
+import {
+  COMMON_SNACK_TYPE,
+  DEFAULT_SNACK_EXP,
+  EVOLUTION_SNACK_TYPE_OPTIONS,
+  snackTypeSchema,
+  toSnackApiType,
+  toSnackFormType,
+} from './snack-form-values';
 
 type Props = {
   initialSnack?: Snack;
@@ -25,7 +32,10 @@ const KIND_OPTIONS: { label: string; value: SnackKind }[] = [
   { label: 'special', value: 'special' },
 ];
 
-const TYPE_OPTIONS = PET_TYPE_OPTIONS;
+const TYPE_OPTIONS = [
+  { label: '공통 (진화 타입 지정 안 함)', value: COMMON_SNACK_TYPE },
+  ...EVOLUTION_SNACK_TYPE_OPTIONS,
+];
 
 const PREMIUM_OPTIONS = [
   { label: '스타', value: 'true' },
@@ -41,9 +51,9 @@ const snackSchema = z.object({
   name: z.string(),
   desc: z.string(),
   kind: z.string(),
-  type: z.string().optional(),
+  type: snackTypeSchema,
   order: z.number(),
-  exp: z.number(),
+  exp: z.number().min(0, '경험치는 0 이상이어야 합니다.'),
   isPaid: z.boolean(),
   price: z.number(),
   isActive: z.boolean(),
@@ -65,9 +75,9 @@ function SnackForm({ initialSnack, close, reload }: Props) {
       name: '',
       desc: '',
       kind: 'normal',
-      type: undefined,
+      type: COMMON_SNACK_TYPE,
       order: 1,
-      exp: 0,
+      exp: DEFAULT_SNACK_EXP,
       isPaid: false,
       price: 0,
       isActive: false,
@@ -82,7 +92,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
       name: initialSnack.name,
       desc: initialSnack.desc ?? '',
       kind: initialSnack.kind,
-      type: initialSnack.type,
+      type: toSnackFormType(initialSnack.type),
       order: initialSnack.order,
       exp: initialSnack.exp,
       isPaid: initialSnack.isPaid,
@@ -105,7 +115,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
         name: values.name,
         desc: values.desc,
         kind: values.kind as SnackKind,
-        type: (values.type as PetType) ?? undefined,
+        type: toSnackApiType(values.type),
         order: values.order,
         exp: values.exp,
         isPaid: values.isPaid,
@@ -236,7 +246,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                   <FormItem>
                     <FormControl>
                       <RadioGroup
-                        value={field.value ?? ''}
+                        value={field.value}
                         onValueChange={field.onChange}
                         className='grid grid-cols-2 gap-2 sm:grid-cols-4'
                       >
@@ -253,6 +263,14 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                         ))}
                       </RadioGroup>
                     </FormControl>
+                    {(field.value === 'deer' || field.value === 'pig') && (
+                      <p className='text-sm text-destructive'>
+                        현재 타입은 간식의 진화 선택지에서 제외되었습니다. 공통 또는 다른 타입을 선택해주세요.
+                      </p>
+                    )}
+                    <p className='text-sm text-slate-500'>
+                      공통 간식도 경험치를 지급하지만, 진화 타입별 섭취 횟수에는 포함되지 않습니다.
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -293,6 +311,7 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                         <Input
                           type='number'
                           min={0}
+                          step={0.5}
                           value={field.value}
                           onChange={(e) => field.onChange(Number(e.target.value) || 0)}
                         />
