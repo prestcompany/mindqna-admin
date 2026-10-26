@@ -13,7 +13,7 @@ import { z } from 'zod';
 import { AssetsPickerButton, AssetsPickerPanel } from '../assets/AssetsPicker';
 import AnimationFileUploader from './components/AnimationFileUploader';
 import LocaleInputGroup from './components/LocaleInputGroup';
-import { PetCustomTypeOptions, petTypeOptions, premiumOptions } from './constants';
+import { customPetTypeSchema, PetCustomTypeOptions, petTypeOptions, premiumOptions, toCustomFormPetType } from './constants';
 import { useAnimationFile } from './hooks/useAnimationFile';
 import { useCustomForm } from './hooks/useCustomForm';
 import { getCustomAnimationFileError } from './services/animation-file-guard';
@@ -23,7 +23,7 @@ import { CustomFormProps, LocaleTexts } from './types';
 const customFormSchema = z.object({
   name: z.string().min(1, '이름은 필수입니다.'),
   type: z.string().min(1, '타입은 필수입니다.'),
-  petType: z.string().min(1, '펫 타입은 필수입니다.'),
+  petType: customPetTypeSchema,
   petLevel: z.coerce.number({ required_error: '펫 레벨은 필수입니다.' }).min(0).max(16),
   fileKey: z.string().min(1, '키 값은 필수입니다.'),
   isPremium: z.string().min(1, '결제 설정은 필수입니다.'),
@@ -57,7 +57,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
     defaultValues: {
       name: '',
       type: 'buddy',
-      petType: 'bear',
+      petType: 'null',
       petLevel: 0,
       fileKey: '',
       isPremium: 'true',
@@ -73,7 +73,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
       form.reset({
         name: init.name,
         type: init.type,
-        petType: init.petType ?? 'bear',
+        petType: toCustomFormPetType(init.petType),
         petLevel: init.petLevel,
         fileKey: init.fileKey,
         isPremium: String(init.isPaid),
@@ -86,7 +86,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
       form.reset({
         name: '',
         type: 'buddy',
-        petType: 'bear',
+        petType: 'null',
         petLevel: 0,
         fileKey: '',
         isPremium: 'true',
@@ -155,7 +155,7 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
           ...formData,
           name: values.name,
           type: values.type as any,
-          petType: values.petType as any,
+          petType: values.petType,
           petLevel: values.petLevel,
           fileKey: values.fileKey,
           isPremium: values.isPremium === 'true',
@@ -315,6 +315,11 @@ const CustomFormModal: React.FC<CustomFormProps> = ({ init, reload, close }) => 
                             ))}
                           </RadioGroup>
                         </FormControl>
+                        {(field.value === 'deer' || field.value === 'pig') && (
+                          <p className='text-sm text-destructive'>
+                            현재 타입은 선택지에서 제외되었습니다. 전체 또는 다른 타입을 선택해주세요.
+                          </p>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}

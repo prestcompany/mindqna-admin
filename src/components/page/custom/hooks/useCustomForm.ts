@@ -1,11 +1,12 @@
 import { PetCustomTemplate } from '@/client/types';
 import { useCallback, useEffect, useState } from 'react';
+import { toCustomFormPetType } from '../constants';
 import { CustomFormData } from '../types';
 
 const initialFormData: CustomFormData = {
   name: '',
   type: 'buddy',
-  petType: 'bear',
+  petType: 'null',
   petLevel: 0,
   fileKey: '',
   isActive: true,
@@ -42,7 +43,7 @@ export const useCustomForm = (init?: PetCustomTemplate) => {
     setFormData({
       name: init.name,
       type: init.type,
-      petType: init.petType ?? 'bear',
+      petType: toCustomFormPetType(init.petType),
       petLevel: init.petLevel,
       fileKey: init.fileKey,
       isActive: init.isActive,

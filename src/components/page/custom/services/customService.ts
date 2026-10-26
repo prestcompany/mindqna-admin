@@ -2,6 +2,7 @@ import { uploadSingleFile } from '@/client/assets';
 import { createCustomTemplate, updateCustomTemplate } from '@/client/custom';
 import { createLocale } from '@/client/locale';
 import { Locale } from '@/client/types';
+import { toCustomApiPetType } from '../constants';
 import { AnimationFileState, CustomFormData, LocaleTexts } from '../types';
 import { getCustomAnimationFileError } from './animation-file-guard';
 
@@ -45,7 +46,7 @@ export const saveCustomTemplate = async ({
     fileKey: formData.fileKey,
     fileUrl,
     petLevel: formData.petLevel,
-    petType: formData.petType === 'null' ? null : formData.petType,
+    petType: toCustomApiPetType(formData.petType),
     isActive: formData.isActive,
     isPaid: formData.isPremium,
     price: formData.price,

@@ -27,7 +27,7 @@ import { useResetOnChange } from '@/hooks/useResetOnChange';
 import { toast } from 'sonner';
 import CustomFormModal from './CustomFormModal';
 import LottieCDNPlayer from './LottieCDNPlayer';
-import { PetCustomTypeOptions, petTypeOptions } from './constants';
+import { getCustomPetTypeLabel, PetCustomTypeOptions } from './constants';
 
 function CustomList() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -126,7 +126,7 @@ function CustomList() {
       header: '펫 타입',
       size: 96,
       cell: ({ row }) => {
-        const label = petTypeOptions.find((item) => item.value === row.original.petType)?.label;
+        const label = getCustomPetTypeLabel(row.original.petType);
         return <Badge variant='softNeutral'>{label}</Badge>;
       },
     },
