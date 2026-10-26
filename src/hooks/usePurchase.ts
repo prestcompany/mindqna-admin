@@ -4,11 +4,13 @@ import { useQuery } from '@tanstack/react-query';
 type Props = {
   page: number;
   username?: string;
+  search?: string;
   startDate?: string;
   endDate?: string;
   platform?: 'IOS' | 'AOS' | 'EVENT';
   status?: 'success' | 'failed' | 'expired';
   isProduction?: boolean;
+  isSubscribe?: boolean;
 };
 
 function usePurchases(by: Props) {

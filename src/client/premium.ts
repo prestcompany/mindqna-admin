@@ -13,11 +13,13 @@ import {
 export async function getPurchases(by: {
   page: number;
   username?: string;
+  search?: string;
   startDate?: string;
   endDate?: string;
   platform?: 'IOS' | 'AOS' | 'EVENT';
   status?: 'success' | 'failed' | 'expired';
   isProduction?: boolean;
+  isSubscribe?: boolean;
 }) {
   const res = await client.get<QueryResultWithPagination<PurchaseMeta>>('/purchase', { params: by });
 
@@ -27,6 +29,8 @@ export async function getPurchases(by: {
 export type GetProductsFilters = {
   page: number;
   search?: string;
+  startDate?: string;
+  endDate?: string;
   isActive?: boolean;
   platform?: 'IOS' | 'AOS' | 'EVENT';
   isProduction?: boolean;
@@ -79,6 +83,7 @@ export async function giveCoinBulk(params: GiveCoinBulkParams) {
 
 export type IAPProduct = {
   id: number;
+  ownerId: string;
   owner: {
     username: string;
   } | null;
@@ -87,6 +92,7 @@ export type IAPProduct = {
   productId: string;
   transactionId: string;
   dueAt?: string;
+  isSubscribe: boolean;
   isActive: boolean;
   isProduction: boolean;
   createdAt: string;

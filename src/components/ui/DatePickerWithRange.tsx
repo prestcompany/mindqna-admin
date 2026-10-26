@@ -122,9 +122,14 @@ export function DatePickerWithRange({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
+            type='button'
             id='date'
             variant={'outline'}
-            className={cn('w-auto justify-start text-left font-normal', !date && 'text-muted-foreground', triggerClassName)}
+            className={cn(
+              'w-auto justify-start text-left font-normal',
+              !date && 'text-muted-foreground',
+              triggerClassName,
+            )}
           >
             <CalendarIcon className='mr-2 w-4 h-4' />
             {date?.from ? (

@@ -18,6 +18,7 @@ import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { EnvironmentBadge, PlatformBadge, ProductKindBadge } from './PurchaseTableCells';
 
 export type PurchaseDetailContext = { type: 'purchase'; purchaseId: number } | { type: 'ticket'; ticket: IAPProduct };
 
@@ -26,8 +27,6 @@ interface PurchaseDetailSheetProps {
   context: PurchaseDetailContext | null;
   onClose: () => void;
 }
-
-const PLATFORM_LABEL: Record<string, string> = { IOS: 'iOS', AOS: 'Android', EVENT: 'EVENT' };
 
 function SummaryField({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -38,18 +37,20 @@ function SummaryField({ label, children }: { label: string; children: ReactNode 
   );
 }
 
-function CopyableValue({ value, label }: { value: string; label: string }) {
+function CopyableValue({ value, label, display }: { value: string; label: string; display?: string }) {
   return (
     <div className='flex items-center gap-1'>
-      <span className='truncate font-mono text-sm text-foreground'>{value}</span>
+      <span className='truncate font-mono text-sm text-foreground'>{display || value}</span>
       <Button
         variant='ghost'
         size='sm'
         className='h-6 w-6 shrink-0 p-0 hover:bg-muted'
         aria-label={`${label} 복사`}
         onClick={() => {
-          navigator.clipboard.writeText(value);
-          toast.success(`${label} 복사됨`);
+          navigator.clipboard.writeText(value).then(
+            () => toast.success(`${label} 복사됨`),
+            () => toast.error(`${label} 복사 실패`),
+          );
         }}
       >
         <Copy className='h-3 w-3' />
@@ -142,9 +143,9 @@ function PurchaseSummary({ context }: { context: PurchaseDetailContext }) {
       <div className='space-y-4'>
         <div className='flex flex-wrap gap-1.5'>
           <Badge variant={t.isActive ? 'dotSuccess' : 'dotNeutral'}>{t.isActive ? '활성' : '만료'}</Badge>
-          <Badge variant='softNeutral'>{PLATFORM_LABEL[t.platform] ?? t.platform}</Badge>
-          <Badge variant={t.dueAt ? 'softInfo' : 'softNeutral'}>{t.dueAt ? '구독' : '소모품'}</Badge>
-          <Badge variant={t.isProduction ? 'softNeutral' : 'softWarning'}>{t.isProduction ? 'PROD' : 'TEST'}</Badge>
+          <PlatformBadge platform={t.platform} />
+          <ProductKindBadge isSubscribe={t.isSubscribe} />
+          <EnvironmentBadge isProduction={t.isProduction} />
         </div>
         <div className='grid grid-cols-2 gap-3'>
           <SummaryField label='상품 ID'>
@@ -178,20 +179,14 @@ function PurchaseSummary({ context }: { context: PurchaseDetailContext }) {
     <div className='space-y-4'>
       <div className='flex flex-wrap gap-1.5'>
         <Badge variant={status.dotVariant}>{status.label}</Badge>
-        <Badge variant='softNeutral'>{PLATFORM_LABEL[p.platform] ?? p.platform}</Badge>
-        <Badge variant={p.isProduction ? 'softNeutral' : 'softWarning'}>{p.isProduction ? 'PROD' : 'TEST'}</Badge>
-        {p.isSubscribe !== null ? (
-          <Badge variant={p.isSubscribe ? 'softInfo' : 'softNeutral'}>{p.isSubscribe ? '구독' : '단건'}</Badge>
-        ) : null}
+        <PlatformBadge platform={p.platform} />
+        <ProductKindBadge isSubscribe={p.isSubscribe} />
+        <EnvironmentBadge isProduction={p.isProduction} />
       </div>
 
       <div className='grid grid-cols-2 gap-3'>
         <SummaryField label='유저'>
-          {p.username ? (
-            <CopyableValue value={p.username} label='유저' />
-          ) : (
-            <CopyableValue value={p.userId} label='유저 ID' />
-          )}
+          <CopyableValue value={p.userId} display={p.username || p.userId} label='유저 ID' />
         </SummaryField>
         {p.price ? <SummaryField label='가격 (이력 기준)'>{p.price}</SummaryField> : null}
         <SummaryField label='상품 ID'>
