@@ -33,7 +33,7 @@ const KIND_OPTIONS: { label: string; value: SnackKind }[] = [
 ];
 
 const TYPE_OPTIONS = [
-  { label: '공통', value: COMMON_SNACK_TYPE },
+  { label: '전체', value: COMMON_SNACK_TYPE },
   ...EVOLUTION_SNACK_TYPE_OPTIONS,
 ];
 
@@ -265,11 +265,11 @@ function SnackForm({ initialSnack, close, reload }: Props) {
                     </FormControl>
                     {(field.value === 'deer' || field.value === 'pig') && (
                       <p className='text-sm text-destructive'>
-                        현재 타입은 간식의 진화 선택지에서 제외되었습니다. 공통 또는 다른 타입을 선택해주세요.
+                        현재 타입은 간식의 진화 선택지에서 제외되었습니다. 전체 또는 다른 타입을 선택해주세요.
                       </p>
                     )}
                     <p className='text-sm text-slate-500'>
-                      공통 간식은 경험치를 주며, 진화 타입 결정에는 영향을 주지 않습니다.
+                      모든 펫에게 경험치를 주며, 진화 타입 결정에는 영향을 주지 않습니다.
                     </p>
                     <FormMessage />
                   </FormItem>

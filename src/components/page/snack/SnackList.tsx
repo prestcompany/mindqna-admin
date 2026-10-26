@@ -93,7 +93,7 @@ function SnackList() {
     {
       accessorKey: 'type',
       header: '진화하는 펫',
-      cell: ({ row }) => row.original.type ?? '공통',
+      cell: ({ row }) => row.original.type ?? '전체',
     },
     {
       accessorKey: 'exp',

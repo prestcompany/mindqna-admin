@@ -15,7 +15,7 @@ export const snackTypeSchema = z.custom<SnackFormType>(
   (value) =>
     value === COMMON_SNACK_TYPE ||
     EVOLUTION_SNACK_TYPE_OPTIONS.some((option) => option.value === value),
-  { message: '공통 또는 진화 가능한 펫 타입을 다시 선택해주세요.' },
+  { message: '전체 또는 진화 가능한 펫 타입을 다시 선택해주세요.' },
 );
 
 export function toSnackFormType(type: PetType | null): SnackFormType {
