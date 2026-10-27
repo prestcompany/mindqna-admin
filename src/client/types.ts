@@ -355,6 +355,7 @@ export type PurchaseMeta = {
   isProduction: boolean;
   completedAt: string | null;
   createdAt: string;
+  isSubscribe: boolean;
 };
 
 export type PurchaseRelatedTicket = {
@@ -370,7 +371,6 @@ export type PurchaseRelatedTicket = {
 
 export type PurchaseDetail = PurchaseMeta & {
   price: string | null;
-  isSubscribe: boolean | null;
   relatedTickets: PurchaseRelatedTicket[];
 };
 
