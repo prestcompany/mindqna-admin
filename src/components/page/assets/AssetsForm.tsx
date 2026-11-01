@@ -54,7 +54,7 @@ function AssetsForm() {
     <section className='w-full overflow-hidden rounded-lg border border-border bg-card'>
       <div className='border-b border-border px-6 py-4'>
         <h2 className='text-base font-semibold tracking-heading text-foreground'>이미지 업로드</h2>
-        <p className='mt-1 text-sm text-muted-foreground'>PNG · JPEG · WebP 파일을 올릴 수 있습니다.</p>
+        <p className='mt-1 text-sm text-muted-foreground'>PNG · JPEG · WebP · GIF 파일을 올릴 수 있습니다.</p>
       </div>
 
       <div className='space-y-4 px-6 py-4'>
@@ -76,7 +76,7 @@ function AssetsForm() {
             ref={fileInputRef}
             type='file'
             className='hidden'
-            accept='image/png, image/jpeg, image/jpg, image/webp'
+            accept='image/png, image/jpeg, image/jpg, image/webp, image/gif'
             multiple
             onChange={handleFileChange}
           />
