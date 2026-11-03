@@ -20,6 +20,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import FeatureFlagEditDialog from './FeatureFlagEditDialog';
 import {
   APP_DEFAULT_LABEL,
   displayEnabled,
@@ -36,7 +37,7 @@ function FeatureFlagsManager() {
   const queryClient = useQueryClient();
   const { data, isLoading, isError, error } = useQuery({ queryKey: QUERY_KEY, queryFn: getFeatureFlags });
   const [pendingToggle, setPendingToggle] = useState<PendingToggle | null>(null);
-  const [, setEditing] = useState<FeatureFlagItem | null>(null);
+  const [editing, setEditing] = useState<FeatureFlagItem | null>(null);
 
   const toggle = useMutation({
     mutationFn: ({ item, next }: PendingToggle) => updateFeatureFlag(item.key, toToggleParams(item, next)),
@@ -165,6 +166,8 @@ function FeatureFlagsManager() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <FeatureFlagEditDialog item={editing} onOpenChange={(open) => !open && setEditing(null)} />
     </TooltipProvider>
   );
 }

@@ -4,7 +4,9 @@ import type { FeatureFlagItem, FeatureFlagRow } from '@/client/types';
 import {
   APP_DEFAULT_LABEL,
   displayEnabled,
+  featureFlagCreateSchema,
   featureFlagFormSchema,
+  initialEnabled,
   summarizeConditions,
   toErrorMessage,
   toFormValues,
@@ -121,4 +123,17 @@ test('toErrorMessage prefers the server message for both 400 shapes', () => {
   assert.equal(toErrorMessage(typia), 'platforms 형식 오류');
   assert.equal(toErrorMessage(rule), '최소 버전이 최대 버전보다 큽니다.');
   assert.equal(toErrorMessage(new Error('Network Error')), 'Network Error');
+});
+
+test('a new row starts from the app default, env keys must be chosen', () => {
+  assert.equal(initialEnabled(item({ appDefault: 'on', row: null })), true);
+  assert.equal(initialEnabled(item({ appDefault: 'off', row: null })), false);
+  assert.equal(initialEnabled(item({ appDefault: 'env', row: null })), null);
+  assert.equal(initialEnabled(item({ appDefault: 'on', row: row({ enabled: false }) })), false);
+  const base = { ...toFormValues(null), enabled: null };
+  const missing = featureFlagCreateSchema.safeParse(base);
+  assert.equal(missing.success, false);
+  assert.deepEqual(missing.error?.issues[0].path, ['enabled']);
+  assert.equal(featureFlagCreateSchema.safeParse({ ...base, enabled: true }).success, true);
+  assert.equal(featureFlagCreateSchema.safeParse({ ...base, enabled: true, minVersionCode: '0' }).success, false);
 });
