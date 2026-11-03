@@ -3,6 +3,8 @@ import { test } from 'node:test';
 import type { FeatureFlagItem, FeatureFlagRow } from '@/client/types';
 import {
   APP_DEFAULT_LABEL,
+  busyFlagKeys,
+  currentEnabled,
   displayEnabled,
   featureFlagCreateSchema,
   featureFlagFormSchema,
@@ -136,4 +138,17 @@ test('a new row starts from the app default, env keys must be chosen', () => {
   assert.deepEqual(missing.error?.issues[0].path, ['enabled']);
   assert.equal(featureFlagCreateSchema.safeParse({ ...base, enabled: true }).success, true);
   assert.equal(featureFlagCreateSchema.safeParse({ ...base, enabled: true, minVersionCode: '0' }).success, false);
+});
+
+test('busyFlagKeys collects every key with a PUT in flight', () => {
+  const keys = busyFlagKeys([{ key: 'a' }, { key: 'b' }, undefined, { other: 1 }]);
+  assert.deepEqual(Array.from(keys).sort(), ['a', 'b']);
+});
+
+test('currentEnabled reads the latest list, not the snapshot the dialog opened with', () => {
+  const snapshot = item({ key: 'k', row: row({ key: 'k', enabled: true }) });
+  const latest = { items: [item({ key: 'k', row: row({ key: 'k', enabled: false }) })] };
+  assert.equal(currentEnabled(latest, snapshot), false);
+  assert.equal(currentEnabled(undefined, snapshot), true);
+  assert.equal(currentEnabled({ items: [] }, snapshot), true);
 });

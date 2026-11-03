@@ -1,5 +1,5 @@
 import { updateFeatureFlag } from '@/client/feature-flags';
-import type { FeatureFlagItem } from '@/client/types';
+import type { FeatureFlagItem, FeatureFlagsResult } from '@/client/types';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -22,6 +22,8 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import {
   APP_DEFAULT_LABEL,
+  currentEnabled,
+  FEATURE_FLAG_PUT_KEY,
   type FeatureFlagCreateValues,
   featureFlagCreateSchema,
   featureFlagFormSchema,
@@ -53,10 +55,19 @@ const SEGMENT_LABEL_CLASS =
 
 type FeatureFlagEditDialogProps = {
   item: FeatureFlagItem | null;
+  /** 이 키의 PUT 이 진행 중이면 닫지 않는다. 닫고 다시 열거나 스위치를 누르면 쓰기가 겹친다. */
+  busy: boolean;
   onOpenChange: (open: boolean) => void;
+  onSaved: (key: string) => void;
 };
 
-function FeatureFlagEditForm({ item, onDone }: { item: FeatureFlagItem; onDone: () => void }) {
+type FeatureFlagEditFormProps = {
+  item: FeatureFlagItem;
+  onCancel: () => void;
+  onSaved: (key: string) => void;
+};
+
+function FeatureFlagEditForm({ item, onCancel, onSaved }: FeatureFlagEditFormProps) {
   const queryClient = useQueryClient();
   const isNew = !item.row;
   const form = useForm<FeatureFlagCreateValues>({
@@ -66,19 +77,25 @@ function FeatureFlagEditForm({ item, onDone }: { item: FeatureFlagItem; onDone: 
   });
 
   const save = useMutation({
-    mutationFn: (values: FeatureFlagCreateValues) =>
-      updateFeatureFlag(item.key, toUpdateParams(values, item.row?.enabled ?? values.enabled === true)),
+    mutationKey: FEATURE_FLAG_PUT_KEY,
+    mutationFn: ({ key, values }: { key: string; values: FeatureFlagCreateValues }) => {
+      // 켬/끔은 이 대화상자에서 바꾸지 않는다. 기존 행은 연 뒤에 바뀌었을 수 있어 최신 목록 값을 보낸다.
+      const enabled = item.row
+        ? currentEnabled(queryClient.getQueryData<FeatureFlagsResult>(['feature-flags']), item) === true
+        : values.enabled === true;
+      return updateFeatureFlag(key, toUpdateParams(values, enabled));
+    },
     onSuccess: async () => {
       toast.success(`${item.key} 을(를) 저장했습니다.`);
       await queryClient.invalidateQueries({ queryKey: ['feature-flags'] });
-      onDone();
+      onSaved(item.key);
     },
     onError: (err) => toast.error(toErrorMessage(err)),
   });
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit((values) => save.mutate(values))} className='space-y-4'>
+      <form onSubmit={form.handleSubmit((values) => save.mutate({ key: item.key, values }))} className='space-y-4'>
         {isNew ? (
           <FormField
             control={form.control}
@@ -209,7 +226,7 @@ function FeatureFlagEditForm({ item, onDone }: { item: FeatureFlagItem; onDone: 
         </p>
 
         <DialogFooter>
-          <Button type='button' variant='outline' onClick={onDone} disabled={save.isPending}>
+          <Button type='button' variant='outline' onClick={onCancel} disabled={save.isPending}>
             취소
           </Button>
           <Button type='submit' disabled={save.isPending}>
@@ -222,16 +239,18 @@ function FeatureFlagEditForm({ item, onDone }: { item: FeatureFlagItem; onDone: 
   );
 }
 
-function FeatureFlagEditDialog({ item, onOpenChange }: FeatureFlagEditDialogProps) {
+function FeatureFlagEditDialog({ item, busy, onOpenChange, onSaved }: FeatureFlagEditDialogProps) {
   return (
-    <Dialog open={!!item} onOpenChange={onOpenChange}>
+    <Dialog open={!!item} onOpenChange={(open) => (open || !busy) && onOpenChange(open)}>
       <DialogContent className='max-w-lg'>
         <DialogHeader>
           <DialogTitle className='font-mono'>{item?.key}</DialogTitle>
           <DialogDescription>{item?.label}</DialogDescription>
         </DialogHeader>
         {/* key 로 다시 마운트해 다른 행을 열 때 이전 입력이 남지 않게 한다. */}
-        {item ? <FeatureFlagEditForm key={item.key} item={item} onDone={() => onOpenChange(false)} /> : null}
+        {item ? (
+          <FeatureFlagEditForm key={item.key} item={item} onCancel={() => onOpenChange(false)} onSaved={onSaved} />
+        ) : null}
       </DialogContent>
     </Dialog>
   );

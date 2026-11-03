@@ -4,6 +4,7 @@ import type {
   FeatureFlagItem,
   FeatureFlagPlatform,
   FeatureFlagRow,
+  FeatureFlagsResult,
   UpdateFeatureFlagParams,
 } from '@/client/types';
 import { z } from 'zod';
@@ -130,4 +131,24 @@ export function toErrorMessage(err: unknown): string {
   if (typeof message === 'string' && message) return message;
   if (err instanceof Error) return err.message;
   return String(err);
+}
+
+// 켬/끔과 편집 저장이 같은 키를 쓴다. 진행 중인 PUT 이 있는 키는 모두 막는다.
+export const FEATURE_FLAG_PUT_KEY = ['feature-flag-put'];
+
+export type FeatureFlagPutVariables = { key: string };
+
+export function busyFlagKeys(variables: unknown[]): Set<string> {
+  const keys = new Set<string>();
+  for (const v of variables) {
+    const key = (v as Partial<FeatureFlagPutVariables> | undefined)?.key;
+    if (typeof key === 'string') keys.add(key);
+  }
+  return keys;
+}
+
+// 편집 대화상자는 연 순간의 item 을 들고 있다. 그사이 다른 탭에서 끈 키를 다시 켜지 않게 최신 목록 값을 쓴다.
+export function currentEnabled(latest: FeatureFlagsResult | undefined, item: FeatureFlagItem): boolean | null {
+  const fresh = latest?.items.find((i) => i.key === item.key)?.row;
+  return fresh ? fresh.enabled : (item.row?.enabled ?? null);
 }

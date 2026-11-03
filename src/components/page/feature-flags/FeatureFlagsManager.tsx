@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useMutationState, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { useState } from 'react';
@@ -23,7 +23,10 @@ import { toast } from 'sonner';
 import FeatureFlagEditDialog from './FeatureFlagEditDialog';
 import {
   APP_DEFAULT_LABEL,
+  busyFlagKeys,
   displayEnabled,
+  FEATURE_FLAG_PUT_KEY,
+  type FeatureFlagPutVariables,
   summarizeConditions,
   toErrorMessage,
   toToggleParams,
@@ -32,6 +35,7 @@ import {
 const QUERY_KEY = ['feature-flags'];
 
 type PendingToggle = { item: FeatureFlagItem; next: boolean };
+type ToggleVariables = PendingToggle & FeatureFlagPutVariables;
 
 function FeatureFlagsManager() {
   const queryClient = useQueryClient();
@@ -40,7 +44,8 @@ function FeatureFlagsManager() {
   const [editing, setEditing] = useState<FeatureFlagItem | null>(null);
 
   const toggle = useMutation({
-    mutationFn: ({ item, next }: PendingToggle) => updateFeatureFlag(item.key, toToggleParams(item, next)),
+    mutationKey: FEATURE_FLAG_PUT_KEY,
+    mutationFn: ({ item, next }: ToggleVariables) => updateFeatureFlag(item.key, toToggleParams(item, next)),
     onSuccess: async (_, { item, next }) => {
       toast.success(`${item.key} 을(를) ${next ? '켰' : '껐'}습니다.`);
       await queryClient.invalidateQueries({ queryKey: QUERY_KEY });
@@ -48,7 +53,13 @@ function FeatureFlagsManager() {
     onError: (err) => toast.error(toErrorMessage(err)),
   });
 
-  const busyKey = toggle.isPending ? toggle.variables?.item.key : undefined;
+  // 한 mutation 인스턴스는 마지막 호출만 기억하므로, 진행 중인 PUT 전부를 mutation 캐시에서 모은다.
+  const busyKeys = busyFlagKeys(
+    useMutationState({
+      filters: { mutationKey: FEATURE_FLAG_PUT_KEY, status: 'pending' },
+      select: (mutation) => mutation.state.variables,
+    }),
+  );
 
   const columns: ColumnDef<FeatureFlagItem>[] = [
     {
@@ -73,7 +84,7 @@ function FeatureFlagsManager() {
           <Switch
             aria-label={`${item.key} 켬/끔`}
             checked={displayEnabled(item)}
-            disabled={busyKey === item.key || envWithoutRow}
+            disabled={busyKeys.has(item.key) || envWithoutRow}
             onCheckedChange={(next) => setPendingToggle({ item, next })}
           />
         );
@@ -116,7 +127,7 @@ function FeatureFlagsManager() {
       header: '',
       size: 80,
       cell: ({ row: { original: item } }) => (
-        <Button size='sm' variant='outline' disabled={busyKey === item.key} onClick={() => setEditing(item)}>
+        <Button size='sm' variant='outline' disabled={busyKeys.has(item.key)} onClick={() => setEditing(item)}>
           편집
         </Button>
       ),
@@ -124,7 +135,7 @@ function FeatureFlagsManager() {
   ];
 
   const confirmToggle = () => {
-    if (pendingToggle) toggle.mutate(pendingToggle);
+    if (pendingToggle) toggle.mutate({ ...pendingToggle, key: pendingToggle.item.key });
     setPendingToggle(null);
   };
 
@@ -167,7 +178,12 @@ function FeatureFlagsManager() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <FeatureFlagEditDialog item={editing} onOpenChange={(open) => !open && setEditing(null)} />
+      <FeatureFlagEditDialog
+        item={editing}
+        busy={!!editing && busyKeys.has(editing.key)}
+        onOpenChange={(open) => !open && setEditing(null)}
+        onSaved={(key) => setEditing((current) => (current?.key === key ? null : current))}
+      />
     </TooltipProvider>
   );
 }
