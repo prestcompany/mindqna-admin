@@ -129,7 +129,7 @@ const systemMenu: IMenu[] = [
   },
   {
     id: 'feature-flags',
-    name: '기능 토글',
+    name: '앱 기능 관리',
     icon: <ToggleRight className='w-4 h-4' />,
     link: { path: '/feature-flags' },
   },
