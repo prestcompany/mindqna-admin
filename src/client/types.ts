@@ -1102,3 +1102,29 @@ export type BookOrderBatchConfirmResult = {
 export type BookOrderBatchListResult = QueryResultWithPagination<BookOrderBatchSummary> & {
   totalCount: number;
 };
+
+export type FeatureFlagPlatform = 'ios' | 'android';
+export type FeatureFlagFlavor = 'global' | 'huawei';
+export type FeatureFlagAppDefault = 'on' | 'off' | 'env';
+
+export type FeatureFlagRow = {
+  key: string;
+  enabled: boolean;
+  platforms: FeatureFlagPlatform[];
+  flavors: FeatureFlagFlavor[];
+  minVersionCode: number | null;
+  maxVersionCode: number | null;
+  description: string;
+  updatedAt: string;
+};
+
+export type FeatureFlagItem = {
+  key: string;
+  label: string;
+  appDefault: FeatureFlagAppDefault;
+  row: FeatureFlagRow | null;
+};
+
+export type FeatureFlagsResult = { items: FeatureFlagItem[] };
+
+export type UpdateFeatureFlagParams = Omit<FeatureFlagRow, 'key' | 'updatedAt'>;
