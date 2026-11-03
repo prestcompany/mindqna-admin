@@ -34,6 +34,7 @@ export const ROUTE_LABELS: Record<string, string> = {
   info: '소식',
   article: '아티클',
   'app-version': '앱 버전 관리',
+  'feature-flags': '기능 토글',
   'pdf-export': 'PDF 내보내기 관리',
   'book-order': '책 제작 발주',
 };
