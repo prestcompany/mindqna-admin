@@ -23,7 +23,7 @@
 
 ## Review Focus
 
-- 행 없는 키를 편집 저장하면 `enabled: false` 행이 생겨 앱 기본값 `켬` 키가 운영에서 꺼진다 → 저장 전에 경고 확인을 받는다(Task 3 테스트 `needsCreateWarning`).
+- 행 없는 키를 편집 저장하면 새 행이 생긴다. 그 상태가 앱 기본값과 다르면 운영 앱 동작이 바뀐다 → 만들 때 상태를 앱 기본값으로 채우고, `env` 키는 직접 고르게 한다(Task 3 테스트 `initialEnabled`·스키마).
 - 행 없는 키의 스위치를 켜면 조건 없는 `enabled: true` 행이 생긴다 → 확인 창에 "새 행을 만든다"와 조건 요약이 보인다(Task 1 `toToggleParams` 테스트).
 - 저장 중 스위치를 연타하면 PUT 이 겹친다 → 요청 중에는 그 행의 스위치·편집 버튼을 막는다(Task 2 단계).
 - 서버 행의 `platforms` 가 `['ios','android']` 이면 폼이 `전체`로 보여야 한다(Task 1 `toFormValues` 테스트).
@@ -125,7 +125,7 @@ test('displayEnabled falls back to the app default only when there is no row', (
 - [ ] **Step 1: 메뉴·라벨·페이지 추가** — 사이드바에 `기능 토글`이 `앱 버전 관리` 아래에 보이고 `/feature-flags` 가 열린다.
 - [ ] **Step 2: 목록 구현** — `useQuery({ queryKey: ['feature-flags'], queryFn: getFeatureFlags })`. 위에 Global Constraints 의 반영 안내. 표 열: 키(`font-mono`, 아래 `label`, 행이 있으면 `description`), 상태(스위치 + 행 없으면 `앱 기본값: {APP_DEFAULT_LABEL}` 뱃지), 조건(행 있으면 `summarizeConditions(row)`, 없으면 `-`), 수정 시각(`dayjs(updatedAt).format('YYYY-MM-DD HH:mm')`, 없으면 `-`), 편집 버튼. 로딩·오류 상태는 다른 목록 화면과 같은 꼴.
 - [ ] **Step 3: 켬/끔 확인 창** — 스위치 `onCheckedChange` 는 바로 저장하지 않고 `{ item, next }` 를 상태에 담아 `AlertDialog` 를 연다. 본문: 키, `켬으로`/`끔으로`, 조건 요약(행이 없으면 `행이 없어 조건 없이 새로 만듭니다.`), `저장 즉시 운영 앱에 반영됩니다(최대 30초).` 확인 시 `useMutation` 으로 `updateFeatureFlag(item.key, toToggleParams(item, next))`, 성공하면 `invalidateQueries(['feature-flags'])` + `toast.success`, 실패하면 서버 메시지 `toast.error`. 취소하면 요청 없음. 스위치는 항상 `displayEnabled(item)` 을 그리므로 실패·취소 시 서버 값 그대로다.
-- [ ] **Step 4: 연타 방지** — mutation 이 진행 중인 키의 스위치와 편집 버튼은 `disabled`.
+- [ ] **Step 4: 연타 방지·env 키** — mutation 이 진행 중인 키의 스위치와 편집 버튼은 `disabled`. `item.row === null && item.appDefault === 'env'` 인 키의 스위치도 `disabled` 이고 `Tooltip` 으로 `편집에서 켬/끔을 골라 만드세요`.
 - [ ] **Step 5: 확인** — `npx tsc --noEmit`, `pnpm lint` 새 경고 0. 서버가 아직 없으면 `pnpm dev` 로 화면이 뜨고 오류 상태가 깨지지 않는지만 본다.
 - [ ] **Step 6: 커밋** — `feat(feature-flags): add feature flag list with confirmed toggles`
 
@@ -138,24 +138,31 @@ test('displayEnabled falls back to the app default only when there is no row', (
 
 **Interfaces:**
 - Consumes: `featureFlagFormSchema`, `toFormValues`, `toUpdateParams`, `updateFeatureFlag`
-- Produces: `needsCreateWarning(item: FeatureFlagItem): boolean` — `item.row === null`
+- Produces:
+  - `initialEnabled(item: FeatureFlagItem): boolean | null` — 행이 있으면 `row.enabled`, 없으면 `on` → `true`, `off` → `false`, `env` → `null`
+  - `featureFlagCreateSchema` — `featureFlagFormSchema` 에 `enabled: boolean` 필수를 더한 것(`null` 이면 `enabled` 경로에 `켬/끔을 골라 주세요.`)
 
 - [ ] **Step 1: 실패하는 테스트**
 
 ```ts
-test('editing a key without a row needs a create warning', () => {
-  assert.equal(needsCreateWarning(item({ row: null })), true);
-  assert.equal(needsCreateWarning(item({ row: row({}) })), false);
+test('a new row starts from the app default, env keys must be chosen', () => {
+  assert.equal(initialEnabled(item({ appDefault: 'on', row: null })), true);
+  assert.equal(initialEnabled(item({ appDefault: 'off', row: null })), false);
+  assert.equal(initialEnabled(item({ appDefault: 'env', row: null })), null);
+  assert.equal(initialEnabled(item({ appDefault: 'on', row: row({ enabled: false }) })), false);
+  const base = { ...toFormValues(null), enabled: null };
+  assert.equal(featureFlagCreateSchema.safeParse(base).success, false);
+  assert.equal(featureFlagCreateSchema.safeParse({ ...base, enabled: true }).success, true);
 });
 ```
 
 - [ ] **Step 2: 실패 확인** — `pnpm exec tsx --test src/components/page/feature-flags/services/feature-flag-form.test.ts` FAIL
-- [ ] **Step 3: 구현** — `needsCreateWarning` 추가. 대화상자: 제목은 키, 부제는 `label`. `useForm({ resolver: zodResolver(featureFlagFormSchema), values: toFormValues(item.row) })`. 필드: 설명(`Textarea`, `maxLength` 없이 스키마로 191자 오류), 플랫폼 `Select`(전체/iOS/Android), flavor `Select`(전체/global/huawei), 최소·최대 versionCode `Input inputMode='numeric'`(빈칸 = 제한 없음 안내). 저장 시 `updateFeatureFlag(item.key, toUpdateParams(values, item.row?.enabled ?? false))`. `needsCreateWarning(item)` 이면 저장 버튼 위에 경고 문구 `이 키는 아직 서버 행이 없습니다. 저장하면 꺼진 상태로 새로 만들어져, 앱 기본값({APP_DEFAULT_LABEL})이 아닌 꺼짐으로 바뀝니다.` 와 체크박스 `이해했습니다`를 두고, 체크해야 저장 버튼이 켜진다. 성공 시 `invalidateQueries(['feature-flags'])`, 닫기, `toast.success`. 실패 시 서버 메시지 토스트, 대화상자 유지.
+- [ ] **Step 3: 구현** — `initialEnabled`·`featureFlagCreateSchema` 추가. 대화상자: 제목은 키, 부제는 `label`. 행이 있으면 `featureFlagFormSchema`, 없으면 `featureFlagCreateSchema` 로 `useForm({ resolver: zodResolver(...), values: { ...toFormValues(item.row), enabled: initialEnabled(item) } })`. 필드: 설명(`Textarea`, 스키마로 191자 오류), 플랫폼 `Select`(전체/iOS/Android), flavor `Select`(전체/global/huawei), 최소·최대 versionCode `Input inputMode='numeric'`(빈칸 = 제한 없음 안내). 행이 없을 때만 `만들 때 상태` `RadioGroup`(켬/끔)과 안내 `이 키는 아직 서버 행이 없습니다. 앱 기본값({APP_DEFAULT_LABEL})으로 채워 두었습니다.`를 둔다. `env` 키는 선택 없이 시작하고 `운영 빌드는 켬입니다.`를 덧붙인다. 저장 시 `updateFeatureFlag(item.key, toUpdateParams(values, item.row?.enabled ?? values.enabled))`. 성공 시 `invalidateQueries(['feature-flags'])`, 닫기, `toast.success`. 실패 시 서버 메시지 토스트, 대화상자 유지.
 - [ ] **Step 4: 통과 확인** — `pnpm test` PASS, `npx tsc --noEmit`, `pnpm lint` 새 경고 0
 - [ ] **Step 5: 커밋** — `feat(feature-flags): edit flag conditions and description`
 
 ### Task 4: 서버와 붙여 확인하고 PR
 
 - [ ] **Step 1: 서버 준비 확인** — mindqna-server 의 feature-flags 브랜치가 로컬(`http://localhost:3000`)이나 dev 에 떠 있어야 한다. 없으면 이 Task 는 서버 배포 뒤로 미루고 PR 은 draft 로 연다.
-- [ ] **Step 2: 화면 확인**(`pnpm dev`, 포트 4000) — 16개 키가 보이는지, 행 없는 키 뱃지, 스위치 취소 시 네트워크 요청 없음, 켬 확인 뒤 수정 시각 갱신, 편집 저장 뒤 조건 요약 갱신, 최소 > 최대·`0` 입력 시 오류 문구, 행 없는 키 편집 시 경고·체크박스.
+- [ ] **Step 2: 화면 확인**(`pnpm dev`, 포트 4000) — 16개 키가 보이는지, 행 없는 키 뱃지, 스위치 취소 시 네트워크 요청 없음, 켬 확인 뒤 수정 시각 갱신, 편집 저장 뒤 조건 요약 갱신, 최소 > 최대·`0` 입력 시 오류 문구, 행 없는 키 편집 시 `만들 때 상태`가 앱 기본값으로 채워지고 `env` 키는 골라야 저장되는지.
 - [ ] **Step 3: PR** — base `main`. 본문에 spec·서버 PR 링크, 서버가 먼저 배포돼야 한다는 점, admin-china 도 같은 화면으로 중국 서버 값을 바꾼다는 점을 적는다.
