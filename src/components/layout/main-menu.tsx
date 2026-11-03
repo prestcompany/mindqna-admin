@@ -9,6 +9,7 @@ import {
   MegaphoneIcon,
   ShoppingCartIcon,
   Smartphone,
+  ToggleRight,
   UsersIcon,
 } from 'lucide-react';
 import React from 'react';
@@ -125,6 +126,12 @@ const systemMenu: IMenu[] = [
     name: '앱 버전 관리',
     icon: <Smartphone className='w-4 h-4' />,
     link: { path: '/app-version' },
+  },
+  {
+    id: 'feature-flags',
+    name: '기능 토글',
+    icon: <ToggleRight className='w-4 h-4' />,
+    link: { path: '/feature-flags' },
   },
   {
     id: 'pdf-export',
