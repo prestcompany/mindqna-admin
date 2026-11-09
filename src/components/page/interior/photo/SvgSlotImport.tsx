@@ -14,10 +14,10 @@ import { FileUp } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { checkSvgText, extractSvg } from './extract-svg';
-import { slotChanges, slotsFromSvg } from './slots-from-svg';
+import { type SlotChange, slotChanges, slotsFromSvg } from './slots-from-svg';
 import type { PhotoDraft } from './usePhotoDraft';
 
-const CHANGE_LABEL: Record<ReturnType<typeof slotChanges>[number]['kind'], string> = {
+const CHANGE_LABEL: Record<SlotChange['kind'], string> = {
   moved: '옮김',
   resized: '크기 바뀜',
   aspect: '비율이 10% 넘게 바뀜',

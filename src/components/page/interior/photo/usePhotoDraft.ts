@@ -5,6 +5,22 @@ import { photoWarnings } from './preview-math';
 
 type Size = { width: number; height: number };
 
+/** 그림 원본 크기. uri 가 바뀌면 새로 읽고, 다 읽기 전이나 못 읽으면 null 이다. */
+function useImageSize(uri: string | null | undefined): Size | null {
+  const [read, setRead] = useState<{ uri: string; size: Size | null } | null>(null);
+  useEffect(() => {
+    if (!uri) return;
+    let alive = true;
+    readImageSize(uri)
+      .then((size) => alive && setRead({ uri, size }))
+      .catch(() => alive && setRead({ uri, size: null }));
+    return () => {
+      alive = false;
+    };
+  }, [uri]);
+  return uri && read?.uri === uri ? read.size : null;
+}
+
 /**
  * 사진 가구 편집 상태. InteriorForm 이 들고 자식 컴포넌트는 props 로만 받는다.
  * 폼은 그림 고르기 화면으로 바뀔 때 본문을 통째로 내리므로, 자식에 둔 상태는 사라진다.
@@ -25,8 +41,6 @@ export function usePhotoDraft(init: InteriorTemplate | undefined, representative
     saved ? { width: saved.imgWidth, height: saved.imgHeight } : null,
   );
   const [baseSizeError, setBaseSizeError] = useState(false);
-  const [overlaySize, setOverlaySize] = useState<Size | null>(null);
-  const [representativeSize, setRepresentativeSize] = useState<Size | null>(null);
   const [slots, setSlots] = useState<PhotoSlot[]>(saved?.slots ?? []);
   const [selectedKey, setSelectedKey] = useState<string | null>(saved?.slots[0]?.key ?? null);
   /**
@@ -42,27 +56,8 @@ export function usePhotoDraft(init: InteriorTemplate | undefined, representative
   const savedKeys = useMemo(() => saved?.slots.map((s) => s.key) ?? [], [saved]);
   const purchasedCount = init?.purchasedCount ?? 0;
 
-  useEffect(() => {
-    let alive = true;
-    if (!representativeUri) return;
-    readImageSize(representativeUri)
-      .then((size) => alive && setRepresentativeSize(size))
-      .catch(() => alive && setRepresentativeSize(null));
-    return () => {
-      alive = false;
-    };
-  }, [representativeUri]);
-
-  useEffect(() => {
-    let alive = true;
-    if (!overlay?.uri) return;
-    readImageSize(overlay.uri)
-      .then((size) => alive && setOverlaySize(size))
-      .catch(() => alive && setOverlaySize(null));
-    return () => {
-      alive = false;
-    };
-  }, [overlay?.uri]);
+  const representativeSize = useImageSize(representativeUri);
+  const overlaySize = useImageSize(overlay?.uri);
 
   const pickBase = (img: ImgItem) => {
     const request = ++baseRequest.current;
@@ -76,7 +71,6 @@ export function usePhotoDraft(init: InteriorTemplate | undefined, representative
 
   const pickOverlay = (img: ImgItem | null) => {
     setOverlayRef(img ? { id: img.id, uri: img.uri } : null);
-    if (!img) setOverlaySize(null);
   };
 
   const importSlots = (next: PhotoSlot[]) => {
@@ -88,7 +82,7 @@ export function usePhotoDraft(init: InteriorTemplate | undefined, representative
   const warnings = photoWarnings({
     base: baseSize,
     representative: representativeSize,
-    overlay: overlay ? overlaySize : null,
+    overlay: overlaySize,
     importedFor,
   });
 
