@@ -302,11 +302,15 @@ test('ratioDiff', () => {
   - 칸 삭제: `purchasedCount > 0` 이고 그 키가 저장된 설정에 있으면 버튼을 끄고 `산 공간 N곳의 사진이 끊깁니다` 를 툴팁에 보인다.
   - 칸 키 칩은 키보드로 고를 수 있게 한다(Tab, 화살표로 1% 이동).
 - Create: `src/components/page/interior/photo/PhotoPreview.tsx`
-  - 순서: 가구 상자 → `containRect` → 바닥 그림 → 칸 → 덮개 그림.
-  - 칸은 `rotate(rotation deg)` 로 돌리고, 모서리는 `radius × 칸 너비 px` 다.
-  - 토글 `예시 사진`/`빈 칸`
-    - 예시 사진은 회색 그라데이션을 `cover` 로 채운다.
-    - 빈 칸은 회색 + `ImagePlus` 아이콘이다.
+  - 앱 렌더링 규칙과 같게 그린다. 출처는 MindBridge `src/features/space/bases/FurniturePicture.tsx`, `utils/photoFeature.ts` 이고, 앱 세션이 2026-11-09 에 알려 줬다.
+  - **프레임**: 가구 칸 상자(`width × height` 칸) 안에 바닥 그림 비율(`imgWidth/imgHeight`)의 프레임을 `contain`, 가운데로 놓는다(`containRect`).
+  - **그림**: 바닥 그림과 덮개 그림은 프레임을 그대로 채운다(늘림). 덮개는 같은 크기로 위에 놓는다.
+  - **칸 자리**: `left = x·프레임너비`, `top = y·프레임높이`, 크기는 `width·프레임너비 × height·프레임높이`.
+  - **칸 모양**: 칸 가운데 기준 `rotate(rotation deg)`, 모서리 `radius × 칸 너비(px)`, `overflow: hidden`.
+  - **칸 안**: 사진은 `cover`. 칸 배경은 늘 `#46382533`(앱 text20).
+  - **빈 칸**: 가운데에 사진 아이콘을 놓는다. 크기는 `max(8, min(칸너비, 칸높이) × 16/40)` px, 색은 앱 text40 이다. 아이콘은 lucide `Image` 로 대신한다.
+  - **토글** `예시 사진`/`빈 칸`: 예시 사진은 회색 그라데이션을 `cover` 로 채운다.
+  - **앱이 버리는 칸**: 키 형식 위반, 범위 밖, 중복 키(뒤의 것)는 앱이 그 칸만 버린다. 칸 0개·11개 이상이거나 version ≠ 1 이면 대표 그림으로 돌아간다. 저장 전 `slotProblems` 가 이걸 모두 막으므로 미리보기는 따로 처리하지 않는다.
 
 - [ ] **Step 1:** `containRect` 테스트를 쓴다.
   - 상자 `154×69`, 그림 `420×200`
