@@ -320,6 +320,20 @@ test('elements not starting with slot are ignored', () => {
   );
 });
 
+test('a group named like slots or SlotLayer is ignored, but slot followed by a non-letter is a bad slot name', () => {
+  // 피그마는 레이어 이름을 id 로 내보낸다. 칸을 "slots" 그룹에 넣는 일이 흔하다.
+  assert.deepEqual(
+    only(svg([node('slots', {}, { tag: 'g' }), node('SlotLayer', {}, { tag: 'g' }), node('slot-a')])),
+    PLAIN,
+  );
+  for (const id of ['slot2', 'slot_a', 'Slot 1']) {
+    assert.ok(
+      rejected(svg([node('slot-a'), node(id)])).some((e) => e.startsWith(`${id}:`)),
+      id,
+    );
+  }
+});
+
 // ── 경고
 
 test('scale far from an integer 1–4 warns', () => {

@@ -27,6 +27,11 @@ export type SlotChange = { key: string; kind: 'moved' | 'resized' | 'aspect' | '
 type SlotsResult = { ok: true; slots: PhotoSlot[]; warnings: string[] } | { ok: false; errors: string[] };
 
 const SLOT_ID = /^slot-([a-z0-9]{1,8})$/;
+/**
+ * 칸 후보: "slot" 뒤에 글자가 오지 않는 id(slot-a, slot_a, slot2, Slot 1). 후보인데 SLOT_ID 가 아니면 거절한다.
+ * "slots"·"SlotLayer" 처럼 단어가 이어지면 칸을 담은 그룹 이름이라 무시한다(피그마는 레이어 이름을 id 로 낸다).
+ */
+export const SLOT_CANDIDATE = /^slot(?![a-z])/i;
 const NAME_RULE = '칸 이름은 소문자 slot-<영숫자 1–8>, 중복 금지';
 const FRAME_RULE = '바닥 그림과 같은 프레임에서 내보내 주세요';
 const NUMBER = /^\s*[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?\s*$/;
@@ -185,7 +190,7 @@ export function slotsFromSvg(
   const seen: Record<string, true> = {};
   let named = 0;
   for (const node of data.nodes) {
-    if (!/^slot/i.test(node.id)) continue;
+    if (!SLOT_CANDIDATE.test(node.id)) continue;
     const key = SLOT_ID.exec(node.id)?.[1];
     if (key === undefined || seen[key]) {
       errors.push(`${node.id}: ${NAME_RULE}`);

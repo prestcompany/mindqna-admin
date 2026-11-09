@@ -1,4 +1,4 @@
-import type { SvgData, SvgNode } from './slots-from-svg';
+import { SLOT_CANDIDATE, type SvgData, type SvgNode } from './slots-from-svg';
 
 const MAX_BYTES = 1_048_576;
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -49,7 +49,7 @@ export function extractSvg(text: string): SvgData | { error: string } {
         ids: id ? walk.ids.concat(id) : walk.ids,
       };
 
-      if (/^slot/i.test(id)) {
+      if (SLOT_CANDIDATE.test(id)) {
         const attrs: Record<string, string> = {};
         for (let j = 0; j < child.attributes.length; j++) attrs[child.attributes[j].name] = child.attributes[j].value;
         nodes.push({
