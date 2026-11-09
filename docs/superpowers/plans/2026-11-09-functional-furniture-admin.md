@@ -71,6 +71,8 @@
 - 사진 가구가 아닌 템플릿을 고칠 때 `featureConfig` 가 `null` 로 덮이면 안 된다. 기능 없는 템플릿의 수정 body 에는 `featureConfig` 가 없어야 한다. Task 1 테스트로 확인한다.
 - 칸을 끌어 그림 밖으로 내보내거나 너비를 0 으로 줄이면 서버가 400 을 낸다. 끌기·크기 계산이 `[0,1]` 안, 최소 크기 0.01 로 막아야 한다. Task 2 테스트로 확인한다.
 - SVG 를 불러오다 일부 칸에서 거절이 나면 편집기가 일부만 바뀌면 안 된다. 결과는 성공 아니면 실패 하나뿐이다. Task 4 테스트로 확인한다.
+- 그림 고르기 화면으로 바뀌어도 바닥·덮개 그림, 칸, 불러온 기준이 사라지면 안 된다. 사진 가구 상태는 모두 `InteriorForm` 이 들고, 자식 컴포넌트는 props 로만 받는다. Task 6 에서 지킨다.
+- 바닥 그림 없이, 또는 그림 크기를 아직 못 읽은 채 저장하면 서버가 typia 400 을 낸다. 저장 전에 `photoConfigProblems` 로 막는다. Task 2 테스트로 확인한다.
 - 산 템플릿에서 칸을 지우는 경로는 둘이다. 하나는 편집기의 삭제 버튼, 다른 하나는 SVG 덮어쓰기다. 둘 다 같은 `missingSlotKeys` 로 막는다. Task 2·Task 4 테스트로 확인한다.
 
 ---
@@ -83,7 +85,9 @@
   - `InteriorTemplate` 에 `feature`, `featureConfig`, `purchasedCount`, `baseUri`, `overlayUri` 를 추가한다.
   - `CreateInteriorTemplateParams` 에 `feature?`, `featureConfig?` 를 추가한다.
 - Modify: `src/client/types.ts` `SpacePetInteriorResult.interiorItems[]` 에 `contents` 를 추가한다. 형식은 Global Constraints 를 따른다.
-- Modify: `src/client/interior.ts`: `GetInteriorTemplatesParams.feature?: InteriorFeature[]` 를 query 로 넘긴다.
+- Modify: `src/client/interior.ts`: `GetInteriorTemplatesParams.feature?: InteriorFeature[]` 를 query 로 넘긴다. 배열은 `@base.ts` 의 `arrayFormat: 'repeat'` 로 `type` 과 같이 간다.
+- 서버가 새 필드를 아직 안 주는 경우를 견딘다. 화면에서는 `t.feature ?? 'none'`, `t.purchasedCount ?? 0` 으로 읽는다. 그래서 `InteriorTemplate` 의 새 필드는 optional 로 둔다.
+- `type PhotoAssetRef = { id: number; uri: string | null }` 를 둔다. 수정 화면의 바닥·덮개 그림은 `ImgItem` 이 아니라 이 타입이다. `ImgItem` 은 `uri: string`·`type`·`createdAt` 이 필수라 `baseUri` 가 null 인 경우를 담지 못한다.
 - Create: `src/lib/error-message.ts`
   - `toErrorMessage(err: unknown): string` 를 둔다.
   - `feature-flag-form.ts` 의 같은 함수를 여기로 옮기고, 거기서는 다시 export 한다.
@@ -109,7 +113,7 @@ test('feature furniture must be a paid item or an event', () => {
   assert.equal(featureTemplateProblems({ feature: 'photo', type: 'wall', price: 10 }).length, 1);
 });
 test('create sends feature and config; update never sends feature, and none never sends config', () => {
-  const config = { version: 1, baseImgId: 1, imgWidth: 420, imgHeight: 200, slots: [] } as const;
+  const config: PhotoFeatureConfig = { version: 1, baseImgId: 1, imgWidth: 420, imgHeight: 200, slots: [] };
   assert.deepEqual(toTemplateBody({ mode: 'create', feature: 'photo', config }), { feature: 'photo', featureConfig: config });
   assert.deepEqual(toTemplateBody({ mode: 'create', feature: 'none', config: null }), { feature: 'none' });
   assert.deepEqual(toTemplateBody({ mode: 'update', feature: 'photo', config }), { featureConfig: config });
@@ -137,9 +141,11 @@ test('ratioDiff', () => {
   - `slotProblems(slots: PhotoSlot[]): string[]`
     - 서버 규칙과 같다. 칸마다 `칸 <key>: …` 로 적는다.
     - 개수 규칙 위반은 `칸은 1–10개여야 합니다` 다.
-  - `nextSlotKey(slots: PhotoSlot[]): string`
-    - `a`…`z` 중 쓰지 않은 첫 글자를 쓴다.
-    - 다 쓰였으면 `s1`, `s2`, … 를 쓴다.
+  - `nextSlotKey(slots: PhotoSlot[]): string`: `a`…`z` 중 쓰지 않은 첫 글자다. 칸은 많아야 10개라 글자가 모자라지 않는다.
+  - `photoConfigProblems(draft: { base: PhotoAssetRef | null; imgWidth: number; imgHeight: number; slots: PhotoSlot[] }): string[]`
+    - 바닥 그림이 없거나 `uri` 가 null 이면 `바닥 그림을 고르세요`.
+    - `imgWidth`·`imgHeight` 가 0 이하이면 `바닥 그림 크기를 읽지 못했습니다`.
+    - 이어서 `slotProblems(slots)` 를 덧붙인다.
   - `newSlot(slots: PhotoSlot[]): PhotoSlot`
     - `{ key: nextSlotKey, x: 0.35, y: 0.35, width: 0.3, height: 0.3, rotation: 0, radius: 0 }`
   - `moveSlot(slot, dx, dy): PhotoSlot`
@@ -158,7 +164,8 @@ test('ratioDiff', () => {
     - key `'A'`, `'abcdefghi'`
     - 중복 키
     - 경계값 `x+width = 1`, rotation −45, radius 0.5 는 통과
-  - `nextSlotKey`: `[a,b,d]` → `c`. `a`–`z` 다 쓰면 `s1`.
+  - `nextSlotKey`: `[a,b,d]` → `c`.
+  - `photoConfigProblems`: 바닥 없음, `uri: null`, `imgWidth 0`, 칸 문제 하나, 모두 정상인 경우.
   - `moveSlot`: `(x 0.9, w 0.2)` 를 오른쪽으로 끌면 `x = 0.8`. 음수 이동은 0 에서 멈춘다.
   - `resizeSlot`
     - `se` 를 `(-1,-1)` 로 끌면 크기 `0.01`, 왼쪽 위는 그대로.
@@ -205,7 +212,8 @@ test('ratioDiff', () => {
 **Interfaces:**
 - Consumes: Task 2 의 `slotProblems`, `missingSlotKeys`, `round5`. Task 3 의 `parseTransform`, `multiply`.
 - Produces:
-  - `type SvgNode = { id: string; tag: string; attrs: Record<string, string>; ancestorTransforms: string[]; inNonRendered: boolean; usedByUse: boolean }`
+  - `type SvgNode = { id: string; tag: string; attrs: Record<string, string>; ancestorTransforms: string[]; ancestorStyleTransform: boolean; inNonRendered: boolean; usedByUse: boolean }`
+    - `ancestorStyleTransform`: 조상의 `style` 에 `transform` 이 있거나 `transform-origin` 속성이 있으면 true. 이 경우 거절한다.
   - `type SvgData = { root: { viewBox: string | null; width: string | null; height: string | null }; nodes: SvgNode[] }`
   - `slotsFromSvg(data: SvgData, image: { imgWidth: number; imgHeight: number }, existingKeys: string[], purchasedCount: number): { ok: true; slots: PhotoSlot[]; warnings: string[] } | { ok: false; errors: string[] }`
   - `slotChanges(prev: PhotoSlot[], next: PhotoSlot[]): { key: string; kind: 'moved' | 'resized' | 'aspect' | 'added' | 'removed' }[]`
@@ -218,16 +226,17 @@ test('ratioDiff', () => {
     - `matrix(...)`
     - 뒤집기 행렬(행렬식 < 0): 받는다.
     - 조상 `g` 의 `translate`
-    - 늘린 뒤 돌림: 받는다.
+    - 늘린 뒤 돌림 `transform="rotate(30) scale(2,1)"`: 받는다. 반대 순서 `scale(2,1) rotate(30)` 는 기울이기라 거절한다.
     - 90°: W·H 를 바꾸고 0° 로 만든다.
     - 180°: 0° 가 된다.
     - −174°: 6° 가 된다.
+    - 60°: W·H 를 바꾸고 −30° 가 된다. −60°: W·H 를 바꾸고 30° 가 된다. ∓90 부호 실수를 잡는다.
     - viewBox 시작이 `10 20 420 200` 인 경우
     - 정사각형이 아닌 viewBox 에서 30° 칸: 각도 30 이 그대로 나와야 한다.
     - `rx` 만 있으면 `ry` 도 같은 값으로 친다.
     - `rx > w/2` 이면 `w/2` 로 자른다.
     - `radius = min(rx', ry')/W`. 둘이 다르면 경고를 낸다.
-    - 경계 소수 오차 1e-7 은 경계값으로 맞춘다.
+    - 경계 소수 오차 1e-7 은 경계값으로 맞춘다. 맞추기는 반올림 전에 한다. 또 `x ≤ round5(1 − width)` 로 자른다. 그래야 그림 끝에 딱 붙은 칸이 `round5(x)+round5(w) = 1.00001` 로 거절되지 않는다.
     - 산 템플릿(`purchasedCount 3`, `existingKeys [a]`)에 `slot-a`·`slot-b`: 받는다.
   - **거절**
     - skew
@@ -242,8 +251,11 @@ test('ratioDiff', () => {
     - 0칸, 11칸
     - 범위 밖 칸: 메시지에 `돌리기 전 네모 기준` 이 들어가야 한다.
     - 산 템플릿에 `slot-b` 만 있음: `a` 가 빠졌으므로 거절한다.
-  - **무시**: `slot_a`(밑줄)는 `slot` 으로 시작하지만 `slot-` 규칙에 안 맞는다. 요청대로 거절한다. `frame-1` 처럼 `slot` 으로 시작하지 않는 요소는 무시한다.
-  - **경고**: 배율 `imgWidth/vbW = 2.5` 이면 경고한다. `stroke="#000"` 이면 경고한다.
+  - **거절**: `slot_a`(밑줄)는 `slot` 으로 시작하지만 `slot-` 규칙에 안 맞는다. 요청대로 거절한다.
+  - **무시**: `frame-1` 처럼 `slot` 으로 시작하지 않는 요소.
+  - **경고**
+    - 배율 `s = imgWidth/vbW` 가 1–4 정수에서 멀면(`|s − round(s)| > 0.05` 또는 범위 밖) 경고한다. 예: 2.5.
+    - `stroke="#000"` 이면 경고한다.
   - **결과 형태**: 거절이 하나라도 있으면 `ok:false` 이고 `errors` 에 칸별 이유를 담는다. 칸은 돌려주지 않는다.
   - **`slotChanges`**: x 가 바뀌면 `moved`, 너비가 바뀌면 `resized`, 비율이 10% 넘게 바뀌면 `aspect`, 새 키는 `added` 다.
 - [ ] **Step 2:** 테스트를 돌린다. FAIL 해야 한다.
@@ -269,6 +281,7 @@ test('ratioDiff', () => {
     - `ancestorTransforms` 는 뿌리 바로 아래부터 그 요소까지의 `transform` 이다. 자기 것도 넣는다.
     - `inNonRendered`: `defs`·`symbol`·`mask`·`clipPath`·`pattern`·`marker`·중첩 `svg` 조상이 있으면 true.
     - `usedByUse`: 어떤 `<use>` 의 `href`/`xlink:href` 가 `#id` 를 가리키면 true.
+    - `ancestorStyleTransform` 도 채운다(Task 4 형식).
 
 - [ ] **Step 1:** `checkSvgText` 테스트를 쓴다.
   - 1_048_577 바이트 → `칸 레이어만 켜고 다시 내보내 주세요`
@@ -285,10 +298,16 @@ test('ratioDiff', () => {
   - `containRect(box: {w,h}, img: {w,h}): { x, y, w, h }`
   - `FURNITURE_CELL = { w: 360 / 7, h: 360 / 7 / 1.5 }`
 - Test: `src/components/page/interior/photo/preview-math.test.ts`. 확인 사례: 가로로 긴 그림, 세로로 긴 그림, 같은 비율.
-- Create: `src/lib/image-size.ts`. `readImageSize(uri: string): Promise<{ width: number; height: number }>` 는 `new Image()` 의 `naturalWidth` 를 읽는다.
+- Create: `src/lib/image-size.ts`. `readImageSize(uri: string): Promise<{ width: number; height: number }>` 는 `new Image()` 의 `naturalWidth` 를 읽는다. 읽지 못하면(`onerror`) reject 하고, 화면은 `그림 크기를 읽지 못했습니다` 를 보인다.
+- **상태는 모두 `InteriorForm` 이 든다.** 대상은 바닥·덮개 그림(`PhotoAssetRef`), `imgWidth`·`imgHeight`, `slots`, `importedFor`, 세 그림의 원본 크기다.
+  - `InteriorForm.tsx:242-253` 은 그림 고르기 화면으로 바뀔 때 폼 본문을 통째로 내린다. 그래서 자식 컴포넌트에 둔 상태는 사라진다.
+  - 한 훅 `usePhotoDraft(init)` 로 묶어 `InteriorForm` 에서 부르고, 네 컴포넌트는 props 로만 받는다.
+  - `importedFor` 도 이 훅에 둔다. 그래서 Task 6 이 Task 7 에 기대지 않는다.
 - Create: `src/components/page/interior/photo/PhotoImagesField.tsx`
   - 바닥·덮개 그림을 `AssetsPickerPanel` 로 고른다.
   - 바닥을 고르면 `readImageSize` 로 `imgWidth`·`imgHeight` 를 채운다.
+    - 대표 그림과 덮개 그림도 원본 크기를 읽어야 경고 두 가지를 낼 수 있다. 세 그림 모두 읽는다.
+    - 수정 화면은 다르게 한다. `imgWidth`·`imgHeight` 는 다시 읽지 않고 `init.featureConfig` 값을 쓴다. 바닥을 새로 고를 때만 읽는다.
   - 경고 두 가지를 보인다.
     - 대표 그림과 바닥의 `ratioDiff > 0.01`
     - 덮개와 바닥의 px 크기 다름
@@ -297,10 +316,11 @@ test('ratioDiff', () => {
 - Create: `src/components/page/interior/photo/SlotEditor.tsx`
   - 바닥 그림 위에 칸 네모를 그린다.
   - pointer 이벤트로 끌면 `moveSlot`, 모서리 손잡이로 끌면 `resizeSlot` 을 부른다. 픽셀 이동량은 그림의 화면 크기로 나눠 0–1 단위로 바꾼다.
+  - 끌기와 손잡이는 **돌리기 전 네모**(서버가 범위를 재는 네모)에 둔다. 돌린 모양은 반투명 채움으로만 겹쳐 보인다. 돌린 모양에 손잡이를 달면 축 기준 `resizeSlot` 과 어긋나 손잡이가 포인터에서 멀어진다.
   - 고른 칸은 숫자 입력으로도 고친다. 대상은 x, y, 너비, 높이, 기울기, 모서리다.
   - `칸 추가` 버튼은 10개가 되면 끈다.
   - 칸 삭제: `purchasedCount > 0` 이고 그 키가 저장된 설정에 있으면 버튼을 끄고 `산 공간 N곳의 사진이 끊깁니다` 를 툴팁에 보인다.
-  - 칸 키 칩은 키보드로 고를 수 있게 한다(Tab, 화살표로 1% 이동).
+  - 칸 키 칩은 버튼이라 Tab 으로 고를 수 있다(DESIGN.md 의 focus 규칙). 화살표로 옮기는 기능은 요청에 없어 만들지 않는다. 키보드로는 숫자 입력으로 고친다.
 - Create: `src/components/page/interior/photo/PhotoPreview.tsx`
   - 앱 렌더링 규칙과 같게 그린다. 출처는 MindBridge `src/features/space/bases/FurniturePicture.tsx`, `utils/photoFeature.ts` 이고, 앱 세션이 2026-11-09 에 알려 줬다.
   - **프레임**: 가구 칸 상자(`width × height` 칸) 안에 바닥 그림 비율(`imgWidth/imgHeight`)의 프레임을 `contain`, 가운데로 놓는다(`containRect`).
@@ -329,7 +349,11 @@ test('ratioDiff', () => {
   - 실패하면 이유 목록을 대화상자로 보이고, 편집기는 그대로 둔다.
   - 성공했는데 칸이 이미 있으면 덮어쓰기 확인 창을 띄운다. 창에는 `slotChanges` 표와 경고를 보인다.
   - 확인하면 `onImport(slots)` 를 부른다.
-  - 밖으로 내보내는 상태: `importedFor: { imgWidth, imgHeight } | null`. Task 6 의 다시 불러오기 경고에 쓴다.
+  - `slotsFromSvg` 의 `existingKeys` 에는 **저장된** `init.featureConfig.slots` 의 키를 넘긴다. 편집기에 지금 있는 키를 넘기면 안 된다.
+    - 서버가 비교하는 `prev` 와 Task 6 의 삭제 규칙이 모두 저장된 키 기준이다.
+    - 새로 만드는 템플릿이면 `[]` 를 넘긴다.
+    - 편집기 키를 넘기면, 아직 저장하지 않은 칸이 빠진 SVG 까지 잘못 거절한다.
+  - 불러오기에 성공하면 `usePhotoDraft` 의 `importedFor` 를 `{ imgWidth, imgHeight }` 로 정한다. Task 6 의 `칸 다시 불러오기` 경고가 이 값을 쓴다.
 
 - [ ] **Step 1:** 컴포넌트를 만든다. 순수 로직은 Task 4·5 에 이미 테스트가 있다.
 - [ ] **Step 2: 브라우저에서 손으로 확인한다.** `pnpm dev` 를 띄우고 어드민 계정으로 로그인한 뒤 확인한다.
@@ -347,11 +371,14 @@ test('ratioDiff', () => {
   - **기능 선택**: `기능` 라디오를 둔다. `board`·`message` 는 비활성이다. 만들 때만 고를 수 있고, 수정 화면에서는 읽기 전용 배지로 보인다.
   - **사진 가구 묶음**: `photo` 일 때만 `PhotoImagesField`, `SlotEditor`, `SvgSlotImport`, `PhotoPreview` 를 보인다.
   - **저장 순서**
-    1. `featureTemplateProblems` 와 `slotProblems` 를 확인한다. 문제가 있으면 toast 로 보이고 저장을 막는다.
+    1. `featureTemplateProblems` 와 `photoConfigProblems` 를 확인한다. 문제가 있으면 toast 로 보이고 저장을 막는다.
     2. `toTemplateBody` 를 body 에 펼친다.
     3. 수정 화면에서 산 템플릿이면 `missingSlotKeys(init.featureConfig.slots, slots)` 가 비어야 한다.
     4. 에러는 `toErrorMessage` 로 보인다.
-  - **수정 화면 초기값**: `init.featureConfig` 의 슬롯을 쓴다. 바닥·덮개 그림은 `{ id: baseImgId, uri: init.baseUri }` 로 채운다.
+  - **수정 화면 초기값**
+    - 칸은 `init.featureConfig?.slots ?? []` 를 쓴다.
+    - 바닥·덮개 그림은 `PhotoAssetRef` 로 채운다. 값은 `{ id: baseImgId, uri: init.baseUri ?? null }` 이다.
+    - `baseUri` 가 null 이면 안내한다. 이 경우는 설정이 깨졌거나 에셋이 asset 종류가 아닐 때다. 안내 문구는 `바닥 그림을 다시 고르세요` 이고, 미리보기와 SVG 불러오기는 끈다.
 - Modify: `src/components/page/interior/InteriorList.tsx`
   - `기능` 칸을 둔다. 배지는 `FEATURE_LABEL` 이고 `none` 이면 `-` 다.
   - `기능` 필터를 두고 `feature` query 로 보낸다.
@@ -384,3 +411,6 @@ test('ratioDiff', () => {
   - 공간 상세 칸별 사진
 - [ ] **Step 2:** `앱 기능 관리` 화면에 `공간 > 기능 가구` 가 `공간` 묶음의 `기능 가구` 로 자동으로 보이는지 확인한다. 서버 키 라벨 `공간 > 기능 가구` 는 `splitLabel` 로 이름 `기능 가구`, 보조 줄 `공간` 이 된다. 코드 변경은 없을 것이다.
 - [ ] **Step 3:** 계약이 서버 코드와 다르면 Task 1 타입을 고쳐 커밋한다. `pnpm build` 를 돌리고 PR 을 연다.
+- [ ] **Step 4 (머지 조건):** 서버가 **prod 와 China 에 배포된 뒤에만** 어드민 PR 을 머지한다.
+  - 서버 typia(`validate: "assert"`)는 모르는 body 키를 무시한다.
+  - 그래서 서버보다 먼저 나가면 사진 가구로 만든 템플릿이 조용히 일반 가구로 저장된다.
