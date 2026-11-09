@@ -1,5 +1,5 @@
 import { removeInteriorTemplate } from '@/client/interior';
-import { ImgItem, InteriorTemplate, InteriorTemplateType } from '@/client/types';
+import { ImgItem, InteriorFeature, InteriorTemplate, InteriorTemplateType } from '@/client/types';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
 import DataTable from '@/components/shared/ui/data-table';
@@ -10,6 +10,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
+  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -28,12 +29,15 @@ import { useState } from 'react';
 import { useResetOnChange } from '@/hooks/useResetOnChange';
 import { toast } from 'sonner';
 import InteriorForm from './InteriorForm';
+import { FEATURE_LABEL, OPEN_FEATURES } from './photo/template-rules';
+import { toErrorMessage } from '@/lib/error-message';
 
 function InteriorList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<{
     room?: string;
     type?: InteriorTemplateType[];
+    feature?: InteriorFeature[];
   }>({});
   const [searchInput, setSearchInput] = useState('');
   const debouncedSearch = useDebouncedValue(searchInput, 500);
@@ -52,10 +56,11 @@ function InteriorList() {
     page: currentPage,
     room: filter.room,
     type: filter.type,
+    feature: filter.feature,
     search: effectiveSearch,
   });
 
-  useResetOnChange([filter.room, filter.type, effectiveSearch], () => setCurrentPage(1));
+  useResetOnChange([filter.room, filter.type, filter.feature, effectiveSearch], () => setCurrentPage(1));
 
   const handleEdit = (value: InteriorTemplate) => {
     setFocused(value);
@@ -73,7 +78,7 @@ function InteriorList() {
       await removeInteriorTemplate(confirmTarget.id);
       await refetch();
     } catch (err) {
-      toast.error(`${err}`);
+      toast.error(toErrorMessage(err));
     }
     setConfirmOpen(false);
     setConfirmTarget(undefined);
@@ -121,6 +126,19 @@ function InteriorList() {
       accessorKey: 'type',
       header: '타입',
       size: 110,
+    },
+    {
+      id: 'feature',
+      header: '기능',
+      size: 90,
+      cell: ({ row }) => {
+        const feature = row.original.feature ?? 'none';
+        return feature === 'none' ? (
+          <span className='text-sm text-muted-foreground'>-</span>
+        ) : (
+          <Badge variant='softInfo'>{FEATURE_LABEL[feature]}</Badge>
+        );
+      },
     },
     {
       accessorKey: 'room',
@@ -193,6 +211,12 @@ function InteriorList() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>삭제 {confirmTarget?.name}</AlertDialogTitle>
+            {confirmTarget?.purchasedCount ? (
+              <AlertDialogDescription>
+                산 공간 {confirmTarget.purchasedCount}곳의 소유
+                {confirmTarget.feature === 'photo' ? '와 사진이' : '가'} 함께 지워집니다.
+              </AlertDialogDescription>
+            ) : null}
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>취소</AlertDialogCancel>
@@ -245,6 +269,27 @@ function InteriorList() {
             <SelectItem value='floor'>바닥</SelectItem>
             <SelectItem value='todayFrame'>오늘 프레임</SelectItem>
             <SelectItem value='event'>이벤트</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={(filter.feature ?? [])?.[0] ?? '__all__'}
+          onValueChange={(value) =>
+            setFilter((prev) => ({
+              ...prev,
+              feature: value === '__all__' ? undefined : [value as InteriorFeature],
+            }))
+          }
+        >
+          <SelectTrigger className={`w-[130px] ${FILTER_CONTROL_CLASS}`} aria-label='기능'>
+            <SelectValue placeholder='기능' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='__all__'>전체 기능</SelectItem>
+            {OPEN_FEATURES.map((f) => (
+              <SelectItem key={f} value={f}>
+                {FEATURE_LABEL[f]}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <div className='flex-1' />
