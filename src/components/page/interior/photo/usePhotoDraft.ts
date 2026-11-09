@@ -1,6 +1,6 @@
 import type { ImgItem, InteriorTemplate, PhotoAssetRef, PhotoFeatureConfig, PhotoSlot } from '@/client/types';
 import { readImageSize } from '@/lib/image-size';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { photoWarnings } from './preview-math';
 
 type Size = { width: number; height: number };
@@ -10,7 +10,9 @@ type Size = { width: number; height: number };
  * 폼은 그림 고르기 화면으로 바뀔 때 본문을 통째로 내리므로, 자식에 둔 상태는 사라진다.
  */
 export function usePhotoDraft(init: InteriorTemplate | undefined, representativeUri: string | undefined) {
-  const saved = init?.feature === 'photo' ? (init.featureConfig ?? null) : null;
+  // 손으로 고친 설정(slots 가 배열이 아님)은 서버도 baseUri 를 null 로 준다. 저장된 값이 없는 것처럼 다룬다.
+  const config = init?.feature === 'photo' ? init.featureConfig : null;
+  const saved = config && Array.isArray(config.slots) ? config : null;
 
   const [base, setBaseRef] = useState<PhotoAssetRef | null>(
     saved ? { id: saved.baseImgId, uri: init?.baseUri ?? null } : null,
@@ -27,8 +29,15 @@ export function usePhotoDraft(init: InteriorTemplate | undefined, representative
   const [representativeSize, setRepresentativeSize] = useState<Size | null>(null);
   const [slots, setSlots] = useState<PhotoSlot[]>(saved?.slots ?? []);
   const [selectedKey, setSelectedKey] = useState<string | null>(saved?.slots[0]?.key ?? null);
-  /** 칸 SVG 를 불러온 때의 바닥 그림 크기. 그 뒤 비율이 바뀌면 다시 불러오라고 알린다. */
-  const [importedFor, setImportedFor] = useState<Size | null>(null);
+  /**
+   * 칸이 맞춰진 바닥 그림 크기. 칸 SVG 를 불러오면 그때 크기, 수정 화면이면 저장된 크기다.
+   * 그 뒤 바닥을 바꿔 비율이 달라지면 다시 불러오라고 알린다.
+   */
+  const [importedFor, setImportedFor] = useState<Size | null>(
+    saved?.slots.length ? { width: saved.imgWidth, height: saved.imgHeight } : null,
+  );
+  /** 바닥 그림을 연달아 고르면 늦게 끝난 앞 그림의 크기가 덮어쓰지 않게 마지막 요청만 받는다. */
+  const baseRequest = useRef(0);
 
   const savedKeys = useMemo(() => saved?.slots.map((s) => s.key) ?? [], [saved]);
   const purchasedCount = init?.purchasedCount ?? 0;
@@ -56,12 +65,13 @@ export function usePhotoDraft(init: InteriorTemplate | undefined, representative
   }, [overlay?.uri]);
 
   const pickBase = (img: ImgItem) => {
+    const request = ++baseRequest.current;
     setBaseRef({ id: img.id, uri: img.uri });
     setBaseSize(null);
     setBaseSizeError(false);
     readImageSize(img.uri)
-      .then(setBaseSize)
-      .catch(() => setBaseSizeError(true));
+      .then((size) => request === baseRequest.current && setBaseSize(size))
+      .catch(() => request === baseRequest.current && setBaseSizeError(true));
   };
 
   const pickOverlay = (img: ImgItem | null) => {

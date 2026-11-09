@@ -40,10 +40,20 @@ function SvgSlotImport({ draft }: SvgSlotImportProps) {
   const ready = Boolean(draft.base?.uri) && draft.imgWidth > 0;
 
   const read = async (file: File) => {
-    const text = await file.text();
+    let text: string;
+    try {
+      text = await file.text();
+    } catch {
+      return setErrors(['SVG 파일이 아닙니다']);
+    }
     const rejected = checkSvgText(file.size, text);
     if (rejected) return setErrors([rejected]);
-    const data = extractSvg(text);
+    let data: ReturnType<typeof extractSvg>;
+    try {
+      data = extractSvg(text);
+    } catch {
+      return setErrors(['SVG 파일이 아닙니다']);
+    }
     if ('error' in data) return setErrors([data.error]);
     // 산 공간 보호는 저장된 키 기준이다(서버가 비교하는 값). 편집 중에 더한 칸은 빠져도 된다.
     const result = slotsFromSvg(

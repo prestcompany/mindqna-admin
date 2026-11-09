@@ -220,7 +220,15 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
       }
     }
     if (problems.length) {
-      toast.error(problems.join('\n'));
+      toast.error('저장할 수 없습니다', {
+        description: (
+          <ul className='list-disc space-y-0.5 pl-4'>
+            {problems.map((p) => (
+              <li key={p}>{p}</li>
+            ))}
+          </ul>
+        ),
+      });
       return;
     }
     const featureBody = toTemplateBody({

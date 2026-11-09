@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { PhotoSlot } from '@/client/types';
 import {
+  commitSlotNumber,
   missingSlotKeys,
   moveSlot,
   newSlot,
@@ -78,6 +79,27 @@ test('photoConfigProblems', () => {
     '칸 a: 모서리는 0–0.5 여야 합니다',
   ]);
   assert.deepEqual(photoConfigProblems({ base, imgWidth: 420, imgHeight: 200, slots }), []);
+  // 저장된 덮개 그림 에셋을 서버가 못 찾으면 그대로 보내면 400 이다.
+  assert.deepEqual(photoConfigProblems({ base, overlay: { id: 9, uri: null }, imgWidth: 420, imgHeight: 200, slots }), [
+    '덮개 그림을 다시 고르거나 빼세요',
+  ]);
+  assert.deepEqual(
+    photoConfigProblems({ base, overlay: { id: 9, uri: 'https://cdn/o.png' }, imgWidth: 420, imgHeight: 200, slots }),
+    [],
+  );
+});
+
+test('commitSlotNumber clamps to the field range and rounds, and ignores text that is not a number', () => {
+  assert.equal(commitSlotNumber('width', '5'), 1);
+  assert.equal(commitSlotNumber('x', '-0.2'), 0);
+  assert.equal(commitSlotNumber('rotation', '-10'), -10);
+  assert.equal(commitSlotNumber('rotation', '90'), 45);
+  assert.equal(commitSlotNumber('radius', '0.6'), 0.5);
+  assert.equal(commitSlotNumber('width', '0.1234567'), 0.12346);
+  assert.equal(commitSlotNumber('width', '0'), 0.01);
+  assert.equal(commitSlotNumber('rotation', '-'), null);
+  assert.equal(commitSlotNumber('x', ''), null);
+  assert.equal(commitSlotNumber('x', 'abc'), null);
 });
 
 test('moveSlot keeps the slot inside the image', () => {
@@ -91,6 +113,11 @@ test('moveSlot keeps the slot inside the image', () => {
 test('moveSlot to the far edge stays valid', () => {
   const s = moveSlot(slot({ x: 0.1, width: 0.33333 }), 5, 5);
   assert.deepEqual(slotProblems([s]), []);
+  // 너비가 5자리보다 길어도(손으로 넣은 값) 끝에 붙였을 때 1 을 넘지 않는다.
+  for (const width of [0.3333333, 0.2000049, 0.7777777]) {
+    const edge = moveSlot(slot({ x: 0, y: 0, width, height: width }), 5, 5);
+    assert.ok(edge.x + width <= 1 && edge.y + width <= 1, String(width));
+  }
 });
 
 test('resizeSlot keeps the opposite corner and a 0.01 minimum', () => {

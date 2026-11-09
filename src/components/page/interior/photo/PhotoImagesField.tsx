@@ -49,6 +49,9 @@ function PhotoImagesField({ draft, onPick }: PhotoImagesFieldProps) {
       >
         <div className='flex flex-col items-start gap-2'>
           {overlay ? <Thumb uri={overlay.uri} alt='덮개 그림' /> : null}
+          {overlay && overlay.uri === null ? (
+            <p className='text-sm text-destructive'>덮개 그림을 다시 고르거나 빼세요.</p>
+          ) : null}
           <div className='flex gap-2'>
             <Button type='button' variant='outline' size='sm' onClick={() => onPick('overlay')}>
               {overlay ? '덮개 그림 바꾸기' : '덮개 그림 고르기'}

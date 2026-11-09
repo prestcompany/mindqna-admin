@@ -4,30 +4,86 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Plus, Trash2 } from 'lucide-react';
-import { useRef, type PointerEvent as ReactPointerEvent } from 'react';
-import { moveSlot, newSlot, resizeSlot, slotProblems } from './slot-rules';
+import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import {
+  commitSlotNumber,
+  moveSlot,
+  newSlot,
+  resizeSlot,
+  SLOT_NUMBER_RANGE,
+  slotProblems,
+  type SlotNumberField,
+} from './slot-rules';
 import type { PhotoDraft } from './usePhotoDraft';
 
 type Corner = 'nw' | 'ne' | 'sw' | 'se';
 const CORNERS: Corner[] = ['nw', 'ne', 'sw', 'se'];
 const MAX_SLOTS = 10;
 
+// 손잡이는 24px 누르는 자리 가운데에 12px 점을 그린다(DESIGN.md 최소 누름 크기).
 const CORNER_POSITION: Record<Corner, string> = {
-  nw: '-left-1.5 -top-1.5 cursor-nwse-resize',
-  ne: '-right-1.5 -top-1.5 cursor-nesw-resize',
-  sw: '-bottom-1.5 -left-1.5 cursor-nesw-resize',
-  se: '-bottom-1.5 -right-1.5 cursor-nwse-resize',
+  nw: '-left-3 -top-3 cursor-nwse-resize',
+  ne: '-right-3 -top-3 cursor-nesw-resize',
+  sw: '-bottom-3 -left-3 cursor-nesw-resize',
+  se: '-bottom-3 -right-3 cursor-nwse-resize',
 };
 
-type NumberField = { key: keyof PhotoSlot; label: string; min: number; max: number; step: number };
+type NumberField = { key: SlotNumberField; label: string; step: number };
 const NUMBER_FIELDS: NumberField[] = [
-  { key: 'x', label: 'x', min: 0, max: 1, step: 0.001 },
-  { key: 'y', label: 'y', min: 0, max: 1, step: 0.001 },
-  { key: 'width', label: '너비', min: 0, max: 1, step: 0.001 },
-  { key: 'height', label: '높이', min: 0, max: 1, step: 0.001 },
-  { key: 'rotation', label: '기울기(도)', min: -45, max: 45, step: 1 },
-  { key: 'radius', label: '모서리', min: 0, max: 0.5, step: 0.01 },
+  { key: 'x', label: 'x', step: 0.001 },
+  { key: 'y', label: 'y', step: 0.001 },
+  { key: 'width', label: '너비', step: 0.001 },
+  { key: 'height', label: '높이', step: 0.001 },
+  { key: 'rotation', label: '기울기(도)', step: 1 },
+  { key: 'radius', label: '모서리', step: 0.01 },
 ];
+
+/**
+ * 쓰는 동안은 글 그대로 두고, 칸을 떠나거나 Enter 를 누르면 범위로 잘라 확정한다.
+ * 바로 반영하면 '-'·'0.' 같은 쓰는 중의 글이 되돌려지거나 0 이 들어간다.
+ */
+function SlotNumberInput({
+  id,
+  field,
+  value,
+  step,
+  onCommit,
+}: {
+  id: string;
+  field: SlotNumberField;
+  value: number;
+  step: number;
+  onCommit: (n: number) => void;
+}) {
+  const [text, setText] = useState<string | null>(null);
+  const commit = () => {
+    if (text === null) return;
+    const n = commitSlotNumber(field, text);
+    if (n !== null) onCommit(n);
+    setText(null);
+  };
+  return (
+    <Input
+      id={id}
+      type='number'
+      inputMode='decimal'
+      min={SLOT_NUMBER_RANGE[field].min}
+      max={SLOT_NUMBER_RANGE[field].max}
+      step={step}
+      className='tabular-nums'
+      value={text ?? String(value)}
+      onFocus={() => setText(String(value))}
+      onChange={(e) => setText(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          commit();
+        }
+      }}
+    />
+  );
+}
 
 type SlotEditorProps = { draft: PhotoDraft };
 
@@ -100,9 +156,8 @@ function SlotEditor({ draft }: SlotEditorProps) {
           return (
             <div
               key={slot.key}
-              role='button'
-              aria-label={`칸 ${slot.key}`}
-              aria-pressed={active}
+              // 끌기는 마우스 전용이다. 키보드는 아래 칸 버튼과 숫자 칸으로 고친다.
+              aria-hidden='true'
               className={cn(
                 'absolute cursor-move border',
                 active ? 'z-10 border-primary' : 'border-dashed border-foreground/60',
@@ -133,16 +188,12 @@ function SlotEditor({ draft }: SlotEditorProps) {
                 ? CORNERS.map((corner) => (
                     <span
                       key={corner}
-                      aria-hidden='true'
-                      className={cn(
-                        'absolute h-3 w-3 rounded-sm border border-primary bg-background',
-                        CORNER_POSITION[corner],
-                      )}
+                      className={cn('absolute flex h-6 w-6 items-center justify-center', CORNER_POSITION[corner])}
+                      // 움직임·놓기는 칸 상자로 올라가 거기서 한 번만 처리한다.
                       onPointerDown={(e) => begin(e, slot, corner)}
-                      onPointerMove={move}
-                      onPointerUp={end}
-                      onPointerCancel={end}
-                    />
+                    >
+                      <span className='h-3 w-3 rounded-sm border border-primary bg-background' />
+                    </span>
                   ))
                 : null}
             </div>
@@ -173,25 +224,18 @@ function SlotEditor({ draft }: SlotEditorProps) {
           <div className='grid grid-cols-2 gap-3 sm:grid-cols-3'>
             {NUMBER_FIELDS.map((f) => {
               const id = `slot-${selected.key}-${f.key}`;
-              const value = selected[f.key] ?? 0;
               return (
                 <div key={f.key} className='space-y-1.5'>
                   <Label htmlFor={id} className='text-xs text-muted-foreground'>
                     {f.label}
                   </Label>
-                  <Input
+                  <SlotNumberInput
+                    key={`${selected.key}-${f.key}`}
                     id={id}
-                    type='number'
-                    inputMode='decimal'
-                    min={f.min}
-                    max={f.max}
+                    field={f.key}
+                    value={selected[f.key] ?? 0}
                     step={f.step}
-                    className='tabular-nums'
-                    value={value}
-                    onChange={(e) => {
-                      const n = Number(e.target.value);
-                      if (e.target.value !== '' && Number.isFinite(n)) replace({ ...selected, [f.key]: n });
-                    }}
+                    onCommit={(n) => replace({ ...selected, [f.key]: n })}
                   />
                 </div>
               );

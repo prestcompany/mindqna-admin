@@ -51,6 +51,8 @@ export function nextSlotKey(slots: PhotoSlot[]): string {
 /** 저장 전 확인. 바닥 그림이나 크기가 없으면 서버가 typia 400 을 낸다. */
 export function photoConfigProblems(draft: {
   base: PhotoAssetRef | null;
+  /** 저장된 덮개 에셋을 서버가 못 찾으면 uri 가 null 이다. 그대로 보내면 서버가 "에셋 N 이 없습니다" 400 을 낸다. */
+  overlay?: PhotoAssetRef | null;
   imgWidth: number;
   imgHeight: number;
   slots: PhotoSlot[];
@@ -58,6 +60,7 @@ export function photoConfigProblems(draft: {
   const problems: string[] = [];
   if (!draft.base || draft.base.uri === null) problems.push('바닥 그림을 고르세요');
   if (!(draft.imgWidth > 0) || !(draft.imgHeight > 0)) problems.push('바닥 그림 크기를 읽지 못했습니다');
+  if (draft.overlay && draft.overlay.uri === null) problems.push('덮개 그림을 다시 고르거나 빼세요');
   return [...problems, ...slotProblems(draft.slots)];
 }
 
@@ -65,13 +68,38 @@ export function newSlot(slots: PhotoSlot[]): PhotoSlot {
   return { key: nextSlotKey(slots), x: 0.35, y: 0.35, width: 0.3, height: 0.3, rotation: 0, radius: 0 };
 }
 
+/** 5자리로 내린다. 끝에 붙인 칸의 시작을 올림하면 시작+크기가 1 을 넘는다. */
+const floor5 = (n: number) => Math.floor(n * 1e5 + 1e-9) / 1e5 + 0;
+
 /** 0–1 단위로 옮기고 그림 안으로 자른다. */
 export function moveSlot(slot: PhotoSlot, dx: number, dy: number): PhotoSlot {
-  return {
-    ...slot,
-    x: round5(clamp(slot.x + dx, 0, 1 - slot.width)),
-    y: round5(clamp(slot.y + dy, 0, 1 - slot.height)),
+  const axis = (start: number, size: number, delta: number) => {
+    const limit = floor5(1 - size);
+    return Math.min(round5(clamp(start + delta, 0, 1 - size)), limit);
   };
+  return { ...slot, x: axis(slot.x, slot.width, dx), y: axis(slot.y, slot.height, dy) };
+}
+
+/** 칸 숫자 칸의 범위. 서버 범위와 같고, 너비·높이는 최소 크기를 지킨다. */
+export const SLOT_NUMBER_RANGE = {
+  x: { min: 0, max: 1 },
+  y: { min: 0, max: 1 },
+  width: { min: MIN_SIZE, max: 1 },
+  height: { min: MIN_SIZE, max: 1 },
+  rotation: { min: -45, max: 45 },
+  radius: { min: 0, max: 0.5 },
+} as const;
+
+export type SlotNumberField = keyof typeof SLOT_NUMBER_RANGE;
+
+/** 숫자 칸에 쓴 글을 확정한다. 숫자가 아니면 null(입력 중인 '-'·'' 등), 숫자면 범위로 자르고 5자리로 맞춘다. */
+export function commitSlotNumber(field: SlotNumberField, raw: string): number | null {
+  const text = raw.trim();
+  if (!text) return null;
+  const n = Number(text);
+  if (!Number.isFinite(n)) return null;
+  const { min, max } = SLOT_NUMBER_RANGE[field];
+  return round5(clamp(n, min, max));
 }
 
 /** 한 축의 [시작, 끝] 중 한쪽만 움직인다. 반대쪽은 고정, 최소 크기와 [0, 1] 을 지킨다. */

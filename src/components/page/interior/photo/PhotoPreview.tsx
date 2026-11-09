@@ -39,7 +39,8 @@ function PhotoPreview({ cells, imgWidth, imgHeight, baseUri, overlayUri, slots }
         </Button>
       </div>
       <div
-        className='relative rounded-md border border-dashed border-border bg-canvas'
+        // 테두리는 outline 으로 그려 상자 크기(360px 기준)에 더해지지 않게 한다.
+        className='relative rounded-md bg-canvas outline-dashed outline-1 outline-border'
         style={{ width: box.w, height: box.h }}
         aria-label='가구 미리보기'
         role='img'

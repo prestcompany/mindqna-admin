@@ -213,7 +213,8 @@ function InteriorList() {
             <AlertDialogTitle>삭제 {confirmTarget?.name}</AlertDialogTitle>
             {confirmTarget?.purchasedCount ? (
               <AlertDialogDescription>
-                산 공간 {confirmTarget.purchasedCount}곳의 소유와 사진이 함께 지워집니다.
+                산 공간 {confirmTarget.purchasedCount}곳의 소유
+                {confirmTarget.feature === 'photo' ? '와 사진이' : '가'} 함께 지워집니다.
               </AlertDialogDescription>
             ) : null}
           </AlertDialogHeader>
