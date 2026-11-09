@@ -1,6 +1,6 @@
 import { createInteriorTemplate, updateInteriorTemplate } from '@/client/interior';
 import { createLocale } from '@/client/locale';
-import { ImgItem, InteriorTemplate, InteriorTemplateType } from '@/client/types';
+import { ImgItem, InteriorFeature, InteriorTemplate, InteriorTemplateType } from '@/client/types';
 import FormSection from '@/components/shared/form/ui/form-section';
 import { DefinitionRow, PanelBand } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
@@ -11,12 +11,21 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import useTotalRooms from '@/hooks/useTotalRooms';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Badge } from '@/components/ui/badge';
+import { toErrorMessage } from '@/lib/error-message';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { AssetsPickerButton, AssetsPickerPanel } from '../assets/AssetsPicker';
+import PhotoImagesField from './photo/PhotoImagesField';
+import PhotoPreview from './photo/PhotoPreview';
+import { missingSlotKeys, photoConfigProblems } from './photo/slot-rules';
+import SlotEditor from './photo/SlotEditor';
+import SvgSlotImport from './photo/SvgSlotImport';
+import { FEATURE_LABEL, featureTemplateProblems, OPEN_FEATURES, toTemplateBody } from './photo/template-rules';
+import { usePhotoDraft } from './photo/usePhotoDraft';
 
 const schema = z.object({
   name: z.string().min(1, '필수'),
@@ -63,6 +72,12 @@ const premiumOptions = [
   { label: '하트', value: 'false' },
 ];
 
+const featureOptions = (Object.keys(FEATURE_LABEL) as InteriorFeature[]).map((value) => ({
+  value,
+  label: FEATURE_LABEL[value],
+  disabled: !OPEN_FEATURES.includes(value),
+}));
+
 const activeOptions = [
   { label: '활성화', value: 'true' },
   { label: '비활성화', value: 'false' },
@@ -74,7 +89,11 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
   const [image, setImage] = useState<ImgItem>();
   // A step inside this same sheet, not a second overlay on top of it — picking swaps this
   // whole body for the grid, and the form's own state isn't touched by the swap.
-  const [pickingImage, setPickingImage] = useState(false);
+  const [picking, setPicking] = useState<'img' | 'base' | 'overlay' | null>(null);
+  // 기능은 만들 때만 고른다. 수정 화면에서는 서버 값을 보여 주기만 한다.
+  const [feature, setFeature] = useState<InteriorFeature>(init?.feature ?? 'none');
+  // 사진 가구 상태는 여기서 든다. 그림 고르기 화면으로 바뀌어도 사라지지 않는다.
+  const photo = usePhotoDraft(init, image?.uri ?? init?.img?.uri);
   const [coords, setCoords] = useState<{ x: number; y: number }[]>([
     { x: 0, y: 5 },
     { x: 1, y: 5 },
@@ -182,11 +201,33 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
     });
   }, [init]);
 
+  const [cellWidth, cellHeight] = useWatch({ control: form.control, name: ['width', 'height'] });
+
   const save = async (values: FormValues) => {
     if (!image) {
       toast.warning('이미지를 선택해주세요');
       return;
     }
+    const problems = featureTemplateProblems({ feature, type: values.type, price: values.price });
+    if (feature === 'photo') {
+      problems.push(...photoConfigProblems(photo));
+      // 내용은 칸 키로 붙어 있다. 산 공간이 있으면 저장된 키를 지울 수 없다(서버도 같은 규칙).
+      const missing = photo.purchasedCount ? missingSlotKeys(init?.featureConfig?.slots ?? [], photo.slots) : [];
+      if (missing.length) {
+        problems.push(
+          `산 공간 ${photo.purchasedCount}곳의 사진이 끊깁니다. 칸 ${missing.join(', ')} 을(를) 지울 수 없습니다.`,
+        );
+      }
+    }
+    if (problems.length) {
+      toast.error(problems.join('\n'));
+      return;
+    }
+    const featureBody = toTemplateBody({
+      mode: focusedId ? 'update' : 'create',
+      feature,
+      config: feature === 'photo' ? photo.toConfig() : null,
+    });
     try {
       setLoading(true);
       const isPaid = values.isPremium === 'true';
@@ -206,6 +247,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
           price: values.price,
           type: values.type as InteriorTemplateType,
           width: values.width,
+          ...featureBody,
         });
       } else {
         await createInteriorTemplate({
@@ -220,6 +262,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
           price: values.price,
           type: values.type as InteriorTemplateType,
           width: values.width,
+          ...featureBody,
         });
         await createLocale({ key: values.name, locale: 'ko', value: values.valueKo ?? '' });
         await createLocale({ key: values.name, locale: 'en', value: values.valueEn ?? '' });
@@ -233,21 +276,23 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
       await reload();
       close();
     } catch (err) {
-      toast.error(`${err}`);
+      toast.error(toErrorMessage(err));
     } finally {
       setLoading(false);
     }
   };
 
-  if (pickingImage) {
+  if (picking) {
     return (
       <AssetsPickerPanel
-        selectedImage={image}
+        selectedImage={picking === 'img' ? image : undefined}
         onSelect={(img) => {
-          setImage(img);
-          setPickingImage(false);
+          if (picking === 'img') setImage(img);
+          else if (picking === 'base') photo.pickBase(img);
+          else photo.pickOverlay(img);
+          setPicking(null);
         }}
-        onBack={() => setPickingImage(false)}
+        onBack={() => setPicking(null)}
       />
     );
   }
@@ -271,7 +316,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                     <img src={image.uri} alt='interior-preview' className='h-full w-full object-contain' />
                   </div>
                 )}
-                <AssetsPickerButton onOpen={() => setPickingImage(true)} />
+                <AssetsPickerButton onOpen={() => setPicking('img')} />
               </div>
             </DefinitionRow>
 
@@ -346,6 +391,42 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                   </FormItem>
                 )}
               />
+            </DefinitionRow>
+
+            <DefinitionRow
+              label='기능'
+              hint={
+                focusedId ? '기능은 만든 뒤 바꿀 수 없습니다.' : '사진 가구는 가격이 있는 아이템이나 이벤트만 됩니다.'
+              }
+            >
+              {focusedId ? (
+                <Badge variant='softNeutral'>{FEATURE_LABEL[feature]}</Badge>
+              ) : (
+                <RadioGroup
+                  value={feature}
+                  onValueChange={(value) => setFeature(value as InteriorFeature)}
+                  aria-label='기능'
+                  className='grid grid-cols-2 gap-2 sm:grid-cols-4'
+                >
+                  {featureOptions.map((opt) => (
+                    <div key={opt.value}>
+                      <RadioGroupItem
+                        value={opt.value}
+                        id={`feature-${opt.value}`}
+                        disabled={opt.disabled}
+                        className='peer sr-only'
+                      />
+                      <Label
+                        htmlFor={`feature-${opt.value}`}
+                        className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-disabled:cursor-not-allowed peer-disabled:text-faint peer-disabled:hover:bg-background peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                      >
+                        {opt.label}
+                        {opt.disabled ? <span className='sr-only'> (준비 중)</span> : null}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              )}
             </DefinitionRow>
 
             <DefinitionRow label='카테고리' required>
@@ -519,6 +600,30 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                 )}
               />
             </DefinitionRow>
+            {feature === 'photo' ? (
+              <>
+                <PanelBand title='사진 가구' />
+                <PhotoImagesField draft={photo} onPick={setPicking} />
+                <DefinitionRow label='사진 칸' required hint='1–10개. 끌어서 옮기고 모서리로 크기를 바꿉니다.'>
+                  <div className='space-y-3'>
+                    <SvgSlotImport draft={photo} />
+                    <SlotEditor draft={photo} />
+                  </div>
+                </DefinitionRow>
+                {photo.base?.uri && photo.imgWidth > 0 ? (
+                  <DefinitionRow label='미리보기' hint='앱과 같은 순서로 그립니다: 바닥 그림, 칸, 덮개 그림.'>
+                    <PhotoPreview
+                      cells={{ width: Number(cellWidth) || 1, height: Number(cellHeight) || 1 }}
+                      imgWidth={photo.imgWidth}
+                      imgHeight={photo.imgHeight}
+                      baseUri={photo.base.uri}
+                      overlayUri={photo.overlay?.uri}
+                      slots={photo.slots}
+                    />
+                  </DefinitionRow>
+                ) : null}
+              </>
+            ) : null}
           </div>
 
           <FormSection title='배치 가능 좌표' description='클릭한 좌표는 배치 가능 영역으로 처리됩니다.'>
