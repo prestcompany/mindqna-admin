@@ -6,6 +6,7 @@ import type {
   UpdateFeatureFlagParams,
 } from '@/client/types';
 import { z } from 'zod';
+import { formatVersion, type VersionOption } from './app-versions';
 
 // 서버 컬럼이 INT 라 이보다 큰 버전 코드는 서버가 400 으로 막는다.
 const MAX_VERSION_CODE = 2147483647;
@@ -88,15 +89,16 @@ export function groupFlags(items: FeatureFlagItem[]): FeatureFlagGroup[] {
 const PLATFORM_LABEL: Record<FeatureFlagPlatform, string> = { ios: 'iOS만', android: 'Android만' };
 const FLAVOR_LABEL: Record<FeatureFlagFlavor, string> = { global: '화웨이 제외', huawei: '화웨이만' };
 
-// 제한이 없으면 null. 목록에는 제한이 걸린 기능만 표시한다.
-export function describeAudience(settings: AudienceFields): string | null {
+// 제한이 없으면 null. 목록에는 제한이 걸린 기능만 표시한다. 버전 목록을 주면 코드 대신 버전 이름으로 쓴다.
+export function describeAudience(settings: AudienceFields, versions?: VersionOption[]): string | null {
   const parts: string[] = [];
   if (settings.platforms.length === 1) parts.push(PLATFORM_LABEL[settings.platforms[0]]);
   if (settings.flavors.length === 1) parts.push(FLAVOR_LABEL[settings.flavors[0]]);
   const { minVersionCode: min, maxVersionCode: max } = settings;
-  if (min != null && max != null) parts.push(`버전 코드 ${min}–${max}`);
-  else if (min != null) parts.push(`버전 코드 ${min} 이상`);
-  else if (max != null) parts.push(`버전 코드 ${max} 이하`);
+  const label = (code: number) => (versions ? formatVersion(code, versions) : `버전 코드 ${code}`);
+  if (min != null && max != null) parts.push(versions ? `${label(min)} – ${label(max)}` : `버전 코드 ${min}–${max}`);
+  else if (min != null) parts.push(`${label(min)} 이상`);
+  else if (max != null) parts.push(`${label(max)} 이하`);
   return parts.length ? parts.join(' · ') : null;
 }
 

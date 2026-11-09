@@ -1,3 +1,4 @@
+import { getAppVersionPolicies } from '@/client/app-version';
 import { getFeatureFlags, updateFeatureFlag } from '@/client/feature-flags';
 import type { FeatureFlagItem } from '@/client/types';
 import {
@@ -17,7 +18,9 @@ import { useMutation, useMutationState, useQuery, useQueryClient } from '@tansta
 import { SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import AppVersionOverview from './AppVersionOverview';
 import FeatureFlagEditDialog from './FeatureFlagEditDialog';
+import { type VersionOption, versionOptions } from './services/app-versions';
 import {
   busyFlagKeys,
   describeAudience,
@@ -37,15 +40,16 @@ type ToggleVariables = PendingToggle & FeatureFlagPutVariables;
 
 type FlagRowProps = {
   item: FeatureFlagItem;
+  versions: VersionOption[];
   busy: boolean;
   onToggle: (next: boolean) => void;
   onEdit: () => void;
 };
 
-function FlagRow({ item, busy, onToggle, onEdit }: FlagRowProps) {
+function FlagRow({ item, versions, busy, onToggle, onEdit }: FlagRowProps) {
   const { name, hint } = splitLabel(item.label);
   const settings = effectiveSettings(item);
-  const audience = describeAudience(settings);
+  const audience = describeAudience(settings, versions);
   const enabled = settings.enabled;
   const switchId = `flag-${item.key}`;
 
@@ -99,6 +103,10 @@ function ListSkeleton() {
 function FeatureFlagsManager() {
   const queryClient = useQueryClient();
   const { data, isLoading, isError, error, refetch } = useQuery({ queryKey: QUERY_KEY, queryFn: getFeatureFlags });
+  // 앱 버전 화면과 같은 키를 써서 캐시를 나눠 쓴다. 실패해도 최소 지원 버전만 빠진다.
+  const { data: policies } = useQuery({ queryKey: ['app-version'], queryFn: getAppVersionPolicies });
+  const usage = data?.versions ?? [];
+  const versions = versionOptions(usage);
   // 닫히는 동안 문구가 비지 않게, 열림 여부와 내용을 따로 둔다.
   const [pendingToggle, setPendingToggle] = useState<PendingToggle | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -134,7 +142,7 @@ function FeatureFlagsManager() {
   };
 
   const pendingName = pendingToggle ? splitLabel(pendingToggle.item.label).name : '';
-  const pendingAudience = pendingToggle ? describeAudience(effectiveSettings(pendingToggle.item)) : null;
+  const pendingAudience = pendingToggle ? describeAudience(effectiveSettings(pendingToggle.item), versions) : null;
 
   return (
     <>
@@ -152,6 +160,7 @@ function FeatureFlagsManager() {
         <ListSkeleton />
       ) : (
         <div className='space-y-6'>
+          <AppVersionOverview versions={usage} policies={policies} />
           {groupFlags(data?.items ?? []).map((group) => (
             <section key={group.id} aria-labelledby={`flag-group-${group.id}`} className='space-y-2'>
               <h2 id={`flag-group-${group.id}`} className='px-1 text-sm font-semibold text-foreground'>
@@ -162,6 +171,7 @@ function FeatureFlagsManager() {
                   <FlagRow
                     key={item.key}
                     item={item}
+                    versions={versions}
                     busy={busyKeys.has(item.key)}
                     onToggle={(next) => askToggle(item, next)}
                     onEdit={() => {
@@ -195,6 +205,7 @@ function FeatureFlagsManager() {
 
       <FeatureFlagEditDialog
         item={editing}
+        versions={usage}
         open={editOpen}
         busy={!!editing && busyKeys.has(editing.key)}
         onOpenChange={setEditOpen}

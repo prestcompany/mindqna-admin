@@ -1,5 +1,5 @@
 import { updateFeatureFlag } from '@/client/feature-flags';
-import type { FeatureFlagItem, FeatureFlagsResult } from '@/client/types';
+import type { FeatureFlagItem, FeatureFlagsResult, FeatureFlagAppVersion } from '@/client/types';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -10,7 +10,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,7 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { Loader2 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import {
   currentEnabled,
@@ -30,6 +29,8 @@ import {
   toFormValues,
   toUpdateParams,
 } from './services/feature-flag-form';
+import { coveredVersions, versionOptions } from './services/app-versions';
+import VersionCodeField from './VersionCodeField';
 
 type Option = { value: string; label: string };
 
@@ -71,9 +72,33 @@ function Segmented({ id, label, options, value, onChange }: SegmentedProps) {
   );
 }
 
+/** 지금 고른 조건이 이미 나와 있는 버전 중 어디까지 닿는지 바로 보여 준다. */
+function VersionGuide({ versions, values }: { versions: FeatureFlagAppVersion[]; values: FeatureFlagFormValues }) {
+  if (!versions.length) {
+    return <p className='text-xs text-muted-foreground'>아직 확인된 버전이 없습니다. 버전 코드를 직접 입력하세요.</p>;
+  }
+  // 입력 중인 잘못된 코드는 계산하지 않는다. 오류는 칸 아래에 나온다.
+  const parsed = featureFlagFormSchema.safeParse(values);
+  if (!parsed.success) return null;
+  const covered = coveredVersions(versions, toUpdateParams(parsed.data, true));
+  const newest = covered[0];
+  const oldest = covered[covered.length - 1];
+  return (
+    <p aria-live='polite' className='text-xs text-muted-foreground tabular-nums'>
+      {!covered.length
+        ? '지금 나와 있는 버전 중에는 대상이 없습니다. 새 버전이 나오면 적용됩니다.'
+        : covered.length === 1
+          ? `${newest.name} (${newest.code}) 버전이 대상입니다.`
+          : `${oldest.name} (${oldest.code}) ~ ${newest.name} (${newest.code}) 버전이 대상입니다.`}
+    </p>
+  );
+}
+
 type FeatureFlagEditDialogProps = {
   /** 닫히는 동안에도 제목이 비지 않게 마지막으로 연 기능을 계속 받는다. */
   item: FeatureFlagItem | null;
+  /** 최근 90일 동안 앱에서 확인한 버전. 버전 목록과 대상 버전 안내에 쓴다. */
+  versions: FeatureFlagAppVersion[];
   open: boolean;
   /** 이 기능의 PUT 이 진행 중이면 닫지 않는다. 닫고 다시 열거나 스위치를 누르면 쓰기가 겹친다. */
   busy: boolean;
@@ -83,17 +108,20 @@ type FeatureFlagEditDialogProps = {
 
 type FeatureFlagEditFormProps = {
   item: FeatureFlagItem;
+  versions: FeatureFlagAppVersion[];
   onCancel: () => void;
   onSaved: (key: string) => void;
 };
 
-function FeatureFlagEditForm({ item, onCancel, onSaved }: FeatureFlagEditFormProps) {
+function FeatureFlagEditForm({ item, versions, onCancel, onSaved }: FeatureFlagEditFormProps) {
   const queryClient = useQueryClient();
   const name = splitLabel(item.label).name;
   const form = useForm<FeatureFlagFormValues>({
     resolver: zodResolver(featureFlagFormSchema),
     defaultValues: toFormValues(item),
   });
+  const options = versionOptions(versions);
+  const watched = useWatch({ control: form.control }) as FeatureFlagFormValues;
 
   const save = useMutation({
     mutationKey: FEATURE_FLAG_PUT_KEY,
@@ -151,7 +179,7 @@ function FeatureFlagEditForm({ item, onCancel, onSaved }: FeatureFlagEditFormPro
         />
 
         <fieldset className='space-y-2'>
-          <legend className='text-sm font-medium text-foreground'>앱 버전 코드</legend>
+          <legend className='text-sm font-medium text-foreground'>앱 버전</legend>
           <div className='grid grid-cols-2 gap-3'>
             <FormField
               control={form.control}
@@ -160,7 +188,13 @@ function FeatureFlagEditForm({ item, onCancel, onSaved }: FeatureFlagEditFormPro
                 <FormItem>
                   <FormLabel className='text-xs font-normal text-muted-foreground'>부터</FormLabel>
                   <FormControl>
-                    <Input inputMode='numeric' placeholder='제한 없음' className='tabular-nums' {...field} />
+                    <VersionCodeField
+                      id='minVersionCode'
+                      label='앱 버전 부터'
+                      value={field.value}
+                      onChange={field.onChange}
+                      versions={options}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -173,13 +207,20 @@ function FeatureFlagEditForm({ item, onCancel, onSaved }: FeatureFlagEditFormPro
                 <FormItem>
                   <FormLabel className='text-xs font-normal text-muted-foreground'>까지</FormLabel>
                   <FormControl>
-                    <Input inputMode='numeric' placeholder='제한 없음' className='tabular-nums' {...field} />
+                    <VersionCodeField
+                      id='maxVersionCode'
+                      label='앱 버전 까지'
+                      value={field.value}
+                      onChange={field.onChange}
+                      versions={options}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
+          <VersionGuide versions={versions} values={watched} />
         </fieldset>
 
         <FormField
@@ -215,7 +256,7 @@ function FeatureFlagEditForm({ item, onCancel, onSaved }: FeatureFlagEditFormPro
   );
 }
 
-function FeatureFlagEditDialog({ item, open, busy, onOpenChange, onSaved }: FeatureFlagEditDialogProps) {
+function FeatureFlagEditDialog({ item, versions, open, busy, onOpenChange, onSaved }: FeatureFlagEditDialogProps) {
   const label = item ? splitLabel(item.label) : null;
 
   return (
@@ -227,7 +268,13 @@ function FeatureFlagEditDialog({ item, open, busy, onOpenChange, onSaved }: Feat
         </DialogHeader>
         {/* key 로 다시 마운트해 다른 기능을 열 때 이전 입력이 남지 않게 한다. */}
         {item ? (
-          <FeatureFlagEditForm key={item.key} item={item} onCancel={() => onOpenChange(false)} onSaved={onSaved} />
+          <FeatureFlagEditForm
+            key={item.key}
+            item={item}
+            versions={versions}
+            onCancel={() => onOpenChange(false)}
+            onSaved={onSaved}
+          />
         ) : null}
       </DialogContent>
     </Dialog>

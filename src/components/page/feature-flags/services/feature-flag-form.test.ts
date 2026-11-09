@@ -120,6 +120,19 @@ test('describeAudience is null without limits and short otherwise', () => {
   assert.equal(describeAudience({ ...NO_LIMIT, maxVersionCode: 260 }), '버전 코드 260 이하');
 });
 
+test('describeAudience names known versions', () => {
+  const options = [
+    { code: 255, name: '1.4.2' },
+    { code: 250, name: '1.4.0' },
+  ];
+  assert.equal(describeAudience({ ...NO_LIMIT, minVersionCode: 250 }, options), '1.4.0 (250) 이상');
+  assert.equal(describeAudience({ ...NO_LIMIT, maxVersionCode: 251 }, options), '코드 251 이하');
+  assert.equal(
+    describeAudience({ ...NO_LIMIT, platforms: ['ios'], minVersionCode: 250, maxVersionCode: 255 }, options),
+    'iOS만 · 1.4.0 (250) – 1.4.2 (255)',
+  );
+});
+
 test('toFormValues reads the effective settings', () => {
   assert.deepEqual(toFormValues(item({ appDefault: 'env' })), {
     description: '',
