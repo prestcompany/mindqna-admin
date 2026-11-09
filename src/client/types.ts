@@ -1125,6 +1125,17 @@ export type FeatureFlagItem = {
   row: FeatureFlagRow | null;
 };
 
-export type FeatureFlagsResult = { items: FeatureFlagItem[] };
+/** 최근 30일 안에 로그인한 사용자가 쓴 앱 버전(플랫폼·스토어·코드별 사용자 수). */
+export type FeatureFlagVersionUsage = {
+  platform: FeatureFlagPlatform;
+  flavor: FeatureFlagFlavor;
+  versionCode: number;
+  versionName: string;
+  users: number;
+  lastSeenAt: string;
+};
+
+/** versions 는 서버가 버전 집계를 내려주기 전에는 없다. */
+export type FeatureFlagsResult = { items: FeatureFlagItem[]; versions?: FeatureFlagVersionUsage[] };
 
 export type UpdateFeatureFlagParams = Omit<FeatureFlagRow, 'key' | 'updatedAt'>;
