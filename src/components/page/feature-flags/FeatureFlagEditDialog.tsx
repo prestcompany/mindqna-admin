@@ -1,5 +1,5 @@
 import { updateFeatureFlag } from '@/client/feature-flags';
-import type { FeatureFlagItem, FeatureFlagsResult, FeatureFlagVersionUsage } from '@/client/types';
+import type { FeatureFlagItem, FeatureFlagsResult, FeatureFlagAppVersion } from '@/client/types';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,7 +29,7 @@ import {
   toFormValues,
   toUpdateParams,
 } from './services/feature-flag-form';
-import { audienceReach, versionOptions } from './services/app-versions';
+import { coveredVersions, versionOptions } from './services/app-versions';
 import VersionCodeField from './VersionCodeField';
 
 type Option = { value: string; label: string };
@@ -72,23 +72,24 @@ function Segmented({ id, label, options, value, onChange }: SegmentedProps) {
   );
 }
 
-const COUNT = new Intl.NumberFormat('ko-KR');
-const PERCENT = new Intl.NumberFormat('ko-KR', { style: 'percent', maximumFractionDigits: 0 });
-
-/** 지금 고른 조건이 최근 30일 사용자 중 몇 명에게 닿는지 바로 보여 준다. */
-function ReachGuide({ versions, values }: { versions: FeatureFlagVersionUsage[]; values: FeatureFlagFormValues }) {
-  // 입력 중인 잘못된 코드는 숫자가 아니라서 계산하지 않는다. 오류는 칸 아래에 나온다.
+/** 지금 고른 조건이 이미 나와 있는 버전 중 어디까지 닿는지 바로 보여 준다. */
+function VersionGuide({ versions, values }: { versions: FeatureFlagAppVersion[]; values: FeatureFlagFormValues }) {
+  if (!versions.length) {
+    return <p className='text-xs text-muted-foreground'>아직 확인된 버전이 없습니다. 버전 코드를 직접 입력하세요.</p>;
+  }
+  // 입력 중인 잘못된 코드는 계산하지 않는다. 오류는 칸 아래에 나온다.
   const parsed = featureFlagFormSchema.safeParse(values);
   if (!parsed.success) return null;
-  const reach = audienceReach(versions, toUpdateParams(parsed.data, true));
-  if (!reach) {
-    return <p className='text-xs text-muted-foreground'>버전 집계가 아직 없어 대상 사용자 수를 알 수 없습니다.</p>;
-  }
+  const covered = coveredVersions(versions, toUpdateParams(parsed.data, true));
+  const newest = covered[0];
+  const oldest = covered[covered.length - 1];
   return (
     <p aria-live='polite' className='text-xs text-muted-foreground tabular-nums'>
-      {reach.users
-        ? `최근 30일 사용자 ${COUNT.format(reach.total)}명 중 ${COUNT.format(reach.users)}명(${PERCENT.format(reach.users / reach.total)})이 대상입니다.`
-        : '지금은 이 조건에 맞는 사용자가 없습니다. 새 버전이 나오면 적용됩니다.'}
+      {!covered.length
+        ? '지금 나와 있는 버전 중에는 대상이 없습니다. 새 버전이 나오면 적용됩니다.'
+        : covered.length === 1
+          ? `${newest.name} (${newest.code}) 버전이 대상입니다.`
+          : `${oldest.name} (${oldest.code}) ~ ${newest.name} (${newest.code}) 버전이 대상입니다.`}
     </p>
   );
 }
@@ -96,8 +97,8 @@ function ReachGuide({ versions, values }: { versions: FeatureFlagVersionUsage[];
 type FeatureFlagEditDialogProps = {
   /** 닫히는 동안에도 제목이 비지 않게 마지막으로 연 기능을 계속 받는다. */
   item: FeatureFlagItem | null;
-  /** 최근 30일 버전별 사용자 수. 버전 목록과 대상 사용자 수 안내에 쓴다. */
-  versions: FeatureFlagVersionUsage[];
+  /** 최근 90일 동안 앱에서 확인한 버전. 버전 목록과 대상 버전 안내에 쓴다. */
+  versions: FeatureFlagAppVersion[];
   open: boolean;
   /** 이 기능의 PUT 이 진행 중이면 닫지 않는다. 닫고 다시 열거나 스위치를 누르면 쓰기가 겹친다. */
   busy: boolean;
@@ -107,7 +108,7 @@ type FeatureFlagEditDialogProps = {
 
 type FeatureFlagEditFormProps = {
   item: FeatureFlagItem;
-  versions: FeatureFlagVersionUsage[];
+  versions: FeatureFlagAppVersion[];
   onCancel: () => void;
   onSaved: (key: string) => void;
 };
@@ -219,7 +220,7 @@ function FeatureFlagEditForm({ item, versions, onCancel, onSaved }: FeatureFlagE
               )}
             />
           </div>
-          <ReachGuide versions={versions} values={watched} />
+          <VersionGuide versions={versions} values={watched} />
         </fieldset>
 
         <FormField

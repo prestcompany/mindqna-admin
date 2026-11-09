@@ -5,7 +5,6 @@ import type { VersionOption } from './services/app-versions';
 
 const NONE = 'none';
 const CUSTOM = 'custom';
-const COUNT = new Intl.NumberFormat('ko-KR');
 
 type VersionCodeFieldProps = {
   id: string;
@@ -60,7 +59,7 @@ function VersionCodeField({ id, label, value, onChange, versions }: VersionCodeF
           <SelectItem value={NONE}>제한 없음</SelectItem>
           {versions.map((v) => (
             <SelectItem key={v.code} value={String(v.code)} className='tabular-nums'>
-              {v.name} ({v.code}) · {COUNT.format(v.users)}명
+              {v.name} ({v.code})
             </SelectItem>
           ))}
           <SelectItem value={CUSTOM}>코드 직접 입력</SelectItem>

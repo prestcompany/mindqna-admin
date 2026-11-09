@@ -122,8 +122,8 @@ test('describeAudience is null without limits and short otherwise', () => {
 
 test('describeAudience names known versions', () => {
   const options = [
-    { code: 255, name: '1.4.2', users: 40 },
-    { code: 250, name: '1.4.0', users: 55 },
+    { code: 255, name: '1.4.2' },
+    { code: 250, name: '1.4.0' },
   ];
   assert.equal(describeAudience({ ...NO_LIMIT, minVersionCode: 250 }, options), '1.4.0 (250) 이상');
   assert.equal(describeAudience({ ...NO_LIMIT, maxVersionCode: 251 }, options), '코드 251 이하');
