@@ -1,5 +1,5 @@
 import { removeInteriorTemplate } from '@/client/interior';
-import { ImgItem, InteriorFeature, InteriorTemplate, InteriorTemplateType } from '@/client/types';
+import { ImgItem, InteriorTemplate, InteriorTemplateType } from '@/client/types';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
 import DataTable from '@/components/shared/ui/data-table';
@@ -20,24 +20,43 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet } from '@/components/ui/sheet';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import useDebouncedValue from '@/hooks/useDebouncedValue';
 import useInteriors from '@/hooks/useInteriors';
 import useTotalRooms from '@/hooks/useTotalRooms';
 import { ColumnDef } from '@tanstack/react-table';
 import { Search } from 'lucide-react';
+import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useResetOnChange } from '@/hooks/useResetOnChange';
 import { toast } from 'sonner';
 import InteriorForm from './InteriorForm';
-import { FEATURE_LABEL, OPEN_FEATURES } from './photo/template-rules';
+import {
+  FEATURE_LABEL,
+  FEATURE_TABS,
+  featureFilterOf,
+  featureTabFromQuery,
+  type FeatureTab,
+} from './photo/template-rules';
 import { toErrorMessage } from '@/lib/error-message';
 
 function InteriorList() {
+  const router = useRouter();
+  const featureTab = featureTabFromQuery(router.query.feature);
+  const setFeatureTab = (next: FeatureTab) => {
+    const { feature: _drop, ...rest } = router.query;
+    router.replace(
+      { pathname: router.pathname, query: next === 'all' ? rest : { ...rest, feature: next } },
+      undefined,
+      {
+        shallow: true,
+      },
+    );
+  };
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<{
     room?: string;
     type?: InteriorTemplateType[];
-    feature?: InteriorFeature[];
   }>({});
   const [searchInput, setSearchInput] = useState('');
   const debouncedSearch = useDebouncedValue(searchInput, 500);
@@ -56,11 +75,11 @@ function InteriorList() {
     page: currentPage,
     room: filter.room,
     type: filter.type,
-    feature: filter.feature,
+    feature: featureFilterOf(featureTab),
     search: effectiveSearch,
   });
 
-  useResetOnChange([filter.room, filter.type, filter.feature, effectiveSearch], () => setCurrentPage(1));
+  useResetOnChange([filter.room, filter.type, featureTab, effectiveSearch], () => setCurrentPage(1));
 
   const handleEdit = (value: InteriorTemplate) => {
     setFocused(value);
@@ -224,6 +243,15 @@ function InteriorList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <Tabs value={featureTab} onValueChange={(v) => setFeatureTab(v as FeatureTab)}>
+        <TabsList className='mb-3'>
+          {FEATURE_TABS.map((t) => (
+            <TabsTrigger key={t.value} value={t.value}>
+              {t.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
       <FilterBar>
         <div className='relative min-w-[240px]'>
           <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
@@ -271,27 +299,6 @@ function InteriorList() {
             <SelectItem value='event'>이벤트</SelectItem>
           </SelectContent>
         </Select>
-        <Select
-          value={(filter.feature ?? [])?.[0] ?? '__all__'}
-          onValueChange={(value) =>
-            setFilter((prev) => ({
-              ...prev,
-              feature: value === '__all__' ? undefined : [value as InteriorFeature],
-            }))
-          }
-        >
-          <SelectTrigger className={`w-[130px] ${FILTER_CONTROL_CLASS}`} aria-label='기능'>
-            <SelectValue placeholder='기능' />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='__all__'>전체 기능</SelectItem>
-            {OPEN_FEATURES.map((f) => (
-              <SelectItem key={f} value={f}>
-                {FEATURE_LABEL[f]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
         <div className='flex-1' />
         <Button
           onClick={() => {
@@ -316,7 +323,11 @@ function InteriorList() {
       />
       <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
         <AdminSideSheetContent title='인테리어 추가' size='lg'>
-          <InteriorForm reload={refetch} close={() => setOpenCreate(false)} />
+          <InteriorForm
+            defaultFeature={featureTab === 'photo' ? 'photo' : 'none'}
+            reload={refetch}
+            close={() => setOpenCreate(false)}
+          />
         </AdminSideSheetContent>
       </Sheet>
       <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
