@@ -1,7 +1,15 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { PhotoFeatureConfig } from '@/client/types';
-import { FEATURE_LABEL, featureTemplateProblems, OPEN_FEATURES, ratioDiff, toTemplateBody } from './template-rules';
+import {
+  FEATURE_LABEL,
+  featureFilterOf,
+  featureTabFromQuery,
+  featureTemplateProblems,
+  OPEN_FEATURES,
+  ratioDiff,
+  toTemplateBody,
+} from './template-rules';
 
 test('feature furniture must be a paid item or an event', () => {
   assert.deepEqual(featureTemplateProblems({ feature: 'none', type: 'wall', price: 0 }), []);
@@ -30,4 +38,21 @@ test('ratioDiff', () => {
 test('labels and open features', () => {
   assert.deepEqual(FEATURE_LABEL, { none: '없음', photo: '사진', board: '칠판', message: '쪽지' });
   assert.deepEqual(OPEN_FEATURES, ['none', 'photo']);
+});
+
+test('the feature tab reads the open features from the address', () => {
+  assert.equal(featureTabFromQuery('photo'), 'photo');
+  assert.equal(featureTabFromQuery('none'), 'none');
+});
+
+test('the feature tab falls back to all for a missing, closed or repeated value', () => {
+  assert.equal(featureTabFromQuery(undefined), 'all');
+  assert.equal(featureTabFromQuery('board'), 'all');
+  assert.equal(featureTabFromQuery(['photo', 'none']), 'all');
+});
+
+test('the feature tab sends no filter for all and one feature otherwise', () => {
+  assert.equal(featureFilterOf('all'), undefined);
+  assert.deepEqual(featureFilterOf('photo'), ['photo']);
+  assert.deepEqual(featureFilterOf('none'), ['none']);
 });

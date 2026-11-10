@@ -49,6 +49,8 @@ type FormValues = z.infer<typeof schema>;
 
 type InteriorFormProps = {
   init?: InteriorTemplate;
+  /** 새로 만들 때 처음 골라 둘 기능. 사진 가구 탭에서 열면 'photo'. */
+  defaultFeature?: InteriorFeature;
   reload: () => Promise<any>;
   close: () => void;
 };
@@ -83,7 +85,7 @@ const activeOptions = [
   { label: '비활성화', value: 'false' },
 ];
 
-function InteriorForm({ init, reload, close }: InteriorFormProps) {
+function InteriorForm({ init, defaultFeature = 'none', reload, close }: InteriorFormProps) {
   const [isLoading, setLoading] = useState(false);
   const [focusedId, setFocusedId] = useState<number | undefined>(undefined);
   const [image, setImage] = useState<ImgItem>();
@@ -91,7 +93,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
   // whole body for the grid, and the form's own state isn't touched by the swap.
   const [picking, setPicking] = useState<'img' | 'base' | 'overlay' | null>(null);
   // 기능은 만들 때만 고른다. 수정 화면에서는 서버 값을 보여 주기만 한다.
-  const [feature, setFeature] = useState<InteriorFeature>(init?.feature ?? 'none');
+  const [feature, setFeature] = useState<InteriorFeature>(init?.feature ?? defaultFeature);
   // 사진 가구 상태는 여기서 든다. 그림 고르기 화면으로 바뀌어도 사라지지 않는다.
   const photo = usePhotoDraft(init, image?.uri ?? init?.img?.uri);
   const [coords, setCoords] = useState<{ x: number; y: number }[]>([

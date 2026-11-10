@@ -15,6 +15,22 @@ export const FEATURE_LABEL: Record<InteriorFeature, string> = {
 /** 지금 고를 수 있는 기능. 칠판·쪽지는 보이되 고르지 못한다. */
 export const OPEN_FEATURES: InteriorFeature[] = ['none', 'photo'];
 
+/** 가구 목록 탭. 고를 수 있는 기능마다 하나씩, 주소의 ?feature= 로 남는다. */
+export type FeatureTab = 'all' | 'none' | 'photo';
+export const FEATURE_TABS: { value: FeatureTab; label: string }[] = [
+  { value: 'all', label: '전체' },
+  { value: 'none', label: '일반 가구' },
+  { value: 'photo', label: '사진 가구' },
+];
+
+export function featureTabFromQuery(value: unknown): FeatureTab {
+  return value === 'none' || value === 'photo' ? value : 'all';
+}
+
+export function featureFilterOf(tab: FeatureTab): InteriorFeature[] | undefined {
+  return tab === 'all' ? undefined : [tab];
+}
+
 /**
  * 기능 가구는 늘 소유가 있어야 내용을 저장할 수 있다(앱은 가격 0 인 item 을 사지 않고 놓는다).
  * 서버 checkFeatureTemplate 과 같은 규칙.
