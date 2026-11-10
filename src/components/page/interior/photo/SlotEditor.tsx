@@ -5,15 +5,7 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Plus, Trash2 } from 'lucide-react';
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
-import {
-  commitSlotNumber,
-  moveSlot,
-  newSlot,
-  resizeSlot,
-  SLOT_NUMBER_RANGE,
-  slotProblems,
-  type SlotNumberField,
-} from './slot-rules';
+import { commitSlotNumber, moveSlot, newSlot, resizeSlot, slotProblems, type SlotNumberField } from './slot-rules';
 import type { PhotoDraft } from './usePhotoDraft';
 
 type Corner = 'nw' | 'ne' | 'sw' | 'se';
@@ -28,31 +20,30 @@ const CORNER_POSITION: Record<Corner, string> = {
   se: '-bottom-3 -right-3 cursor-nwse-resize',
 };
 
-type NumberField = { key: SlotNumberField; label: string; step: number };
+type NumberField = { key: SlotNumberField; label: string };
 const NUMBER_FIELDS: NumberField[] = [
-  { key: 'x', label: 'x', step: 0.001 },
-  { key: 'y', label: 'y', step: 0.001 },
-  { key: 'width', label: '너비', step: 0.001 },
-  { key: 'height', label: '높이', step: 0.001 },
-  { key: 'rotation', label: '기울기(도)', step: 1 },
-  { key: 'radius', label: '모서리', step: 0.01 },
+  { key: 'x', label: 'x' },
+  { key: 'y', label: 'y' },
+  { key: 'width', label: '너비' },
+  { key: 'height', label: '높이' },
+  { key: 'rotation', label: '기울기(도)' },
+  { key: 'radius', label: '모서리' },
 ];
 
 /**
  * 쓰는 동안은 글 그대로 두고, 칸을 떠나거나 Enter 를 누르면 범위로 잘라 확정한다.
  * 바로 반영하면 '-'·'0.' 같은 쓰는 중의 글이 되돌려지거나 0 이 들어간다.
+ * type=number 를 쓰지 않는다. SVG 에서 읽은 소수 5자리 값이 step 에 맞지 않아 브라우저가 폼 저장을 막는다.
  */
 function SlotNumberInput({
   id,
   field,
   value,
-  step,
   onCommit,
 }: {
   id: string;
   field: SlotNumberField;
   value: number;
-  step: number;
   onCommit: (n: number) => void;
 }) {
   const [text, setText] = useState<string | null>(null);
@@ -65,11 +56,8 @@ function SlotNumberInput({
   return (
     <Input
       id={id}
-      type='number'
+      type='text'
       inputMode='decimal'
-      min={SLOT_NUMBER_RANGE[field].min}
-      max={SLOT_NUMBER_RANGE[field].max}
-      step={step}
       className='tabular-nums'
       value={text ?? String(value)}
       onFocus={() => setText(String(value))}
@@ -234,7 +222,6 @@ function SlotEditor({ draft }: SlotEditorProps) {
                     id={id}
                     field={f.key}
                     value={selected[f.key] ?? 0}
-                    step={f.step}
                     onCommit={(n) => replace({ ...selected, [f.key]: n })}
                   />
                 </div>
