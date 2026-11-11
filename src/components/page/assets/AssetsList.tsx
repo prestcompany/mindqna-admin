@@ -1,4 +1,5 @@
 import { removeAsset } from '@/client/assets';
+import { toErrorMessage } from '@/lib/error-message';
 import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
 import { FILTER_CONTROL_CLASS, FilterBar } from '@/components/shared/ui/filter-bar';
 import {
@@ -44,7 +45,8 @@ function AssetsList() {
       await refetch();
       toast.success('이미지를 삭제했습니다.');
     } catch (err) {
-      toast.error(`${err}`);
+      // 가구 템플릿이 쓰는 에셋이면 서버가 그 템플릿 번호를 담아 거절한다.
+      toast.error(toErrorMessage(err));
     }
     setConfirmId(null);
   };

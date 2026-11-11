@@ -1,10 +1,16 @@
 import client from './@base';
-import { CreateInteriorTemplateParams, GetInteriorTemplatesResult, InteriorTemplateType } from './types';
+import {
+  CreateInteriorTemplateParams,
+  GetInteriorTemplatesResult,
+  InteriorFeature,
+  InteriorTemplateType,
+} from './types';
 
 export type GetInteriorTemplatesParams = {
   page: number;
   room?: string;
   type?: InteriorTemplateType[];
+  feature?: InteriorFeature[];
   search?: string;
 };
 
@@ -16,12 +22,13 @@ export async function createInteriorTemplate(params: CreateInteriorTemplateParam
   return res.data;
 }
 
-export async function getInteriorTemplates({ page, room, type, search }: GetInteriorTemplatesParams) {
+export async function getInteriorTemplates({ page, room, type, feature, search }: GetInteriorTemplatesParams) {
   const res = await client.get<GetInteriorTemplatesResult>('/interior', {
     params: {
       page,
       room,
       type,
+      feature,
       search: search?.trim() || undefined,
     },
   });

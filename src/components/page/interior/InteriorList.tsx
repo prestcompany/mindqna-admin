@@ -10,6 +10,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
+  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -19,17 +20,39 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet } from '@/components/ui/sheet';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import useDebouncedValue from '@/hooks/useDebouncedValue';
 import useInteriors from '@/hooks/useInteriors';
 import useTotalRooms from '@/hooks/useTotalRooms';
 import { ColumnDef } from '@tanstack/react-table';
 import { Search } from 'lucide-react';
+import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useResetOnChange } from '@/hooks/useResetOnChange';
 import { toast } from 'sonner';
 import InteriorForm from './InteriorForm';
+import {
+  FEATURE_LABEL,
+  FEATURE_TABS,
+  featureFilterOf,
+  featureTabFromQuery,
+  type FeatureTab,
+} from './photo/template-rules';
+import { toErrorMessage } from '@/lib/error-message';
 
 function InteriorList() {
+  const router = useRouter();
+  const featureTab = featureTabFromQuery(router.query.feature);
+  const setFeatureTab = (next: FeatureTab) => {
+    const { feature: _drop, ...rest } = router.query;
+    router.replace(
+      { pathname: router.pathname, query: next === 'all' ? rest : { ...rest, feature: next } },
+      undefined,
+      {
+        shallow: true,
+      },
+    );
+  };
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState<{
     room?: string;
@@ -52,10 +75,11 @@ function InteriorList() {
     page: currentPage,
     room: filter.room,
     type: filter.type,
+    feature: featureFilterOf(featureTab),
     search: effectiveSearch,
   });
 
-  useResetOnChange([filter.room, filter.type, effectiveSearch], () => setCurrentPage(1));
+  useResetOnChange([filter.room, filter.type, featureTab, effectiveSearch], () => setCurrentPage(1));
 
   const handleEdit = (value: InteriorTemplate) => {
     setFocused(value);
@@ -73,7 +97,7 @@ function InteriorList() {
       await removeInteriorTemplate(confirmTarget.id);
       await refetch();
     } catch (err) {
-      toast.error(`${err}`);
+      toast.error(toErrorMessage(err));
     }
     setConfirmOpen(false);
     setConfirmTarget(undefined);
@@ -121,6 +145,19 @@ function InteriorList() {
       accessorKey: 'type',
       header: '타입',
       size: 110,
+    },
+    {
+      id: 'feature',
+      header: '기능',
+      size: 90,
+      cell: ({ row }) => {
+        const feature = row.original.feature ?? 'none';
+        return feature === 'none' ? (
+          <span className='text-sm text-muted-foreground'>-</span>
+        ) : (
+          <Badge variant='softInfo'>{FEATURE_LABEL[feature]}</Badge>
+        );
+      },
     },
     {
       accessorKey: 'room',
@@ -193,6 +230,12 @@ function InteriorList() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>삭제 {confirmTarget?.name}</AlertDialogTitle>
+            {confirmTarget?.purchasedCount ? (
+              <AlertDialogDescription>
+                산 공간 {confirmTarget.purchasedCount}곳의 소유
+                {confirmTarget.feature === 'photo' ? '와 사진이' : '가'} 함께 지워집니다.
+              </AlertDialogDescription>
+            ) : null}
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>취소</AlertDialogCancel>
@@ -200,6 +243,15 @@ function InteriorList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <Tabs value={featureTab} onValueChange={(v) => setFeatureTab(v as FeatureTab)}>
+        <TabsList className='mb-3'>
+          {FEATURE_TABS.map((t) => (
+            <TabsTrigger key={t.value} value={t.value}>
+              {t.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
       <FilterBar>
         <div className='relative min-w-[240px]'>
           <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
@@ -271,7 +323,11 @@ function InteriorList() {
       />
       <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
         <AdminSideSheetContent title='인테리어 추가' size='lg'>
-          <InteriorForm reload={refetch} close={() => setOpenCreate(false)} />
+          <InteriorForm
+            defaultFeature={featureTab === 'photo' ? 'photo' : 'none'}
+            reload={refetch}
+            close={() => setOpenCreate(false)}
+          />
         </AdminSideSheetContent>
       </Sheet>
       <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
