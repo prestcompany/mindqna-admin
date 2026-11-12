@@ -19,9 +19,11 @@ import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { AssetsPickerButton, AssetsPickerPanel } from '../assets/AssetsPicker';
+import { boardSlotProblems } from './photo/board-rules';
+import BoardPreview from './photo/BoardPreview';
 import PhotoImagesField from './photo/PhotoImagesField';
 import PhotoPreview from './photo/PhotoPreview';
-import { missingSlotKeys, photoConfigProblems } from './photo/slot-rules';
+import { imageProblems, missingSlotKeys, photoConfigProblems } from './photo/slot-rules';
 import SlotEditor from './photo/SlotEditor';
 import SvgSlotImport from './photo/SvgSlotImport';
 import { FEATURE_LABEL, featureTemplateProblems, OPEN_FEATURES, toTemplateBody } from './photo/template-rules';
@@ -95,7 +97,7 @@ function InteriorForm({ init, defaultFeature = 'none', reload, close }: Interior
   // 기능은 만들 때만 고른다. 수정 화면에서는 서버 값을 보여 주기만 한다.
   const [feature, setFeature] = useState<InteriorFeature>(init?.feature ?? defaultFeature);
   // 사진 가구 상태는 여기서 든다. 그림 고르기 화면으로 바뀌어도 사라지지 않는다.
-  const photo = usePhotoDraft(init, image?.uri ?? init?.img?.uri);
+  const photo = usePhotoDraft(init, image?.uri ?? init?.img?.uri, feature);
   const [coords, setCoords] = useState<{ x: number; y: number }[]>([
     { x: 0, y: 5 },
     { x: 1, y: 5 },
@@ -211,13 +213,22 @@ function InteriorForm({ init, defaultFeature = 'none', reload, close }: Interior
       return;
     }
     const problems = featureTemplateProblems({ feature, type: values.type, price: values.price });
-    if (feature === 'photo') {
-      problems.push(...photoConfigProblems(photo));
+    if (feature === 'photo' || feature === 'board') {
+      // 칠판은 칸 1–4개와 글 속성까지 본다.
+      problems.push(
+        ...(feature === 'board'
+          ? // 바닥 그림 크기를 모르면 글 칸을 잴 수 없다. imageProblems 가 이미 알린다.
+            [
+              ...imageProblems(photo),
+              ...(photo.imgHeight > 0 ? boardSlotProblems(photo.boardSlots, photo.imgHeight) : []),
+            ]
+          : photoConfigProblems(photo)),
+      );
       // 내용은 칸 키로 붙어 있다. 산 공간이 있으면 저장된 키를 지울 수 없다(서버도 같은 규칙).
       const missing = photo.purchasedCount ? missingSlotKeys(init?.featureConfig?.slots ?? [], photo.slots) : [];
       if (missing.length) {
         problems.push(
-          `산 공간 ${photo.purchasedCount}곳의 사진이 끊깁니다. 칸 ${missing.join(', ')} 을(를) 지울 수 없습니다.`,
+          `산 공간 ${photo.purchasedCount}곳의 ${feature === 'board' ? '글이' : '사진이'} 끊깁니다. 칸 ${missing.join(', ')} 을(를) 지울 수 없습니다.`,
         );
       }
     }
@@ -236,7 +247,7 @@ function InteriorForm({ init, defaultFeature = 'none', reload, close }: Interior
     const featureBody = toTemplateBody({
       mode: focusedId ? 'update' : 'create',
       feature,
-      config: feature === 'photo' ? photo.toConfig() : null,
+      config: feature === 'photo' || feature === 'board' ? photo.toConfig() : null,
     });
     try {
       setLoading(true);
@@ -406,7 +417,9 @@ function InteriorForm({ init, defaultFeature = 'none', reload, close }: Interior
             <DefinitionRow
               label='기능'
               hint={
-                focusedId ? '기능은 만든 뒤 바꿀 수 없습니다.' : '사진 가구는 가격이 있는 아이템이나 이벤트만 됩니다.'
+                focusedId
+                  ? '기능은 만든 뒤 바꿀 수 없습니다.'
+                  : '사진·칠판 가구는 가격이 있는 아이템이나 이벤트만 됩니다.'
               }
             >
               {focusedId ? (
@@ -629,6 +642,37 @@ function InteriorForm({ init, defaultFeature = 'none', reload, close }: Interior
                       baseUri={photo.base.uri}
                       overlayUri={photo.overlay?.uri}
                       slots={photo.slots}
+                    />
+                  </DefinitionRow>
+                ) : null}
+              </>
+            ) : null}
+            {feature === 'board' ? (
+              <>
+                <PanelBand title='칠판 가구' />
+                <PhotoImagesField draft={photo} onPick={setPicking} />
+                <DefinitionRow
+                  label='글 칸'
+                  required
+                  hint='1–4개. 끌어서 옮기고 모서리로 크기를 바꿉니다. 칸마다 글자색·크기·최대 글자·줄·정렬을 정합니다.'
+                >
+                  <div className='space-y-3'>
+                    <SvgSlotImport draft={photo} />
+                    <SlotEditor draft={photo} />
+                  </div>
+                </DefinitionRow>
+                {photo.base?.uri && photo.imgWidth > 0 ? (
+                  <DefinitionRow
+                    label='미리보기'
+                    hint='앱과 같은 순서로 그립니다: 바닥 그림, 예시 글(최대 글자·줄까지 채움), 덮개 그림.'
+                  >
+                    <BoardPreview
+                      cells={{ width: Number(cellWidth) || 1, height: Number(cellHeight) || 1 }}
+                      imgWidth={photo.imgWidth}
+                      imgHeight={photo.imgHeight}
+                      baseUri={photo.base.uri}
+                      overlayUri={photo.overlay?.uri}
+                      slots={photo.boardSlots}
                     />
                   </DefinitionRow>
                 ) : null}

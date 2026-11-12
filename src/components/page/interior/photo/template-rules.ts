@@ -2,7 +2,7 @@ import type {
   CreateInteriorTemplateParams,
   InteriorFeature,
   InteriorTemplateType,
-  PhotoFeatureConfig,
+  FeatureConfig,
 } from '@/client/types';
 
 export const FEATURE_LABEL: Record<InteriorFeature, string> = {
@@ -12,19 +12,20 @@ export const FEATURE_LABEL: Record<InteriorFeature, string> = {
   message: '쪽지',
 };
 
-/** 지금 고를 수 있는 기능. 칠판·쪽지는 보이되 고르지 못한다. */
-export const OPEN_FEATURES: InteriorFeature[] = ['none', 'photo'];
+/** 지금 고를 수 있는 기능. 쪽지는 보이되 고르지 못한다. */
+export const OPEN_FEATURES: InteriorFeature[] = ['none', 'photo', 'board'];
 
 /** 가구 목록 탭. 고를 수 있는 기능마다 하나씩, 주소의 ?feature= 로 남는다. */
-export type FeatureTab = 'all' | 'none' | 'photo';
+export type FeatureTab = 'all' | 'none' | 'photo' | 'board';
 export const FEATURE_TABS: { value: FeatureTab; label: string }[] = [
   { value: 'all', label: '전체' },
   { value: 'none', label: '일반 가구' },
   { value: 'photo', label: '사진 가구' },
+  { value: 'board', label: '칠판 가구' },
 ];
 
 export function featureTabFromQuery(value: unknown): FeatureTab {
-  return value === 'none' || value === 'photo' ? value : 'all';
+  return value === 'none' || value === 'photo' || value === 'board' ? value : 'all';
 }
 
 export function featureFilterOf(tab: FeatureTab): InteriorFeature[] | undefined {
@@ -53,7 +54,7 @@ export function featureTemplateProblems(input: {
 export function toTemplateBody(input: {
   mode: 'create' | 'update';
   feature: InteriorFeature;
-  config: PhotoFeatureConfig | null;
+  config: FeatureConfig | null;
 }): Pick<CreateInteriorTemplateParams, 'feature' | 'featureConfig'> {
   const body: Pick<CreateInteriorTemplateParams, 'feature' | 'featureConfig'> = {};
   if (input.mode === 'create') body.feature = input.feature;

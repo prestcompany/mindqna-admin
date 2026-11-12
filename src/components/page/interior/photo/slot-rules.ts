@@ -13,10 +13,10 @@ export function round5(n: number): number {
   return Math.round(n * 1e5) / 1e5 + 0;
 }
 
-/** 서버 checkPhotoConfig 의 칸 규칙과 문구를 그대로 따른다. 범위는 돌리기 전 네모 기준이다. */
-export function slotProblems(slots: PhotoSlot[]): string[] {
+/** 서버 checkPhotoConfig 의 칸 규칙과 문구를 그대로 따른다. 범위는 돌리기 전 네모 기준이다. 칠판은 maxSlots 4. */
+export function slotProblems(slots: PhotoSlot[], maxSlots = MAX_SLOTS): string[] {
   const problems: string[] = [];
-  if (slots.length < 1 || slots.length > MAX_SLOTS) problems.push(`칸은 1–${MAX_SLOTS}개여야 합니다`);
+  if (slots.length < 1 || slots.length > maxSlots) problems.push(`칸은 1–${maxSlots}개여야 합니다`);
 
   const seen: Record<string, true> = {};
   for (const s of slots) {
@@ -48,20 +48,26 @@ export function nextSlotKey(slots: PhotoSlot[]): string {
   throw new Error('칸 키가 모자랍니다');
 }
 
-/** 저장 전 확인. 바닥 그림이나 크기가 없으면 서버가 typia 400 을 낸다. */
-export function photoConfigProblems(draft: {
+type ImageDraft = {
   base: PhotoAssetRef | null;
   /** 저장된 덮개 에셋을 서버가 못 찾으면 uri 가 null 이다. 그대로 보내면 서버가 "에셋 N 이 없습니다" 400 을 낸다. */
   overlay?: PhotoAssetRef | null;
   imgWidth: number;
   imgHeight: number;
-  slots: PhotoSlot[];
-}): string[] {
+};
+
+/** 바닥·덮개 그림 확인. 사진·칠판이 같이 쓴다. 바닥 그림이나 크기가 없으면 서버가 typia 400 을 낸다. */
+export function imageProblems(draft: ImageDraft): string[] {
   const problems: string[] = [];
   if (!draft.base || draft.base.uri === null) problems.push('바닥 그림을 고르세요');
   if (!(draft.imgWidth > 0) || !(draft.imgHeight > 0)) problems.push('바닥 그림 크기를 읽지 못했습니다');
   if (draft.overlay && draft.overlay.uri === null) problems.push('덮개 그림을 다시 고르거나 빼세요');
-  return [...problems, ...slotProblems(draft.slots)];
+  return problems;
+}
+
+/** 사진 가구 저장 전 확인. */
+export function photoConfigProblems(draft: ImageDraft & { slots: PhotoSlot[] }): string[] {
+  return [...imageProblems(draft), ...slotProblems(draft.slots)];
 }
 
 export function newSlot(slots: PhotoSlot[]): PhotoSlot {
@@ -71,8 +77,8 @@ export function newSlot(slots: PhotoSlot[]): PhotoSlot {
 /** 5자리로 내린다. 끝에 붙인 칸의 시작을 올림하면 시작+크기가 1 을 넘는다. */
 const floor5 = (n: number) => Math.floor(n * 1e5 + 1e-9) / 1e5 + 0;
 
-/** 0–1 단위로 옮기고 그림 안으로 자른다. */
-export function moveSlot(slot: PhotoSlot, dx: number, dy: number): PhotoSlot {
+/** 0–1 단위로 옮기고 그림 안으로 자른다. 칠판 칸의 글 속성은 그대로 둔다. */
+export function moveSlot<T extends PhotoSlot>(slot: T, dx: number, dy: number): T {
   const axis = (start: number, size: number, delta: number) => {
     const limit = floor5(1 - size);
     return Math.min(round5(clamp(start + delta, 0, 1 - size)), limit);
@@ -115,7 +121,7 @@ function resizeAxis(start: number, size: number, delta: number, moveStart: boole
   return [fixed, round5(nextEnd - fixed)];
 }
 
-export function resizeSlot(slot: PhotoSlot, corner: 'nw' | 'ne' | 'sw' | 'se', dx: number, dy: number): PhotoSlot {
+export function resizeSlot<T extends PhotoSlot>(slot: T, corner: 'nw' | 'ne' | 'sw' | 'se', dx: number, dy: number): T {
   const [x, width] = resizeAxis(slot.x, slot.width, dx, corner === 'nw' || corner === 'sw');
   const [y, height] = resizeAxis(slot.y, slot.height, dy, corner === 'nw' || corner === 'ne');
   return { ...slot, x, y, width, height };

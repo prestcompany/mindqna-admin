@@ -1,16 +1,17 @@
-import type { PhotoSlot } from '@/client/types';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Plus, Trash2 } from 'lucide-react';
-import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
-import { commitSlotNumber, moveSlot, newSlot, resizeSlot, slotProblems, type SlotNumberField } from './slot-rules';
-import type { PhotoDraft } from './usePhotoDraft';
+import { useRef, type PointerEvent as ReactPointerEvent } from 'react';
+import { BOARD_MAX_SLOTS, boardSlotProblems } from './board-rules';
+import BoardTextFields from './BoardTextFields';
+import { commitSlotNumber, moveSlot, resizeSlot, slotProblems, type SlotNumberField } from './slot-rules';
+import SlotNumberInput from './SlotNumberInput';
+import type { DraftSlot, PhotoDraft } from './usePhotoDraft';
 
 type Corner = 'nw' | 'ne' | 'sw' | 'se';
 const CORNERS: Corner[] = ['nw', 'ne', 'sw', 'se'];
-const MAX_SLOTS = 10;
+const PHOTO_MAX_SLOTS = 10;
 
 // 손잡이는 24px 누르는 자리 가운데에 12px 점을 그린다(DESIGN.md 최소 누름 크기).
 const CORNER_POSITION: Record<Corner, string> = {
@@ -30,49 +31,6 @@ const NUMBER_FIELDS: NumberField[] = [
   { key: 'radius', label: '모서리' },
 ];
 
-/**
- * 쓰는 동안은 글 그대로 두고, 칸을 떠나거나 Enter 를 누르면 범위로 잘라 확정한다.
- * 바로 반영하면 '-'·'0.' 같은 쓰는 중의 글이 되돌려지거나 0 이 들어간다.
- * type=number 를 쓰지 않는다. SVG 에서 읽은 소수 5자리 값이 step 에 맞지 않아 브라우저가 폼 저장을 막는다.
- */
-function SlotNumberInput({
-  id,
-  field,
-  value,
-  onCommit,
-}: {
-  id: string;
-  field: SlotNumberField;
-  value: number;
-  onCommit: (n: number) => void;
-}) {
-  const [text, setText] = useState<string | null>(null);
-  const commit = () => {
-    if (text === null) return;
-    const n = commitSlotNumber(field, text);
-    if (n !== null) onCommit(n);
-    setText(null);
-  };
-  return (
-    <Input
-      id={id}
-      type='text'
-      inputMode='decimal'
-      className='tabular-nums'
-      value={text ?? String(value)}
-      onFocus={() => setText(String(value))}
-      onChange={(e) => setText(e.target.value)}
-      onBlur={commit}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          commit();
-        }
-      }}
-    />
-  );
-}
-
 type SlotEditorProps = { draft: PhotoDraft };
 
 /**
@@ -80,19 +38,25 @@ type SlotEditorProps = { draft: PhotoDraft };
  * 끌기와 손잡이는 돌리기 전 네모(서버가 범위를 재는 네모)에 둔다. 돌린 모양은 채움으로만 보인다.
  */
 function SlotEditor({ draft }: SlotEditorProps) {
-  const { base, imgWidth, imgHeight, slots, setSlots, selectedKey, setSelectedKey, savedKeys, purchasedCount } = draft;
+  const { kind, base, imgWidth, imgHeight, slots, setSlots, selectedKey, setSelectedKey, savedKeys, purchasedCount } =
+    draft;
   const surface = useRef<HTMLDivElement>(null);
-  const drag = useRef<{ key: string; corner: Corner | null; startX: number; startY: number; start: PhotoSlot } | null>(
+  const drag = useRef<{ key: string; corner: Corner | null; startX: number; startY: number; start: DraftSlot } | null>(
     null,
   );
 
+  const isBoard = kind === 'board';
+  const maxSlots = isBoard ? BOARD_MAX_SLOTS : PHOTO_MAX_SLOTS;
   const ready = Boolean(base?.uri) && imgWidth > 0;
   const selected = slots.find((s) => s.key === selectedKey) ?? null;
-  const problems = slots.length ? slotProblems(slots) : [];
+  const selectedBoard = isBoard ? (draft.boardSlots.find((s) => s.key === selectedKey) ?? null) : null;
+  const problems = slots.length ? (isBoard ? boardSlotProblems(draft.boardSlots, imgHeight) : slotProblems(slots)) : [];
+  // 칠판 칸은 모서리가 없다.
+  const numberFields = isBoard ? NUMBER_FIELDS.filter((f) => f.key !== 'radius') : NUMBER_FIELDS;
 
-  const replace = (next: PhotoSlot) => setSlots(slots.map((s) => (s.key === next.key ? next : s)));
+  const replace = draft.updateSlot;
 
-  const begin = (e: ReactPointerEvent, slot: PhotoSlot, corner: Corner | null) => {
+  const begin = (e: ReactPointerEvent, slot: DraftSlot, corner: Corner | null) => {
     e.preventDefault();
     e.stopPropagation();
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -106,17 +70,15 @@ function SlotEditor({ draft }: SlotEditorProps) {
     if (!d || !rect) return;
     const dx = (e.clientX - d.startX) / rect.width;
     const dy = (e.clientY - d.startY) / rect.height;
-    replace(d.corner ? resizeSlot(d.start, d.corner, dx, dy) : moveSlot(d.start, dx, dy));
+    const cur = slots.find((s) => s.key === d.key);
+    if (!cur) return;
+    // 자리만 끌기 시작 칸에서 다시 재고 나머지는 지금 칸 값을 둔다. 끌기 시작 때의 글자 크기를 되살리면 칸 높이를 따라가던 크기가 풀린다.
+    const { x, y, width, height } = d.corner ? resizeSlot(d.start, d.corner, dx, dy) : moveSlot(d.start, dx, dy);
+    replace({ ...cur, x, y, width, height });
   };
 
   const end = () => {
     drag.current = null;
-  };
-
-  const add = () => {
-    const slot = newSlot(slots);
-    setSlots([...slots, slot]);
-    setSelectedKey(slot.key);
   };
 
   const remove = (key: string) => {
@@ -202,7 +164,7 @@ function SlotEditor({ draft }: SlotEditorProps) {
             칸 {slot.key}
           </Button>
         ))}
-        <Button type='button' size='sm' variant='ghost' onClick={add} disabled={slots.length >= MAX_SLOTS}>
+        <Button type='button' size='sm' variant='ghost' onClick={draft.addSlot} disabled={slots.length >= maxSlots}>
           <Plus className='h-4 w-4' aria-hidden='true' />칸 추가
         </Button>
       </div>
@@ -210,7 +172,7 @@ function SlotEditor({ draft }: SlotEditorProps) {
       {selected ? (
         <div className='space-y-3 rounded-lg border border-border bg-card p-4'>
           <div className='grid grid-cols-2 gap-3 sm:grid-cols-3'>
-            {NUMBER_FIELDS.map((f) => {
+            {numberFields.map((f) => {
               const id = `slot-${selected.key}-${f.key}`;
               return (
                 <div key={f.key} className='space-y-1.5'>
@@ -220,7 +182,7 @@ function SlotEditor({ draft }: SlotEditorProps) {
                   <SlotNumberInput
                     key={`${selected.key}-${f.key}`}
                     id={id}
-                    field={f.key}
+                    parse={(text) => commitSlotNumber(f.key, text)}
                     value={selected[f.key] ?? 0}
                     onCommit={(n) => replace({ ...selected, [f.key]: n })}
                   />
@@ -228,6 +190,7 @@ function SlotEditor({ draft }: SlotEditorProps) {
               );
             })}
           </div>
+          {selectedBoard ? <BoardTextFields slot={selectedBoard} imgHeight={imgHeight} onChange={replace} /> : null}
           <div className='flex flex-wrap items-center gap-3'>
             <Button
               type='button'
@@ -240,7 +203,7 @@ function SlotEditor({ draft }: SlotEditorProps) {
             </Button>
             {locked(selected.key) ? (
               <p className='text-xs text-muted-foreground'>
-                산 공간 {purchasedCount}곳의 사진이 끊깁니다. 저장된 칸은 지울 수 없습니다.
+                산 공간 {purchasedCount}곳의 {isBoard ? '글이' : '사진이'} 끊깁니다. 저장된 칸은 지울 수 없습니다.
               </p>
             ) : null}
           </div>

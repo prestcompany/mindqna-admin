@@ -113,7 +113,7 @@ export type GetCardTemplatesResult = {
 
 export type InteriorTemplateType = 'item' | 'wall' | 'floor' | 'todayFrame' | 'event';
 
-/** 가구 동작 종류. board·message 는 서버가 아직 받지 않는다. */
+/** 가구 동작 종류. message 는 서버가 아직 받지 않는다. */
 export type InteriorFeature = 'none' | 'photo' | 'board' | 'message';
 
 /** x·y = 돌리기 전 네모의 왼쪽 위(바닥 그림 대비 0–1). rotation = 칸 가운데 기준 도, radius = 칸 너비 대비. */
@@ -139,6 +139,26 @@ export type PhotoFeatureConfig = {
   slots: PhotoSlot[];
 };
 
+/** 칠판 칸의 글 속성. fontSize 는 바닥 그림 px 기준이다. */
+export type BoardText = {
+  /** #RRGGBB 또는 #RRGGBBAA */
+  color: string;
+  fontSize: number;
+  /** 정수 1–100. 줄바꿈은 세지 않는다. */
+  maxLength: number;
+  /** 정수 1–10 */
+  maxLines: number;
+  /** 없으면 가운데 */
+  align?: 'left' | 'center';
+};
+
+/** 칠판 칸. 자리 규칙은 사진 칸과 같고 모서리가 없다. */
+export type BoardSlot = Omit<PhotoSlot, 'radius'> & BoardText;
+
+export type BoardFeatureConfig = Omit<PhotoFeatureConfig, 'slots'> & { slots: BoardSlot[] };
+
+export type FeatureConfig = PhotoFeatureConfig | BoardFeatureConfig;
+
 /** 사진 가구의 바닥·덮개 그림. 수정 화면에서는 서버가 주소를 못 찾으면 uri 가 null 이다. */
 export type PhotoAssetRef = { id: number; uri: string | null };
 
@@ -157,7 +177,7 @@ export type CreateInteriorTemplateParams = {
   /** 만들 때만 보낸다. 서버는 만든 뒤 바꾸면 400 이다. */
   feature?: InteriorFeature;
   /** 수정에서 빼면 서버가 옛 값을 그대로 둔다. */
-  featureConfig?: PhotoFeatureConfig | null;
+  featureConfig?: FeatureConfig | null;
 };
 
 export type InteriorTemplate = {
@@ -177,7 +197,7 @@ export type InteriorTemplate = {
   updatedAt: string;
   // 아래는 기능 가구 서버가 배포되기 전에는 없다.
   feature?: InteriorFeature;
-  featureConfig?: PhotoFeatureConfig | null;
+  featureConfig?: FeatureConfig | null;
   /** 소유 공간 수. 0 이 아니면 칸 키를 지울 수 없다. */
   purchasedCount?: number;
   baseUri?: string | null;

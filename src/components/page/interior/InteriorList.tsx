@@ -1,5 +1,5 @@
 import { removeInteriorTemplate } from '@/client/interior';
-import { ImgItem, InteriorTemplate, InteriorTemplateType } from '@/client/types';
+import { ImgItem, InteriorFeature, InteriorTemplate, InteriorTemplateType } from '@/client/types';
 import AdminSideSheetContent from '@/components/shared/ui/admin-side-sheet-content';
 import ClickableImagePreview from '@/components/shared/ui/clickable-image-preview';
 import DataTable from '@/components/shared/ui/data-table';
@@ -39,6 +39,14 @@ import {
   type FeatureTab,
 } from './photo/template-rules';
 import { toErrorMessage } from '@/lib/error-message';
+
+/** 소유를 지울 때 같이 지워지는 내용. */
+const LOST_WITH_OWNERSHIP: Record<InteriorFeature, string> = {
+  none: '가',
+  photo: '와 사진이',
+  board: '와 글이',
+  message: '가',
+};
 
 function InteriorList() {
   const router = useRouter();
@@ -233,7 +241,7 @@ function InteriorList() {
             {confirmTarget?.purchasedCount ? (
               <AlertDialogDescription>
                 산 공간 {confirmTarget.purchasedCount}곳의 소유
-                {confirmTarget.feature === 'photo' ? '와 사진이' : '가'} 함께 지워집니다.
+                {LOST_WITH_OWNERSHIP[confirmTarget.feature ?? 'none'] ?? '가'} 함께 지워집니다.
               </AlertDialogDescription>
             ) : null}
           </AlertDialogHeader>
@@ -324,7 +332,7 @@ function InteriorList() {
       <Sheet open={isOpenCreate} onOpenChange={setOpenCreate}>
         <AdminSideSheetContent title='인테리어 추가' size='lg'>
           <InteriorForm
-            defaultFeature={featureTab === 'photo' ? 'photo' : 'none'}
+            defaultFeature={featureTab === 'all' ? 'none' : featureTab}
             reload={refetch}
             close={() => setOpenCreate(false)}
           />
