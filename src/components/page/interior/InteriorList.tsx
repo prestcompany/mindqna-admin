@@ -38,13 +38,14 @@ import {
   featureTabFromQuery,
   type FeatureTab,
 } from './photo/template-rules';
-import { toErrorMessage } from '@/lib/error-message';
+import { isBadRequest, toErrorMessage } from '@/lib/error-message';
 
 /** 소유를 지울 때 같이 지워지는 내용. */
 const LOST_WITH_OWNERSHIP: Record<InteriorFeature, string> = {
   none: '가',
   photo: '와 사진이',
   board: '와 글이',
+  // 쪽지는 삭제 확인에 이 문구를 쓰지 않는다.
   message: '가',
 };
 
@@ -105,7 +106,13 @@ function InteriorList() {
       await removeInteriorTemplate(confirmTarget.id);
       await refetch();
     } catch (err) {
-      toast.error(toErrorMessage(err));
+      // 쪽지는 산 재고나 놓인 쪽지가 있으면 서버가 지우지 않는다(코인을 낸 재고·남긴 글을 말없이 지우지 않게).
+      toast.error(
+        toErrorMessage(err),
+        confirmTarget.feature === 'message' && isBadRequest(err)
+          ? { description: '재고나 놓인 쪽지가 있으면 지울 수 없어요. 판매 중지(비활성)를 쓰세요.' }
+          : undefined,
+      );
     }
     setConfirmOpen(false);
     setConfirmTarget(undefined);
@@ -238,7 +245,12 @@ function InteriorList() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>삭제 {confirmTarget?.name}</AlertDialogTitle>
-            {confirmTarget?.purchasedCount ? (
+            {confirmTarget?.feature === 'message' ? (
+              // 쪽지는 소유가 아니라 재고로 산다. 서버는 재고·놓인 쪽지가 있으면 지우지 않고 400 을 준다.
+              <AlertDialogDescription>
+                재고나 놓인 쪽지가 있으면 지울 수 없어요. 판매를 멈추려면 비활성화하세요.
+              </AlertDialogDescription>
+            ) : confirmTarget?.purchasedCount ? (
               <AlertDialogDescription>
                 산 공간 {confirmTarget.purchasedCount}곳의 소유
                 {LOST_WITH_OWNERSHIP[confirmTarget.feature ?? 'none'] ?? '가'} 함께 지워집니다.

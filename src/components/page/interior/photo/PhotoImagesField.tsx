@@ -8,7 +8,7 @@ type PhotoImagesFieldProps = {
   onPick: (kind: 'base' | 'overlay') => void;
 };
 
-function Thumb({ uri, alt }: { uri: string | null | undefined; alt: string }) {
+export function Thumb({ uri, alt }: { uri: string | null | undefined; alt: string }) {
   return (
     <div className='flex h-[120px] w-[200px] items-center justify-center rounded-md border border-dashed border-border bg-transparent p-2'>
       {uri ? (
@@ -16,6 +16,26 @@ function Thumb({ uri, alt }: { uri: string | null | undefined; alt: string }) {
       ) : (
         <ImageIcon className='h-6 w-6 text-faint' aria-hidden='true' />
       )}
+    </div>
+  );
+}
+
+/** 그림 비율·크기 경고. 사진·칠판·쪽지 가구가 같이 쓴다. */
+export function ImageWarnings({ warnings }: { warnings: string[] }) {
+  if (!warnings.length) return null;
+  return (
+    <div className='px-6'>
+      <ul
+        role='status'
+        className='space-y-1 rounded-lg border border-warning/35 bg-warning/15 px-4 py-3 text-sm text-warning-foreground'
+      >
+        {warnings.map((w) => (
+          <li key={w} className='flex gap-2'>
+            <AlertTriangle className='mt-0.5 h-4 w-4 shrink-0' aria-hidden='true' />
+            <span>{w}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -74,21 +94,7 @@ function PhotoImagesField({ draft, onPick }: PhotoImagesFieldProps) {
         </div>
       </DefinitionRow>
 
-      {warnings.length ? (
-        <div className='px-6'>
-          <ul
-            role='status'
-            className='space-y-1 rounded-lg border border-warning/35 bg-warning/15 px-4 py-3 text-sm text-warning-foreground'
-          >
-            {warnings.map((w) => (
-              <li key={w} className='flex gap-2'>
-                <AlertTriangle className='mt-0.5 h-4 w-4 shrink-0' aria-hidden='true' />
-                <span>{w}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+      <ImageWarnings warnings={warnings} />
     </>
   );
 }

@@ -113,7 +113,7 @@ export type GetCardTemplatesResult = {
 
 export type InteriorTemplateType = 'item' | 'wall' | 'floor' | 'todayFrame' | 'event';
 
-/** 가구 동작 종류. message 는 서버가 아직 받지 않는다. */
+/** 가구 동작 종류. */
 export type InteriorFeature = 'none' | 'photo' | 'board' | 'message';
 
 /** x·y = 돌리기 전 네모의 왼쪽 위(바닥 그림 대비 0–1). rotation = 칸 가운데 기준 도, radius = 칸 너비 대비. */
@@ -157,7 +157,24 @@ export type BoardSlot = Omit<PhotoSlot, 'radius'> & BoardText;
 
 export type BoardFeatureConfig = Omit<PhotoFeatureConfig, 'slots'> & { slots: BoardSlot[] };
 
-export type FeatureConfig = PhotoFeatureConfig | BoardFeatureConfig;
+/** 쪽지 가구. 방에는 대표 그림이 놓이고, 읽기 화면은 편지지 그림 위에 글을 그린다. */
+export type MessageFeatureConfig = {
+  version: 1;
+  /** 편지지 그림 asset id. */
+  paperImgId: number;
+  /** 편지지 원본 px. 피그마 300×356. */
+  paperWidth: number;
+  paperHeight: number;
+  /** 정수 1–200. 줄바꿈은 세지 않는다. */
+  maxLength: number;
+  /** 정수 1–20 */
+  maxLines: number;
+};
+
+/** 칸이 있는 설정(사진·칠판). */
+export type SlotFeatureConfig = PhotoFeatureConfig | BoardFeatureConfig;
+
+export type FeatureConfig = SlotFeatureConfig | MessageFeatureConfig;
 
 /** 사진 가구의 바닥·덮개 그림. 수정 화면에서는 서버가 주소를 못 찾으면 uri 가 null 이다. */
 export type PhotoAssetRef = { id: number; uri: string | null };
@@ -202,6 +219,8 @@ export type InteriorTemplate = {
   purchasedCount?: number;
   baseUri?: string | null;
   overlayUri?: string | null;
+  /** 쪽지 가구의 편지지 그림 주소. */
+  paperUri?: string | null;
 };
 
 export type PetCustomTemplateType = 'effect' | 'closet' | 'buddy';

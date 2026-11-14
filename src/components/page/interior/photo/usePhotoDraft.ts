@@ -6,6 +6,7 @@ import type {
   InteriorTemplate,
   PhotoAssetRef,
   PhotoSlot,
+  SlotFeatureConfig,
 } from '@/client/types';
 import { readImageSize } from '@/lib/image-size';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -46,7 +47,8 @@ export function usePhotoDraft(
 ) {
   const kind: 'photo' | 'board' = feature === 'board' ? 'board' : 'photo';
   // 손으로 고친 설정(slots 가 배열이 아님)은 서버도 baseUri 를 null 로 준다. 저장된 값이 없는 것처럼 다룬다.
-  const config = init?.feature === 'photo' || init?.feature === 'board' ? init.featureConfig : null;
+  const config =
+    init?.feature === 'photo' || init?.feature === 'board' ? (init.featureConfig as SlotFeatureConfig | null | undefined) : null;
   const saved = config && Array.isArray(config.slots) ? config : null;
 
   const [base, setBaseRef] = useState<PhotoAssetRef | null>(

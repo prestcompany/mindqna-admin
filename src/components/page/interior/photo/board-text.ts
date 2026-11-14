@@ -19,8 +19,8 @@ const CJK = /[ᄀ-ᇿ぀-ヿ㄰-㆏㐀-鿿가-힯豈-﫿]/;
 /** 줄 첫머리에 오지 않는 닫는 문장부호. 앞 글자에 붙여 둔다. */
 const NO_LINE_START = /[.,!?;:)\]}'"’”…。、！？）」』〉》]/;
 
-/** "가나다라마바사" 를 이어 최대 글자 수만큼, 최대 줄 수로 고르게 나눈 예시 글. 나머지는 앞줄부터 하나씩 더한다. */
-export function exampleText(maxLength: number, maxLines: number): string {
+/** sample(기본 "가나다라마바사")을 이어 최대 글자 수만큼, 최대 줄 수로 고르게 나눈 예시 글. 나머지는 앞줄부터 하나씩 더한다. */
+export function exampleText(maxLength: number, maxLines: number, sample = SAMPLE): string {
   const count = Math.max(1, Math.min(maxLines, maxLength));
   const base = Math.floor(maxLength / count);
   const lines: string[] = [];
@@ -28,7 +28,7 @@ export function exampleText(maxLength: number, maxLines: number): string {
   for (let n = 0; n < count; n++) {
     let line = '';
     const size = base + (n < maxLength % count ? 1 : 0);
-    for (let k = 0; k < size; k++, i++) line += SAMPLE[i % SAMPLE.length];
+    for (let k = 0; k < size; k++, i++) line += sample[i % sample.length];
     lines.push(line);
   }
   return lines.join('\n');
@@ -92,7 +92,7 @@ export function wrapLines(text: string, width: number, size: number, measure: Me
 export type FitResult = { fontSize: number; lines: string[]; truncated: boolean };
 
 /**
- * 앱과 같은 규칙으로 칸에 글을 맞춘다: 줄 높이 = 글자 크기 × 1.25, 줄 수가 maxLines 를 넘거나 높이가 칸을 넘으면 줄인다.
+ * 앱과 같은 규칙으로 칸에 글을 맞춘다: 줄 높이 = 글자 크기 × lineHeight(기본 1.25), 줄 수가 maxLines 를 넘거나 높이가 칸을 넘으면 줄인다.
  * 0.5 배에서도 넘치면 칸 높이에 들어가는 줄 수(최소 1, 최대 maxLines)에서 자르고 마지막 줄 끝에 "…".
  */
 export function fitText(input: {
@@ -102,8 +102,11 @@ export function fitText(input: {
   height: number;
   maxLines: number;
   measure: Measure;
+  /** 줄 높이 = 글자 크기 × 이 값. 칠판 1.25, 쪽지 편지지 1.3. */
+  lineHeight?: number;
 }): FitResult {
   const { text, width, height, measure } = input;
+  const lineHeight = input.lineHeight ?? LINE_HEIGHT;
   // 손으로 고친 설정의 0 줄에도 미리보기가 깨지지 않게 한다.
   const maxLines = Math.max(1, input.maxLines);
   let lines: string[] = [];
@@ -113,12 +116,12 @@ export function fitText(input: {
     lines = wrapLines(text, width, size, measure);
     const fits =
       lines.length <= maxLines &&
-      lines.length * size * LINE_HEIGHT <= height + TOLERANCE &&
+      lines.length * size * lineHeight <= height + TOLERANCE &&
       lines.every((l) => measure(l, size) <= width + TOLERANCE);
     if (fits) return { fontSize: size, lines, truncated: false };
   }
   // 앱 boardEllipsisLines 와 같다: 칸 높이에 들어가는 줄 수(최소 1)와 maxLines 중 작은 쪽까지 남긴다.
-  const keep = Math.min(maxLines, Math.max(1, Math.floor((height + TOLERANCE) / (size * LINE_HEIGHT))));
+  const keep = Math.min(maxLines, Math.max(1, Math.floor((height + TOLERANCE) / (size * lineHeight))));
   if (lines.length <= keep) return { fontSize: size, lines, truncated: false };
   const kept = lines.slice(0, keep);
   let last = Array.from(kept[keep - 1]);
