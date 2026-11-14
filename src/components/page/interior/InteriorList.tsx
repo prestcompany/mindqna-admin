@@ -79,7 +79,7 @@ function InteriorList() {
   const [confirmTarget, setConfirmTarget] = useState<InteriorTemplate | undefined>(undefined);
   const { items: roomItems } = useTotalRooms();
 
-  const { templates, totalPage, isLoading, refetch } = useInteriors({
+  const { templates, total, isLoading, refetch } = useInteriors({
     page: currentPage,
     room: filter.room,
     type: filter.type,
@@ -323,7 +323,7 @@ function InteriorList() {
         data={templates ?? []}
         loading={isLoading}
         pagination={{
-          total: totalPage * 10,
+          total,
           page: currentPage,
           pageSize: 10,
           onChange: (page) => setCurrentPage(page),
