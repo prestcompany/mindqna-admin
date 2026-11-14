@@ -345,7 +345,13 @@ function InteriorForm({ init, defaultFeature = 'none', reload, close }: Interior
             <DefinitionRow
               label='대표 이미지'
               required
-              hint={feature === 'message' ? '방에 놓일 때도 이 그림을 써요(글 없는 그림).' : undefined}
+              hint={
+                feature === 'message'
+                  ? '방에 놓일 때도 이 그림을 써요(글 없는 그림).'
+                  : feature === 'board'
+                    ? '상점과, 앱이 칠판을 못 그릴 때 이 그림을 써요. 예시 글이 없는 빈 칠판 그림을 올려 주세요.'
+                    : undefined
+              }
             >
               <div className='flex flex-col items-start gap-2'>
                 {image && (
