@@ -37,18 +37,19 @@ test('ratioDiff', () => {
 
 test('labels and open features', () => {
   assert.deepEqual(FEATURE_LABEL, { none: '없음', photo: '사진', board: '칠판', message: '쪽지' });
-  assert.deepEqual(OPEN_FEATURES, ['none', 'photo', 'board']);
+  assert.deepEqual(OPEN_FEATURES, ['none', 'photo', 'board', 'message']);
 });
 
 test('the feature tab reads the open features from the address', () => {
   assert.equal(featureTabFromQuery('photo'), 'photo');
   assert.equal(featureTabFromQuery('none'), 'none');
   assert.equal(featureTabFromQuery('board'), 'board');
+  assert.equal(featureTabFromQuery('message'), 'message');
 });
 
 test('the feature tab falls back to all for a missing, closed or repeated value', () => {
   assert.equal(featureTabFromQuery(undefined), 'all');
-  assert.equal(featureTabFromQuery('message'), 'all');
+  assert.equal(featureTabFromQuery('wall'), 'all');
   assert.equal(featureTabFromQuery(['photo', 'none']), 'all');
 });
 
@@ -62,4 +63,12 @@ test('the feature tab sends no filter for all and one feature otherwise', () => 
 test('board furniture follows the same price rule as photo furniture', () => {
   assert.deepEqual(featureTemplateProblems({ feature: 'board', type: 'item', price: 10 }), []);
   assert.equal(featureTemplateProblems({ feature: 'board', type: 'item', price: 0 }).length, 1);
+});
+
+test('message furniture is a paid item only', () => {
+  assert.deepEqual(featureTemplateProblems({ feature: 'message', type: 'item', price: 10 }), []);
+  assert.deepEqual(featureTemplateProblems({ feature: 'message', type: 'event', price: 0 }), [
+    '쪽지 가구는 아이템이어야 합니다.',
+  ]);
+  assert.equal(featureTemplateProblems({ feature: 'message', type: 'item', price: 0 }).length, 1);
 });

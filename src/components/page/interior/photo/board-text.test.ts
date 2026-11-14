@@ -99,3 +99,10 @@ test('the kept line count never drops below one', () => {
   const r = fitText({ text: '가\n나', fontSize: 100, width: 1000, height: 10, maxLines: 3, measure });
   assert.deepEqual(r.lines, ['가…']);
 });
+
+test('the line height multiple can be set (message paper uses 1.3)', () => {
+  const input = { text: '가\n나', fontSize: 10, width: 100, height: 25, maxLines: 3, measure };
+  // 2 lines x 10 x 1.25 = 25 fits; at 1.3 that is 26 > 25.5, so it shrinks one step.
+  assert.equal(fitText(input).fontSize, 10);
+  assert.equal(fitText({ ...input, lineHeight: 1.3 }).fontSize, 9);
+});
