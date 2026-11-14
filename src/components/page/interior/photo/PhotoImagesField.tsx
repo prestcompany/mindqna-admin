@@ -20,14 +20,23 @@ function Thumb({ uri, alt }: { uri: string | null | undefined; alt: string }) {
   );
 }
 
-/** 바닥 그림(필수)·덮개 그림(선택)과 그림 경고. */
+/** 바닥 그림(필수)·덮개 그림(선택)과 그림 경고. 사진·칠판 가구가 같이 쓴다. */
 function PhotoImagesField({ draft, onPick }: PhotoImagesFieldProps) {
   const { base, overlay, imgWidth, imgHeight, baseSizeError, warnings } = draft;
   const baseMissing = base !== null && base.uri === null;
+  const isBoard = draft.kind === 'board';
 
   return (
     <>
-      <DefinitionRow label='바닥 그림' required hint='칸 자리를 비운 그림입니다. 칸 좌표의 기준이 됩니다.'>
+      <DefinitionRow
+        label='바닥 그림'
+        required
+        hint={
+          isBoard
+            ? '칠판 면을 비운 그림입니다. 칸 좌표와 글자 크기의 기준이 됩니다.'
+            : '칸 자리를 비운 그림입니다. 칸 좌표의 기준이 됩니다.'
+        }
+      >
         <div className='flex flex-col items-start gap-2'>
           <Thumb uri={base?.uri} alt='바닥 그림' />
           {baseMissing ? <p className='text-sm text-destructive'>바닥 그림을 다시 고르세요.</p> : null}
@@ -45,7 +54,7 @@ function PhotoImagesField({ draft, onPick }: PhotoImagesFieldProps) {
 
       <DefinitionRow
         label='덮개 그림'
-        hint='칸 위에 오는 테이프·집게만 그린 그림입니다. 바닥 그림과 같은 크기여야 합니다.'
+        hint={`${isBoard ? '글 위에 오는 분필 받침 등' : '칸 위에 오는 테이프·집게'}만 그린 그림입니다. 바닥 그림과 같은 크기여야 합니다.`}
       >
         <div className='flex flex-col items-start gap-2'>
           {overlay ? <Thumb uri={overlay.uri} alt='덮개 그림' /> : null}

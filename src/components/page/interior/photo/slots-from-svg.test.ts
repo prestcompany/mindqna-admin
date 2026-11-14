@@ -291,6 +291,16 @@ test('zero or eleven slots are rejected', () => {
   accepted(svg(eleven.slice(0, 10)));
 });
 
+test('board import allows at most four slots and names lost text', () => {
+  const board = { maxSlots: 4, content: '글' };
+  const five = 'abcde'.split('').map((k, i) => node(`slot-${k}`, { x: String(i * 30), width: '20' }));
+  const result = slotsFromSvg(svg(five), IMAGE, [], 0, board);
+  assert.deepEqual(result.ok ? [] : result.errors, ['칸은 1–4개여야 합니다']);
+  assert.ok(slotsFromSvg(svg(five.slice(0, 4)), IMAGE, [], 0, board).ok);
+  const lost = slotsFromSvg(svg([node('slot-b')]), IMAGE, ['a'], 2, board);
+  assert.deepEqual(lost.ok ? [] : lost.errors, ['칸 a 이 SVG 에 없습니다. 산 공간 2곳의 글이 끊깁니다']);
+});
+
 test('out-of-range slot names the unrotated rectangle', () => {
   const errors = rejected(svg([node('slot-a', { x: '400' })]));
   assert.equal(errors.length, 1);

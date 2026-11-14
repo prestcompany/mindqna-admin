@@ -170,6 +170,8 @@ export function slotsFromSvg(
   image: { imgWidth: number; imgHeight: number },
   existingKeys: string[],
   purchasedCount: number,
+  /** 칠판은 칸 4개까지, 끊기는 내용은 "글". */
+  options: { maxSlots: number; content: string } = { maxSlots: 10, content: '사진' },
 ): SlotsResult {
   const frame = readFrame(data.root);
   if (!frame)
@@ -208,18 +210,20 @@ export function slotsFromSvg(
       errors.push(`${node.id}: ${placed.error}`);
       continue;
     }
-    for (const p of slotProblems([placed.slot])) errors.push(`${p} (돌리기 전 네모 기준)`);
+    for (const p of slotProblems([placed.slot], options.maxSlots)) errors.push(`${p} (돌리기 전 네모 기준)`);
     for (const w of placed.warnings) warnings.push(`${node.id}: ${w}`);
     slots.push(placed.slot);
   }
 
-  if (named < 1 || named > 10) errors.push('칸은 1–10개여야 합니다');
+  if (named < 1 || named > options.maxSlots) errors.push(`칸은 1–${options.maxSlots}개여야 합니다`);
 
   if (purchasedCount > 0) {
     const prev = existingKeys.map((k) => ({ key: k, x: 0, y: 0, width: 0, height: 0 }));
     const missing = missingSlotKeys(prev, slots);
     if (missing.length)
-      errors.push(`칸 ${missing.join(', ')} 이 SVG 에 없습니다. 산 공간 ${purchasedCount}곳의 사진이 끊깁니다`);
+      errors.push(
+        `칸 ${missing.join(', ')} 이 SVG 에 없습니다. 산 공간 ${purchasedCount}곳의 ${options.content}이 끊깁니다`,
+      );
   }
 
   return errors.length ? { ok: false, errors } : { ok: true, slots, warnings };

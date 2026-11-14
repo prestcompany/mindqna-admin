@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { FileUp } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { BOARD_MAX_SLOTS } from './board-rules';
 import { checkSvgText, extractSvg } from './extract-svg';
 import { type SlotChange, slotChanges, slotsFromSvg } from './slots-from-svg';
 import type { PhotoDraft } from './usePhotoDraft';
@@ -61,6 +62,7 @@ function SvgSlotImport({ draft }: SvgSlotImportProps) {
       { imgWidth: draft.imgWidth, imgHeight: draft.imgHeight },
       draft.savedKeys,
       draft.purchasedCount,
+      draft.kind === 'board' ? { maxSlots: BOARD_MAX_SLOTS, content: '글' } : undefined,
     );
     if (!result.ok) return setErrors(result.errors);
     if (draft.slots.length) setPending({ slots: result.slots, warnings: result.warnings });
