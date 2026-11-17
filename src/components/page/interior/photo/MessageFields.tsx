@@ -1,11 +1,14 @@
 import { DefinitionRow } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
-import { parseMessageNumber } from './message-rules';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import type { MessageOpenScene } from '@/client/types';
+import { MESSAGE_OPEN_SCENES, parseMessageNumber } from './message-rules';
 import { ImageWarnings, Thumb } from './PhotoImagesField';
 import SlotNumberInput from './SlotNumberInput';
 import type { MessageDraft } from './useMessageDraft';
 
-/** 편지지 그림(필수)과 최대 글자·줄. */
+/** 편지지 그림(필수)과 최대 글자·줄, 여는 장면. */
 function MessageFields({ draft, onPick }: { draft: MessageDraft; onPick: () => void }) {
   const { paper, paperSize, sizeError, warnings } = draft;
   return (
@@ -51,6 +54,26 @@ function MessageFields({ draft, onPick }: { draft: MessageDraft; onPick: () => v
             />
           </div>
         </div>
+      </DefinitionRow>
+      <DefinitionRow label='여는 장면' hint='쪽지를 열 때 앱이 트는 장면입니다. 고르지 않으면 편지 봉투 장면이 나옵니다.'>
+        <RadioGroup
+          value={draft.openScene ?? ''}
+          onValueChange={(value) => draft.setOpenScene(value as MessageOpenScene)}
+          aria-label='여는 장면'
+          className='grid grid-cols-2 gap-2 sm:grid-cols-3'
+        >
+          {MESSAGE_OPEN_SCENES.map((opt) => (
+            <div key={opt.value}>
+              <RadioGroupItem value={opt.value} id={`open-scene-${opt.value}`} className='peer sr-only' />
+              <Label
+                htmlFor={`open-scene-${opt.value}`}
+                className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+              >
+                {opt.label}
+              </Label>
+            </div>
+          ))}
+        </RadioGroup>
       </DefinitionRow>
     </>
   );

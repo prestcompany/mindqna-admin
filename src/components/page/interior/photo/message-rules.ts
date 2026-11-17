@@ -1,8 +1,20 @@
-import type { InteriorFeature, MessageFeatureConfig, PhotoAssetRef } from '@/client/types';
+import type { InteriorFeature, MessageFeatureConfig, MessageOpenScene, PhotoAssetRef } from '@/client/types';
 import { exampleText } from './board-text';
 import { ratioDiff } from './template-rules';
 
 export const MESSAGE_DEFAULT = { maxLength: 80, maxLines: 7 } as const;
+
+/** 쪽지를 열 때의 장면. 앱 요청서 순서다. 고르지 않으면 앱이 편지 봉투 장면을 쓴다. */
+export const MESSAGE_OPEN_SCENES: { value: MessageOpenScene; label: string }[] = [
+  { value: 'letter', label: '편지 봉투' },
+  { value: 'airplane', label: '종이비행기' },
+  { value: 'pot', label: '화분' },
+  { value: 'tulip', label: '튤립 꽃다발' },
+  { value: 'basket', label: '장미 꽃바구니' },
+  { value: 'cake', label: '케이크' },
+];
+
+const isOpenScene = (v: unknown): v is MessageOpenScene => MESSAGE_OPEN_SCENES.some((s) => s.value === v);
 
 /** 피그마 편지지(`6107:65763`) 300×356 기준. 앱 읽기 화면과 같은 값이다. */
 const PAPER = { width: 300, height: 356 };
@@ -79,11 +91,14 @@ export function parseMessageNumber(raw: string, min: number, max: number): numbe
 
 const isPositive = (n: unknown): n is number => typeof n === 'number' && n > 0;
 
-/** 저장된 쪽지 설정. 손으로 고쳐 편지지 id·크기가 빠졌으면 없는 것처럼 다룬다(미리보기가 NaN 으로 그리지 않게). */
+/**
+ * 저장된 쪽지 설정. 손으로 고쳐 편지지 id·크기가 빠졌으면 없는 것처럼 다룬다(미리보기가 NaN 으로 그리지 않게).
+ * 여는 장면이 6개 밖의 값이면 뺀다(다시 저장할 때 서버가 거절하지 않게).
+ */
 export function readMessageConfig(feature: InteriorFeature | undefined, config: unknown): MessageFeatureConfig | null {
   if (feature !== 'message' || !config || typeof config !== 'object') return null;
   const c = config as Partial<MessageFeatureConfig>;
-  return typeof c.paperImgId === 'number' && isPositive(c.paperWidth) && isPositive(c.paperHeight)
-    ? (c as MessageFeatureConfig)
-    : null;
+  if (!(typeof c.paperImgId === 'number' && isPositive(c.paperWidth) && isPositive(c.paperHeight))) return null;
+  const { openScene, ...rest } = c as MessageFeatureConfig;
+  return isOpenScene(openScene) ? { ...rest, openScene } : rest;
 }

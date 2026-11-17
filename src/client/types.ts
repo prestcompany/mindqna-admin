@@ -157,6 +157,9 @@ export type BoardSlot = Omit<PhotoSlot, 'radius'> & BoardText;
 
 export type BoardFeatureConfig = Omit<PhotoFeatureConfig, 'slots'> & { slots: BoardSlot[] };
 
+/** 쪽지를 열 때 앱이 트는 장면. */
+export type MessageOpenScene = 'letter' | 'airplane' | 'pot' | 'tulip' | 'basket' | 'cake';
+
 /** 쪽지 가구. 방에는 대표 그림이 놓이고, 읽기 화면은 편지지 그림 위에 글을 그린다. */
 export type MessageFeatureConfig = {
   version: 1;
@@ -169,6 +172,8 @@ export type MessageFeatureConfig = {
   maxLength: number;
   /** 정수 1–20 */
   maxLines: number;
+  /** 없으면 앱이 편지 봉투(letter) 장면을 쓴다. */
+  openScene?: MessageOpenScene;
 };
 
 /** 칸이 있는 설정(사진·칠판). */
