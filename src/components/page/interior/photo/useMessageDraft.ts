@@ -1,4 +1,4 @@
-import type { ImgItem, InteriorTemplate, MessageFeatureConfig, PhotoAssetRef } from '@/client/types';
+import type { ImgItem, InteriorTemplate, MessageFeatureConfig, MessageOpenScene, PhotoAssetRef } from '@/client/types';
 import { readImageSize } from '@/lib/image-size';
 import { useRef, useState } from 'react';
 import { MESSAGE_DEFAULT, messageConfigProblems, paperWarnings, readMessageConfig } from './message-rules';
@@ -6,7 +6,7 @@ import { MESSAGE_DEFAULT, messageConfigProblems, paperWarnings, readMessageConfi
 type Size = { width: number; height: number };
 
 /**
- * 쪽지 가구 편집 상태: 편지지 그림과 원본 크기, 최대 글자·줄. InteriorForm 이 든다(그림 고르기 화면으로 바뀌어도 남게).
+ * 쪽지 가구 편집 상태: 편지지 그림과 원본 크기, 최대 글자·줄, 여는 장면. InteriorForm 이 든다(그림 고르기 화면으로 바뀌어도 남게).
  * 사진·칠판과 달리 바닥·덮개·칸이 없어 따로 둔다.
  */
 export function useMessageDraft(init: InteriorTemplate | undefined) {
@@ -21,6 +21,7 @@ export function useMessageDraft(init: InteriorTemplate | undefined) {
   const [sizeError, setSizeError] = useState(false);
   const [maxLength, setMaxLength] = useState<number>(saved?.maxLength ?? MESSAGE_DEFAULT.maxLength);
   const [maxLines, setMaxLines] = useState<number>(saved?.maxLines ?? MESSAGE_DEFAULT.maxLines);
+  const [openScene, setOpenScene] = useState<MessageOpenScene | undefined>(saved?.openScene);
   // 빨리 두 번 고르면 먼저 고른 그림의 크기가 늦게 와도 덮지 않게 한다.
   const lastPick = useRef(0);
 
@@ -52,6 +53,8 @@ export function useMessageDraft(init: InteriorTemplate | undefined) {
           paperHeight: paperSize.height,
           maxLength,
           maxLines,
+          // 고르지 않았으면 키를 보내지 않는다(서버·앱이 편지 봉투로 다룬다).
+          ...(openScene ? { openScene } : {}),
         }
       : null;
 
@@ -61,10 +64,12 @@ export function useMessageDraft(init: InteriorTemplate | undefined) {
     sizeError,
     maxLength,
     maxLines,
+    openScene,
     warnings: paperWarnings(paperSize),
     pickPaper,
     setMaxLength,
     setMaxLines,
+    setOpenScene,
     problems,
     toConfig,
   };

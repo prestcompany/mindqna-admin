@@ -6,6 +6,7 @@ import {
   MESSAGE_LAYOUT,
   messageConfigProblems,
   messageLayout,
+  MESSAGE_OPEN_SCENES,
   paperWarnings,
   parseMessageNumber,
   readMessageConfig,
@@ -97,4 +98,28 @@ test('an off-ratio paper scales the boxes per axis and the font by width (app Sp
   assert.equal(l.text.width, 249);
   assert.ok(Math.abs(l.sign.y - (292 / 356) * 400) < 1e-9);
   assert.equal(l.fontSize, 25);
+});
+
+test('the open scenes are the six the app draws, in the request order', () => {
+  assert.deepEqual(
+    MESSAGE_OPEN_SCENES.map((s) => [s.value, s.label]),
+    [
+      ['letter', '편지 봉투'],
+      ['airplane', '종이비행기'],
+      ['pot', '화분'],
+      ['tulip', '튤립 꽃다발'],
+      ['basket', '장미 꽃바구니'],
+      ['cake', '케이크'],
+    ],
+  );
+});
+
+test('a saved openScene is kept when it is one of the six and dropped otherwise', () => {
+  const saved = { version: 1, paperImgId: 7, paperWidth: 300, paperHeight: 356, maxLength: 80, maxLines: 7 };
+  assert.equal(readMessageConfig('message', { ...saved, openScene: 'cake' })?.openScene, 'cake');
+  assert.equal(readMessageConfig('message', saved)?.openScene, undefined);
+  const odd = readMessageConfig('message', { ...saved, openScene: 'rocket' });
+  assert.ok(odd);
+  assert.equal('openScene' in odd, false);
+  assert.equal(readMessageConfig('message', { ...saved, openScene: null })?.openScene, undefined);
 });
