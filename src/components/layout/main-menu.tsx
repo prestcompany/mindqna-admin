@@ -3,6 +3,7 @@ import {
   BarChart3,
   Component,
   FileDown,
+  FlaskConical,
   Folders,
   Gamepad2Icon,
   LucideLayoutGrid,
@@ -132,6 +133,12 @@ const systemMenu: IMenu[] = [
     name: '앱 기능 관리',
     icon: <ToggleRight className='w-4 h-4' />,
     link: { path: '/feature-flags' },
+  },
+  {
+    id: 'sandbox-testers',
+    name: '샌드박스 테스터',
+    icon: <FlaskConical className='w-4 h-4' />,
+    link: { path: '/sandbox-testers' },
   },
   {
     id: 'pdf-export',
