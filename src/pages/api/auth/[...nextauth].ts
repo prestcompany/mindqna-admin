@@ -1,4 +1,5 @@
 import client from '@/client/@base';
+import { isLoginThrottled, TOO_MANY_ATTEMPTS } from '@/lib/login-error';
 import { jwtDecode } from 'jwt-decode';
 import NextAuth, { User, type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
@@ -28,7 +29,8 @@ export const authOptions: NextAuthOptions = {
           }
           return null;
         } catch (error) {
-          // console.error('인증 에러:', error);
+          // 시도 제한은 틀린 비밀번호와 다르게 알린다. next-auth 가 /login?error=TooManyAttempts 로 보낸다.
+          if (isLoginThrottled(error)) throw new Error(TOO_MANY_ATTEMPTS);
           return null;
         }
       },
@@ -54,7 +56,7 @@ export const authOptions: NextAuthOptions = {
           });
 
           token.accessToken = data.accessToken;
-          if (data.refresh_token) {
+          if (data.refreshToken) {
             token.refreshToken = data.refreshToken;
           }
         } catch (error) {
@@ -77,6 +79,8 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: '/login',
+    // authorize 가 던진 오류(TooManyAttempts 등)도 next-auth 기본 오류 화면 대신 로그인 화면에 띄운다.
+    error: '/login',
   },
   session: {
     strategy: 'jwt',
