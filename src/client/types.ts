@@ -1139,3 +1139,18 @@ export type FeatureFlagAppVersion = {
 export type FeatureFlagsResult = { items: FeatureFlagItem[]; versions?: FeatureFlagAppVersion[] };
 
 export type UpdateFeatureFlagParams = Omit<FeatureFlagRow, 'key' | 'updatedAt'>;
+
+export type RebindPlatform = 'IOS' | 'AOS';
+
+/** 탈퇴한 계정의 살아 있는 구독을 확인된 결제자 계정으로 옮긴다. iOS 는 originalTransactionId, Android 는 구매 토큰. */
+export type SubscriptionRebindParams = { platform: RebindPlatform; transactionId: string; spaceId: string };
+
+export type RebindOutcome = 'created' | 'reactivated' | 'extended' | 'noop';
+
+export type SubscriptionRebindResult = {
+  productId: string;
+  spaceId: string | null;
+  /** ISO */
+  expiresAt: string;
+  outcome: RebindOutcome;
+};
