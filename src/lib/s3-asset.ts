@@ -1,0 +1,44 @@
+const BUCKET_ORIGIN = 'https://mindqna.s3.amazonaws.com';
+
+/**
+ * 어드민이 올린 Lottie: 서버 uploadSingleFileToS3 가 `<YYYY-MM-DD>/<원래 파일 이름>` 으로 둔다.
+ * 사용자 업로드(u/…)·하위 폴더·`..`·역슬래시·.json 이 아닌 것은 받지 않는다.
+ */
+const ADMIN_ASSET_KEY = /^\d{4}-\d{2}-\d{2}\/[^/\\]+\.json$/;
+
+export function isAdminAssetKey(key: unknown): key is string {
+  return typeof key === 'string' && ADMIN_ASSET_KEY.test(key) && !key.includes('..') && !key.endsWith('/.json');
+}
+
+export function upstreamUrl(key: string): string {
+  return `${BUCKET_ORIGIN}/${key.split('/').map(encodeURIComponent).join('/')}`;
+}
+
+/** 본문은 JSON 일 때만 넘긴다. HTML 등은 어드민 도메인에서 열리면 세션을 훔칠 수 있다. */
+export function isJsonContentType(type: string | null | undefined): boolean {
+  return (type ?? '').split(';')[0].trim().toLowerCase() === 'application/json';
+}
+
+/** fetch().json() 에는 영향이 없고, 주소를 직접 열었을 때 문서로 실행되지 않게 한다. */
+export const S3_ASSET_HEADERS = {
+  'X-Content-Type-Options': 'nosniff',
+  'Content-Disposition': 'attachment',
+  'Content-Security-Policy': "sandbox; default-src 'none'",
+} as const;
+
+/** S3 주소를 /api/s3-asset 요청으로 바꾼다. 주소가 아니면 null. */
+export function assetProxyPath(fileUrl: string): string | null {
+  let pathname: string;
+  try {
+    pathname = new URL(fileUrl).pathname;
+  } catch {
+    return null;
+  }
+  let key: string;
+  try {
+    key = decodeURIComponent(pathname.slice(1));
+  } catch {
+    return null;
+  }
+  return `/api/s3-asset?key=${encodeURIComponent(key)}`;
+}

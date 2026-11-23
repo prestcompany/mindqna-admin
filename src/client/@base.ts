@@ -30,21 +30,12 @@ client.interceptors.request.use(async (config) => {
   const session = await getSession();
 
   if (session?.accessToken) {
-    // 토큰이 만료되었는지 확인
+    // 만료된 토큰은 getSession 이 부른 next-auth jwt 콜백이 서버에서 갱신한다. 그래도 만료면 갱신이 실패한 것이다.
     if (isTokenExpired(session.accessToken)) {
-      try {
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/admin/auth/refresh`, {
-          refreshToken: session.refreshToken,
-        });
-        config.headers.Authorization = `Bearer ${response.data.accessToken}`;
-      } catch (error) {
-        await signOut({ redirect: true, callbackUrl: '/login' });
-        return Promise.reject(error);
-      }
-    } else {
-      // 토큰이 유효한 경우 그대로 사용
-      config.headers.Authorization = `Bearer ${session.accessToken}`;
+      await signOut({ redirect: true, callbackUrl: '/login' });
+      return Promise.reject(new Error('Session expired'));
     }
+    config.headers.Authorization = `Bearer ${session.accessToken}`;
   }
   return config;
 });

@@ -68,8 +68,8 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (token) {
+        // refreshToken 은 서버(jwt 쿠키)에만 둔다. 화면의 스크립트가 읽을 수 있는 세션에는 넣지 않는다.
         session.accessToken = token.accessToken as string;
-        session.refreshToken = token.refreshToken as string;
         session.user.id = token.id as string;
       }
       return session;
