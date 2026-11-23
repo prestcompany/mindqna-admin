@@ -61,6 +61,8 @@ test('server errors: 404 and 403 get our words, 400 shows the server message as-
     rebindErrorMessage(err(400, 16, '원래 계정이 살아 있습니다. 계정 이관을 쓰세요.')),
     '원래 계정이 살아 있습니다. 계정 이관을 쓰세요.',
   );
+  const leftover = '다른 계정(이관 전 잔여 데이터)이 이 구독을 갖고 있습니다. 먼저 정리해 주세요.';
+  assert.equal(rebindErrorMessage(err(400, 16, leftover)), leftover);
   assert.equal(rebindErrorMessage(new Error('Network Error')), 'Network Error');
 });
 

@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 import { Loader2 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import SubscriptionRebindDialog from '../SubscriptionRebindDialog';
+import TransferLeftoverDialog from '../TransferLeftoverDialog';
 
 function Section({ title, count, children }: { title: string; count: number; children: ReactNode }) {
   if (count === 0) return null;
@@ -29,16 +30,23 @@ function UserEntitlementsTab({ username, active }: { username: string; active: b
     enabled: active && !!username,
   });
   const [rebindOpen, setRebindOpen] = useState(false);
+  const [leftoverOpen, setLeftoverOpen] = useState(false);
 
-  // 탈퇴 계정에 남은 구독을 이 계정으로 옮기는 CS 작업. 내역이 없어도(옮겨 받을 사람이라) 보여야 한다.
+  // 탈퇴·이관 계정에 남은 구독을 이 계정으로 옮기는 CS 작업. 내역이 없어도(옮겨 받을 사람이라) 보여야 한다.
   const rebind = (
-    <div className='flex items-center justify-between gap-3 rounded-lg border border-dashed border-border px-4 py-3'>
-      <p className='text-xs text-muted-foreground'>
-        탈퇴한 계정에 남은 구독의 실제 결제자가 이 계정이면, 확인 후 구독을 옮길 수 있습니다.
+    <div className='flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed border-border px-4 py-3'>
+      <p className='min-w-0 flex-1 text-xs text-muted-foreground'>
+        탈퇴한 계정이나 이관 전 temp_ 계정에 남은 구독의 실제 결제자가 이 계정이면, 확인 후 옮길 수 있습니다.
       </p>
-      <Button type='button' variant='outline' size='sm' onClick={() => setRebindOpen(true)}>
-        구독 다시 묶기
-      </Button>
+      <div className='flex shrink-0 gap-2'>
+        <Button type='button' variant='outline' size='sm' onClick={() => setLeftoverOpen(true)}>
+          이관 잔여 정리
+        </Button>
+        <Button type='button' variant='outline' size='sm' onClick={() => setRebindOpen(true)}>
+          구독 다시 묶기
+        </Button>
+      </div>
+      <TransferLeftoverDialog username={username} open={leftoverOpen} onOpenChange={setLeftoverOpen} />
       <SubscriptionRebindDialog username={username} open={rebindOpen} onOpenChange={setRebindOpen} />
     </div>
   );

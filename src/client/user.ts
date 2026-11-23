@@ -4,6 +4,8 @@ import {
   QueryResultWithPagination,
   SubscriptionRebindParams,
   SubscriptionRebindResult,
+  TransferLeftoverParams,
+  TransferLeftoverResult,
   UserAccessRow,
   UserDetail,
   UserEntitlements,
@@ -107,6 +109,13 @@ export async function updateUser(username: string, body: UpdateUserParams) {
 /** 탈퇴 계정 구독을 이 사용자에게 다시 묶는다. 서버가 스토어에서 살아 있는지 다시 확인한다. */
 export async function rebindSubscription(username: string, body: SubscriptionRebindParams) {
   const res = await client.post<SubscriptionRebindResult>(`/user/${username}/subscription-rebind`, body);
+
+  return res.data;
+}
+
+/** temp_ 계정에 남은 이관 잔여 데이터를 대상 계정으로 옮긴다. */
+export async function cleanupTransferLeftover(body: TransferLeftoverParams) {
+  const res = await client.post<TransferLeftoverResult>('/user/transfer-leftover', body);
 
   return res.data;
 }

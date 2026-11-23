@@ -1154,3 +1154,13 @@ export type SubscriptionRebindResult = {
   expiresAt: string;
   outcome: RebindOutcome;
 };
+
+/** 예전 이관이 남긴 temp_ 계정의 공간·구매·원장을 대상 계정으로 옮긴다. */
+export type TransferLeftoverParams = { fromUserName: string; toUserName: string };
+
+export type TransferLeftoverResult = {
+  ledgerRows: number;
+  skippedTicketLedgers: number;
+  /** 한 구독에 골드클럽이 둘 이상 남아 비활성으로 돌린 id. 가장 최근 것만 남긴다. */
+  deactivatedClubs: number[];
+};
