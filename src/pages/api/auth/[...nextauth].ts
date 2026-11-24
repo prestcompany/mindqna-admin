@@ -1,8 +1,11 @@
-import client from '@/client/@base';
 import { isLoginThrottled, TOO_MANY_ATTEMPTS } from '@/lib/login-error';
+import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import NextAuth, { User, type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+
+// 로그인·갱신은 서버에서 돈다. @/client/@base 의 인터셉터(getSession, 401 이면 signOut)는 브라우저용이라 쓰지 않는다.
+const authClient = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_ENDPOINT + '/admin' });
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -14,7 +17,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         try {
-          const { data } = await client.post('/auth/login', {
+          const { data } = await authClient.post('/auth/login', {
             email: credentials?.email,
             password: credentials?.password,
           });
@@ -51,7 +54,7 @@ export const authOptions: NextAuthOptions = {
       if (tokenExpired && token.refreshToken) {
         try {
           // 리프레시 토큰으로 새로운 액세스 토큰 발급
-          const { data } = await client.post('/auth/refresh', {
+          const { data } = await authClient.post('/auth/refresh', {
             refreshToken: token.refreshToken,
           });
 
