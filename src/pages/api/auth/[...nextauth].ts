@@ -5,7 +5,8 @@ import NextAuth, { User, type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
 // 로그인·갱신은 서버에서 돈다. @/client/@base 의 인터셉터(getSession, 401 이면 signOut)는 브라우저용이라 쓰지 않는다.
-const authClient = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_ENDPOINT + '/admin' });
+// 로그인·갱신 중 API 가 멈춰도 함수 실행 시간 끝까지 기다리지 않게 10초에 끊는다.
+const authClient = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_ENDPOINT + '/admin', timeout: 10_000 });
 
 export const authOptions: NextAuthOptions = {
   providers: [
