@@ -3,7 +3,8 @@ import { test } from 'node:test';
 import {
   assetProxyPath,
   isAdminAssetKey,
-  isJsonContentType,
+  isJsonBody,
+  MAX_ASSET_BYTES,
   S3_ASSET_HEADERS,
   upstreamUrl,
 } from './s3-asset';
@@ -40,12 +41,16 @@ test('the upstream URL encodes each key segment', () => {
   );
 });
 
-test('only application/json passes, parameters and case aside', () => {
-  assert.equal(isJsonContentType('application/json'), true);
-  assert.equal(isJsonContentType('Application/JSON; charset=utf-8'), true);
-  for (const type of ['text/html', 'application/octet-stream', 'image/png', 'application/json-seq', null, '']) {
-    assert.equal(isJsonContentType(type), false, String(type));
+test('only a body that parses as JSON passes', () => {
+  assert.equal(isJsonBody(Buffer.from('{"v":"5.7","layers":[]}')), true);
+  assert.equal(isJsonBody(Buffer.from(' [1, 2] ')), true);
+  for (const body of ['<script>steal()</script>', '<html><body>x</body></html>', '{"v":', '']) {
+    assert.equal(isJsonBody(Buffer.from(body)), false, body);
   }
+});
+
+test('assets stop just under the 4.5MB Vercel response limit', () => {
+  assert.equal(MAX_ASSET_BYTES, 4.4 * 1024 * 1024);
 });
 
 test('every response carries nosniff, attachment and a sandboxing CSP', () => {

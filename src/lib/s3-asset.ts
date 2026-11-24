@@ -14,10 +14,21 @@ export function upstreamUrl(key: string): string {
   return `${BUCKET_ORIGIN}/${key.split('/').map(encodeURIComponent).join('/')}`;
 }
 
-/** 본문은 JSON 일 때만 넘긴다. HTML 등은 어드민 도메인에서 열리면 세션을 훔칠 수 있다. */
-export function isJsonContentType(type: string | null | undefined): boolean {
-  return (type ?? '').split(';')[0].trim().toLowerCase() === 'application/json';
+/**
+ * 본문은 JSON 으로 읽힐 때만 넘긴다. HTML 등은 어드민 도메인에서 열리면 세션을 훔칠 수 있다.
+ * S3 의 Content-Type 은 보지 않는다. 예전에 올린 Lottie 는 application/octet-stream·text/plain 으로 저장돼 있을 수 있다.
+ */
+export function isJsonBody(body: Buffer): boolean {
+  try {
+    JSON.parse(body.toString('utf8'));
+    return true;
+  } catch {
+    return false;
+  }
 }
+
+/** Vercel 함수 응답 한도(4.5MB)보다 조금 작게 끊어, 넘으면 불투명하게 실패하지 않고 413 을 준다. */
+export const MAX_ASSET_BYTES = 4.4 * 1024 * 1024;
 
 /** fetch().json() 에는 영향이 없고, 주소를 직접 열었을 때 문서로 실행되지 않게 한다. */
 export const S3_ASSET_HEADERS = {

@@ -2,6 +2,7 @@ import client from '@/client/@base';
 import { jwtDecode } from 'jwt-decode';
 import NextAuth, { User, type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import { needsRefresh } from '@/lib/auth/token-refresh';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -42,9 +43,9 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
       }
 
-      // 액세스 토큰이 만료되었는지 확인
+      // 액세스 토큰이 곧 만료되는지 확인(요청이 가는 동안 만료되지 않게 여유를 둔다)
       const decodedToken = jwtDecode<{ exp: number }>(token.accessToken as string);
-      const tokenExpired = Date.now() >= decodedToken.exp * 1000;
+      const tokenExpired = needsRefresh(decodedToken.exp);
 
       if (tokenExpired && token.refreshToken) {
         try {
