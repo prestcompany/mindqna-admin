@@ -56,6 +56,13 @@ export async function removeBanner(id: number) {
   return res.data;
 }
 
+/** `from`/`to` are KST calendar days (`YYYY-MM-DD`), inclusive, at most 366 days apart. */
+export async function getBannerStats(id: number, params: { from: string; to: string }) {
+  const res = await client.get<BannerStats>(`/banner/${id}/stats`, { params });
+
+  return res.data;
+}
+
 export type Banner = {
   id: number;
   location: string;
@@ -74,8 +81,32 @@ export type Banner = {
   isOnce: boolean;
   locale: Locale;
   isActive: boolean;
+  /** Publish window, ISO UTC. Null on either side means no limit there. */
+  startAt: string | null;
+  endAt: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type BannerStatsDay = {
+  /** KST day, `YYYY-MM-DD`. */
+  date: string;
+  views: number;
+  clicks: number;
+  /** clicks / views as a ratio (0.0123 = 1.23%); null when there were no views. */
+  ctr: number | null;
+  claims: number;
+};
+
+export type BannerStats = {
+  bannerId: number;
+  from: string;
+  to: string;
+  /** First day daily views/clicks were recorded. Claims have history before it. */
+  statsSince: string | null;
+  totals: Omit<BannerStatsDay, 'date'>;
+  /** Every day of the range, zero-filled. */
+  days: BannerStatsDay[];
 };
 
 export type CreateBannerParams = {
@@ -85,6 +116,9 @@ export type CreateBannerParams = {
   link: string;
   locale: Locale;
   orderIndex: number;
+  /** ISO UTC, or null for no limit. */
+  startAt: string | null;
+  endAt: string | null;
 };
 
 export type UpdateBannerParams = CreateBannerParams & {

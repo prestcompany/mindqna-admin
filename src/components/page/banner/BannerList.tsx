@@ -27,7 +27,16 @@ import { useState } from 'react';
 import { useResetOnChange } from '@/hooks/useResetOnChange';
 import { toast } from 'sonner';
 import BannerForm from './BannerForm';
+import BannerStatsSheet from './BannerStatsSheet';
+import { BANNER_STATUS_LABEL, BannerStatus, bannerStatus, formatKstDateTime } from './services/banner-period';
 import { useBannerLocations } from './useBannerLocations';
+
+const STATUS_BADGE: Record<BannerStatus, 'dotNeutral' | 'dotInfo' | 'dotSuccess' | 'dotWarning'> = {
+  inactive: 'dotNeutral',
+  scheduled: 'dotInfo',
+  live: 'dotSuccess',
+  ended: 'dotWarning',
+};
 
 function BannerList() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,11 +46,18 @@ function BannerList() {
   const debouncedSearch = useDebouncedValue(searchInput, 500);
   const trimmedSearch = debouncedSearch.trim();
   const effectiveSearch = trimmedSearch.length >= 2 ? trimmedSearch : undefined;
-  const { items, isLoading, refetch, totalPage } = useBanners({ page: currentPage, ...filter, search: effectiveSearch });
+  const { items, isLoading, refetch, totalPage } = useBanners({
+    page: currentPage,
+    ...filter,
+    search: effectiveSearch,
+  });
 
   const [isOpenCreate, setOpenCreate] = useState(false);
   const [isOpenEdit, setOpenEdit] = useState(false);
   const [focused, setFocused] = useState<Banner | undefined>(undefined);
+  const [statsTarget, setStatsTarget] = useState<Banner | undefined>(undefined);
+  const [isOpenStats, setOpenStats] = useState(false);
+  const now = new Date();
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<Banner | undefined>(undefined);
@@ -49,6 +65,11 @@ function BannerList() {
   const handleEdit = (value: Banner) => {
     setFocused(value);
     setOpenEdit(true);
+  };
+
+  const handleStats = (value: Banner) => {
+    setStatsTarget(value);
+    setOpenStats(true);
   };
 
   const handleRemove = (value: Banner) => {
@@ -143,12 +164,27 @@ function BannerList() {
       },
     },
     {
-      accessorKey: 'isActive',
-      header: '활성화',
+      id: 'period',
+      header: '게시 기간',
+      size: 168,
+      cell: ({ row }) => {
+        const { startAt, endAt } = row.original;
+        if (!startAt && !endAt) return <span className='text-muted-foreground'>제한 없음</span>;
+        return (
+          <div className='flex flex-col tabular-nums'>
+            <span>{startAt ? formatKstDateTime(startAt) : '제한 없음'} ~</span>
+            <span>{endAt ? formatKstDateTime(endAt) : '제한 없음'}</span>
+          </div>
+        );
+      },
+    },
+    {
+      id: 'status',
+      header: '상태',
       size: 96,
       cell: ({ row }) => {
-        const value = row.original.isActive;
-        return <Badge variant={value ? 'dotSuccess' : 'dotNeutral'}>{value ? '활성화' : '비활성화'}</Badge>;
+        const status = bannerStatus(row.original, now);
+        return <Badge variant={STATUS_BADGE[status]}>{BANNER_STATUS_LABEL[status]}</Badge>;
       },
     },
     {
@@ -161,6 +197,10 @@ function BannerList() {
             {
               label: '수정',
               onClick: () => handleEdit(row.original),
+            },
+            {
+              label: '통계',
+              onClick: () => handleStats(row.original),
             },
             {
               label: '삭제',
@@ -262,6 +302,15 @@ function BannerList() {
       <Sheet open={isOpenEdit} onOpenChange={setOpenEdit}>
         <AdminSideSheetContent title='배너 수정' size='md'>
           <BannerForm init={focused} reload={refetch} close={() => setOpenEdit(false)} />
+        </AdminSideSheetContent>
+      </Sheet>
+      <Sheet open={isOpenStats} onOpenChange={setOpenStats}>
+        <AdminSideSheetContent
+          title={statsTarget ? `배너 통계 (${statsTarget.name})` : '배너 통계'}
+          description='날짜는 한국 시간 기준이에요.'
+          size='lg'
+        >
+          {statsTarget ? <BannerStatsSheet key={statsTarget.id} banner={statsTarget} /> : null}
         </AdminSideSheetContent>
       </Sheet>
     </>

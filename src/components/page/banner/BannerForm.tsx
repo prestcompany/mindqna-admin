@@ -1,6 +1,7 @@
 import { Banner, createBanner, updateBanner } from '@/client/banner';
 import { Locale } from '@/client/types';
 import { LOCALE_OPTIONS } from '@/components/shared/form/constants/locale-options';
+import { DatePicker } from '@/components/shared/ui/date-picker';
 import { DefinitionRow, PanelBand } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormMessage } from '@/components/ui/form';
@@ -8,12 +9,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Loader2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
 import { AssetsPickerButton, AssetsPickerPanel } from '../assets/AssetsPicker';
+import { errorMessage } from '../coupon/errorMessage';
+import { BannerFormValues, bannerFormSchema } from './services/banner-form';
+import { isoToKstInput, kstInputToIso } from './services/banner-period';
 import { useBannerLocations } from './useBannerLocations';
 
 type Props = {
@@ -27,17 +30,6 @@ const activeOptions = [
   { label: '비활성화', value: 'false' },
 ];
 
-const bannerSchema = z.object({
-  locale: z.string().min(1, '언어를 선택해주세요.'),
-  name: z.string().min(1, '이름을 입력해주세요.'),
-  location: z.string().min(1, '위치를 선택해주세요.'),
-  link: z.string().min(1, '링크를 입력해주세요.'),
-  orderIndex: z.coerce.number().int().min(1, '1 이상의 숫자를 입력해주세요.'),
-  isActive: z.boolean(),
-});
-
-type BannerFormValues = z.infer<typeof bannerSchema>;
-
 function BannerForm({ init, reload, close }: Props) {
   const [isLoading, setLoading] = useState(false);
   const [imageUri, setImageUri] = useState<string>('');
@@ -48,7 +40,7 @@ function BannerForm({ init, reload, close }: Props) {
   const focusedId = init?.id;
 
   const form = useForm<BannerFormValues>({
-    resolver: zodResolver(bannerSchema),
+    resolver: zodResolver(bannerFormSchema),
     defaultValues: {
       locale: 'ko',
       name: '',
@@ -56,6 +48,8 @@ function BannerForm({ init, reload, close }: Props) {
       link: '',
       orderIndex: 1,
       isActive: false,
+      startAt: '',
+      endAt: '',
     },
   });
 
@@ -77,6 +71,8 @@ function BannerForm({ init, reload, close }: Props) {
       link: init.link,
       orderIndex: init.orderIndex ?? 1,
       isActive: init.isActive,
+      startAt: isoToKstInput(init.startAt),
+      endAt: isoToKstInput(init.endAt),
     });
   }, [init]);
 
@@ -98,6 +94,8 @@ function BannerForm({ init, reload, close }: Props) {
           name: values.name,
           orderIndex: values.orderIndex,
           isActive: values.isActive,
+          startAt: kstInputToIso(values.startAt),
+          endAt: kstInputToIso(values.endAt),
         });
       } else {
         await createBanner({
@@ -107,13 +105,15 @@ function BannerForm({ init, reload, close }: Props) {
           location: values.location,
           name: values.name,
           orderIndex: values.orderIndex,
+          startAt: kstInputToIso(values.startAt),
+          endAt: kstInputToIso(values.endAt),
         });
       }
 
       await reload();
       close();
     } catch (err) {
-      toast.error(`${err}`);
+      toast.error(errorMessage(err));
     }
     setLoading(false);
   };
@@ -299,7 +299,89 @@ function BannerForm({ init, reload, close }: Props) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='활성화'>
+            <DefinitionRow label='게시 시작' hint='한국 시간 기준이에요. 비워두면 바로 노출돼요.'>
+              <FormField
+                control={form.control}
+                name='startAt'
+                render={({ field }) => (
+                  <FormItem>
+                    <div className='flex items-center gap-2'>
+                      <FormControl>
+                        <DatePicker
+                          withTime
+                          value={field.value}
+                          onChange={(next) => {
+                            field.onChange(next);
+                            // The pair is judged together and its error sits on 게시 종료.
+                            void form.trigger('endAt');
+                          }}
+                          placeholder='제한 없음'
+                        />
+                      </FormControl>
+                      {field.value ? (
+                        <Button
+                          type='button'
+                          variant='ghost'
+                          size='icon'
+                          className='h-9 w-9 shrink-0'
+                          onClick={() => {
+                            field.onChange('');
+                            void form.trigger('endAt');
+                          }}
+                          aria-label='게시 시작 지우기'
+                        >
+                          <X className='h-4 w-4' />
+                        </Button>
+                      ) : null}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </DefinitionRow>
+
+            <DefinitionRow label='게시 종료' hint='한국 시간 기준이에요. 비워두면 끝나는 날 없이 노출돼요.'>
+              <FormField
+                control={form.control}
+                name='endAt'
+                render={({ field }) => (
+                  <FormItem>
+                    <div className='flex items-center gap-2'>
+                      <FormControl>
+                        <DatePicker
+                          withTime
+                          value={field.value}
+                          onChange={(next) => {
+                            field.onChange(next);
+                            // The pair is judged together and its error sits on 게시 종료.
+                            void form.trigger('endAt');
+                          }}
+                          placeholder='제한 없음'
+                        />
+                      </FormControl>
+                      {field.value ? (
+                        <Button
+                          type='button'
+                          variant='ghost'
+                          size='icon'
+                          className='h-9 w-9 shrink-0'
+                          onClick={() => {
+                            field.onChange('');
+                            void form.trigger('endAt');
+                          }}
+                          aria-label='게시 종료 지우기'
+                        >
+                          <X className='h-4 w-4' />
+                        </Button>
+                      ) : null}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </DefinitionRow>
+
+            <DefinitionRow label='활성화' hint='활성화돼 있고 게시 기간 안일 때만 앱에 노출돼요.'>
               <FormField
                 control={form.control}
                 name='isActive'
