@@ -14,10 +14,7 @@ test('the memo is at most 191 characters, the server limit', () => {
 });
 
 test('the saved values are trimmed', () => {
-  assert.deepEqual(toSaveInput({ userId: '  u-1 ', memo: ' App Review 데모 ' }), {
-    userId: 'u-1',
-    memo: 'App Review 데모',
-  });
+  assert.deepEqual(toSaveInput({ userId: '  u-1 ', memo: ' QA 담당자 ' }), { userId: 'u-1', memo: 'QA 담당자' });
 });
 
 test('a 404 means no such user; other errors show the server message', () => {

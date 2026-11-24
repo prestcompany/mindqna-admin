@@ -1139,15 +1139,3 @@ export type FeatureFlagAppVersion = {
 export type FeatureFlagsResult = { items: FeatureFlagItem[]; versions?: FeatureFlagAppVersion[] };
 
 export type UpdateFeatureFlagParams = Omit<FeatureFlagRow, 'key' | 'updatedAt'>;
-
-/** 운영·스테이징에서 Sandbox/TestFlight 구매를 실제로 지급받는 계정. */
-export type SandboxTesterRow = {
-  userId: string;
-  /** 탈퇴한 계정이면 null. */
-  username: string | null;
-  memo: string;
-  /** ISO */
-  createdAt: string;
-};
-
-export type SandboxTestersResult = { items: SandboxTesterRow[] };

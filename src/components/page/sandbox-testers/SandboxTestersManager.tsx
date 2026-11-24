@@ -1,6 +1,11 @@
-import { getSandboxTesters, removeSandboxTester, saveSandboxTester } from '@/client/sandbox-testers';
-import type { SandboxTesterRow } from '@/client/types';
+import {
+  getSandboxTesters,
+  removeSandboxTester,
+  saveSandboxTester,
+  type SandboxTesterRow,
+} from '@/client/sandbox-testers';
 import DataTable from '@/components/shared/ui/data-table';
+import TableRowActions from '@/components/shared/ui/table-row-actions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -68,17 +73,21 @@ function SandboxTestersManager() {
     {
       accessorKey: 'userId',
       header: 'userId',
+      size: 300,
       cell: ({ row }) => <span className='font-mono text-xs'>{row.original.userId}</span>,
     },
     {
       accessorKey: 'username',
       header: '이름',
+      size: 160,
       cell: ({ row }) => row.original.username ?? <span className='text-muted-foreground'>탈퇴한 계정</span>,
     },
-    { accessorKey: 'memo', header: '메모' },
+    // 문자열 셀이라 DataTable 이 말줄임과 툴팁을 붙인다.
+    { accessorKey: 'memo', header: '메모', size: 320 },
     {
       accessorKey: 'createdAt',
       header: '넣은 날',
+      size: 150,
       cell: ({ row }) => (
         <span className='tabular-nums'>{dayjs(row.original.createdAt).format('YYYY-MM-DD HH:mm')}</span>
       ),
@@ -86,20 +95,17 @@ function SandboxTestersManager() {
     {
       id: 'actions',
       header: '',
+      size: 64,
       cell: ({ row }) => (
-        <div className='flex justify-end gap-2'>
-          <Button
-            type='button'
-            variant='outline'
-            size='sm'
-            onClick={() => setDraft({ userId: row.original.userId, memo: row.original.memo })}
-          >
-            메모 수정
-          </Button>
-          <Button type='button' variant='outline' size='sm' onClick={() => setRemoving(row.original)}>
-            삭제
-          </Button>
-        </div>
+        <TableRowActions
+          items={[
+            {
+              label: '메모 수정',
+              onClick: () => setDraft({ userId: row.original.userId, memo: row.original.memo }),
+            },
+            { label: '삭제', onClick: () => setRemoving(row.original), destructive: true },
+          ]}
+        />
       ),
     },
   ];
@@ -107,12 +113,12 @@ function SandboxTestersManager() {
   return (
     <div className='space-y-4'>
       <div className='rounded-lg border border-warning/35 bg-warning/15 px-4 py-3 text-sm text-warning-foreground'>
-        운영과 스테이징에서는 이 목록의 계정만 Sandbox·TestFlight 테스트 결제로 실제 유료 혜택을 받습니다. 바꾸면 바로
+        운영, 스테이징, 중국에서는 이 목록의 계정만 Sandbox·TestFlight 테스트 결제로 실제 유료 혜택을 받습니다. 바꾸면 바로
         적용됩니다.
       </div>
 
       <form
-        className='space-y-3 rounded-lg border border-border bg-white p-5'
+        className='space-y-3 rounded-lg border border-border bg-card p-5'
         onSubmit={(e) => {
           e.preventDefault();
           void save();
@@ -140,7 +146,7 @@ function SandboxTestersManager() {
               value={draft.memo}
               maxLength={MEMO_MAX}
               onChange={(e) => setDraft((p) => ({ ...p, memo: e.target.value }))}
-              placeholder='예: App Review 데모 계정, QA 담당자'
+              placeholder='예: QA 담당자, TestFlight 테스터'
             />
           </div>
           <Button type='submit' disabled={saving}>
