@@ -44,13 +44,15 @@ test('the upstream URL encodes each key segment', () => {
 test('only a body that parses as JSON passes', () => {
   assert.equal(isJsonBody(Buffer.from('{"v":"5.7","layers":[]}')), true);
   assert.equal(isJsonBody(Buffer.from(' [1, 2] ')), true);
+  // 앞에 UTF-8 BOM 이 붙은 Lottie 도 JSON 으로 받는다(브라우저 response.json() 과 같게).
+  assert.equal(isJsonBody(Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), Buffer.from('{"v":"5.7"}')])), true);
   for (const body of ['<script>steal()</script>', '<html><body>x</body></html>', '{"v":', '']) {
     assert.equal(isJsonBody(Buffer.from(body)), false, body);
   }
 });
 
-test('assets stop just under the 4.5MB Vercel response limit', () => {
-  assert.equal(MAX_ASSET_BYTES, 4.4 * 1024 * 1024);
+test('assets stop under the 4.5MB Vercel response limit in either unit', () => {
+  assert.equal(MAX_ASSET_BYTES, 4_000_000);
 });
 
 test('every response carries nosniff, attachment and a sandboxing CSP', () => {

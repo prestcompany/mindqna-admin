@@ -20,15 +20,16 @@ export function upstreamUrl(key: string): string {
  */
 export function isJsonBody(body: Buffer): boolean {
   try {
-    JSON.parse(body.toString('utf8'));
+    // TextDecoder 는 앞의 UTF-8 BOM 을 떼어 낸다. 브라우저 response.json() 과 같게 BOM 붙은 Lottie 도 받는다.
+    JSON.parse(new TextDecoder().decode(body));
     return true;
   } catch {
     return false;
   }
 }
 
-/** Vercel 함수 응답 한도(4.5MB)보다 조금 작게 끊어, 넘으면 불투명하게 실패하지 않고 413 을 준다. */
-export const MAX_ASSET_BYTES = 4.4 * 1024 * 1024;
+/** Vercel 함수 응답 한도(4.5MB)보다 작게 끊어, 넘으면 불투명하게 실패하지 않고 413 을 준다. 단위(MB·MiB)에 상관없이 안전한 값. */
+export const MAX_ASSET_BYTES = 4_000_000;
 
 /** fetch().json() 에는 영향이 없고, 주소를 직접 열었을 때 문서로 실행되지 않게 한다. */
 export const S3_ASSET_HEADERS = {
