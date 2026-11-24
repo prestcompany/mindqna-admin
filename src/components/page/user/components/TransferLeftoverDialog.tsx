@@ -119,7 +119,7 @@ function TransferLeftoverDialog({
               </Button>
             ) : (
               <>
-                <Button type='button' variant='outline' onClick={() => close(false)}>
+                <Button type='button' variant='outline' onClick={() => close(false)} disabled={saving}>
                   취소
                 </Button>
                 <Button type='button' onClick={ask} disabled={saving}>
