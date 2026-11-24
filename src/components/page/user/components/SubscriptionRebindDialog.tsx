@@ -67,6 +67,8 @@ function SubscriptionRebindDialog({
   const [result, setResult] = useState<SubscriptionRebindResult | null>(null);
 
   const close = (next: boolean) => {
+    // 저장 중에 닫으면 늦게 온 결과가 닫힌 창을 다시 채운다. 끝날 때까지 닫지 않는다.
+    if (!next && saving) return;
     if (!next) {
       setDraft(EMPTY);
       setResult(null);
@@ -92,6 +94,8 @@ function SubscriptionRebindDialog({
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['user-entitlements', username] }),
         queryClient.invalidateQueries({ queryKey: ['user-subscription-status', username] }),
+        queryClient.invalidateQueries({ queryKey: ['user-profiles', username] }),
+        queryClient.invalidateQueries({ queryKey: ['user-purchases', username] }),
       ]);
     } catch (err) {
       toast.error(rebindErrorMessage(err));
@@ -163,7 +167,8 @@ function SubscriptionRebindDialog({
                   className='font-mono'
                 />
                 <p className='text-xs text-muted-foreground'>
-                  서버 로그 iap.claim_deleted_owner 줄이나 결제자의 스토어 영수증에서 찾습니다.
+                  결제자의 스토어 영수증(iOS originalTransactionId, Play 구매 토큰)에서 찾습니다. 서버 로그
+                  iap.claim_deleted_owner 의 txHash·requester 로 맞는 거래인지 확인할 수 있습니다.
                 </p>
               </div>
               <div className='space-y-1.5'>

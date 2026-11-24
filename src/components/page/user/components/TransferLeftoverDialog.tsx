@@ -46,6 +46,8 @@ function TransferLeftoverDialog({
   const draft = { fromUserName: from, toUserName: username };
 
   const close = (next: boolean) => {
+    // 저장 중에 닫으면 늦게 온 결과가 닫힌 창을 다시 채운다. 끝날 때까지 닫지 않는다.
+    if (!next && saving) return;
     if (!next) {
       setFrom('');
       setResult(null);
