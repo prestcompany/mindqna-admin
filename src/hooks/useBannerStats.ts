@@ -1,5 +1,5 @@
 import { getBannerStats } from '@/client/banner';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 type Props = {
   id?: number;
@@ -16,6 +16,8 @@ function useBannerStats(by: Props) {
     queryKey: ['banner-stats', id, from, to],
     queryFn: () => getBannerStats(id!, { from, to }),
     enabled: enabled && id != null,
+    // Keep the last range on screen while the next one loads instead of blanking the sheet.
+    placeholderData: keepPreviousData,
   });
 
   return { stats: data, isLoading, isError, error };

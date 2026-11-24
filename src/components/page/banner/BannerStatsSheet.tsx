@@ -96,7 +96,7 @@ function BannerStatsSheet({ banner }: { banner: Banner }) {
     next && setRange((prev) => ({ ...prev, from: next.format('YYYY-MM-DD') }));
   const setTo = (next: dayjs.Dayjs | null) => next && setRange((prev) => ({ ...prev, to: next.format('YYYY-MM-DD') }));
 
-  const notice = stats ? viewsClicksNotice(range.from, stats.statsSince) : null;
+  const notice = stats ? viewsClicksNotice(stats.from, stats.statsSince) : null;
   const days = stats?.days ?? [];
 
   const chartData: ChartData<'line', number[], string> = {
@@ -181,7 +181,7 @@ function BannerStatsSheet({ banner }: { banner: Banner }) {
       {isError ? <p className='text-sm text-destructive'>{errorMessage(error)}</p> : null}
 
       {notice ? (
-        <div className='flex items-start gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground'>
+        <div className='flex items-start gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground'>
           <Info className='mt-0.5 h-4 w-4 shrink-0 text-muted-foreground' aria-hidden />
           <span>{notice}</span>
         </div>

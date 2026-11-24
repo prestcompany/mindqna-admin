@@ -103,9 +103,14 @@ test('defaultStatsRange uses the period clamped to today', () => {
     to: '2026-11-24',
   });
   // Ended banner: start → end, in KST days.
-  assert.deepEqual(defaultStatsRange({ startAt: '2026-10-01T00:00:00Z', endAt: '2026-10-10T15:00:00Z' }, now), {
+  assert.deepEqual(defaultStatsRange({ startAt: '2026-10-01T00:00:00Z', endAt: '2026-10-10T15:01:00Z' }, now), {
     from: '2026-10-01',
     to: '2026-10-11',
+  });
+  // An end at exactly KST midnight (exclusive) does not add the day it opens.
+  assert.deepEqual(defaultStatsRange({ startAt: '2026-10-01T00:00:00Z', endAt: '2026-10-10T15:00:00Z' }, now), {
+    from: '2026-10-01',
+    to: '2026-10-10',
   });
 });
 
@@ -116,6 +121,8 @@ test('defaultStatsRange falls back to the last 30 days', () => {
   assert.deepEqual(defaultStatsRange({ startAt: null, endAt: null }, now), last30);
   // Not started yet.
   assert.deepEqual(defaultStatsRange({ startAt: '2026-12-01T00:00:00Z' }, now), last30);
+  // No start but already ended: the 30 days up to the end, not up to today.
+  assert.deepEqual(defaultStatsRange({ endAt: '2026-09-30T15:00:00Z' }, now), { from: '2026-09-01', to: '2026-09-30' });
 });
 
 test('defaultStatsRange never exceeds the 366-day cap', () => {

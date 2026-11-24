@@ -31,11 +31,11 @@ import BannerStatsSheet from './BannerStatsSheet';
 import { BANNER_STATUS_LABEL, BannerStatus, bannerStatus, formatKstDateTime } from './services/banner-period';
 import { useBannerLocations } from './useBannerLocations';
 
-const STATUS_BADGE: Record<BannerStatus, 'dotNeutral' | 'dotInfo' | 'dotSuccess' | 'dotWarning'> = {
+const STATUS_BADGE: Record<BannerStatus, 'dotNeutral' | 'dotInfo' | 'dotSuccess'> = {
   inactive: 'dotNeutral',
   scheduled: 'dotInfo',
   live: 'dotSuccess',
-  ended: 'dotWarning',
+  ended: 'dotNeutral',
 };
 
 function BannerList() {

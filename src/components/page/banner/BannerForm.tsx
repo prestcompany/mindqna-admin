@@ -340,7 +340,10 @@ function BannerForm({ init, reload, close }: Props) {
               />
             </DefinitionRow>
 
-            <DefinitionRow label='게시 종료' hint='한국 시간 기준이에요. 비워두면 끝나는 날 없이 노출돼요.'>
+            <DefinitionRow
+              label='게시 종료'
+              hint='한국 시간 기준이에요. 이 시각이 되면 노출이 멈춰요. 비워두면 끝나는 날 없이 노출돼요.'
+            >
               <FormField
                 control={form.control}
                 name='endAt'
@@ -356,6 +359,7 @@ function BannerForm({ init, reload, close }: Props) {
                             // The pair is judged together and its error sits on 게시 종료.
                             void form.trigger('endAt');
                           }}
+                          min={form.watch('startAt').slice(0, 10) || undefined}
                           placeholder='제한 없음'
                         />
                       </FormControl>

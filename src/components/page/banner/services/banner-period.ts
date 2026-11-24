@@ -126,19 +126,19 @@ export function periodError(startInput: string, endInput: string): string | null
 export type StatsRange = { from: string; to: string };
 
 /**
- * The range the stats sheet opens on: the banner's own period, cut off at today. A banner
- * with no start, or one that has not started yet, opens on the last 30 days instead. The
- * result never exceeds the endpoint's 366-day cap.
+ * The range the stats sheet opens on: the banner's own period, cut off at today. The end
+ * is exclusive, so an end at exactly KST midnight belongs to the day before. A banner with
+ * no start opens on the 30 days up to its end (or today); one that has not started yet
+ * opens on the last 30 days. The result never exceeds the endpoint's 366-day cap.
  */
 export function defaultStatsRange(banner: { startAt?: string | null; endAt?: string | null }, now: Date): StatsRange {
   const today = kstDateOf(now);
-  const end = banner.endAt ? kstDateOf(new Date(banner.endAt)) : today;
+  const end = banner.endAt ? kstDateOf(new Date(new Date(banner.endAt).getTime() - 1)) : today;
   const to = end < today ? end : today;
   const start = banner.startAt ? kstDateOf(new Date(banner.startAt)) : null;
 
-  if (!start || start > to) {
-    return { from: addDays(today, -(DEFAULT_STATS_DAYS - 1)), to: today };
-  }
+  if (!start) return { from: addDays(to, -(DEFAULT_STATS_DAYS - 1)), to };
+  if (start > to) return { from: addDays(today, -(DEFAULT_STATS_DAYS - 1)), to: today };
 
   const earliest = addDays(to, -(MAX_STATS_DAYS - 1));
   return { from: start < earliest ? earliest : start, to };
