@@ -1,6 +1,6 @@
 import { createInteriorTemplate, updateInteriorTemplate } from '@/client/interior';
 import { createLocale } from '@/client/locale';
-import { ImgItem, InteriorTemplate, InteriorTemplateType } from '@/client/types';
+import { ImgItem, InteriorFeature, InteriorTemplate, InteriorTemplateType, SlotFeatureConfig } from '@/client/types';
 import FormSection from '@/components/shared/form/ui/form-section';
 import { DefinitionRow, PanelBand } from '@/components/shared/ui/definition-row';
 import { Button } from '@/components/ui/button';
@@ -11,12 +11,26 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import useTotalRooms from '@/hooks/useTotalRooms';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Badge } from '@/components/ui/badge';
+import { toErrorMessage } from '@/lib/error-message';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { AssetsPickerButton, AssetsPickerPanel } from '../assets/AssetsPicker';
+import { boardSlotProblems } from './photo/board-rules';
+import BoardPreview from './photo/BoardPreview';
+import PhotoImagesField from './photo/PhotoImagesField';
+import PhotoPreview from './photo/PhotoPreview';
+import { imageProblems, missingSlotKeys, photoConfigProblems } from './photo/slot-rules';
+import SlotEditor from './photo/SlotEditor';
+import SvgSlotImport from './photo/SvgSlotImport';
+import { FEATURE_LABEL, featureTemplateProblems, OPEN_FEATURES, toTemplateBody } from './photo/template-rules';
+import MessageFields from './photo/MessageFields';
+import MessagePreview from './photo/MessagePreview';
+import { useMessageDraft } from './photo/useMessageDraft';
+import { usePhotoDraft } from './photo/usePhotoDraft';
 
 const schema = z.object({
   name: z.string().min(1, '필수'),
@@ -40,6 +54,8 @@ type FormValues = z.infer<typeof schema>;
 
 type InteriorFormProps = {
   init?: InteriorTemplate;
+  /** 새로 만들 때 처음 골라 둘 기능. 사진 가구 탭에서 열면 'photo'. */
+  defaultFeature?: InteriorFeature;
   reload: () => Promise<any>;
   close: () => void;
 };
@@ -63,18 +79,29 @@ const premiumOptions = [
   { label: '하트', value: 'false' },
 ];
 
+const featureOptions = (Object.keys(FEATURE_LABEL) as InteriorFeature[]).map((value) => ({
+  value,
+  label: FEATURE_LABEL[value],
+  disabled: !OPEN_FEATURES.includes(value),
+}));
+
 const activeOptions = [
   { label: '활성화', value: 'true' },
   { label: '비활성화', value: 'false' },
 ];
 
-function InteriorForm({ init, reload, close }: InteriorFormProps) {
+function InteriorForm({ init, defaultFeature = 'none', reload, close }: InteriorFormProps) {
   const [isLoading, setLoading] = useState(false);
   const [focusedId, setFocusedId] = useState<number | undefined>(undefined);
   const [image, setImage] = useState<ImgItem>();
   // A step inside this same sheet, not a second overlay on top of it — picking swaps this
   // whole body for the grid, and the form's own state isn't touched by the swap.
-  const [pickingImage, setPickingImage] = useState(false);
+  const [picking, setPicking] = useState<'img' | 'base' | 'overlay' | 'paper' | null>(null);
+  // 기능은 만들 때만 고른다. 수정 화면에서는 서버 값을 보여 주기만 한다.
+  const [feature, setFeature] = useState<InteriorFeature>(init?.feature ?? defaultFeature);
+  // 사진 가구 상태는 여기서 든다. 그림 고르기 화면으로 바뀌어도 사라지지 않는다.
+  const photo = usePhotoDraft(init, image?.uri ?? init?.img?.uri, feature);
+  const message = useMessageDraft(init);
   const [coords, setCoords] = useState<{ x: number; y: number }[]>([
     { x: 0, y: 5 },
     { x: 1, y: 5 },
@@ -150,7 +177,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
       category: 'furniture',
       room: 'room',
       isPremium: 'true',
-      isActive: 'true',
+      isActive: 'false',
       price: 0,
       width: 1,
       height: 1,
@@ -182,11 +209,57 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
     });
   }, [init]);
 
+  const [cellWidth, cellHeight] = useWatch({ control: form.control, name: ['width', 'height'] });
+
   const save = async (values: FormValues) => {
     if (!image) {
       toast.warning('이미지를 선택해주세요');
       return;
     }
+    const problems = featureTemplateProblems({ feature, type: values.type, price: values.price });
+    if (feature === 'photo' || feature === 'board') {
+      // 칠판은 칸 1–4개와 글 속성까지 본다.
+      problems.push(
+        ...(feature === 'board'
+          ? // 바닥 그림 크기를 모르면 글 칸을 잴 수 없다. imageProblems 가 이미 알린다.
+            [
+              ...imageProblems(photo),
+              ...(photo.imgHeight > 0 ? boardSlotProblems(photo.boardSlots, photo.imgHeight) : []),
+            ]
+          : photoConfigProblems(photo)),
+      );
+      // 내용은 칸 키로 붙어 있다. 산 공간이 있으면 저장된 키를 지울 수 없다(서버도 같은 규칙).
+      const savedSlots = (init?.featureConfig as SlotFeatureConfig | null | undefined)?.slots ?? [];
+      const missing = photo.purchasedCount ? missingSlotKeys(savedSlots, photo.slots) : [];
+      if (missing.length) {
+        problems.push(
+          `산 공간 ${photo.purchasedCount}곳의 ${feature === 'board' ? '글이' : '사진이'} 끊깁니다. 칸 ${missing.join(', ')} 을(를) 지울 수 없습니다.`,
+        );
+      }
+    }
+    if (feature === 'message') problems.push(...message.problems());
+    if (problems.length) {
+      toast.error('저장할 수 없습니다', {
+        description: (
+          <ul className='list-disc space-y-0.5 pl-4'>
+            {problems.map((p) => (
+              <li key={p}>{p}</li>
+            ))}
+          </ul>
+        ),
+      });
+      return;
+    }
+    const featureBody = toTemplateBody({
+      mode: focusedId ? 'update' : 'create',
+      feature,
+      config:
+        feature === 'photo' || feature === 'board'
+          ? photo.toConfig()
+          : feature === 'message'
+            ? message.toConfig()
+            : null,
+    });
     try {
       setLoading(true);
       const isPaid = values.isPremium === 'true';
@@ -206,6 +279,7 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
           price: values.price,
           type: values.type as InteriorTemplateType,
           width: values.width,
+          ...featureBody,
         });
       } else {
         await createInteriorTemplate({
@@ -216,10 +290,11 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
           disablePositions: findMismatchedCoords(coords, coordOptions),
           height: values.height,
           isPaid,
-          isActive: false,
+          isActive,
           price: values.price,
           type: values.type as InteriorTemplateType,
           width: values.width,
+          ...featureBody,
         });
         await createLocale({ key: values.name, locale: 'ko', value: values.valueKo ?? '' });
         await createLocale({ key: values.name, locale: 'en', value: values.valueEn ?? '' });
@@ -233,21 +308,24 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
       await reload();
       close();
     } catch (err) {
-      toast.error(`${err}`);
+      toast.error(toErrorMessage(err));
     } finally {
       setLoading(false);
     }
   };
 
-  if (pickingImage) {
+  if (picking) {
     return (
       <AssetsPickerPanel
-        selectedImage={image}
+        selectedImage={picking === 'img' ? image : undefined}
         onSelect={(img) => {
-          setImage(img);
-          setPickingImage(false);
+          if (picking === 'img') setImage(img);
+          else if (picking === 'base') photo.pickBase(img);
+          else if (picking === 'paper') message.pickPaper(img);
+          else photo.pickOverlay(img);
+          setPicking(null);
         }}
-        onBack={() => setPickingImage(false)}
+        onBack={() => setPicking(null)}
       />
     );
   }
@@ -264,14 +342,24 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
           <div className='-mx-6'>
             <PanelBand title='기본 정보' />
 
-            <DefinitionRow label='대표 이미지' required>
+            <DefinitionRow
+              label='대표 이미지'
+              required
+              hint={
+                feature === 'message'
+                  ? '방에 놓일 때도 이 그림을 써요(글 없는 그림).'
+                  : feature === 'board'
+                    ? '상점과, 앱이 칠판을 못 그릴 때 이 그림을 써요. 예시 글이 없는 빈 칠판 그림을 올려 주세요.'
+                    : undefined
+              }
+            >
               <div className='flex flex-col items-start gap-2'>
                 {image && (
                   <div className='flex h-[200px] w-[200px] items-center justify-center rounded-md border border-dashed border-border bg-transparent p-2'>
                     <img src={image.uri} alt='interior-preview' className='h-full w-full object-contain' />
                   </div>
                 )}
-                <AssetsPickerButton onOpen={() => setPickingImage(true)} />
+                <AssetsPickerButton onOpen={() => setPicking('img')} />
               </div>
             </DefinitionRow>
 
@@ -331,10 +419,16 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                       >
                         {typeOptions.map((opt) => (
                           <div key={opt.value}>
-                            <RadioGroupItem value={opt.value} id={`type-${opt.value}`} className='peer sr-only' />
+                            <RadioGroupItem
+                              value={opt.value}
+                              id={`type-${opt.value}`}
+                              // 쪽지 가구는 아이템만 된다(서버가 거절한다).
+                              disabled={feature === 'message' && opt.value !== 'item'}
+                              className='peer sr-only'
+                            />
                             <Label
                               htmlFor={`type-${opt.value}`}
-                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                              className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-disabled:cursor-not-allowed peer-disabled:text-faint peer-disabled:hover:bg-background peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
                             >
                               {opt.label}
                             </Label>
@@ -346,6 +440,50 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                   </FormItem>
                 )}
               />
+            </DefinitionRow>
+
+            <DefinitionRow
+              label='기능'
+              hint={
+                focusedId
+                  ? '기능은 만든 뒤 바꿀 수 없습니다.'
+                  : '사진·칠판 가구는 가격이 있는 아이템이나 이벤트만, 쪽지 가구는 가격이 있는 아이템만 됩니다.'
+              }
+            >
+              {focusedId ? (
+                <Badge variant='softNeutral'>{FEATURE_LABEL[feature]}</Badge>
+              ) : (
+                <RadioGroup
+                  value={feature}
+                  onValueChange={(value) => {
+                    setFeature(value as InteriorFeature);
+                    if (value === 'message' && form.getValues('type') !== 'item') {
+                      form.setValue('type', 'item');
+                      toast.info('쪽지 가구는 아이템만 됩니다. 타입을 아이템으로 바꿨습니다.');
+                    }
+                  }}
+                  aria-label='기능'
+                  className='grid grid-cols-2 gap-2 sm:grid-cols-4'
+                >
+                  {featureOptions.map((opt) => (
+                    <div key={opt.value}>
+                      <RadioGroupItem
+                        value={opt.value}
+                        id={`feature-${opt.value}`}
+                        disabled={opt.disabled}
+                        className='peer sr-only'
+                      />
+                      <Label
+                        htmlFor={`feature-${opt.value}`}
+                        className='flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-disabled:cursor-not-allowed peer-disabled:text-faint peer-disabled:hover:bg-background peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground'
+                      >
+                        {opt.label}
+                        {opt.disabled ? <span className='sr-only'> (준비 중)</span> : null}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              )}
             </DefinitionRow>
 
             <DefinitionRow label='카테고리' required>
@@ -519,6 +657,81 @@ function InteriorForm({ init, reload, close }: InteriorFormProps) {
                 )}
               />
             </DefinitionRow>
+            {feature === 'photo' ? (
+              <>
+                <PanelBand title='사진 가구' />
+                <PhotoImagesField draft={photo} onPick={setPicking} />
+                <DefinitionRow label='사진 칸' required hint='1–10개. 끌어서 옮기고 모서리로 크기를 바꿉니다.'>
+                  <div className='space-y-3'>
+                    <SvgSlotImport draft={photo} />
+                    <SlotEditor draft={photo} />
+                  </div>
+                </DefinitionRow>
+                {photo.base?.uri && photo.imgWidth > 0 ? (
+                  <DefinitionRow label='미리보기' hint='앱과 같은 순서로 그립니다: 바닥 그림, 칸, 덮개 그림.'>
+                    <PhotoPreview
+                      cells={{ width: Number(cellWidth) || 1, height: Number(cellHeight) || 1 }}
+                      imgWidth={photo.imgWidth}
+                      imgHeight={photo.imgHeight}
+                      baseUri={photo.base.uri}
+                      overlayUri={photo.overlay?.uri}
+                      slots={photo.slots}
+                    />
+                  </DefinitionRow>
+                ) : null}
+              </>
+            ) : null}
+            {feature === 'board' ? (
+              <>
+                <PanelBand title='칠판 가구' />
+                <PhotoImagesField draft={photo} onPick={setPicking} />
+                <DefinitionRow
+                  label='글 칸'
+                  required
+                  hint='1–4개. 끌어서 옮기고 모서리로 크기를 바꿉니다. 칸마다 글자색·크기·최대 글자·줄·정렬을 정합니다.'
+                >
+                  <div className='space-y-3'>
+                    <SvgSlotImport draft={photo} />
+                    <SlotEditor draft={photo} />
+                  </div>
+                </DefinitionRow>
+                {photo.base?.uri && photo.imgWidth > 0 ? (
+                  <DefinitionRow
+                    label='미리보기'
+                    hint='앱과 같은 순서로 그립니다: 바닥 그림, 예시 글(최대 글자·줄까지 채움), 덮개 그림.'
+                  >
+                    <BoardPreview
+                      cells={{ width: Number(cellWidth) || 1, height: Number(cellHeight) || 1 }}
+                      imgWidth={photo.imgWidth}
+                      imgHeight={photo.imgHeight}
+                      baseUri={photo.base.uri}
+                      overlayUri={photo.overlay?.uri}
+                      slots={photo.boardSlots}
+                    />
+                  </DefinitionRow>
+                ) : null}
+              </>
+            ) : null}
+            {feature === 'message' ? (
+              <>
+                <PanelBand title='쪽지 가구' />
+                <MessageFields draft={message} onPick={() => setPicking('paper')} />
+                {message.paper?.uri && message.paperSize ? (
+                  <DefinitionRow
+                    label='미리보기'
+                    hint='앱 읽기 화면과 같은 자리에 그립니다: 편지지, 예시 글(최대 글자·줄까지 채움), 서명.'
+                  >
+                    <MessagePreview
+                      paperUri={message.paper.uri}
+                      paperWidth={message.paperSize.width}
+                      paperHeight={message.paperSize.height}
+                      maxLength={message.maxLength}
+                      maxLines={message.maxLines}
+                    />
+                  </DefinitionRow>
+                ) : null}
+              </>
+            ) : null}
           </div>
 
           <FormSection title='배치 가능 좌표' description='클릭한 좌표는 배치 가능 영역으로 처리됩니다.'>
