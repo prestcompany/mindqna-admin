@@ -2,6 +2,7 @@ import { getSpacePetInterior } from '@/client/space';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
+import dayjs from 'dayjs';
 import { ImageOff, Loader2 } from 'lucide-react';
 import { getPetTypeLabel } from '../../utils/space-display';
 
@@ -90,26 +91,50 @@ function SpacePetInteriorTab({ spaceId, active }: { spaceId: string; active: boo
         {data.interiorItems.length ? (
           <div className='grid grid-cols-1 gap-2 sm:grid-cols-2'>
             {data.interiorItems.map((item) => (
-              <div
-                key={item.id}
-                className='flex items-center gap-3 rounded-lg border border-border bg-white px-3 py-2.5'
-              >
-                <Thumb uri={item.template?.img?.uri} alt={item.template?.name ?? '인테리어'} />
-                <div className='min-w-0 flex-1'>
-                  <div className='truncate text-sm font-medium text-foreground'>
-                    {item.template?.name ?? `#${item.interiorTemplateId}`}
-                  </div>
-                  <div className='mt-0.5 flex flex-wrap items-center gap-1'>
-                    {item.template?.type ? (
-                      <Badge variant='softNeutral'>
-                        {INTERIOR_TYPE_LABEL[item.template.type] ?? item.template.type}
-                      </Badge>
-                    ) : null}
-                    {item.template?.category ? (
-                      <span className='text-xs text-muted-foreground'>{item.template.category}</span>
-                    ) : null}
+              <div key={item.id} className='space-y-2 rounded-lg border border-border bg-white px-3 py-2.5'>
+                <div className='flex items-center gap-3'>
+                  <Thumb uri={item.template?.img?.uri} alt={item.template?.name ?? '인테리어'} />
+                  <div className='min-w-0 flex-1'>
+                    <div className='truncate text-sm font-medium text-foreground'>
+                      {item.template?.name ?? `#${item.interiorTemplateId}`}
+                    </div>
+                    <div className='mt-0.5 flex flex-wrap items-center gap-1'>
+                      {item.template?.type ? (
+                        <Badge variant='softNeutral'>
+                          {INTERIOR_TYPE_LABEL[item.template.type] ?? item.template.type}
+                        </Badge>
+                      ) : null}
+                      {item.template?.category ? (
+                        <span className='text-xs text-muted-foreground'>{item.template.category}</span>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
+                {/* 사진 가구의 칸별 사진(문의 대응용). 서버 배포 전에는 contents 가 없다. */}
+                {(item.contents ?? []).length ? (
+                  <ul className='space-y-1.5 border-t border-border pt-2' aria-label='칸별 사진'>
+                    {(item.contents ?? []).map((c) => (
+                      <li key={c.slotKey} className='flex items-center gap-2 text-xs text-muted-foreground'>
+                        <span className='w-10 shrink-0 font-medium text-foreground'>칸 {c.slotKey}</span>
+                        {c.img?.uri ? (
+                          <img
+                            src={c.img.uri}
+                            alt={`칸 ${c.slotKey} 사진`}
+                            className='h-10 w-10 shrink-0 rounded-md border border-border object-cover'
+                          />
+                        ) : (
+                          <span className='flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-muted'>
+                            빈 칸
+                          </span>
+                        )}
+                        <span className='min-w-0 truncate font-mono'>{c.updatedByProfileId}</span>
+                        <span className='ml-auto shrink-0 tabular-nums'>
+                          {dayjs(c.updatedAt).format('YYYY-MM-DD HH:mm')}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </div>
             ))}
           </div>
