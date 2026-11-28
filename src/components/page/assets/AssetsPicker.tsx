@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import useAssets from '@/hooks/useAssets';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, Check, ImageIcon, Loader2, Search } from 'lucide-react';
+import { isPickedAsset } from './services/asset-match';
 import { useMemo, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 
@@ -102,7 +103,7 @@ export function AssetsPickerPanel({ onSelect, onBack, selectedImage, className }
               const fileName = item.uri.split('/').pop() || '';
               const imgPart = fileName.includes('img') ? 'img' + fileName.split('img')[1] : fileName;
               const displayName = imgPart || `${item.id}`;
-              const isSelected = selectedImage?.id === item.id;
+              const isSelected = isPickedAsset(selectedImage, item);
 
               return (
                 <button
