@@ -1230,3 +1230,28 @@ export type FeatureFlagAppVersion = {
 export type FeatureFlagsResult = { items: FeatureFlagItem[]; versions?: FeatureFlagAppVersion[] };
 
 export type UpdateFeatureFlagParams = Omit<FeatureFlagRow, 'key' | 'updatedAt'>;
+
+export type RebindPlatform = 'IOS' | 'AOS';
+
+/** 탈퇴한 계정의 살아 있는 구독을 확인된 결제자 계정으로 옮긴다. iOS 는 originalTransactionId, Android 는 구매 토큰. */
+export type SubscriptionRebindParams = { platform: RebindPlatform; transactionId: string; spaceId: string };
+
+export type RebindOutcome = 'created' | 'reactivated' | 'extended' | 'noop';
+
+export type SubscriptionRebindResult = {
+  productId: string;
+  spaceId: string | null;
+  /** ISO */
+  expiresAt: string;
+  outcome: RebindOutcome;
+};
+
+/** 예전 이관이 남긴 temp_ 계정의 공간·구매·원장을 대상 계정으로 옮긴다. */
+export type TransferLeftoverParams = { fromUserName: string; toUserName: string };
+
+export type TransferLeftoverResult = {
+  ledgerRows: number;
+  skippedTicketLedgers: number;
+  /** 한 구독에 골드클럽이 둘 이상 남아 비활성으로 돌린 id. 가장 최근 것만 남긴다. */
+  deactivatedClubs: number[];
+};
