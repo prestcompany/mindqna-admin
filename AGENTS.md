@@ -34,7 +34,7 @@ pnpm test     # 단위 테스트 (tsx --test "src/**/*.test.ts", node:test)
 - **상태관리**: 전역 `Zustand`, 서버 상태 `TanStack Query`
 - **폼**: `react-hook-form` + `zod` (검증 통일)
 - **인증**: NextAuth.js (JWT + refresh 회전)
-- **HTTP**: Axios + 요청/응답 인터셉터(토큰 자동 첨부/갱신)
+- **HTTP**: Axios + 요청/응답 인터셉터(토큰 첨부, 401 이면 로그아웃)
 - **토스트**: `sonner`
 - **날짜**: `dayjs`(표시·포맷), `date-fns`(`DatePicker` 내부)
 - **차트**: Chart.js + react-chartjs-2
@@ -43,9 +43,9 @@ pnpm test     # 단위 테스트 (tsx --test "src/**/*.test.ts", node:test)
 
 ### 주요 설정
 - 개발 포트 **4000**
-- `next.config.js`: `reactStrictMode` + S3 프록시 rewrite만 있습니다(`ignoreBuildErrors` 없음)
+- `next.config.js`: `reactStrictMode`만 있습니다(rewrite·`ignoreBuildErrors` 없음)
 - Tailwind: `preflight: true`
-- API 프록시: `/s3-proxy/*` → `https://mindqna.s3.amazonaws.com/*`
+- S3 자산: S3 에 CORS 가 없어 Lottie JSON 은 `/api/s3-asset?key=<YYYY-MM-DD>/<이름>.json`(`src/pages/api/s3-asset.ts`)으로 받습니다. 어드민 자산 키, JSON 으로 읽히는 본문, 4.4MB 이하만 통과합니다
 - 테마: 라이트 고정(`data-admin-theme="vercel"`), near-black primary
 - 배포 주소(Vercel 프로젝트 `mindbridge-admin`): `https://admin.prestlab.com`(운영), `https://admin-dev.prestlab.com`, `https://admin-china.prestlab.com`
   - 서버 CORS는 이 세 도메인과 `http://localhost:4000`만 허용합니다. `*.vercel.app` 주소는 화면이 열려도 API 호출이 막힙니다.
@@ -53,8 +53,8 @@ pnpm test     # 단위 테스트 (tsx --test "src/**/*.test.ts", node:test)
 
 ### 인증 흐름
 1. NextAuth 자격증명 로그인(`/api/auth/[...nextauth].ts`)
-2. 세션에 JWT 저장 + 자동 갱신
-3. Axios 인터셉터가 토큰 첨부/갱신 처리
+2. 세션에 JWT 저장. next-auth `jwt` 콜백이 서버에서 만료 1분 전부터 갱신(`lib/auth/token-refresh.ts`), refreshToken 은 화면 세션에 넣지 않음
+3. Axios 요청 인터셉터는 토큰만 첨부(만료 판단은 서버가 함)
 4. 401 → 자동 로그아웃 후 `/login` 리다이렉트
 5. `AuthProvider`가 `/login` 외 전 페이지에서 인증 강제
 

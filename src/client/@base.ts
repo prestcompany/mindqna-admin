@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
 import { getSession, signOut } from 'next-auth/react';
 import QueryString from 'qs';
 
@@ -14,37 +13,15 @@ const client = axios.create({
   },
 });
 
-// 토큰 만료 확인 함수
-const isTokenExpired = (token: string) => {
-  try {
-    const decodedToken = jwtDecode<{ exp: number }>(token);
-    const currentTime = Date.now() / 1000;
-    return decodedToken.exp < currentTime;
-  } catch {
-    return true;
-  }
-};
-
 // 요청 인터셉터 추가
 client.interceptors.request.use(async (config) => {
   const session = await getSession();
 
   if (session?.accessToken) {
-    // 토큰이 만료되었는지 확인
-    if (isTokenExpired(session.accessToken)) {
-      try {
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/admin/auth/refresh`, {
-          refreshToken: session.refreshToken,
-        });
-        config.headers.Authorization = `Bearer ${response.data.accessToken}`;
-      } catch (error) {
-        await signOut({ redirect: true, callbackUrl: '/login' });
-        return Promise.reject(error);
-      }
-    } else {
-      // 토큰이 유효한 경우 그대로 사용
-      config.headers.Authorization = `Bearer ${session.accessToken}`;
-    }
+    // 만료 판단은 서버가 한다. 토큰 갱신은 getSession 이 부른 next-auth jwt 콜백이 하고,
+    // 갱신이 실패해 만료된 토큰이 가면 서버가 401 을 주고 아래 응답 인터셉터가 로그아웃한다.
+    // 브라우저 시계로 판단하면 시계가 틀린 PC 에서 서버가 갱신하기 전에 로그아웃된다.
+    config.headers.Authorization = `Bearer ${session.accessToken}`;
   }
   return config;
 });
