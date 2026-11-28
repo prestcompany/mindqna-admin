@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { loginErrorMessage } from '@/lib/login-error';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/router';
@@ -44,9 +45,11 @@ const LoginForm = () => {
     }
   }, []);
 
+  const errorMessage = loginErrorMessage(router?.query.error);
+
   return (
     <>
-      {router?.query.error && router?.query.error !== 'CredentialsSignin' ? (
+      {router?.query.error && !errorMessage ? (
         <div className='mb-4 rounded-lg border border-warning/35 bg-warning/15 px-3 py-2 text-sm text-warning-foreground'>
           로그인 중 오류가 발생했습니다. {router?.query.error}
         </div>
@@ -54,9 +57,12 @@ const LoginForm = () => {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleFinish)} className='space-y-4'>
           <div>
-            {router?.query.error === 'CredentialsSignin' ? (
-              <div className='rounded-lg border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm text-destructive'>
-                로그인을 실패했습니다. 아이디 또는 비밀번호를 다시 확인해주세요.
+            {errorMessage ? (
+              <div
+                role='alert'
+                className='rounded-lg border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm text-destructive'
+              >
+                {errorMessage}
               </div>
             ) : (
               <></>
